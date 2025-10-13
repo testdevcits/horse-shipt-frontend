@@ -10,7 +10,8 @@ import loginBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
 
 const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
+  process.env.REACT_APP_API_BASE_URL ||
+  "https://horse-shipt-frontend.vercel.app/api";
 
 const LoginPage = () => {
   const { login } = useAuth();
