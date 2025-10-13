@@ -1,13 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap');
+
+
+/* Tailwind base styles */
+@tailwind base;
+
+/* Tailwind component classes */
+@tailwind components;
+
+/* Tailwind utility classes */
+@tailwind utilities;
+
+/* Custom global styles (optional) */
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  @apply bg-gray-50 text-gray-900; /* Example: light gray background & dark text */
+  font-family: 'Inter', sans-serif; /* Use a nice font */
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.App-logo {
+  @apply w-32 h-32; /* Example width & height */
+}
+
+.App-header {
+  @apply flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-200 to-blue-400;
+}
+
+.App-link {
+  @apply text-blue-800 hover:text-blue-600 underline;
 }
