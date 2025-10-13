@@ -11,6 +11,8 @@ const OAuthSuccessPage = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(search);
+
+    // Extract user data from query params
     const token = params.get("token");
     const role = params.get("role");
     const _id = params.get("_id") || "";
@@ -22,8 +24,8 @@ const OAuthSuccessPage = () => {
     const firstName = params.get("firstName") || "";
     const lastName = params.get("lastName") || "";
     const locale = params.get("locale") || "";
-    const isLogin = params.get("isLogin") === "true"; // parse boolean
-    const isActive = params.get("isActive") !== "false"; // default true
+    const isLogin = params.get("isLogin") === "true";
+    const isActive = params.get("isActive") !== "false";
 
     if (token && role) {
       const userData = {
@@ -41,19 +43,27 @@ const OAuthSuccessPage = () => {
         isActive,
       };
 
-      // Save in context & localStorage
+      // Store in context & localStorage
+      const authData = {
+        authToken: token,
+        authUser: userData,
+        token,
+        tokenExpiry: Date.now() + 3600 * 1000, // 1 hour
+      };
+      localStorage.setItem("authData", JSON.stringify(authData));
       login(userData, token, 3600);
 
-      // Show toast first
+      // Show toast
       setToast({ message: "Logged in successfully!", type: "info" });
 
-      // Redirect after a short delay
+      // Redirect to dashboard after short delay
       setTimeout(() => {
         navigate(
           role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard"
         );
       }, 1000);
     } else {
+      // Handle failed OAuth
       setToast({
         message: "OAuth login failed. Redirecting...",
         type: "error",

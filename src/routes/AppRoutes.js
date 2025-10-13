@@ -1,11 +1,12 @@
 import React, { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
+import RedirectIfAuth from "../pages/auth/RedirectIfAuth";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 const SignupPage = lazy(() => import("../pages/auth/SignupPage"));
-const OAuthSuccessPage = lazy(() => import("../pages/auth/OAuthSuccessPage")); // NEW
+const OAuthSuccessPage = lazy(() => import("../pages/auth/OAuthSuccessPage"));
 
 // ---------------- Shipper Pages ----------------
 const ShipperLayout = lazy(() => import("../layouts/ShipperLayout"));
@@ -29,14 +30,29 @@ const AppRoutes = () => {
     <Suspense
       fallback={
         <div className="flex justify-center items-center min-h-screen text-gray-700">
-          Loading...
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-700"></div>
+          <span className="ml-4">Loading...</span>
         </div>
       }
     >
       <Routes>
         {/* ---------------- Auth Routes ---------------- */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+        <Route
+          path="/login"
+          element={
+            <RedirectIfAuth>
+              <LoginPage />
+            </RedirectIfAuth>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <RedirectIfAuth>
+              <SignupPage />
+            </RedirectIfAuth>
+          }
+        />
         <Route path="/oauth-success" element={<OAuthSuccessPage />} />
 
         {/* ---------------- Shipper Routes ---------------- */}
@@ -48,6 +64,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         >
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<ShipperDashboard />} />
           <Route path="orders" element={<ShipperOrders />} />
           <Route path="profile" element={<ShipperProfile />} />
@@ -63,6 +80,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         >
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<CustomerDashboard />} />
           <Route path="orders" element={<CustomerOrders />} />
           <Route path="profile" element={<CustomerProfile />} />

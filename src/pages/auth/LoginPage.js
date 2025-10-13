@@ -34,17 +34,48 @@ const LoginPage = () => {
     if (error) {
       setToast({ message: decodeURIComponent(error), type: "error" });
     }
-  }, [location.search]);
+
+    // Handle successful OAuth redirect
+    const token = params.get("token");
+    if (token) {
+      const userData = {
+        _id: params.get("id"),
+        role: params.get("role"),
+        name: params.get("name"),
+        email: params.get("email"),
+        photo: params.get("photo") || "",
+        provider: params.get("provider"),
+        providerId: params.get("providerId"),
+        firstName: params.get("firstName") || "",
+        lastName: params.get("lastName") || "",
+        locale: params.get("locale") || "",
+      };
+      const authData = {
+        authToken: token,
+        authUser: userData,
+        token,
+        tokenExpiry: Date.now() + 3600 * 1000,
+      };
+      localStorage.setItem("authData", JSON.stringify(authData));
+      login(userData, token, 3600);
+      navigate(
+        userData.role === "shipper"
+          ? "/shipper/dashboard"
+          : "/customer/dashboard"
+      );
+    }
+  }, [location.search, login, navigate]);
 
   // ---------------- Email/Password Login ----------------
   const handleLogin = async (values, { setSubmitting }) => {
     setLoading(true);
     try {
-      const { data } = await fetch(`${API_BASE_URL}/auth/login`, {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
-      }).then((res) => res.json());
+      });
+      const data = await res.json();
 
       if (data.success) {
         const user = data.data;
@@ -75,14 +106,14 @@ const LoginPage = () => {
           user.role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard"
         );
       } else {
-        setToast({ message: data.message || "Login failed", type: "error" });
+        setToast({
+          message: data.errors?.[0] || "Login failed",
+          type: "error",
+        });
       }
     } catch (err) {
       console.error(err);
-      setToast({
-        message: err?.response?.data?.errors?.[0] || "Login error",
-        type: "error",
-      });
+      setToast({ message: "Login error", type: "error" });
     } finally {
       setSubmitting(false);
       setLoading(false);
@@ -199,7 +230,7 @@ const LoginPage = () => {
                 {/* Google OAuth Button */}
                 <div className="flex flex-col gap-2 mt-3">
                   <Button
-                    className="w-full flex items-center justify-center border border-gray-300 bg-white text-black hover:bg-gray-100 gap-2 rounded-full text-xs py-1.5"
+                    className="w-full flex items-center justify-center border border-gray-300 text-black gap-2 rounded-full text-xs py-1.5"
                     onClick={() => handleGoogleLogin(values.role)}
                   >
                     <FcGoogle size={16} /> Continue with Google

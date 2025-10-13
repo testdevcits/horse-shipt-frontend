@@ -31,19 +31,54 @@ const SignupPage = () => {
   const validationSchema = Yup.object({
     name: Yup.string().required("Name is required"),
     email: Yup.string().email("Invalid email").required("Required"),
-    password: Yup.string().min(6, "Minimum 6 characters").required("Required"),
+    password: Yup.string()
+      .min(8, "Minimum 8 characters")
+      .matches(/[A-Z]/, "Must contain an uppercase letter")
+      .matches(/[a-z]/, "Must contain a lowercase letter")
+      .matches(/\d/, "Must contain a number")
+      .matches(/[@$!%*?&]/, "Must contain a special character")
+      .required("Required"),
     confirmPassword: Yup.string()
       .oneOf([Yup.ref("password"), null], "Passwords must match")
       .required("Required"),
     role: Yup.string().oneOf(["shipper", "customer"]).required("Required"),
   });
 
-  // Handle OAuth errors from query params
+  // Handle OAuth redirect and errors
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
     if (error) setToast({ message: decodeURIComponent(error), type: "error" });
-  }, [location.search]);
+
+    const token = params.get("token");
+    if (token) {
+      const userData = {
+        _id: params.get("id"),
+        role: params.get("role"),
+        name: params.get("name"),
+        email: params.get("email"),
+        photo: params.get("photo") || "",
+        provider: params.get("provider"),
+        providerId: params.get("providerId"),
+        firstName: params.get("firstName") || "",
+        lastName: params.get("lastName") || "",
+        locale: params.get("locale") || "",
+      };
+      const authData = {
+        authToken: token,
+        authUser: userData,
+        token,
+        tokenExpiry: Date.now() + 3600 * 1000,
+      };
+      localStorage.setItem("authData", JSON.stringify(authData));
+      login(userData, token, 3600);
+      navigate(
+        userData.role === "shipper"
+          ? "/shipper/dashboard"
+          : "/customer/dashboard"
+      );
+    }
+  }, [location.search, login, navigate]);
 
   // ---------------- Regular Signup ----------------
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
@@ -59,7 +94,6 @@ const SignupPage = () => {
       const data = response.data;
       if (data.success) {
         const user = data.data;
-
         const authUser = {
           _id: user._id,
           role: user.role,
@@ -74,12 +108,11 @@ const SignupPage = () => {
           isLogin: user.isLogin,
           isActive: user.isActive,
         };
-
         const authData = {
           authToken: user.token,
           authUser,
           token: user.token,
-          tokenExpiry: Date.now() + 3600 * 1000, // 1 hour
+          tokenExpiry: Date.now() + 3600 * 1000,
         };
 
         localStorage.setItem("authData", JSON.stringify(authData));
@@ -87,12 +120,14 @@ const SignupPage = () => {
 
         setToast({ message: "Signup successful!", type: "info" });
         resetForm();
-
         navigate(
           user.role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard"
         );
       } else {
-        setToast({ message: data.message || "Signup failed", type: "error" });
+        setToast({
+          message: data.errors?.[0] || data.message || "Signup failed",
+          type: "error",
+        });
       }
     } catch (error) {
       console.error(error);
@@ -241,7 +276,7 @@ const SignupPage = () => {
                 {/* Google OAuth Button */}
                 <div className="flex flex-col gap-2 mt-4">
                   <Button
-                    className="w-full flex items-center justify-center border border-gray-300 bg-white text-black hover:bg-gray-100 gap-2 rounded-full text-xs py-1.5"
+                    className="w-full flex items-center justify-center border border-gray-300  text-black  gap-2 rounded-full text-xs py-1.5"
                     onClick={handleGoogleLogin}
                   >
                     <FcGoogle size={16} /> Continue with Google
