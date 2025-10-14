@@ -1,7 +1,14 @@
-import React, { lazy, Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import React, { lazy, Suspense, useEffect } from "react";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import RedirectIfAuth from "../pages/auth/RedirectIfAuth";
+import { useAuth } from "../contexts/AuthContext";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -26,6 +33,38 @@ const CustomerSettings = lazy(() => import("../pages/customer/Settings"));
 const NotFoundPage = lazy(() => import("../pages/NotFound"));
 
 const AppRoutes = () => {
+  const { login } = useAuth(); // removed 'user' to fix warning
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // ---------------- Handle Google OAuth Redirect ----------------
+  useEffect(() => {
+    if (location.pathname === "/oauth-success") {
+      const params = new URLSearchParams(location.search);
+      const token = params.get("token");
+      const role = params.get("role");
+      const email = params.get("email");
+      const name = params.get("name");
+      const photo = params.get("photo");
+      const provider = params.get("provider");
+      const providerId = params.get("providerId");
+
+      if (token && role) {
+        login({
+          email,
+          password: "", // password not needed for Google
+          role,
+          provider,
+          profile: { sub: providerId, name, email, picture: photo },
+        }).then(() => {
+          navigate(
+            role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard"
+          );
+        });
+      }
+    }
+  }, [location.pathname, location.search, login, navigate]); // added location.search
+
   return (
     <Suspense
       fallback={

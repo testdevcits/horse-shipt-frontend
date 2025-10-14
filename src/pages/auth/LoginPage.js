@@ -10,36 +10,31 @@ import loginBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
 
 const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL ||
-  "https://horse-shipt-frontend.vercel.app/api";
+  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const LoginPage = () => {
-  const { login } = useAuth();
+  const { login, oauthLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const initialValues = { email: "", password: "", role: "shipper" };
-
   const validationSchema = Yup.object({
     email: Yup.string().email("Invalid email").required("Required"),
     password: Yup.string().required("Required"),
     role: Yup.string().oneOf(["shipper", "customer"]).required("Required"),
   });
 
-  // Handle OAuth errors from query params
+  // ----------------- OAuth redirect handling -----------------
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
-    if (error) {
-      setToast({ message: decodeURIComponent(error), type: "error" });
-    }
+    if (error) setToast({ message: decodeURIComponent(error), type: "error" });
 
-    // Handle successful OAuth redirect
     const token = params.get("token");
     if (token) {
-      const userData = {
+      const oauthUser = {
         _id: params.get("id"),
         role: params.get("role"),
         name: params.get("name"),
@@ -51,23 +46,16 @@ const LoginPage = () => {
         lastName: params.get("lastName") || "",
         locale: params.get("locale") || "",
       };
-      const authData = {
-        authToken: token,
-        authUser: userData,
-        token,
-        tokenExpiry: Date.now() + 3600 * 1000,
-      };
-      localStorage.setItem("authData", JSON.stringify(authData));
-      login(userData, token, 3600);
+      oauthLogin({ token, ...oauthUser });
       navigate(
-        userData.role === "shipper"
+        oauthUser.role === "shipper"
           ? "/shipper/dashboard"
           : "/customer/dashboard"
       );
     }
-  }, [location.search, login, navigate]);
+  }, [location.search, oauthLogin, navigate]);
 
-  // ---------------- Email/Password Login ----------------
+  // ----------------- Handle normal login -----------------
   const handleLogin = async (values, { setSubmitting }) => {
     setLoading(true);
     try {
@@ -80,28 +68,7 @@ const LoginPage = () => {
 
       if (data.success) {
         const user = data.data;
-        const authData = {
-          authToken: user.token,
-          authUser: {
-            _id: user._id,
-            role: user.role,
-            name: user.name,
-            email: user.email,
-            photo: user.profilePicture || "",
-            provider: user.provider,
-            providerId: user.providerId,
-            firstName: user.firstName || "",
-            lastName: user.lastName || "",
-            locale: user.locale || "",
-            isLogin: user.isLogin,
-            isActive: user.isActive,
-          },
-          token: user.token,
-          tokenExpiry: Date.now() + 3600 * 1000,
-        };
-        localStorage.setItem("authData", JSON.stringify(authData));
-        login(user, user.token, 3600);
-
+        login(user); // Update AuthContext
         setToast({ message: "Logged in successfully!", type: "info" });
         navigate(
           user.role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard"
@@ -113,7 +80,7 @@ const LoginPage = () => {
         });
       }
     } catch (err) {
-      console.error(err);
+      console.error("Login Error:", err);
       setToast({ message: "Login error", type: "error" });
     } finally {
       setSubmitting(false);
@@ -121,10 +88,9 @@ const LoginPage = () => {
     }
   };
 
-  // ---------------- Google OAuth Redirect ----------------
+  // ----------------- Google OAuth login -----------------
   const handleGoogleLogin = (role) => {
-    const googleUrl = `${API_BASE_URL}/auth/google?role=${role}`;
-    window.location.href = googleUrl; // Redirect browser to Google OAuth
+    window.location.href = `${API_BASE_URL}/auth/google?role=${role}`;
   };
 
   return (
@@ -133,7 +99,6 @@ const LoginPage = () => {
       style={{ backgroundImage: `url(${loginBg})` }}
     >
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-20">
-        {/* Logo */}
         <div className="flex items-center justify-center w-full md:w-[450px] h-[150px]">
           <svg width="120" height="120" viewBox="0 0 64 64" fill="none">
             <circle cx="32" cy="32" r="32" fill="#E5E7EB" />
@@ -142,7 +107,6 @@ const LoginPage = () => {
           </svg>
         </div>
 
-        {/* Login Form */}
         <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 md:p-8 shadow-md flex flex-col justify-center w-full max-w-sm gap-4">
           <h1 className="text-xl sm:text-2xl font-semibold text-start text-gray-800">
             Welcome Back
@@ -190,7 +154,6 @@ const LoginPage = () => {
                   className="text-xs text-red-500"
                 />
 
-                {/* Role Selection */}
                 <div className="flex gap-2">
                   {["shipper", "customer"].map((r) => (
                     <button
@@ -213,7 +176,6 @@ const LoginPage = () => {
                   className="text-xs text-red-500"
                 />
 
-                {/* Submit */}
                 <div className="flex justify-end">
                   <Button
                     type="submit"
@@ -228,7 +190,6 @@ const LoginPage = () => {
                   </Button>
                 </div>
 
-                {/* Google OAuth Button */}
                 <div className="flex flex-col gap-2 mt-3">
                   <Button
                     className="w-full flex items-center justify-center border border-gray-300 text-black gap-2 rounded-full text-xs py-1.5"

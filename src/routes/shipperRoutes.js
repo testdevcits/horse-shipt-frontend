@@ -1,26 +1,17 @@
-import React, { lazy } from "react";
-import { Route } from "react-router-dom";
-import ProtectedRoute from "./ProtectedRoute";
+import axios from "axios";
 
-const ShipperLayout = lazy(() => import("../layouts/ShipperLayout"));
-const ShipperDashboard = lazy(() => import("../pages/shipper/Dashboard"));
-const ShipperOrders = lazy(() => import("../pages/shipper/Orders"));
+const BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
 
-const ShipperRoutes = () => {
-  return (
-    <Route
-      path="/shipper"
-      element={
-        <ProtectedRoute role="shipper">
-          <ShipperLayout />
-        </ProtectedRoute>
-      }
-    >
-      <Route path="dashboard" element={<ShipperDashboard />} />
-      <Route path="orders" element={<ShipperOrders />} />
-      {/* Add more shipper pages here */}
-    </Route>
-  );
+export const getShipperDashboard = async (token) => {
+  const res = await axios.get(`${BASE_URL}/dashboard`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
 };
 
-export default ShipperRoutes;
+export const getShipperOrders = async (token) => {
+  const res = await axios.get(`${BASE_URL}/orders`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};

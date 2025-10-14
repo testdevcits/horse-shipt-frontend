@@ -10,9 +10,9 @@ import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
 
+// ----------------- Use backend API -----------------
 const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL ||
-  "https://horse-shipt-frontend.vercel.app/api";
+  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ const SignupPage = () => {
     role: Yup.string().oneOf(["shipper", "customer"]).required("Required"),
   });
 
-  // Handle OAuth redirect and errors
+  // ----------------- Handle OAuth redirect -----------------
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
@@ -81,7 +81,7 @@ const SignupPage = () => {
     }
   }, [location.search, login, navigate]);
 
-  // ---------------- Regular Signup ----------------
+  // ----------------- Signup submit -----------------
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     setSubmitting(true);
     try {
@@ -106,8 +106,6 @@ const SignupPage = () => {
           firstName: user.firstName || "",
           lastName: user.lastName || "",
           locale: user.locale || "",
-          isLogin: user.isLogin,
-          isActive: user.isActive,
         };
         const authData = {
           authToken: user.token,
@@ -144,7 +142,7 @@ const SignupPage = () => {
     }
   };
 
-  // ---------------- Google OAuth ----------------
+  // ----------------- Google OAuth -----------------
   const handleGoogleLogin = () => {
     window.location.href = `${API_BASE_URL}/auth/google?role=${selectedRole}`;
   };
@@ -155,7 +153,6 @@ const SignupPage = () => {
       style={{ backgroundImage: `url(${signupBg})` }}
     >
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-20">
-        {/* Left: Logo */}
         <div className="flex items-center justify-center w-full md:w-[450px] h-[150px]">
           <svg width="120" height="120" viewBox="0 0 64 64" fill="none">
             <circle cx="32" cy="32" r="32" fill="#E5E7EB" />
@@ -164,7 +161,6 @@ const SignupPage = () => {
           </svg>
         </div>
 
-        {/* Right: Signup Form */}
         <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 md:p-8 shadow-md flex flex-col justify-center w-full max-w-sm gap-4">
           <h1 className="text-xl sm:text-2xl font-semibold text-start text-gray-800">
             Create Account
@@ -241,7 +237,6 @@ const SignupPage = () => {
                   className="text-xs text-red-500"
                 />
 
-                {/* Role selection */}
                 <div className="flex gap-2">
                   {["shipper", "customer"].map((r) => (
                     <button
@@ -259,7 +254,6 @@ const SignupPage = () => {
                   ))}
                 </div>
 
-                {/* Submit button */}
                 <div className="flex justify-end">
                   <Button
                     type="submit"
@@ -274,10 +268,9 @@ const SignupPage = () => {
                   </Button>
                 </div>
 
-                {/* Google OAuth Button */}
                 <div className="flex flex-col gap-2 mt-4">
                   <Button
-                    className="w-full flex items-center justify-center border border-gray-300  text-black  gap-2 rounded-full text-xs py-1.5"
+                    className="w-full flex items-center justify-center border border-gray-300 text-black gap-2 rounded-full text-xs py-1.5"
                     onClick={handleGoogleLogin}
                   >
                     <FcGoogle size={16} /> Continue with Google
@@ -289,7 +282,6 @@ const SignupPage = () => {
         </div>
       </div>
 
-      {/* Toast */}
       {toast && (
         <Toast
           message={toast.message}

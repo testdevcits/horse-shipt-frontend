@@ -8,14 +8,14 @@ const ProtectedRoute = ({ children, role }) => {
   const [accessDenied, setAccessDenied] = useState(false);
   const [redirect, setRedirect] = useState(false);
 
-  // Check role access
   useEffect(() => {
+    // If user exists but role is not allowed
     if (user && role && user.role !== role) {
       setAccessDenied(true);
 
       // Auto logout & redirect after 3 seconds
       const timer = setTimeout(() => {
-        logout();
+        logout(); // clear user & token
         setRedirect(true);
       }, 3000);
 
@@ -23,22 +23,25 @@ const ProtectedRoute = ({ children, role }) => {
     }
   }, [user, role, logout]);
 
-  // Token validation handled in AuthContext
+  // If not logged in, redirect to login
   if (!user || !token) return <Navigate to="/login" replace />;
 
+  // If access denied and timer finished, redirect to login
   if (redirect) return <Navigate to="/login" replace />;
 
+  // Show access denied toast
   if (role && user.role !== role && accessDenied) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Toast
-          message="You do not have access to this page. Redirecting..."
+          message="🚫 You do not have access to this page. Redirecting..."
           type="error"
         />
       </div>
     );
   }
 
+  // Otherwise render the children components
   return children;
 };
 
