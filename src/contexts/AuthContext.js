@@ -8,11 +8,18 @@ const API_BASE_URL =
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true); // Added loading state
 
   // ----------------- Auto-login -----------------
   useEffect(() => {
     const storedUser = localStorage.getItem("horseShiptUser");
-    if (storedUser) setUser(JSON.parse(storedUser));
+    const storedToken = localStorage.getItem("token");
+    if (storedUser && storedToken) {
+      setUser(JSON.parse(storedUser));
+      setToken(storedToken);
+    }
+    setLoading(false);
   }, []);
 
   // ----------------- Login -----------------
@@ -26,6 +33,8 @@ export const AuthProvider = ({ children }) => {
 
       const userData = res.data.data;
       setUser(userData);
+      setToken(userData.token);
+
       localStorage.setItem("horseShiptUser", JSON.stringify(userData));
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
@@ -49,6 +58,8 @@ export const AuthProvider = ({ children }) => {
 
       const newUser = res.data.data;
       setUser(newUser);
+      setToken(newUser.token);
+
       localStorage.setItem("horseShiptUser", JSON.stringify(newUser));
       localStorage.setItem("token", newUser.token);
       localStorage.setItem("role", newUser.role);
@@ -75,6 +86,7 @@ export const AuthProvider = ({ children }) => {
       );
 
       setUser(null);
+      setToken(null);
       localStorage.removeItem("horseShiptUser");
       localStorage.removeItem("token");
       localStorage.removeItem("role");
@@ -84,19 +96,46 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ----------------- OAuth Login -----------------
-  const oauthLogin = (queryParams) => {
-    const { token, role, provider, providerId, email, name, photo } =
-      queryParams;
-
-    const oauthUser = { token, role, provider, providerId, email, name, photo };
+  const oauthLogin = ({
+    token,
+    role,
+    provider,
+    providerId,
+    email,
+    name,
+    photo,
+    id,
+  }) => {
+    const oauthUser = {
+      token,
+      role,
+      provider,
+      providerId,
+      email,
+      name,
+      photo,
+      _id: id,
+    };
     setUser(oauthUser);
+    setToken(token);
+
     localStorage.setItem("horseShiptUser", JSON.stringify(oauthUser));
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, oauthLogin }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        signup,
+        logout,
+        oauthLogin,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

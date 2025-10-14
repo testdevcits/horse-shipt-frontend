@@ -1,69 +1,46 @@
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
 const OAuthSuccessPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const location = useLocation();
+  const { oauthLogin } = useAuth();
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search);
     const token = params.get("token");
-    const error = params.get("error");
+    const role = params.get("role");
+    const email = params.get("email");
+    const name = params.get("name");
+    const photo = params.get("photo");
+    const provider = params.get("provider");
+    const providerId = params.get("providerId");
 
-    // --- Handle error from OAuth redirect ---
-    if (error) {
-      console.error("OAuth Error:", decodeURIComponent(error));
-      navigate(`/login?error=${encodeURIComponent(error)}`);
-      return;
+    if (token && role) {
+      // Save user info in context
+      oauthLogin({
+        token,
+        role,
+        provider,
+        providerId,
+        email,
+        name,
+        photo,
+      });
+
+      // Redirect to dashboard after login
+      navigate(`/${role}/dashboard`, { replace: true });
+    } else {
+      // If token or role missing, redirect to login
+      navigate("/login", { replace: true });
     }
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    // --- Build user object safely ---
-    const userData = {
-      _id: params.get("id") || "",
-      role: params.get("role") || "customer", // default fallback
-      name: params.get("name") || "",
-      email: params.get("email") || "",
-      photo: params.get("photo") || "",
-      provider: params.get("provider") || "",
-      providerId: params.get("providerId") || "",
-      firstName: params.get("firstName") || "",
-      lastName: params.get("lastName") || "",
-      locale: params.get("locale") || "",
-    };
-
-    // --- Save auth data to localStorage ---
-    const authData = {
-      authToken: token,
-      authUser: userData,
-      token,
-      tokenExpiry: Date.now() + 3600 * 1000, // 1 hour
-    };
-    localStorage.setItem("authData", JSON.stringify(authData));
-
-    // --- Update AuthContext ---
-    login(userData, token, 3600);
-
-    // --- Redirect based on user role ---
-    setTimeout(() => {
-      navigate(
-        userData.role === "shipper"
-          ? "/shipper/dashboard"
-          : "/customer/dashboard"
-      );
-    }, 500); // slight delay for smoother transition
-  }, [login, navigate]);
+  }, [location.search, oauthLogin, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-600 text-sm">
-      <div className="p-4 bg-white shadow rounded-lg">
-        Logging in via Google... Please wait.
-      </div>
+    <div className="flex justify-center items-center min-h-screen text-gray-600">
+      <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
+      <p className="mt-3 text-sm">Logging in...</p>
     </div>
   );
 };

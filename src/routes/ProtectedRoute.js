@@ -7,30 +7,45 @@ const ProtectedRoute = ({ children, role }) => {
   const { user, token, logout } = useAuth();
   const [accessDenied, setAccessDenied] = useState(false);
   const [redirect, setRedirect] = useState(false);
+  const [checking, setChecking] = useState(true); // Wait until auth is ready
 
   useEffect(() => {
-    // If user exists but role is not allowed
-    if (user && role && user.role !== role) {
-      setAccessDenied(true);
-
-      // Auto logout & redirect after 3 seconds
-      const timer = setTimeout(() => {
-        logout(); // clear user & token
+    // Delay checking to ensure OAuth login has updated the context
+    const timer = setTimeout(() => {
+      if (!user || !token) {
         setRedirect(true);
-      }, 3000);
+      } else if (role && user.role !== role) {
+        setAccessDenied(true);
 
-      return () => clearTimeout(timer);
-    }
-  }, [user, role, logout]);
+        // Auto logout & redirect after 3 seconds
+        const logoutTimer = setTimeout(() => {
+          logout();
+          setRedirect(true);
+        }, 3000);
 
-  // If not logged in, redirect to login
-  if (!user || !token) return <Navigate to="/login" replace />;
+        return () => clearTimeout(logoutTimer);
+      }
+      setChecking(false);
+    }, 100); // small delay to allow OAuth login to finish
 
-  // If access denied and timer finished, redirect to login
-  if (redirect) return <Navigate to="/login" replace />;
+    return () => clearTimeout(timer);
+  }, [user, token, role, logout]);
 
-  // Show access denied toast
-  if (role && user.role !== role && accessDenied) {
+  // Show loading while checking auth
+  if (checking) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-gray-600">
+        <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
+        <p className="mt-3 text-sm">Checking access...</p>
+      </div>
+    );
+  }
+
+  // Redirect if no user or token
+  if (!user || !token || redirect) return <Navigate to="/login" replace />;
+
+  // Show access denied message
+  if (accessDenied) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Toast
@@ -41,7 +56,7 @@ const ProtectedRoute = ({ children, role }) => {
     );
   }
 
-  // Otherwise render the children components
+  // Otherwise render children
   return children;
 };
 
