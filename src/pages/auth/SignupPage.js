@@ -10,14 +10,13 @@ import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
 
-// ----------------- Use backend API -----------------
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const SignupPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, oauthLogin } = useAuth();
   const [toast, setToast] = useState(null);
   const [selectedRole, setSelectedRole] = useState("shipper");
 
@@ -65,21 +64,16 @@ const SignupPage = () => {
         lastName: params.get("lastName") || "",
         locale: params.get("locale") || "",
       };
-      const authData = {
-        authToken: token,
-        authUser: userData,
-        token,
-        tokenExpiry: Date.now() + 3600 * 1000,
-      };
-      localStorage.setItem("authData", JSON.stringify(authData));
-      login(userData, token, 3600);
+
+      oauthLogin({ token, ...userData });
+
       navigate(
         userData.role === "shipper"
           ? "/shipper/dashboard"
           : "/customer/dashboard"
       );
     }
-  }, [location.search, login, navigate]);
+  }, [location.search, oauthLogin, navigate]);
 
   // ----------------- Signup submit -----------------
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
@@ -107,16 +101,8 @@ const SignupPage = () => {
           lastName: user.lastName || "",
           locale: user.locale || "",
         };
-        const authData = {
-          authToken: user.token,
-          authUser,
-          token: user.token,
-          tokenExpiry: Date.now() + 3600 * 1000,
-        };
 
-        localStorage.setItem("authData", JSON.stringify(authData));
-        login(authUser, user.token, 3600);
-
+        login(authUser, user.token, 3600); // Save to AuthContext
         setToast({ message: "Signup successful!", type: "info" });
         resetForm();
         navigate(

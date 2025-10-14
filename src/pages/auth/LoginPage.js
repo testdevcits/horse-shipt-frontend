@@ -26,11 +26,13 @@ const LoginPage = () => {
     role: Yup.string().oneOf(["shipper", "customer"]).required("Required"),
   });
 
-  // ----------------- OAuth redirect handling -----------------
+  // ----------------- Handle OAuth redirect -----------------
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
-    if (error) setToast({ message: decodeURIComponent(error), type: "error" });
+    if (error) {
+      setToast({ message: decodeURIComponent(error), type: "error" });
+    }
 
     const token = params.get("token");
     if (token) {
@@ -46,7 +48,10 @@ const LoginPage = () => {
         lastName: params.get("lastName") || "",
         locale: params.get("locale") || "",
       };
+
       oauthLogin({ token, ...oauthUser });
+
+      // Redirect to dashboard
       navigate(
         oauthUser.role === "shipper"
           ? "/shipper/dashboard"
@@ -68,7 +73,7 @@ const LoginPage = () => {
 
       if (data.success) {
         const user = data.data;
-        login(user); // Update AuthContext
+        login(user);
         setToast({ message: "Logged in successfully!", type: "info" });
         navigate(
           user.role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard"
@@ -90,6 +95,7 @@ const LoginPage = () => {
 
   // ----------------- Google OAuth login -----------------
   const handleGoogleLogin = (role) => {
+    // Redirect to backend Google OAuth route
     window.location.href = `${API_BASE_URL}/auth/google?role=${role}`;
   };
 

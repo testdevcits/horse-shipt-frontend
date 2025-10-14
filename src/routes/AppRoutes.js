@@ -33,11 +33,10 @@ const CustomerSettings = lazy(() => import("../pages/customer/Settings"));
 const NotFoundPage = lazy(() => import("../pages/NotFound"));
 
 const AppRoutes = () => {
-  const { login } = useAuth(); // removed 'user' to fix warning
+  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ---------------- Handle Google OAuth Redirect ----------------
   useEffect(() => {
     if (location.pathname === "/oauth-success") {
       const params = new URLSearchParams(location.search);
@@ -50,32 +49,37 @@ const AppRoutes = () => {
       const providerId = params.get("providerId");
 
       if (token && role) {
-        login({
-          email,
-          password: "", // password not needed for Google
-          role,
-          provider,
-          profile: { sub: providerId, name, email, picture: photo },
-        }).then(() => {
-          navigate(
-            role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard"
-          );
-        });
+        (async () => {
+          try {
+            await login({
+              email,
+              password: "",
+              role,
+              provider,
+              profile: { sub: providerId, name, email, picture: photo },
+            });
+            navigate(`/${role}/dashboard`, { replace: true });
+          } catch (error) {
+            console.error("OAuth login failed:", error);
+          }
+        })();
       }
     }
-  }, [location.pathname, location.search, login, navigate]); // added location.search
+  }, [location.pathname, location.search, login, navigate]);
 
   return (
     <Suspense
       fallback={
-        <div className="flex justify-center items-center min-h-screen text-gray-700">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-700"></div>
-          <span className="ml-4">Loading...</span>
+        <div className="flex flex-col justify-center items-center min-h-screen text-gray-600">
+          <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
+          <p className="mt-3 text-sm">Loading, please wait...</p>
         </div>
       }
     >
       <Routes>
-        {/* ---------------- Auth Routes ---------------- */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
+        {/* Auth Routes */}
         <Route
           path="/login"
           element={
@@ -94,12 +98,12 @@ const AppRoutes = () => {
         />
         <Route path="/oauth-success" element={<OAuthSuccessPage />} />
 
-        {/* ---------------- Shipper Routes ---------------- */}
+        {/* Shipper Routes */}
         <Route
-          path="/shipper"
+          path="/shipper/*"
           element={
             <ProtectedRoute role="shipper">
-              <ShipperLayout />
+              <ShipperLayout key="shipper" />
             </ProtectedRoute>
           }
         >
@@ -110,12 +114,12 @@ const AppRoutes = () => {
           <Route path="settings" element={<ShipperSettings />} />
         </Route>
 
-        {/* ---------------- Customer Routes ---------------- */}
+        {/* Customer Routes */}
         <Route
-          path="/customer"
+          path="/customer/*"
           element={
             <ProtectedRoute role="customer">
-              <CustomerLayout />
+              <CustomerLayout key="customer" />
             </ProtectedRoute>
           }
         >
@@ -126,7 +130,7 @@ const AppRoutes = () => {
           <Route path="settings" element={<CustomerSettings />} />
         </Route>
 
-        {/* ---------------- Fallback 404 ---------------- */}
+        {/* Fallback */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
