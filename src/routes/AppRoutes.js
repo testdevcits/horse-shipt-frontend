@@ -33,7 +33,7 @@ const CustomerSettings = lazy(() => import("../pages/customer/Settings"));
 const NotFoundPage = lazy(() => import("../pages/NotFound"));
 
 const AppRoutes = () => {
-  const { login } = useAuth();
+  const { login, oauthLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -49,23 +49,22 @@ const AppRoutes = () => {
       const providerId = params.get("providerId");
 
       if (token && role) {
-        (async () => {
-          try {
-            await login({
-              email,
-              password: "",
-              role,
-              provider,
-              profile: { sub: providerId, name, email, picture: photo },
-            });
-            navigate(`/${role}/dashboard`, { replace: true });
-          } catch (error) {
-            console.error("OAuth login failed:", error);
-          }
-        })();
+        // ----------------- Use oauthLogin instead of normal login -----------------
+        oauthLogin({
+          token,
+          role,
+          provider,
+          providerId,
+          email,
+          name,
+          photo,
+        });
+
+        // Redirect to dashboard
+        navigate(`/${role}/dashboard`, { replace: true });
       }
     }
-  }, [location.pathname, location.search, login, navigate]);
+  }, [location.pathname, location.search, oauthLogin, navigate]);
 
   return (
     <Suspense
