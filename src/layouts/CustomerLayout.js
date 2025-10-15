@@ -10,7 +10,7 @@ import logo from "../assets/images/logo.png";
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
@@ -70,7 +70,7 @@ const CustomerLayout = () => {
 
         {/* Main content */}
         <main
-          className={`flex-1 transition-all duration-300 overflow-y-auto p-4 sm:p-6 md:p-8 ${
+          className={`flex-1 transition-all duration-300 p-1 sm:p-6 md:p-8 ${
             sidebarOpen ? "lg:ml-10" : "lg:ml-6"
           }`}
         >
