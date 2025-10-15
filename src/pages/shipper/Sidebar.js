@@ -1,3 +1,4 @@
+// src/pages/shipper/Sidebar.js
 import React from "react";
 import { NavLink } from "react-router-dom";
 import {
@@ -64,28 +65,34 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
       {/* Sidebar */}
       <div
         className={`fixed top-0 left-0 z-50 h-full bg-white shadow-lg transition-all duration-300
-        md:relative md:top-0 md:left-0 md:h-auto md:shadow-none
-        ${isOpen ? "w-64" : "w-16"}
-        ${
-          mobileOpen
-            ? "translate-x-0 w-full"
-            : "-translate-x-full md:translate-x-0"
-        }`}
+          md:relative md:top-0 md:left-0 md:h-auto md:shadow-none
+          ${isOpen ? "w-64" : "w-16"}
+          ${
+            mobileOpen
+              ? "translate-x-0 w-full"
+              : "-translate-x-full md:translate-x-0"
+          }`}
       >
         {/* Toggle Buttons */}
-        <div className="flex justify-end p-4 md:justify-between md:items-center">
-          {isOpen ? (
-            <button onClick={() => setIsOpen(false)}>
+        <div className="flex justify-between items-center p-4">
+          {/* Sidebar toggle */}
+          <button
+            className="hidden md:block"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? (
               <LuArrowLeftFromLine size={24} />
-            </button>
-          ) : (
-            <button onClick={() => setIsOpen(true)}>
+            ) : (
               <LuArrowRightFromLine size={24} />
-            </button>
-          )}
-          {/* Mobile Close */}
+            )}
+          </button>
+
+          {/* Mobile close */}
           {mobileOpen && (
-            <button className="md:hidden" onClick={() => setMobileOpen(false)}>
+            <button
+              className="md:hidden text-xl font-bold"
+              onClick={() => setMobileOpen(false)}
+            >
               ✕
             </button>
           )}
@@ -111,6 +118,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
                     {(isOpen || mobileOpen) && <span>{item.name}</span>}
                   </NavLink>
 
+                  {/* Subpaths */}
                   {item.subPaths && (isOpen || mobileOpen) && (
                     <ul className="ml-8 mt-1 space-y-1">
                       {item.subPaths.map((sub) => {

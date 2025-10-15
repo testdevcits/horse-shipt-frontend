@@ -1,3 +1,4 @@
+// src/pages/customer/Sidebar.js
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
@@ -9,15 +10,10 @@ import {
   FaCog,
   FaSignOutAlt,
 } from "react-icons/fa";
-import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
 
 const navItems = [
-  {
-    name: "Dashboard",
-    path: "/customer/dashboard",
-    icon: <FaTachometerAlt />,
-  },
+  { name: "Dashboard", path: "/customer/dashboard", icon: <FaTachometerAlt /> },
   {
     name: "Orders",
     path: "/customer/orders",
@@ -27,22 +23,12 @@ const navItems = [
       { name: "Completed", path: "/customer/orders/completed" },
     ],
   },
-  {
-    name: "Profile",
-    path: "/customer/profile",
-    icon: <FaUser />,
-  },
-  {
-    name: "Settings",
-    path: "/customer/settings",
-    icon: <FaCog />,
-  },
+  { name: "Profile", path: "/customer/profile", icon: <FaUser /> },
+  { name: "Settings", path: "/customer/settings", icon: <FaCog /> },
 ];
 
 const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
-  const { user, logout } = useAuth();
-  const API_BASE_URL =
-    process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+  const { logout, user } = useAuth(); // use user for profile display
 
   const isActivePath = (path, subPaths) => {
     if (window.location.pathname === path) return true;
@@ -51,24 +37,14 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
     return false;
   };
 
-  const handleLogout = async () => {
-    try {
-      await axios.post(
-        `${API_BASE_URL}/auth/logout`,
-        { role: user.role, userId: user._id },
-        { withCredentials: true }
-      );
-    } catch (err) {
-      console.error("Logout API error:", err.response?.data || err.message);
-    } finally {
-      logout();
-      setMobileOpen(false);
-    }
+  const handleLogout = () => {
+    logout();
+    setMobileOpen(false);
   };
 
   return (
     <>
-      {/* Overlay for mobile */}
+      {/* Mobile overlay */}
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/30 z-40 md:hidden"
@@ -88,7 +64,24 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           }
         `}
       >
-        {/* Top-right Toggle / Close */}
+        {/* Profile Section */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-700">
+          <img
+            src={user?.photo || "https://via.placeholder.com/40"}
+            alt="Profile"
+            className="w-10 h-10 rounded-full object-cover"
+          />
+          {isOpen || mobileOpen ? (
+            <div className="flex flex-col">
+              <span className="font-medium">{user?.name || "Customer"}</span>
+              <span className="text-sm text-gray-300">
+                {user?.role || "Customer"}
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Top control buttons */}
         <div className="flex justify-between items-center p-4 md:justify-end">
           {mobileOpen && (
             <button onClick={() => setMobileOpen(false)} className="md:hidden">
@@ -96,10 +89,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
             </button>
           )}
           {!mobileOpen && (
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="ml-auto text-white"
-            >
+            <button onClick={() => setIsOpen(!isOpen)} className="ml-auto">
               {isOpen ? (
                 <LuArrowLeftFromLine size={24} />
               ) : (
@@ -110,7 +100,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 mt-2 overflow-y-auto min-h-[calc(100vh-80px)]">
+        <nav className="flex-1 mt-2 overflow-y-auto min-h-[calc(100vh-160px)]">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);

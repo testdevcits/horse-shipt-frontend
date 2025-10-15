@@ -5,14 +5,14 @@ import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
 
 const ShipperLayout = () => {
-  const { user } = useAuth();
+  const { user } = useAuth(); // removed logout
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const [sidebarOpen, setSidebarOpen] = React.useState(true); // default open, controlled via toggle buttons now
+  const [sidebarOpen, setSidebarOpen] = React.useState(true); // default open
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="flex items-center justify-between bg-white shadow-md px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-4 sticky top-0 z-40">
+      <header className="flex items-center justify-between bg-white shadow-md px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-4 sticky top-0 z-50">
         <div className="flex items-center gap-4">
           {/* Mobile menu toggle */}
           <button
