@@ -13,7 +13,7 @@ import {
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
@@ -73,8 +73,8 @@ const ShipperLayout = () => {
 
         {/* Main content */}
         <main
-          className={`flex-1 transition-all duration-300 overflow-y-auto p-4 sm:p-6 md:p-8 ${
-            sidebarOpen ? "lg:ml-64" : "lg:ml-16"
+          className={`flex-1 transition-all duration-300  p-2 sm:p-6 md:p-8 ${
+            sidebarOpen ? "lg:ml-10" : "lg:ml-6"
           }`}
         >
           <Outlet />

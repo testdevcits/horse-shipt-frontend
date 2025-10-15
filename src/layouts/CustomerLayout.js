@@ -70,7 +70,7 @@ const CustomerLayout = () => {
 
         {/* Main content */}
         <main
-          className={`flex-1 transition-all duration-300 p-1 sm:p-6 md:p-8 ${
+          className={`flex-1 transition-all duration-300 p-2 sm:p-6 md:p-8 ${
             sidebarOpen ? "lg:ml-10" : "lg:ml-6"
           }`}
         >
