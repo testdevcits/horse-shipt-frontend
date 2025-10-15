@@ -28,7 +28,7 @@ const ShipperSettings = () => {
   };
 
   return (
-    <div className="p-6 flex flex-col items-center">
+    <div className="flex flex-col items-center">
       {/* Comment Banner */}
       <div className="mb-6 w-full">
         <CommentBanner />
@@ -54,7 +54,7 @@ const ShipperSettings = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="w-full max-w-[1304px] bg-white p-6 rounded-lg shadow-sm min-h-[200px]">
+      <div className="w-full bg-white p-6 rounded-lg shadow-sm min-h-[200px]">
         {renderTabContent()}
       </div>
     </div>
