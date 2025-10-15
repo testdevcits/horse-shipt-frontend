@@ -33,37 +33,30 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-40 md:hidden"
+          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 z-50 h-full bg-white text-system-primary shadow-lg transition-all duration-300
+        className={`fixed top-16 left-0 z-50 h-[calc(100%-4rem)] bg-white text-system-primary shadow-lg transition-transform duration-300
           md:relative md:h-auto md:shadow-none
           ${isOpen ? "w-64" : "w-16"}
-          ${
-            mobileOpen
-              ? "translate-x-0 w-full"
-              : "-translate-x-full md:translate-x-0"
-          }`}
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          flex flex-col
+        `}
       >
-        {/* Mobile close button */}
-        {mobileOpen && (
-          <div className="flex justify-end p-4">
+        {/* Top: Toggle / Mobile close */}
+        <div className="flex justify-end p-4 flex-shrink-0">
+          {mobileOpen ? (
             <button
               onClick={() => setMobileOpen(false)}
               className="text-gray-700 hover:text-gray-900"
             >
               <IoMdClose size={28} />
             </button>
-          </div>
-        )}
-
-        {/* Sidebar toggle for desktop */}
-        {!mobileOpen && (
-          <div className="flex justify-end p-4">
+          ) : (
             <button onClick={() => setIsOpen(!isOpen)}>
               {isOpen ? (
                 <LuArrowLeftFromLine size={24} />
@@ -71,12 +64,12 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
                 <LuArrowRightFromLine size={24} />
               )}
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 mt-2 overflow-y-auto min-h-[calc(100%-64px)]">
-          <ul className="space-y-2 px-2">
+        {/* Scrollable nav */}
+        <nav className="flex-1 overflow-y-auto px-2 py-2">
+          <ul className="space-y-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
               return (
@@ -91,7 +84,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
                     }`}
                   >
                     <span className="text-lg">{item.icon}</span>
-                    {isOpen || mobileOpen ? <span>{item.name}</span> : null}
+                    {(isOpen || mobileOpen) && <span>{item.name}</span>}
                   </NavLink>
 
                   {item.subPaths && (isOpen || mobileOpen) && (
@@ -122,8 +115,8 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           </ul>
         </nav>
 
-        {/* Bottom Logout Button */}
-        <div className="absolute bottom-4 w-full px-4">
+        {/* Bottom fixed button */}
+        <div className="flex-shrink-0 w-full px-4 pb-4">
           <button className="flex items-center justify-center w-full py-2 bg-gray-100 hover:bg-gray-200 text-system-primary rounded transition-all duration-300">
             <CiCircleQuestion size={20} />
           </button>
