@@ -4,6 +4,7 @@ import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
 import logo from "../assets/images/logo.png"; // <-- Logo import
+import { HiOutlineBell, HiOutlineShare } from "react-icons/hi2";
 
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
@@ -28,6 +29,14 @@ const ShipperLayout = () => {
 
         {/* Right: Profile */}
         <div className="flex items-center gap-4 relative">
+          <HiOutlineBell
+            size={24}
+            className="text-system-primary cursor-pointer"
+          />
+          <HiOutlineShare
+            size={24}
+            className="text-system-primary cursor-pointer"
+          />
           {/* Profile */}
           <div className="relative">
             <img

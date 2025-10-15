@@ -2,12 +2,8 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
 import { LuArrowRightFromLine, LuArrowLeftFromLine } from "react-icons/lu";
-import {
-  FaTachometerAlt,
-  FaBoxOpen,
-  FaUser,
-  FaSignOutAlt,
-} from "react-icons/fa";
+import { FaTachometerAlt, FaBoxOpen, FaUser } from "react-icons/fa";
+import { CiCircleQuestion } from "react-icons/ci";
 
 const navItems = [
   { name: "Dashboard", path: "/shipper/dashboard", icon: <FaTachometerAlt /> },
@@ -127,9 +123,8 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
         {/* Bottom Logout Button */}
         <div className="absolute bottom-4 w-full px-4">
-          <button className="flex items-center justify-center w-full py-2 bg-red-100 text-red-600 font-semibold rounded hover:bg-red-200 transition-all duration-300">
-            <FaSignOutAlt className="text-lg" />
-            {(isOpen || mobileOpen) && <span>Logout</span>}
+          <button className="flex items-center justify-center w-full py-2 text-system-primary rounded transition-all duration-300">
+            <CiCircleQuestion size={24} />
           </button>
         </div>
       </div>
