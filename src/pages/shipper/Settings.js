@@ -1,11 +1,61 @@
 // src/pages/shipper/Settings.js
-import React from "react";
+import React, { useState } from "react";
+import CommentBanner from "../../components/common/CommentBanner";
 
 const ShipperSettings = () => {
+  const tabs = [
+    { id: "profile", label: "Profile Settings" },
+    { id: "shipment", label: "Next Shipment" },
+    { id: "payment", label: "Payment" },
+    { id: "notification", label: "Notification Settings" },
+  ];
+
+  const [activeTab, setActiveTab] = useState("profile");
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "profile":
+        return <p>Profile settings content goes here.</p>;
+      case "shipment":
+        return <p>Next shipment settings content goes here.</p>;
+      case "payment":
+        return <p>Payment settings content goes here.</p>;
+      case "notification":
+        return <p>Notification settings content goes here.</p>;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="p-4">
-      <h1>Shipper Settings</h1>
-      <p>This is the Shipper settings page.</p>
+    <div className="p-6 flex flex-col items-center">
+      {/* Comment Banner */}
+      <div className="w-full max-w-[1304px] mb-6">
+        <CommentBanner />
+      </div>
+
+      {/* Tabs */}
+      <div className="w-full max-w-[1304px] flex border-b border-gray-300 mb-6">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`h-9 px-4 text-sm font-medium -mb-[1px] border-b-2 transition-colors duration-200
+              ${
+                activeTab === tab.id
+                  ? "border-primary text-primary"
+                  : "border-transparent text-gray-600 hover:text-gray-900"
+              }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      <div className="w-full max-w-[1304px] bg-white p-6 rounded-lg shadow-sm min-h-[200px]">
+        {renderTabContent()}
+      </div>
     </div>
   );
 };
