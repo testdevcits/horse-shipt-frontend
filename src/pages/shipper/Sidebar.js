@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
 import { LuArrowRightFromLine, LuArrowLeftFromLine } from "react-icons/lu";
-import { FaTachometerAlt, FaBoxOpen, FaUser } from "react-icons/fa";
+import { FaTachometerAlt, FaBoxOpen, FaUser, FaCog } from "react-icons/fa";
 import { CiCircleQuestion } from "react-icons/ci";
 
 const navItems = [
@@ -17,6 +17,7 @@ const navItems = [
     ],
   },
   { name: "Profile", path: "/shipper/profile", icon: <FaUser /> },
+  { name: "Settings", path: "/shipper/settings", icon: <FaCog /> },
 ];
 
 const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
