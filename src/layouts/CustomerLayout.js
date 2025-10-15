@@ -8,9 +8,10 @@ import { HiOutlineShare } from "react-icons/hi";
 import logo from "../assets/images/logo.png";
 
 const CustomerLayout = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [profilePopup, setProfilePopup] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -28,7 +29,7 @@ const CustomerLayout = () => {
         </div>
 
         {/* Right: Icons + Profile */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 relative">
           <HiOutlineChatBubbleLeft
             size={24}
             className="text-system-primary cursor-pointer"
@@ -41,11 +42,27 @@ const CustomerLayout = () => {
             size={24}
             className="text-system-primary cursor-pointer"
           />
-          <img
-            src={user?.photo || "https://via.placeholder.com/40"}
-            alt="Profile"
-            className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
-          />
+
+          {/* Profile */}
+          <div className="relative">
+            <img
+              src={user?.photo || "https://via.placeholder.com/40"}
+              alt="Profile"
+              className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
+              onClick={() => setProfilePopup(!profilePopup)}
+            />
+            {/* Profile popup */}
+            {profilePopup && (
+              <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg">
+                <div
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={logout}
+                >
+                  <span>Logout</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

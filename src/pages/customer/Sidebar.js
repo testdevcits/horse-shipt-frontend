@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { IoMdClose } from "react-icons/io";
 import { LuArrowRightFromLine, LuArrowLeftFromLine } from "react-icons/lu";
 import { CiCircleQuestion } from "react-icons/ci";
 import { FaTachometerAlt, FaBoxOpen, FaCog } from "react-icons/fa";
@@ -38,7 +39,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-16 left-0 z-50 h-[calc(100%-64px)] bg-white text-system-primary shadow-lg transition-all duration-300
+        className={`fixed top-0 left-0 z-50 h-full bg-white text-system-primary shadow-lg transition-all duration-300
           md:relative md:h-auto md:shadow-none
           ${isOpen ? "w-64" : "w-16"}
           ${
@@ -48,16 +49,30 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           }
         `}
       >
-        {/* Sidebar toggle */}
-        <div className="flex justify-end p-4">
-          <button onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? (
-              <LuArrowLeftFromLine size={24} />
-            ) : (
-              <LuArrowRightFromLine size={24} />
-            )}
-          </button>
-        </div>
+        {/* Mobile close button */}
+        {mobileOpen && (
+          <div className="flex justify-end p-4">
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="text-gray-700 hover:text-gray-900"
+            >
+              <IoMdClose size={28} />
+            </button>
+          </div>
+        )}
+
+        {/* Sidebar toggle for desktop */}
+        {!mobileOpen && (
+          <div className="flex justify-end p-4">
+            <button onClick={() => setIsOpen(!isOpen)}>
+              {isOpen ? (
+                <LuArrowLeftFromLine size={24} />
+              ) : (
+                <LuArrowRightFromLine size={24} />
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="flex-1 mt-2 overflow-y-auto min-h-[calc(100%-64px)]">
