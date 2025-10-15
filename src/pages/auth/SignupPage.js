@@ -7,10 +7,6 @@ import Toast from "../../components/common/Toast";
 import signupBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../contexts/AuthContext";
-import axios from "axios";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -19,6 +15,7 @@ const SignupPage = () => {
 
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [backendError, setBackendError] = useState("");
 
   const initialValues = {
     name: "",
@@ -74,55 +71,57 @@ const SignupPage = () => {
     }
   }, [location.search, oauthLogin, navigate]);
 
+  // ----------------- Handle Signup -----------------
   const handleSignup = async (values, { setSubmitting, resetForm }) => {
     setLoading(true);
+    setBackendError("");
     try {
-      const res = await axios.post(`${API_BASE_URL}/auth/signup`, {
-        name: values.name,
-        email: values.email,
-        password: values.password,
-        role: values.role, // send role to backend
-        provider: "local",
-      });
+      const res = (await login.signup)
+        ? await login.signup(values) // use context signup if available
+        : await fetch(
+            `${
+              process.env.REACT_APP_API_BASE_URL ||
+              "https://horse-shipt.vercel.app/api"
+            }/auth/signup`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: values.name,
+                email: values.email,
+                password: values.password,
+                role: values.role,
+                provider: "local",
+              }),
+            }
+          ).then((res) => res.json());
 
-      const data = res.data;
-      if (data.success) {
-        const user = data.data;
-        login(
-          {
-            _id: user._id,
-            role: user.role,
-            name: user.name || "",
-            email: user.email || "",
-          },
-          user.token,
-          3600
-        );
-        setToast({ message: "Signup successful!", type: "info" });
+      if (res.success) {
+        // login automatically
+        login(res.data);
         resetForm();
         navigate(
-          user.role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard"
+          res.data.role === "shipper"
+            ? "/shipper/dashboard"
+            : "/customer/dashboard"
         );
       } else {
-        setToast({
-          message: data.errors?.[0] || data.message || "Signup failed",
-          type: "error",
-        });
+        // handle backend errors
+        setBackendError(res.errors?.[0] || res.message || "Signup failed");
       }
     } catch (err) {
-      setToast({
-        message:
+      setBackendError(
+        err.response?.data?.errors?.[0] ||
           err.response?.data?.message ||
-          err.response?.data?.errors?.[0] ||
-          "Signup error",
-        type: "error",
-      });
+          "Signup error"
+      );
     } finally {
       setLoading(false);
       setSubmitting(false);
     }
   };
 
+  // ----------------- Handle Google Signup -----------------
   const handleGoogleSignup = (role) => {
     if (!role) {
       setToast({
@@ -131,10 +130,9 @@ const SignupPage = () => {
       });
       return;
     }
-    // Send role as query param
-    window.location.href = `${API_BASE_URL}/auth/google?role=${encodeURIComponent(
-      role
-    )}`;
+    window.location.href = `${
+      process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api"
+    }/auth/google?role=${encodeURIComponent(role)}`;
   };
 
   return (
@@ -166,6 +164,12 @@ const SignupPage = () => {
               Login
             </span>
           </p>
+
+          {backendError && (
+            <div className="text-red-500 text-xs font-medium">
+              {backendError}
+            </div>
+          )}
 
           <Formik
             initialValues={initialValues}

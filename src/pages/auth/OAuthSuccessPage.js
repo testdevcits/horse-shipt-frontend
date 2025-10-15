@@ -1,11 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import Toast from "../../components/common/Toast";
 
 const OAuthSuccessPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { oauthLogin } = useAuth();
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -16,6 +18,12 @@ const OAuthSuccessPage = () => {
     const photo = params.get("photo") || "";
     const provider = params.get("provider") || "";
     const providerId = params.get("providerId") || "";
+    const error = params.get("error");
+
+    if (error) {
+      setToast({ message: decodeURIComponent(error), type: "error" });
+      return;
+    }
 
     if (token && role) {
       // Save user info in context
@@ -31,8 +39,15 @@ const OAuthSuccessPage = () => {
 
       // Redirect to dashboard
       navigate(`/${role}/dashboard`, { replace: true });
+    } else if (token && !role) {
+      // Token exists but role missing
+      setToast({
+        message: "Role not found. Please login manually.",
+        type: "error",
+      });
+      navigate("/login", { replace: true });
     } else {
-      // Redirect to login if missing info
+      // No token
       navigate("/login", { replace: true });
     }
   }, [location.search, oauthLogin, navigate]);
@@ -41,6 +56,14 @@ const OAuthSuccessPage = () => {
     <div className="flex flex-col justify-center items-center min-h-screen text-gray-600">
       <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
       <p className="mt-3 text-sm">Logging in...</p>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };

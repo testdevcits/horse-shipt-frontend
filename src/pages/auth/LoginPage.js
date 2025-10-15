@@ -48,10 +48,8 @@ const LoginPage = () => {
         providerId: params.get("providerId"),
       };
 
-      // Update AuthContext
       oauthLogin({ token, ...oauthUser });
 
-      // Redirect to dashboard
       navigate(
         oauthUser.role === "shipper"
           ? "/shipper/dashboard"
@@ -62,7 +60,7 @@ const LoginPage = () => {
   }, [location.search, oauthLogin, navigate]);
 
   // ----------------- Handle normal login -----------------
-  const handleLogin = async (values, { setSubmitting }) => {
+  const handleLogin = async (values, { setSubmitting, setFieldError }) => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -83,10 +81,21 @@ const LoginPage = () => {
           { replace: true }
         );
       } else {
-        setToast({
-          message: data.errors?.[0] || data.message || "Login failed",
-          type: "error",
-        });
+        // Handle backend errors
+        if (data.errors?.length > 0) {
+          // Set first error on form field if matches
+          const emailError = data.errors.find((e) =>
+            e.toLowerCase().includes("email")
+          );
+          if (emailError) setFieldError("email", emailError);
+
+          // Show toast for all errors
+          setToast({ message: data.errors.join(", "), type: "error" });
+        } else if (data.message) {
+          setToast({ message: data.message, type: "error" });
+        } else {
+          setToast({ message: "Login failed", type: "error" });
+        }
       }
     } catch (err) {
       setToast({ message: "Login error", type: "error" });
@@ -105,7 +114,6 @@ const LoginPage = () => {
       });
       return;
     }
-    // Redirect to backend Google OAuth endpoint
     window.location.href = `${API_BASE_URL}/auth/google?role=${encodeURIComponent(
       role
     )}`;
