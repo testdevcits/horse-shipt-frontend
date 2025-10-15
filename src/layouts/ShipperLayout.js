@@ -69,7 +69,7 @@ const ShipperLayout = () => {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 ">
         {/* Sidebar */}
         <Sidebar
           mobileOpen={mobileMenuOpen}
