@@ -1,4 +1,3 @@
-// src/pages/customer/Sidebar.js
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
@@ -28,7 +27,7 @@ const navItems = [
 ];
 
 const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
-  const { logout, user } = useAuth(); // use user for profile display
+  const { user, logout } = useAuth();
 
   const isActivePath = (path, subPaths) => {
     if (window.location.pathname === path) return true;

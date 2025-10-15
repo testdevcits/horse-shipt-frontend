@@ -1,4 +1,3 @@
-// src/pages/shipper/Sidebar.js
 import React from "react";
 import { NavLink } from "react-router-dom";
 import {
@@ -65,7 +64,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
       {/* Sidebar */}
       <div
         className={`fixed top-0 left-0 z-50 h-full bg-white shadow-lg transition-all duration-300
-          md:relative md:top-0 md:left-0 md:h-auto md:shadow-none
+          md:relative md:h-auto md:shadow-none
           ${isOpen ? "w-64" : "w-16"}
           ${
             mobileOpen
@@ -73,6 +72,23 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
               : "-translate-x-full md:translate-x-0"
           }`}
       >
+        {/* Profile Section */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200">
+          <img
+            src={user?.photo || "https://via.placeholder.com/40"}
+            alt="Profile"
+            className="w-10 h-10 rounded-full object-cover"
+          />
+          {isOpen || mobileOpen ? (
+            <div className="flex flex-col">
+              <span className="font-medium">{user?.name || "Shipper"}</span>
+              <span className="text-sm text-gray-500">
+                {user?.role || "Shipper"}
+              </span>
+            </div>
+          ) : null}
+        </div>
+
         {/* Toggle Buttons */}
         <div className="flex justify-between items-center p-4">
           {/* Sidebar toggle */}

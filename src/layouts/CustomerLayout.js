@@ -7,7 +7,7 @@ import { CgMenu } from "react-icons/cg";
 const CustomerLayout = () => {
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true); // desktop toggle
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -20,11 +20,19 @@ const CustomerLayout = () => {
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:ml-64 transition-all duration-300">
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${
+          sidebarOpen ? "lg:ml-64" : "lg:ml-16"
+        }`}
+      >
         {/* Header */}
-        <header className="sticky top-0 z-30 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
-          {/* Mobile menu button */}
+        <header
+          className={`sticky top-0 z-30 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6 transition-all duration-300 ${
+            sidebarOpen ? "lg:pl-6" : "lg:pl-4"
+          }`}
+        >
           <div className="flex items-center gap-4">
+            {/* Mobile menu button */}
             <button
               className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
