@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
-import logo from "../assets/images/logo.png"; // Logo
+import logo from "../assets/images/logo.png";
 import {
   HiOutlineBell,
   HiOutlineChatBubbleLeft,
@@ -13,7 +13,7 @@ import {
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
@@ -58,7 +58,6 @@ const ShipperLayout = () => {
               className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
               onClick={() => setProfilePopup(!profilePopup)}
             />
-            {/* Profile popup */}
             {profilePopup && (
               <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg">
                 <div
@@ -83,20 +82,10 @@ const ShipperLayout = () => {
         />
 
         {/* Main content */}
-        <main
-          className={`flex-1 transition-all duration-300 p-2 sm:p-6 md:p-8 overflow-auto`}
-        >
+        <main className="flex-1 p-2 sm:p-6 md:p-8 overflow-auto">
           <Outlet />
         </main>
       </div>
-
-      {/* Mobile Sidebar Overlay */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
     </div>
   );
 };

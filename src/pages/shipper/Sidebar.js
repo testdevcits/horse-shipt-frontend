@@ -33,7 +33,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-40 md:hidden"
+          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -46,7 +46,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        {/* Top buttons (toggle / mobile close) */}
+        {/* Top buttons */}
         <div className="flex justify-end p-4">
           {mobileOpen ? (
             <button
@@ -67,7 +67,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         </div>
 
         {/* Scrollable nav items */}
-        <nav className="flex-1 overflow-y-auto px-2">
+        <nav className="flex-1 overflow-y-auto px-2 mt-2 mb-20">
           <ul className="space-y-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
