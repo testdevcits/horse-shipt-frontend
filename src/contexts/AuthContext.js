@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // <-- for navigation
+  const navigate = useNavigate(); // navigation works because AuthProvider is inside Router
 
   // ----------------- Auto-login on page load -----------------
   useEffect(() => {
@@ -90,7 +90,6 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     if (!user) return;
     try {
-      // Call backend to set user.isLogin = false
       await axios.post(
         `${API_BASE_URL}/auth/logout`,
         { role: user.role, userId: user._id },
@@ -106,7 +105,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("token");
       localStorage.removeItem("role");
 
-      // Navigate to login page
+      // Redirect to login page
       navigate("/login", { replace: true });
     }
   };

@@ -5,11 +5,11 @@ import AppRoutes from "./routes/AppRoutes";
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <AppRoutes />
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
