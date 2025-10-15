@@ -40,13 +40,13 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 z-50 h-full bg-white text-system-primary shadow-lg transition-transform duration-300
+        className={`fixed top-16 left-0 z-50 h-[calc(100%-4rem)] bg-white text-system-primary shadow-lg transition-transform duration-300
           md:relative md:h-auto md:shadow-none
           ${isOpen ? "w-64" : "w-16"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        {/* Top buttons */}
+        {/* Toggle / Close Button */}
         <div className="flex justify-end p-4">
           {mobileOpen ? (
             <button
@@ -66,8 +66,8 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           )}
         </div>
 
-        {/* Scrollable nav items */}
-        <nav className="flex-1 overflow-y-auto px-2 mt-2 mb-20">
+        {/* Scrollable Navigation */}
+        <nav className="flex-1 overflow-y-auto px-2 py-2">
           <ul className="space-y-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);

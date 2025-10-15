@@ -13,14 +13,13 @@ import {
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
       <header className="sticky top-0 z-30 flex items-center justify-between bg-white shadow-md px-4 py-3 sm:px-6 lg:px-8">
-        {/* Left: Logo + Mobile Menu */}
         <div className="flex items-center gap-4">
           <button
             className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
@@ -35,7 +34,6 @@ const ShipperLayout = () => {
           />
         </div>
 
-        {/* Right: Icons + Profile */}
         <div className="flex items-center gap-3 sm:gap-4 relative">
           <HiOutlineShare
             size={20}
@@ -50,7 +48,6 @@ const ShipperLayout = () => {
             className="text-gray-500 cursor-pointer hover:text-gray-700 transition"
           />
 
-          {/* Profile */}
           <div className="relative">
             <img
               src={user?.photo || "https://via.placeholder.com/40"}
@@ -86,6 +83,14 @@ const ShipperLayout = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
     </div>
   );
 };
