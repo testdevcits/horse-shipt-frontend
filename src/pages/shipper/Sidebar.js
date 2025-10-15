@@ -53,7 +53,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
   return (
     <>
-      {/* Overlay for mobile */}
+      {/* Mobile overlay */}
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/30 z-40 md:hidden"
@@ -79,14 +79,14 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
             alt="Profile"
             className="w-10 h-10 rounded-full object-cover"
           />
-          {isOpen || mobileOpen ? (
+          {(isOpen || mobileOpen) && (
             <div className="flex flex-col">
               <span className="font-medium">{user?.name || "Shipper"}</span>
               <span className="text-sm text-gray-500">
                 {user?.role || "Shipper"}
               </span>
             </div>
-          ) : null}
+          )}
         </div>
 
         {/* Toggle Buttons */}
