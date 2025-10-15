@@ -2,13 +2,8 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
 import { LuArrowRightFromLine, LuArrowLeftFromLine } from "react-icons/lu";
-import {
-  FaTachometerAlt,
-  FaBoxOpen,
-  FaUser,
-  FaCog,
-  FaSignOutAlt,
-} from "react-icons/fa";
+import { CiCircleQuestion } from "react-icons/ci";
+import { FaTachometerAlt, FaBoxOpen, FaUser, FaCog } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 
 const navItems = [
@@ -27,18 +22,13 @@ const navItems = [
 ];
 
 const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const isActivePath = (path, subPaths) => {
     if (window.location.pathname === path) return true;
     if (subPaths)
       return subPaths.some((sub) => sub.path === window.location.pathname);
     return false;
-  };
-
-  const handleLogout = () => {
-    logout();
-    setMobileOpen(false);
   };
 
   return (
@@ -144,16 +134,12 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           </ul>
         </nav>
 
-        {/* Logout */}
+        {/* Bottom Question Icon */}
         <div className="absolute bottom-4 w-full px-4">
           <button
-            onClick={handleLogout}
-            className={`flex items-center ${
-              isOpen ? "justify-start gap-3" : "justify-center"
-            } w-full py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded transition-all duration-300`}
+            className={`flex items-center justify-center w-full py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition-all duration-300`}
           >
-            <FaSignOutAlt className="text-lg" />
-            {isOpen && <span>Logout</span>}
+            <CiCircleQuestion size={24} />
           </button>
         </div>
       </div>
