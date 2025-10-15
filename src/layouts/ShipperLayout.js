@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
-import logo from "../assets/images/logo.png";
+import logo from "../assets/images/logo.png"; // <-- Logo import
 import {
   HiOutlineBell,
   HiOutlineChatBubbleLeft,
@@ -13,32 +13,25 @@ import {
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
+      <header className="sticky top-0 z-30 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
         {/* Left: Logo + Mobile Menu */}
         <div className="flex items-center gap-4">
-          {/* Mobile menu button */}
           <button
             className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             <CgMenu size={24} />
           </button>
-
-          {/* Logo - always visible */}
-          <img
-            src={logo}
-            alt="Logo"
-            className="w-28 sm:w-32 h-auto object-contain"
-          />
+          <img src={logo} alt="Logo" className="w-32 h-auto object-contain" />
         </div>
 
-        {/* Right: Profile & Actions */}
+        {/* Right: Profile */}
         <div className="flex items-center gap-4 relative">
           <HiOutlineShare size={20} className="text-gray-500 cursor-pointer" />
           <HiOutlineBell size={20} className="text-gray-500 cursor-pointer" />
@@ -54,6 +47,7 @@ const ShipperLayout = () => {
               className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
               onClick={() => setProfilePopup(!profilePopup)}
             />
+            {/* Profile popup */}
             {profilePopup && (
               <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg">
                 <div
@@ -68,7 +62,7 @@ const ShipperLayout = () => {
         </div>
       </header>
 
-      <div className="flex flex-1 relative">
+      <div className="flex flex-1">
         {/* Sidebar */}
         <Sidebar
           mobileOpen={mobileMenuOpen}
@@ -77,18 +71,10 @@ const ShipperLayout = () => {
           setIsOpen={setSidebarOpen}
         />
 
-        {/* Overlay for mobile */}
-        {mobileMenuOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-        )}
-
         {/* Main content */}
         <main
-          className={`flex-1 transition-all duration-300 p-4 sm:p-6 md:p-8 ${
-            sidebarOpen ? "lg:ml-64" : "lg:ml-20"
+          className={`flex-1 transition-all duration-300  p-4 sm:p-6 md:p-8 ${
+            sidebarOpen ? "lg:ml-10" : "lg:ml-6"
           }`}
         >
           <Outlet />
