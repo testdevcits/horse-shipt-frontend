@@ -17,17 +17,20 @@ const SignupPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, oauthLogin } = useAuth();
+
   const [toast, setToast] = useState(null);
   const [selectedRole, setSelectedRole] = useState("shipper");
+  const [loading, setLoading] = useState(false);
 
+  // ----------------- Initial Values -----------------
   const initialValues = {
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    role: "shipper",
   };
 
+  // ----------------- Validation -----------------
   const validationSchema = Yup.object({
     name: Yup.string().required("Name is required"),
     email: Yup.string().email("Invalid email").required("Required"),
@@ -41,10 +44,9 @@ const SignupPage = () => {
     confirmPassword: Yup.string()
       .oneOf([Yup.ref("password"), null], "Passwords must match")
       .required("Required"),
-    role: Yup.string().oneOf(["shipper", "customer"]).required("Required"),
   });
 
-  // ----------------- Handle OAuth redirect -----------------
+  // ----------------- Handle OAuth Redirect -----------------
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
@@ -66,7 +68,6 @@ const SignupPage = () => {
       };
 
       oauthLogin({ token, ...userData });
-
       navigate(
         userData.role === "shipper"
           ? "/shipper/dashboard"
@@ -75,9 +76,9 @@ const SignupPage = () => {
     }
   }, [location.search, oauthLogin, navigate]);
 
-  // ----------------- Signup submit -----------------
-  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    setSubmitting(true);
+  // ----------------- Handle Normal Signup -----------------
+  const handleSignup = async (values, { setSubmitting, resetForm }) => {
+    setLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/signup`, {
         name: values.name,
@@ -87,6 +88,7 @@ const SignupPage = () => {
       });
 
       const data = response.data;
+
       if (data.success) {
         const user = data.data;
         const authUser = {
@@ -105,6 +107,7 @@ const SignupPage = () => {
         login(authUser, user.token, 3600); // Save to AuthContext
         setToast({ message: "Signup successful!", type: "info" });
         resetForm();
+
         navigate(
           user.role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard"
         );
@@ -115,7 +118,7 @@ const SignupPage = () => {
         });
       }
     } catch (error) {
-      console.error(error);
+      console.error("Signup Error:", error);
       setToast({
         message:
           error.response?.data?.errors?.[0] ||
@@ -125,10 +128,11 @@ const SignupPage = () => {
       });
     } finally {
       setSubmitting(false);
+      setLoading(false);
     }
   };
 
-  // ----------------- Google OAuth -----------------
+  // ----------------- Handle Google OAuth -----------------
   const handleGoogleLogin = () => {
     window.location.href = `${API_BASE_URL}/auth/google?role=${selectedRole}`;
   };
@@ -139,6 +143,7 @@ const SignupPage = () => {
       style={{ backgroundImage: `url(${signupBg})` }}
     >
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-20">
+        {/* ----------- Left Logo Section ----------- */}
         <div className="flex items-center justify-center w-full md:w-[450px] h-[150px]">
           <svg width="120" height="120" viewBox="0 0 64 64" fill="none">
             <circle cx="32" cy="32" r="32" fill="#E5E7EB" />
@@ -147,6 +152,7 @@ const SignupPage = () => {
           </svg>
         </div>
 
+        {/* ----------- Signup Form ----------- */}
         <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 md:p-8 shadow-md flex flex-col justify-center w-full max-w-sm gap-4">
           <h1 className="text-xl sm:text-2xl font-semibold text-start text-gray-800">
             Create Account
@@ -155,7 +161,7 @@ const SignupPage = () => {
           <p className="text-xs text-gray-600">
             Already have an account?{" "}
             <span
-              className="text-[#BF9B53] font-medium cursor-pointer px-2 py-1 rounded hover:underline"
+              className="text-[#BF9B53] font-medium cursor-pointer px-2 py-1 rounded hover:bg-[#bf9b5360] hover:text-black"
               onClick={() => navigate("/login")}
             >
               Login
@@ -165,7 +171,7 @@ const SignupPage = () => {
           <Formik
             initialValues={initialValues}
             validationSchema={validationSchema}
-            onSubmit={handleSubmit}
+            onSubmit={handleSignup}
           >
             {({ values, setFieldValue, isValid, dirty, isSubmitting }) => (
               <Form className="flex flex-col gap-3">
@@ -223,6 +229,7 @@ const SignupPage = () => {
                   className="text-xs text-red-500"
                 />
 
+                {/* Role Buttons */}
                 <div className="flex gap-2">
                   {["shipper", "customer"].map((r) => (
                     <button
@@ -240,22 +247,25 @@ const SignupPage = () => {
                   ))}
                 </div>
 
+                {/* Submit Button */}
                 <div className="flex justify-end">
                   <Button
                     type="submit"
-                    disabled={!(isValid && dirty) || isSubmitting}
+                    disabled={!(isValid && dirty) || isSubmitting || loading}
                     className={`px-4 py-1.5 text-xs rounded-md ${
                       isValid && dirty
                         ? "bg-[#BF9B53] text-white hover:bg-[#a6813f]"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
                   >
-                    Signup
+                    {loading ? "Signing up..." : "Signup"}
                   </Button>
                 </div>
 
+                {/* Google Login */}
                 <div className="flex flex-col gap-2 mt-4">
                   <Button
+                    type="button"
                     className="w-full flex items-center justify-center border border-gray-300 text-black gap-2 rounded-full text-xs py-1.5"
                     onClick={handleGoogleLogin}
                   >
