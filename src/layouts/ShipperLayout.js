@@ -33,11 +33,11 @@ const ShipperLayout = () => {
 
         {/* Right: Profile */}
         <div className="flex items-center gap-4 relative">
-          <HiOutlineShare size={20} className="text-gray-50 cursor-pointer" />
-          <HiOutlineBell size={20} className="text-gray-50 cursor-pointer" />
+          <HiOutlineShare size={20} className="text-gray-500 cursor-pointer" />
+          <HiOutlineBell size={20} className="text-gray-500 cursor-pointer" />
           <HiOutlineChatBubbleLeft
             size={20}
-            className="text-gray-50 cursor-pointer"
+            className="text-gray-500 cursor-pointer"
           />
           {/* Profile */}
           <div className="relative">
