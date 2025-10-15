@@ -7,14 +7,16 @@ const ProtectedRoute = ({ children, role }) => {
   const { user, token, logout } = useAuth();
   const [accessDenied, setAccessDenied] = useState(false);
   const [redirect, setRedirect] = useState(false);
-  const [checking, setChecking] = useState(true); // Wait until auth is ready
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Delay checking to ensure OAuth login has updated the context
+    // Small delay to ensure context is updated (especially for OAuth)
     const timer = setTimeout(() => {
       if (!user || !token) {
+        // Not logged in → redirect to login
         setRedirect(true);
       } else if (role && user.role !== role) {
+        // Role mismatch → show access denied
         setAccessDenied(true);
 
         // Auto logout & redirect after 3 seconds
@@ -26,12 +28,12 @@ const ProtectedRoute = ({ children, role }) => {
         return () => clearTimeout(logoutTimer);
       }
       setChecking(false);
-    }, 100); // small delay to allow OAuth login to finish
+    }, 50); // reduced delay for snappier response
 
     return () => clearTimeout(timer);
   }, [user, token, role, logout]);
 
-  // Show loading while checking auth
+  // Loading indicator while checking auth
   if (checking) {
     return (
       <div className="flex justify-center items-center min-h-screen text-gray-600">
@@ -41,10 +43,10 @@ const ProtectedRoute = ({ children, role }) => {
     );
   }
 
-  // Redirect if no user or token
+  // Redirect to login if not authenticated
   if (!user || !token || redirect) return <Navigate to="/login" replace />;
 
-  // Show access denied message
+  // Show access denied toast if role doesn't match
   if (accessDenied) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -56,7 +58,7 @@ const ProtectedRoute = ({ children, role }) => {
     );
   }
 
-  // Otherwise render children
+  // User has access → render children
   return children;
 };
 

@@ -77,7 +77,14 @@ const SignupPage = () => {
   const handleSignup = async (values, { setSubmitting, resetForm }) => {
     setLoading(true);
     try {
-      const res = await axios.post(`${API_BASE_URL}/auth/signup`, values);
+      const res = await axios.post(`${API_BASE_URL}/auth/signup`, {
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        role: values.role, // send role to backend
+        provider: "local",
+      });
+
       const data = res.data;
       if (data.success) {
         const user = data.data;
@@ -116,7 +123,7 @@ const SignupPage = () => {
     }
   };
 
-  const handleGoogleLogin = (role) => {
+  const handleGoogleSignup = (role) => {
     if (!role) {
       setToast({
         message: "Please select a role before Google signup.",
@@ -124,7 +131,7 @@ const SignupPage = () => {
       });
       return;
     }
-    // Send role in query string
+    // Send role as query param
     window.location.href = `${API_BASE_URL}/auth/google?role=${encodeURIComponent(
       role
     )}`;
@@ -283,10 +290,10 @@ const SignupPage = () => {
                   <div className="flex flex-col gap-2 mt-4">
                     <Button
                       type="button"
-                      variant="google"
                       fullWidth
                       disabled={!values.role}
-                      onClick={() => handleGoogleLogin(values.role)}
+                      onClick={() => handleGoogleSignup(values.role)}
+                      className="flex items-center justify-center border border-gray-300 text-black gap-2 rounded-full text-xs py-1.5"
                     >
                       <FcGoogle size={16} /> Continue with Google
                     </Button>

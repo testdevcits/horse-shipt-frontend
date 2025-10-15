@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
@@ -31,7 +31,10 @@ const LoginPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
-    if (error) setToast({ message: decodeURIComponent(error), type: "error" });
+    if (error) {
+      setToast({ message: decodeURIComponent(error), type: "error" });
+      return;
+    }
 
     const token = params.get("token");
     if (token) {
@@ -45,12 +48,15 @@ const LoginPage = () => {
         providerId: params.get("providerId"),
       };
 
+      // Update AuthContext
       oauthLogin({ token, ...oauthUser });
 
+      // Redirect to dashboard
       navigate(
         oauthUser.role === "shipper"
           ? "/shipper/dashboard"
-          : "/customer/dashboard"
+          : "/customer/dashboard",
+        { replace: true }
       );
     }
   }, [location.search, oauthLogin, navigate]);
@@ -64,14 +70,17 @@ const LoginPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
+
       const data = await res.json();
 
       if (data.success) {
         const user = data.data;
-        login(user);
-        setToast({ message: "Logged in successfully!", type: "info" });
+        login(user); // Update AuthContext
         navigate(
-          user.role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard"
+          user.role === "shipper"
+            ? "/shipper/dashboard"
+            : "/customer/dashboard",
+          { replace: true }
         );
       } else {
         setToast({
@@ -96,6 +105,7 @@ const LoginPage = () => {
       });
       return;
     }
+    // Redirect to backend Google OAuth endpoint
     window.location.href = `${API_BASE_URL}/auth/google?role=${encodeURIComponent(
       role
     )}`;

@@ -1,8 +1,9 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { LuArrowRightFromLine, LuArrowLeftFromLine } from "react-icons/lu";
 import { IoMdClose } from "react-icons/io";
 import { FaTachometerAlt, FaBoxOpen, FaUser } from "react-icons/fa";
+import axios from "axios";
+import { useAuth } from "../../contexts/AuthContext";
 
 const navItems = [
   {
@@ -26,12 +27,30 @@ const navItems = [
   },
 ];
 
-const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen, logout }) => {
+const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
+  const { user, logout } = useAuth();
+  const API_BASE_URL =
+    process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+
   const isActivePath = (path, subPaths) => {
     if (window.location.pathname === path) return true;
     if (subPaths)
       return subPaths.some((sub) => sub.path === window.location.pathname);
     return false;
+  };
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(`${API_BASE_URL}/auth/logout`, {
+        role: user.role,
+        userId: user._id,
+      });
+    } catch (err) {
+      console.error("Logout API error:", err);
+    } finally {
+      logout(); // clear auth context
+      setMobileOpen(false); // close mobile sidebar
+    }
   };
 
   return (
@@ -116,7 +135,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen, logout }) => {
         {/* Logout Button */}
         <div className="absolute bottom-4 w-full px-4">
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full py-2 bg-red-100 text-red-600 font-semibold rounded hover:bg-red-200"
           >
             Logout

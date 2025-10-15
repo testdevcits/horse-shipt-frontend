@@ -9,7 +9,7 @@ const API_BASE_URL =
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true); // loading state
+  const [loading, setLoading] = useState(true);
 
   // ----------------- Auto-login -----------------
   useEffect(() => {
@@ -22,27 +22,18 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // ----------------- Login -----------------
-  const login = async (credentials) => {
+  // ----------------- Normal Login -----------------
+  const login = async ({ email, password, role, deviceId }) => {
+    if (!role) return { success: false, errors: ["Role is required"] };
     setLoading(true);
     try {
-      let userData;
+      const res = await axios.post(
+        `${API_BASE_URL}/auth/login`,
+        { email, password, role, deviceId },
+        { withCredentials: true }
+      );
 
-      if (credentials.token) {
-        // OAuth login
-        userData = credentials;
-      } else {
-        // Normal form login
-        const res = await axios.post(
-          `${API_BASE_URL}/auth/login`,
-          credentials,
-          {
-            withCredentials: true,
-          }
-        );
-        userData = res.data.data;
-      }
-
+      const userData = res.data.data;
       setUser(userData);
       setToken(userData.token);
 
@@ -62,15 +53,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ----------------- Signup -----------------
-  const signup = async (userData) => {
+  // ----------------- Normal Signup -----------------
+  const signup = async ({ name, email, password, role }) => {
+    if (!role) return { success: false, errors: ["Role is required"] };
     setLoading(true);
     try {
-      const res = await axios.post(`${API_BASE_URL}/auth/signup`, userData, {
-        withCredentials: true,
-      });
-      const newUser = res.data.data;
+      const res = await axios.post(
+        `${API_BASE_URL}/auth/signup`,
+        { name, email, password, role },
+        { withCredentials: true }
+      );
 
+      const newUser = res.data.data;
       setUser(newUser);
       setToken(newUser.token);
 
@@ -92,9 +86,8 @@ export const AuthProvider = ({ children }) => {
 
   // ----------------- Logout -----------------
   const logout = async () => {
+    if (!user) return;
     try {
-      if (!user) return;
-
       await axios.post(
         `${API_BASE_URL}/auth/logout`,
         { role: user.role, userId: user._id },

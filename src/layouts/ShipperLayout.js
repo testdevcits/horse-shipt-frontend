@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
 
 const ShipperLayout = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [sidebarOpen, setSidebarOpen] = React.useState(false); // hover controlled
 
@@ -46,7 +46,6 @@ const ShipperLayout = () => {
           setMobileOpen={setMobileMenuOpen}
           isOpen={sidebarOpen}
           setIsOpen={setSidebarOpen}
-          logout={logout}
         />
 
         {/* Main content */}
