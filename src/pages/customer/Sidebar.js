@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
+import { LuArrowRightFromLine, LuArrowLeftFromLine } from "react-icons/lu";
 import {
   FaTachometerAlt,
   FaBoxOpen,
@@ -86,18 +87,30 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
               : "-translate-x-full md:translate-x-0"
           }
         `}
-        onMouseEnter={() => setIsOpen(true)}
-        onMouseLeave={() => setIsOpen(false)}
       >
-        {/* Mobile Close Button */}
-        <div className="flex justify-end p-4 md:hidden">
-          <button onClick={() => setMobileOpen(false)}>
-            <IoMdClose size={28} />
-          </button>
+        {/* Top-right Toggle / Close */}
+        <div className="flex justify-between items-center p-4 md:justify-end">
+          {mobileOpen && (
+            <button onClick={() => setMobileOpen(false)} className="md:hidden">
+              <IoMdClose size={28} />
+            </button>
+          )}
+          {!mobileOpen && (
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="ml-auto text-white"
+            >
+              {isOpen ? (
+                <LuArrowLeftFromLine size={24} />
+              ) : (
+                <LuArrowRightFromLine size={24} />
+              )}
+            </button>
+          )}
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 mt-4 overflow-y-auto min-h-[calc(100vh-80px)]">
+        <nav className="flex-1 mt-2 overflow-y-auto min-h-[calc(100vh-80px)]">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
@@ -142,14 +155,16 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           </ul>
         </nav>
 
-        {/* Logout Button */}
+        {/* Logout */}
         <div className="absolute bottom-4 w-full px-4">
           <button
             onClick={handleLogout}
-            className="flex items-center justify-center md:justify-start gap-3 w-full py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded transition-all duration-300"
+            className={`flex items-center ${
+              isOpen ? "justify-start gap-3" : "justify-center"
+            } w-full py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded transition-all duration-300`}
           >
             <FaSignOutAlt className="text-lg" />
-            {(isOpen || mobileOpen) && <span>Logout</span>}
+            {isOpen && <span>Logout</span>}
           </button>
         </div>
       </div>

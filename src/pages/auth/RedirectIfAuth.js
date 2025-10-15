@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
-const RedirectIfAuth = ({ children }) => {
+const RedirectIfAuth = ({ children, redirectPath }) => {
   const { user, token, loading } = useAuth(); // include token to ensure login is valid
 
   // Prevent flashing while auth state is being determined
@@ -17,7 +17,8 @@ const RedirectIfAuth = ({ children }) => {
 
   // If user is logged in and token exists, redirect based on role
   if (user && token) {
-    return <Navigate to={`/${user.role}/dashboard`} replace />;
+    const path = redirectPath || `/${user.role}/dashboard`;
+    return <Navigate to={path} replace />;
   }
 
   // Otherwise, render children (login/signup pages)

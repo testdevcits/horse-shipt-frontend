@@ -1,21 +1,17 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { IoMdClose } from "react-icons/io";
 import {
   FaTachometerAlt,
   FaBoxOpen,
   FaUser,
   FaSignOutAlt,
 } from "react-icons/fa";
+import { LuArrowRightFromLine, LuArrowLeftFromLine } from "react-icons/lu";
 import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
 
 const navItems = [
-  {
-    name: "Dashboard",
-    path: "/shipper/dashboard",
-    icon: <FaTachometerAlt />,
-  },
+  { name: "Dashboard", path: "/shipper/dashboard", icon: <FaTachometerAlt /> },
   {
     name: "Orders",
     path: "/shipper/orders",
@@ -25,11 +21,7 @@ const navItems = [
       { name: "Completed", path: "/shipper/orders/completed" },
     ],
   },
-  {
-    name: "Profile",
-    path: "/shipper/profile",
-    icon: <FaUser />,
-  },
+  { name: "Profile", path: "/shipper/profile", icon: <FaUser /> },
 ];
 
 const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
@@ -54,8 +46,8 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
     } catch (err) {
       console.error("Logout API error:", err);
     } finally {
-      logout(); // clear auth context
-      setMobileOpen(false); // close mobile sidebar
+      logout();
+      setMobileOpen(false);
     }
   };
 
@@ -72,22 +64,31 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
       {/* Sidebar */}
       <div
         className={`fixed top-0 left-0 z-50 h-full bg-white shadow-lg transition-all duration-300
-          md:relative md:top-0 md:left-0 md:h-auto md:shadow-none
-          ${isOpen ? "w-64" : "w-16"}
-          ${
-            mobileOpen
-              ? "translate-x-0 w-full"
-              : "-translate-x-full md:translate-x-0"
-          }
-        `}
-        onMouseEnter={() => setIsOpen(true)}
-        onMouseLeave={() => setIsOpen(false)}
+        md:relative md:top-0 md:left-0 md:h-auto md:shadow-none
+        ${isOpen ? "w-64" : "w-16"}
+        ${
+          mobileOpen
+            ? "translate-x-0 w-full"
+            : "-translate-x-full md:translate-x-0"
+        }`}
       >
-        {/* Mobile Close Button */}
-        <div className="flex justify-end p-4 md:hidden">
-          <button onClick={() => setMobileOpen(false)}>
-            <IoMdClose size={28} />
-          </button>
+        {/* Toggle Buttons */}
+        <div className="flex justify-end p-4 md:justify-between md:items-center">
+          {isOpen ? (
+            <button onClick={() => setIsOpen(false)}>
+              <LuArrowLeftFromLine size={24} />
+            </button>
+          ) : (
+            <button onClick={() => setIsOpen(true)}>
+              <LuArrowRightFromLine size={24} />
+            </button>
+          )}
+          {/* Mobile Close */}
+          {mobileOpen && (
+            <button className="md:hidden" onClick={() => setMobileOpen(false)}>
+              ✕
+            </button>
+          )}
         </div>
 
         {/* Navigation */}
@@ -107,7 +108,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
                     }`}
                   >
                     <span className="text-lg">{item.icon}</span>
-                    {isOpen || mobileOpen ? <span>{item.name}</span> : null}
+                    {(isOpen || mobileOpen) && <span>{item.name}</span>}
                   </NavLink>
 
                   {item.subPaths && (isOpen || mobileOpen) && (
@@ -142,7 +143,9 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         <div className="absolute bottom-4 w-full px-4">
           <button
             onClick={handleLogout}
-            className="flex items-center justify-center md:justify-start gap-3 w-full py-2 bg-red-100 text-red-600 font-semibold rounded hover:bg-red-200 transition-all duration-300"
+            className={`flex items-center justify-center gap-3 w-full py-2 bg-red-100 text-red-600 font-semibold rounded hover:bg-red-200 transition-all duration-300 ${
+              !isOpen && "justify-center"
+            }`}
           >
             <FaSignOutAlt className="text-lg" />
             {(isOpen || mobileOpen) && <span>Logout</span>}

@@ -7,7 +7,7 @@ import { CgMenu } from "react-icons/cg";
 const ShipperLayout = () => {
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const [sidebarOpen, setSidebarOpen] = React.useState(false); // hover controlled
+  const [sidebarOpen, setSidebarOpen] = React.useState(true); // default open, controlled via toggle buttons now
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">

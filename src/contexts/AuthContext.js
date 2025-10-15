@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
@@ -10,8 +11,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // <-- for navigation
 
-  // ----------------- Auto-login -----------------
+  // ----------------- Auto-login on page load -----------------
   useEffect(() => {
     const storedUser = localStorage.getItem("horseShiptUser");
     const storedToken = localStorage.getItem("token");
@@ -23,13 +25,13 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // ----------------- Normal Login -----------------
-  const login = async ({ email, password, role, deviceId }) => {
+  const login = async ({ email, password, role, deviceId, location }) => {
     if (!role) return { success: false, errors: ["Role is required"] };
     setLoading(true);
     try {
       const res = await axios.post(
         `${API_BASE_URL}/auth/login`,
-        { email, password, role, deviceId },
+        { email, password, role, deviceId, location },
         { withCredentials: true }
       );
 
@@ -88,19 +90,24 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     if (!user) return;
     try {
+      // Call backend to set user.isLogin = false
       await axios.post(
         `${API_BASE_URL}/auth/logout`,
         { role: user.role, userId: user._id },
         { withCredentials: true }
       );
-
+    } catch (err) {
+      console.error("Logout Error:", err.response?.data || err.message);
+    } finally {
+      // Clear frontend state
       setUser(null);
       setToken(null);
       localStorage.removeItem("horseShiptUser");
       localStorage.removeItem("token");
       localStorage.removeItem("role");
-    } catch (err) {
-      console.error("Logout Error:", err.response?.data || err.message);
+
+      // Navigate to login page
+      navigate("/login", { replace: true });
     }
   };
 
