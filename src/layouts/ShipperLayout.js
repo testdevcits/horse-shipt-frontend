@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
-import logo from "../assets/images/logo.png"; // <-- Logo import
+import logo from "../assets/images/logo.png"; // Logo
 import {
   HiOutlineBell,
   HiOutlineChatBubbleLeft,
@@ -19,7 +19,7 @@ const ShipperLayout = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="sticky top-0 z-30 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
+      <header className="sticky top-0 z-30 flex items-center justify-between bg-white shadow-md px-4 py-3 sm:px-6 lg:px-8">
         {/* Left: Logo + Mobile Menu */}
         <div className="flex items-center gap-4">
           <button
@@ -28,17 +28,28 @@ const ShipperLayout = () => {
           >
             <CgMenu size={24} />
           </button>
-          <img src={logo} alt="Logo" className="w-32 h-auto object-contain" />
+          <img
+            src={logo}
+            alt="Logo"
+            className="w-24 sm:w-32 h-auto object-contain"
+          />
         </div>
 
-        {/* Right: Profile */}
-        <div className="flex items-center gap-4 relative">
-          <HiOutlineShare size={20} className="text-gray-500 cursor-pointer" />
-          <HiOutlineBell size={20} className="text-gray-500 cursor-pointer" />
+        {/* Right: Icons + Profile */}
+        <div className="flex items-center gap-3 sm:gap-4 relative">
+          <HiOutlineShare
+            size={20}
+            className="text-gray-500 cursor-pointer hover:text-gray-700 transition"
+          />
+          <HiOutlineBell
+            size={20}
+            className="text-gray-500 cursor-pointer hover:text-gray-700 transition"
+          />
           <HiOutlineChatBubbleLeft
             size={20}
-            className="text-gray-500 cursor-pointer"
+            className="text-gray-500 cursor-pointer hover:text-gray-700 transition"
           />
+
           {/* Profile */}
           <div className="relative">
             <img
@@ -62,7 +73,7 @@ const ShipperLayout = () => {
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <Sidebar
           mobileOpen={mobileMenuOpen}
@@ -73,13 +84,19 @@ const ShipperLayout = () => {
 
         {/* Main content */}
         <main
-          className={`flex-1 transition-all duration-300  p-2 sm:p-6 md:p-8 ${
-            sidebarOpen ? "lg:ml-10" : "lg:ml-6"
-          }`}
+          className={`flex-1 transition-all duration-300 p-2 sm:p-6 md:p-8 overflow-auto`}
         >
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
     </div>
   );
 };
