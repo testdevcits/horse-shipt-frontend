@@ -26,7 +26,7 @@ const CommentBanner = () => {
             <img
               src={user?.photo || "/assets/images/profile.png"}
               alt="Profile"
-              className="w-full h-full object-cover rounded-full"
+              className="w-14 h-14 object-cover rounded-full"
             />
             {/* Edit icon */}
             <button className="absolute -bottom-2 -right-2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition flex items-center justify-center">
