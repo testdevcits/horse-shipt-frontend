@@ -12,6 +12,7 @@ module.exports = {
         dark: "#111827",
         system: {
           primary: "#BF9B53", // Brand color for buttons, toast, etc.
+          background: "var(--System-Background, #FEFEFE)", // Added this line
         },
         toast: {
           info: "#BF9B53",

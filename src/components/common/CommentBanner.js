@@ -29,7 +29,7 @@ const CommentBanner = () => {
           <img
             src={user?.photo || "/assets/images/profile.png"}
             alt="Profile"
-            className="w-full h-full object-cover rounded-full"
+            className="w-10 h-10 object-cover rounded-full"
           />
 
           {/* Edit icon on profile image */}
