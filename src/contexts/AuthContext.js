@@ -9,7 +9,7 @@ const API_BASE_URL =
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true); // Added loading state
+  const [loading, setLoading] = useState(true); // loading state
 
   // ----------------- Auto-login -----------------
   useEffect(() => {
@@ -23,15 +23,26 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // ----------------- Login -----------------
-  const login = async ({ email, password }) => {
+  const login = async (credentials) => {
+    setLoading(true);
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/auth/login`,
-        { email, password },
-        { withCredentials: true }
-      );
+      let userData;
 
-      const userData = res.data.data;
+      if (credentials.token) {
+        // OAuth login
+        userData = credentials;
+      } else {
+        // Normal form login
+        const res = await axios.post(
+          `${API_BASE_URL}/auth/login`,
+          credentials,
+          {
+            withCredentials: true,
+          }
+        );
+        userData = res.data.data;
+      }
+
       setUser(userData);
       setToken(userData.token);
 
@@ -46,17 +57,20 @@ export const AuthProvider = ({ children }) => {
         success: false,
         errors: err.response?.data?.errors || ["Server Error"],
       };
+    } finally {
+      setLoading(false);
     }
   };
 
   // ----------------- Signup -----------------
   const signup = async (userData) => {
+    setLoading(true);
     try {
       const res = await axios.post(`${API_BASE_URL}/auth/signup`, userData, {
         withCredentials: true,
       });
-
       const newUser = res.data.data;
+
       setUser(newUser);
       setToken(newUser.token);
 
@@ -71,6 +85,8 @@ export const AuthProvider = ({ children }) => {
         success: false,
         errors: err.response?.data?.errors || ["Server Error"],
       };
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,7 +122,10 @@ export const AuthProvider = ({ children }) => {
     photo,
     id,
   }) => {
+    if (!token || !role) return;
+
     const oauthUser = {
+      _id: id || "",
       token,
       role,
       provider,
@@ -114,8 +133,9 @@ export const AuthProvider = ({ children }) => {
       email,
       name,
       photo,
-      _id: id,
+      isLogin: true,
     };
+
     setUser(oauthUser);
     setToken(token);
 

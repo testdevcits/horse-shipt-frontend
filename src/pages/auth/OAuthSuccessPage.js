@@ -11,11 +11,11 @@ const OAuthSuccessPage = () => {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
     const role = params.get("role");
-    const email = params.get("email");
-    const name = params.get("name");
-    const photo = params.get("photo");
-    const provider = params.get("provider");
-    const providerId = params.get("providerId");
+    const email = params.get("email") || "";
+    const name = params.get("name") || "";
+    const photo = params.get("photo") || "";
+    const provider = params.get("provider") || "";
+    const providerId = params.get("providerId") || "";
 
     if (token && role) {
       // Save user info in context
@@ -29,16 +29,16 @@ const OAuthSuccessPage = () => {
         photo,
       });
 
-      // Redirect to dashboard after login
+      // Redirect to dashboard
       navigate(`/${role}/dashboard`, { replace: true });
     } else {
-      // If token or role missing, redirect to login
+      // Redirect to login if missing info
       navigate("/login", { replace: true });
     }
   }, [location.search, oauthLogin, navigate]);
 
   return (
-    <div className="flex justify-center items-center min-h-screen text-gray-600">
+    <div className="flex flex-col justify-center items-center min-h-screen text-gray-600">
       <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
       <p className="mt-3 text-sm">Logging in...</p>
     </div>

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Formik, Form, ErrorMessage } from "formik";
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import InputField from "../../components/common/InputField";
 import Button from "../../components/common/Button";
 import Toast from "../../components/common/Toast";
 import signupBg from "../../assets/images/authPage.jpg";
@@ -19,34 +18,35 @@ const SignupPage = () => {
   const { login, oauthLogin } = useAuth();
 
   const [toast, setToast] = useState(null);
-  const [selectedRole, setSelectedRole] = useState("shipper");
   const [loading, setLoading] = useState(false);
 
-  // ----------------- Initial Values -----------------
   const initialValues = {
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
+    role: "",
   };
 
-  // ----------------- Validation -----------------
   const validationSchema = Yup.object({
     name: Yup.string().required("Name is required"),
-    email: Yup.string().email("Invalid email").required("Required"),
+    email: Yup.string().email("Invalid email").required("Email is required"),
     password: Yup.string()
       .min(8, "Minimum 8 characters")
       .matches(/[A-Z]/, "Must contain an uppercase letter")
       .matches(/[a-z]/, "Must contain a lowercase letter")
       .matches(/\d/, "Must contain a number")
       .matches(/[@$!%*?&]/, "Must contain a special character")
-      .required("Required"),
+      .required("Password is required"),
     confirmPassword: Yup.string()
-      .oneOf([Yup.ref("password"), null], "Passwords must match")
-      .required("Required"),
+      .oneOf([Yup.ref("password")], "Passwords must match")
+      .required("Confirm password is required"),
+    role: Yup.string()
+      .oneOf(["shipper", "customer"], "Please select a role")
+      .required("Please select a role"),
   });
 
-  // ----------------- Handle OAuth Redirect -----------------
+  // Handle redirect from OAuth
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
@@ -56,18 +56,16 @@ const SignupPage = () => {
     if (token) {
       const userData = {
         _id: params.get("id"),
-        role: params.get("role"),
+        role: params.get("role") || "customer",
         name: params.get("name"),
         email: params.get("email"),
         photo: params.get("photo") || "",
         provider: params.get("provider"),
         providerId: params.get("providerId"),
-        firstName: params.get("firstName") || "",
-        lastName: params.get("lastName") || "",
-        locale: params.get("locale") || "",
       };
 
       oauthLogin({ token, ...userData });
+
       navigate(
         userData.role === "shipper"
           ? "/shipper/dashboard"
@@ -76,38 +74,25 @@ const SignupPage = () => {
     }
   }, [location.search, oauthLogin, navigate]);
 
-  // ----------------- Handle Normal Signup -----------------
   const handleSignup = async (values, { setSubmitting, resetForm }) => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/signup`, {
-        name: values.name,
-        email: values.email,
-        password: values.password,
-        role: selectedRole,
-      });
-
-      const data = response.data;
-
+      const res = await axios.post(`${API_BASE_URL}/auth/signup`, values);
+      const data = res.data;
       if (data.success) {
         const user = data.data;
-        const authUser = {
-          _id: user._id,
-          role: user.role,
-          name: user.name || "",
-          email: user.email || "",
-          photo: user.profilePicture || "",
-          provider: user.provider || "",
-          providerId: user.providerId || "",
-          firstName: user.firstName || "",
-          lastName: user.lastName || "",
-          locale: user.locale || "",
-        };
-
-        login(authUser, user.token, 3600); // Save to AuthContext
+        login(
+          {
+            _id: user._id,
+            role: user.role,
+            name: user.name || "",
+            email: user.email || "",
+          },
+          user.token,
+          3600
+        );
         setToast({ message: "Signup successful!", type: "info" });
         resetForm();
-
         navigate(
           user.role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard"
         );
@@ -117,24 +102,32 @@ const SignupPage = () => {
           type: "error",
         });
       }
-    } catch (error) {
-      console.error("Signup Error:", error);
+    } catch (err) {
       setToast({
         message:
-          error.response?.data?.errors?.[0] ||
-          error.response?.data?.message ||
+          err.response?.data?.message ||
+          err.response?.data?.errors?.[0] ||
           "Signup error",
         type: "error",
       });
     } finally {
-      setSubmitting(false);
       setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  // ----------------- Handle Google OAuth -----------------
-  const handleGoogleLogin = () => {
-    window.location.href = `${API_BASE_URL}/auth/google?role=${selectedRole}`;
+  const handleGoogleLogin = (role) => {
+    if (!role) {
+      setToast({
+        message: "Please select a role before Google signup.",
+        type: "error",
+      });
+      return;
+    }
+    // Send role in query string
+    window.location.href = `${API_BASE_URL}/auth/google?role=${encodeURIComponent(
+      role
+    )}`;
   };
 
   return (
@@ -143,7 +136,7 @@ const SignupPage = () => {
       style={{ backgroundImage: `url(${signupBg})` }}
     >
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-20">
-        {/* ----------- Left Logo Section ----------- */}
+        {/* Logo */}
         <div className="flex items-center justify-center w-full md:w-[450px] h-[150px]">
           <svg width="120" height="120" viewBox="0 0 64 64" fill="none">
             <circle cx="32" cy="32" r="32" fill="#E5E7EB" />
@@ -152,16 +145,15 @@ const SignupPage = () => {
           </svg>
         </div>
 
-        {/* ----------- Signup Form ----------- */}
+        {/* Signup form */}
         <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 md:p-8 shadow-md flex flex-col justify-center w-full max-w-sm gap-4">
-          <h1 className="text-xl sm:text-2xl font-semibold text-start text-gray-800">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
             Create Account
           </h1>
-
           <p className="text-xs text-gray-600">
             Already have an account?{" "}
             <span
-              className="text-[#BF9B53] font-medium cursor-pointer px-2 py-1 rounded hover:bg-[#bf9b5360] hover:text-black"
+              className="text-[#BF9B53] font-medium cursor-pointer hover:underline"
               onClick={() => navigate("/login")}
             >
               Login
@@ -172,108 +164,136 @@ const SignupPage = () => {
             initialValues={initialValues}
             validationSchema={validationSchema}
             onSubmit={handleSignup}
+            validateOnChange
+            validateOnBlur
+            validateOnMount
           >
-            {({ values, setFieldValue, isValid, dirty, isSubmitting }) => (
-              <Form className="flex flex-col gap-3">
-                <InputField
-                  label="Name"
-                  type="text"
-                  placeholder="Enter your name"
-                  value={values.name}
-                  onChange={(e) => setFieldValue("name", e.target.value)}
-                />
-                <ErrorMessage
-                  name="name"
-                  component="div"
-                  className="text-xs text-red-500"
-                />
+            {({ values, setFieldValue, isValid, isSubmitting }) => {
+              const canSubmit =
+                isValid && values.role && !isSubmitting && !loading;
 
-                <InputField
-                  label="Email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={values.email}
-                  onChange={(e) => setFieldValue("email", e.target.value)}
-                />
-                <ErrorMessage
-                  name="email"
-                  component="div"
-                  className="text-xs text-red-500"
-                />
+              return (
+                <Form className="flex flex-col gap-3">
+                  {/* Name */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">
+                      Name
+                    </label>
+                    <Field
+                      name="name"
+                      type="text"
+                      placeholder="Enter your name"
+                      className="w-full border rounded p-2 text-xs mt-1"
+                    />
+                    <ErrorMessage
+                      name="name"
+                      component="div"
+                      className="text-xs text-red-500"
+                    />
+                  </div>
 
-                <InputField
-                  label="Password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={values.password}
-                  onChange={(e) => setFieldValue("password", e.target.value)}
-                />
-                <ErrorMessage
-                  name="password"
-                  component="div"
-                  className="text-xs text-red-500"
-                />
+                  {/* Email */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">
+                      Email
+                    </label>
+                    <Field
+                      name="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      className="w-full border rounded p-2 text-xs mt-1"
+                    />
+                    <ErrorMessage
+                      name="email"
+                      component="div"
+                      className="text-xs text-red-500"
+                    />
+                  </div>
 
-                <InputField
-                  label="Confirm Password"
-                  type="password"
-                  placeholder="Confirm your password"
-                  value={values.confirmPassword}
-                  onChange={(e) =>
-                    setFieldValue("confirmPassword", e.target.value)
-                  }
-                />
-                <ErrorMessage
-                  name="confirmPassword"
-                  component="div"
-                  className="text-xs text-red-500"
-                />
+                  {/* Password */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">
+                      Password
+                    </label>
+                    <Field
+                      name="password"
+                      type="password"
+                      placeholder="Enter password"
+                      className="w-full border rounded p-2 text-xs mt-1"
+                    />
+                    <ErrorMessage
+                      name="password"
+                      component="div"
+                      className="text-xs text-red-500"
+                    />
+                  </div>
 
-                {/* Role Buttons */}
-                <div className="flex gap-2">
-                  {["shipper", "customer"].map((r) => (
-                    <button
+                  {/* Confirm Password */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">
+                      Confirm Password
+                    </label>
+                    <Field
+                      name="confirmPassword"
+                      type="password"
+                      placeholder="Confirm password"
+                      className="w-full border rounded p-2 text-xs mt-1"
+                    />
+                    <ErrorMessage
+                      name="confirmPassword"
+                      component="div"
+                      className="text-xs text-red-500"
+                    />
+                  </div>
+
+                  {/* Role selection */}
+                  <p className="text-xs font-medium text-gray-700 mt-1">
+                    Are you a Customer or Shipper? Please select your role:
+                  </p>
+                  <div className="flex gap-2">
+                    {["shipper", "customer"].map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setFieldValue("role", r, true)}
+                        className={`flex-1 py-1 text-xs font-medium rounded transition-all duration-150 ${
+                          values.role === r
+                            ? "bg-[#BF9B53] text-white"
+                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        }`}
+                      >
+                        {r.charAt(0).toUpperCase() + r.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                  <ErrorMessage
+                    name="role"
+                    component="div"
+                    className="text-xs text-red-500"
+                  />
+
+                  {/* Submit button */}
+                  <div className="flex justify-end mt-2">
+                    <Button type="submit" disabled={!canSubmit}>
+                      {loading ? "Signing up..." : "Signup"}
+                    </Button>
+                  </div>
+
+                  {/* Google signup */}
+                  <div className="flex flex-col gap-2 mt-4">
+                    <Button
                       type="button"
-                      key={r}
-                      className={`flex-1 py-1 text-xs font-medium rounded ${
-                        selectedRole === r
-                          ? "bg-[#BF9B53] text-white"
-                          : "bg-gray-200 text-gray-700"
-                      }`}
-                      onClick={() => setSelectedRole(r)}
+                      variant="google"
+                      fullWidth
+                      disabled={!values.role}
+                      onClick={() => handleGoogleLogin(values.role)}
                     >
-                      {r.charAt(0).toUpperCase() + r.slice(1)}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Submit Button */}
-                <div className="flex justify-end">
-                  <Button
-                    type="submit"
-                    disabled={!(isValid && dirty) || isSubmitting || loading}
-                    className={`px-4 py-1.5 text-xs rounded-md ${
-                      isValid && dirty
-                        ? "bg-[#BF9B53] text-white hover:bg-[#a6813f]"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
-                  >
-                    {loading ? "Signing up..." : "Signup"}
-                  </Button>
-                </div>
-
-                {/* Google Login */}
-                <div className="flex flex-col gap-2 mt-4">
-                  <Button
-                    type="button"
-                    className="w-full flex items-center justify-center border border-gray-300 text-black gap-2 rounded-full text-xs py-1.5"
-                    onClick={handleGoogleLogin}
-                  >
-                    <FcGoogle size={16} /> Continue with Google
-                  </Button>
-                </div>
-              </Form>
-            )}
+                      <FcGoogle size={16} /> Continue with Google
+                    </Button>
+                  </div>
+                </Form>
+              );
+            }}
           </Formik>
         </div>
       </div>
