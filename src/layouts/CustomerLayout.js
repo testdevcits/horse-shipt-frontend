@@ -30,19 +30,12 @@ const CustomerLayout = () => {
 
         {/* Right: Icons + Profile */}
         <div className="flex items-center gap-4 relative">
+          <HiOutlineShare size={20} className="text-gray-50 cursor-pointer" />
+          <HiOutlineBell size={20} className="text-gray-50 cursor-pointer" />
           <HiOutlineChatBubbleLeft
-            size={24}
-            className="text-system-primary cursor-pointer"
+            size={20}
+            className="text-gray-50 cursor-pointer"
           />
-          <HiOutlineBell
-            size={24}
-            className="text-system-primary cursor-pointer"
-          />
-          <HiOutlineShare
-            size={24}
-            className="text-system-primary cursor-pointer"
-          />
-
           {/* Profile */}
           <div className="relative">
             <img

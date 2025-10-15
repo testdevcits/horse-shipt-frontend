@@ -124,8 +124,8 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
         {/* Bottom Question Icon */}
         <div className="absolute bottom-4 w-full px-4">
-          <button className="flex items-center justify-center w-full py-2 text-system-primary rounded transition-all duration-300">
-            <CiCircleQuestion size={24} />
+          <button className="flex items-center justify-center w-full py-2 bg-gray-100 hover:bg-gray-200 text-system-primary rounded transition-all duration-300">
+            <CiCircleQuestion size={20} />
           </button>
         </div>
       </div>
