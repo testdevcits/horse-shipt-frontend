@@ -13,29 +13,32 @@ import {
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
-      <header
-        className={`sticky top-0 z-40 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6 transition-all ${
-          mobileMenuOpen ? "opacity-0 pointer-events-none" : "opacity-100"
-        }`}
-      >
+      <header className="sticky top-0 z-50 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
         {/* Left: Logo + Mobile Menu */}
         <div className="flex items-center gap-4">
+          {/* Mobile menu button */}
           <button
             className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             <CgMenu size={24} />
           </button>
-          <img src={logo} alt="Logo" className="w-32 h-auto object-contain" />
+
+          {/* Logo - always visible */}
+          <img
+            src={logo}
+            alt="Logo"
+            className="w-28 sm:w-32 h-auto object-contain"
+          />
         </div>
 
-        {/* Right: Profile */}
+        {/* Right: Profile & Actions */}
         <div className="flex items-center gap-4 relative">
           <HiOutlineShare size={20} className="text-gray-500 cursor-pointer" />
           <HiOutlineBell size={20} className="text-gray-500 cursor-pointer" />
@@ -65,7 +68,7 @@ const ShipperLayout = () => {
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 relative">
         {/* Sidebar */}
         <Sidebar
           mobileOpen={mobileMenuOpen}
@@ -77,7 +80,7 @@ const ShipperLayout = () => {
         {/* Overlay for mobile */}
         {mobileMenuOpen && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
             onClick={() => setMobileMenuOpen(false)}
           />
         )}
