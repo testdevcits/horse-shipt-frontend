@@ -28,34 +28,35 @@ const ShipperSettings = () => {
   };
 
   return (
-    <div className="flex flex-col items-center px-4 sm:px-6 md:px-8 lg:px-10 py-6">
+    <>
       {/* Comment Banner */}
       <CommentBanner />
-
-      {/* Tabs */}
-      <div className="w-full flex flex-wrap border-b border-gray-300 mb-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`h-9 px-3 sm:px-4 mb-2 sm:mb-0 -mb-[1px] border-b-2 transition-colors duration-200
+      <div className="flex flex-col items-center">
+        {/* Tabs */}
+        <div className="w-full flex flex-wrap border-b border-gray-300 mb-6 mt-6">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`h-9 px-3 sm:px-4 mb-2 sm:mb-0 -mb-[1px] border-b-2 transition-colors duration-200
               font-montserrat font-semibold text-[14px] leading-[20px]
               ${
                 activeTab === tab.id
                   ? "border-system-primary text-system-primary"
                   : "border-transparent text-gray-600 hover:text-gray-900"
               }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-      {/* Tab Content */}
-      <div className="w-full bg-white p-4 sm:p-6 rounded-lg shadow-sm min-h-[200px]">
-        {renderTabContent()}
+        {/* Tab Content */}
+        <div className="w-full bg-white p-4 sm:p-6 rounded-lg shadow-sm min-h-[200px]">
+          {renderTabContent()}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
