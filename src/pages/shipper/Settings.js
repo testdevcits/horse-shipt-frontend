@@ -30,20 +30,21 @@ const ShipperSettings = () => {
   return (
     <div className="p-6 flex flex-col items-center">
       {/* Comment Banner */}
-      <div className="w-full max-w-[1304px] mb-6">
+      <div className="mb-6 w-full">
         <CommentBanner />
       </div>
 
       {/* Tabs */}
-      <div className="w-full max-w-[1304px] flex border-b border-gray-300 mb-6">
+      <div className="w-full flex border-b border-gray-300 mb-6">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`h-9 px-4 text-sm font-medium -mb-[1px] border-b-2 transition-colors duration-200
+            className={`h-9 px-4 -mb-[1px] border-b-2 transition-colors duration-200
+              font-montserrat font-semibold text-[14px] leading-[20px]
               ${
                 activeTab === tab.id
-                  ? "border-primary text-primary"
+                  ? "border-system-primary text-system-primary"
                   : "border-transparent text-gray-600 hover:text-gray-900"
               }`}
           >
