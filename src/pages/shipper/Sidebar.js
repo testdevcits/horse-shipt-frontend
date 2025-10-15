@@ -1,7 +1,12 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
-import { FaTachometerAlt, FaBoxOpen, FaUser } from "react-icons/fa";
+import {
+  FaTachometerAlt,
+  FaBoxOpen,
+  FaUser,
+  FaSignOutAlt,
+} from "react-icons/fa";
 import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -41,10 +46,11 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
   const handleLogout = async () => {
     try {
-      await axios.post(`${API_BASE_URL}/auth/logout`, {
-        role: user.role,
-        userId: user._id,
-      });
+      await axios.post(
+        `${API_BASE_URL}/auth/logout`,
+        { role: user.role, userId: user._id },
+        { withCredentials: true }
+      );
     } catch (err) {
       console.error("Logout API error:", err);
     } finally {
@@ -136,9 +142,10 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         <div className="absolute bottom-4 w-full px-4">
           <button
             onClick={handleLogout}
-            className="w-full py-2 bg-red-100 text-red-600 font-semibold rounded hover:bg-red-200"
+            className="flex items-center justify-center md:justify-start gap-3 w-full py-2 bg-red-100 text-red-600 font-semibold rounded hover:bg-red-200 transition-all duration-300"
           >
-            Logout
+            <FaSignOutAlt className="text-lg" />
+            {(isOpen || mobileOpen) && <span>Logout</span>}
           </button>
         </div>
       </div>

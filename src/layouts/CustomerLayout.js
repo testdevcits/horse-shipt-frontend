@@ -12,7 +12,7 @@ const CustomerLayout = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="flex items-center justify-between bg-white shadow-md px-6 py-3 md:px-8 md:py-4 sticky top-0 z-40">
+      <header className="flex items-center justify-between bg-white shadow-md px-4 sm:px-6 md:px-8 py-3 md:py-4 sticky top-0 z-40">
         <div className="flex items-center gap-4">
           {/* Mobile menu toggle */}
           <button
@@ -22,8 +22,8 @@ const CustomerLayout = () => {
             <CgMenu size={24} className="text-system-primary" />
           </button>
 
-          {/* Page Title */}
-          <h1 className="text-xl font-bold text-system-primary truncate">
+          {/* Page Title with responsive font */}
+          <h1 className="truncate font-bold text-system-primary text-lg sm:text-xl md:text-2xl lg:text-3xl">
             {user?.name || "Customer Dashboard"}
           </h1>
         </div>
@@ -49,7 +49,7 @@ const CustomerLayout = () => {
         />
 
         {/* Main content */}
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
           <Outlet />
         </main>
       </div>

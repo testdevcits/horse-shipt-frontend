@@ -12,7 +12,7 @@ const ShipperLayout = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="flex items-center justify-between bg-white shadow-md px-6 py-3 md:px-8 md:py-4 sticky top-0 z-40">
+      <header className="flex items-center justify-between bg-white shadow-md px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-4 sticky top-0 z-40">
         <div className="flex items-center gap-4">
           {/* Mobile menu toggle */}
           <button
@@ -23,7 +23,7 @@ const ShipperLayout = () => {
           </button>
 
           {/* Page Title */}
-          <h1 className="text-xl font-bold text-system-primary truncate">
+          <h1 className="truncate font-bold text-system-primary text-lg sm:text-xl md:text-2xl lg:text-3xl">
             {user?.name || "Shipper Dashboard"}
           </h1>
         </div>
@@ -49,7 +49,7 @@ const ShipperLayout = () => {
         />
 
         {/* Main content */}
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
           <Outlet />
         </main>
       </div>
