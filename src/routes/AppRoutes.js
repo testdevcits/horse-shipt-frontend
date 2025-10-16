@@ -9,6 +9,8 @@ import {
 import ProtectedRoute from "./ProtectedRoute";
 import RedirectIfAuth from "../pages/auth/RedirectIfAuth";
 import { useAuth } from "../contexts/AuthContext";
+import MainLayout from "../layouts/MainLayout";
+import Home from "../pages/Home";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -33,7 +35,7 @@ const CustomerSettings = lazy(() => import("../pages/customer/Settings"));
 const NotFoundPage = lazy(() => import("../pages/NotFound"));
 
 const AppRoutes = () => {
-  const { login, oauthLogin } = useAuth();
+  const { oauthLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -49,7 +51,6 @@ const AppRoutes = () => {
       const providerId = params.get("providerId");
 
       if (token && role) {
-        // ----------------- Use oauthLogin instead of normal login -----------------
         oauthLogin({
           token,
           role,
@@ -60,11 +61,10 @@ const AppRoutes = () => {
           photo,
         });
 
-        // Redirect to dashboard
         navigate(`/${role}/dashboard`, { replace: true });
       }
     }
-  }, [location.pathname, location.search, oauthLogin, navigate]);
+  }, [location, oauthLogin, navigate]);
 
   return (
     <Suspense
@@ -76,9 +76,22 @@ const AppRoutes = () => {
       }
     >
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* ---------- Public Pages (with Header/Footer) ---------- */}
+        <Route element={<MainLayout />}>
+          <Route
+            path="/"
+            element={
+              <RedirectIfAuth>
+                <Home />
+              </RedirectIfAuth>
+            }
+          />
+          {/* Add more pages here */}
+          {/* <Route path="/about" element={<About />} /> */}
+          {/* <Route path="/contact" element={<Contact />} /> */}
+        </Route>
 
-        {/* Auth Routes */}
+        {/* ---------- Auth Pages ---------- */}
         <Route
           path="/login"
           element={
@@ -97,7 +110,7 @@ const AppRoutes = () => {
         />
         <Route path="/oauth-success" element={<OAuthSuccessPage />} />
 
-        {/* Shipper Routes */}
+        {/* ---------- Shipper Routes ---------- */}
         <Route
           path="/shipper/*"
           element={
@@ -113,7 +126,7 @@ const AppRoutes = () => {
           <Route path="settings" element={<ShipperSettings />} />
         </Route>
 
-        {/* Customer Routes */}
+        {/* ---------- Customer Routes ---------- */}
         <Route
           path="/customer/*"
           element={
@@ -129,7 +142,7 @@ const AppRoutes = () => {
           <Route path="settings" element={<CustomerSettings />} />
         </Route>
 
-        {/* Fallback */}
+        {/* ---------- Fallback ---------- */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>

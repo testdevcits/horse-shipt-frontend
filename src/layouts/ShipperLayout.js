@@ -74,7 +74,7 @@ const ShipperLayout = () => {
         {/* Main content */}
         <main
           className={`flex-1 transition-all duration-300  p-4 sm:p-6 md:p-8 ${
-            sidebarOpen ? "lg:ml-10" : "lg:ml-6"
+            sidebarOpen ? "lg:ml-4" : "lg:ml-4"
           }`}
         >
           <Outlet />

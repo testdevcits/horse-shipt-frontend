@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap');
 
-
 /* Tailwind base styles */
 @tailwind base;
 
@@ -10,14 +9,29 @@
 /* Tailwind utility classes */
 @tailwind utilities;
 
-/* Custom global styles (optional) */
+/* Custom global styles */
 body {
-  @apply bg-gray-50 text-gray-900; /* Example: light gray background & dark text */
-  font-family: 'Inter', sans-serif; /* Use a nice font */
+  @apply bg-gray-50 text-gray-900;
+  font-family: 'Inter', sans-serif;
 }
 
+/* Scrollbar customization */
+body::-webkit-scrollbar {
+  width: 6px; /* width of scrollbar */
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: #BF9B53; /* your desired color */
+  border-radius: 3px;
+}
+
+body::-webkit-scrollbar-track {
+  background-color: #f0f0f0; /* optional track color */
+}
+
+/* Example Tailwind classes */
 .App-logo {
-  @apply w-32 h-32; /* Example width & height */
+  @apply w-32 h-32;
 }
 
 .App-header {
