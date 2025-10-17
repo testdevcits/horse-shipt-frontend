@@ -80,7 +80,7 @@ const NewShipment = () => {
                 type="text"
                 value={pickupLocation}
                 onChange={(e) => setPickupLocation(e.target.value)}
-                placeholder="Enter pickup location"
+                placeholder="Address"
                 className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
               />
               {errors.pickupLocation && (
@@ -107,7 +107,6 @@ const NewShipment = () => {
                   opacity: 1,
                 }}
               >
-                <option value="">Select</option>
                 <option value="on">On</option>
                 <option value="before">Before</option>
                 <option value="after">After</option>

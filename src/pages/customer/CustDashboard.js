@@ -4,13 +4,18 @@ import MyUpcomingShipments from "./MyUpcomingShipments";
 import TopRatedShippers from "./TopRatedShippers";
 import Button from "../../components/common/Button";
 import logo from "../../assets/images/defultlogo.png";
-import { useAuth } from "../../contexts/AuthContext"; // import the AuthContext hook
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const CustDashboard = () => {
   const { user } = useAuth(); // get the current user from context
-
+  const navigate = useNavigate();
   // Display "Hello [Name]" or fallback text
   const greeting = user?.name ? `Hello ${user.name},` : "Hello,";
+
+  const handleStartShipment = () => {
+    navigate("/new-shipment"); // navigate to NewShipment page
+  };
 
   return (
     <div className="flex flex-col gap-6 min-h-screen w-full">
@@ -34,6 +39,7 @@ const CustDashboard = () => {
             variant="primary"
             rounded={false}
             className="rounded-md px-6 py-2 font-montserrat"
+            onClick={handleStartShipment} // add click handler
           >
             Start new shipment
           </Button>
