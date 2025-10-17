@@ -19,18 +19,31 @@ const NewShipment = () => {
   const [pickupTimeOption, setPickupTimeOption] = useState("");
   const [pickupDate, setPickupDate] = useState("");
 
+  // Error state
+  const [errors, setErrors] = useState({});
+
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleNext = () => {
-    // Simple validation for step 1
-    if (currentStep === 1 && (!pickupLocation || !pickupDate)) {
-      alert("Please fill in all fields for Pickup step.");
-      return;
+  const validateStep = () => {
+    const stepErrors = {};
+    if (currentStep === 1) {
+      if (!pickupLocation.trim())
+        stepErrors.pickupLocation = "Pickup location is required";
+      if (!pickupTimeOption)
+        stepErrors.pickupTimeOption = "Please select a time option";
+      if (!pickupDate) stepErrors.pickupDate = "Pickup date is required";
     }
+    // Add more validations for other steps if needed
+    setErrors(stepErrors);
+    return Object.keys(stepErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (!validateStep()) return;
     if (currentStep < steps.length) setCurrentStep((prev) => prev + 1);
   };
 
@@ -55,6 +68,11 @@ const NewShipment = () => {
                 placeholder="Enter pickup location"
                 className="w-full border border-gray-300 rounded px-3 py-2"
               />
+              {errors.pickupLocation && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.pickupLocation}
+                </p>
+              )}
             </div>
 
             {/* Pickup Time Option */}
@@ -70,20 +88,26 @@ const NewShipment = () => {
                   height: "38px",
                   borderRadius: "6px",
                   padding: "9px 10px",
-                  background: "#F3F4F6", // var(--Gray-100)
+                  background: "#F3F4F6",
                   opacity: 1,
                 }}
               >
+                <option value="">Select</option>
                 <option value="on">On</option>
                 <option value="before">Before</option>
                 <option value="after">After</option>
                 <option value="between">Between</option>
               </select>
+              {errors.pickupTimeOption && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.pickupTimeOption}
+                </p>
+              )}
             </div>
 
             {/* Pickup Date */}
             <div>
-              <label className="block  text-sm font-semibold mb-1 text-gray-500">
+              <label className="block text-sm font-semibold mb-1 text-gray-500">
                 Pickup Date
               </label>
               <input
@@ -92,6 +116,9 @@ const NewShipment = () => {
                 onChange={(e) => setPickupDate(e.target.value)}
                 className="w-full text-gray-500 border border-gray-300 rounded px-3 py-2"
               />
+              {errors.pickupDate && (
+                <p className="text-red-500 text-sm mt-1">{errors.pickupDate}</p>
+              )}
             </div>
           </div>
         );
@@ -108,20 +135,18 @@ const NewShipment = () => {
     }
   };
 
-  //   const currentLogo = windowWidth >= 1024 ? logoDesktop : logoMobile;
   const currentLogo = logoMobile;
 
   return (
-    <div className="w-full  flex flex-col items-center py-10">
+    <div className="w-full h-screen flex flex-col items-center relative">
       {/* ================= Steps Header ================= */}
       <div className="w-full max-w-4xl flex gap-2 relative mb-10 px-4 items-center">
         {steps.map((step, index) => {
-          const isCompleted = currentStep > step.id; // step finished
-          const isCurrent = currentStep === step.id; // step active
+          const isCompleted = currentStep > step.id;
+          const isCurrent = currentStep === step.id;
 
           return (
             <div key={step.id} className="flex-1 flex justify-center relative">
-              {/* Step Logo on Current Step */}
               {isCurrent && (
                 <img
                   src={currentLogo}
@@ -129,8 +154,6 @@ const NewShipment = () => {
                   className="absolute -top-10 w-12 h-12 object-contain z-10"
                 />
               )}
-
-              {/* Connector Line */}
               {index <= steps.length - 1 && (
                 <div
                   className={`absolute top-5 left-0 w-full h-2 rounded-full ${
@@ -159,17 +182,15 @@ const NewShipment = () => {
       </div>
 
       {/* ================= Step Content ================= */}
-      <div className="flex-1 w-full max-w-5xl flex flex-col items-start mt-6">
+      <div className="flex-1 w-full max-w-5xl flex flex-col items-start mt-6 overflow-y-auto pb-28">
         <p className="font-montserrat text-gray-500 text-[20px] leading-[30px] mb-4">
           {steps[currentStep - 1].title}
         </p>
-
-        {/* Step Content */}
         {renderStepContent()}
       </div>
 
       {/* ================= Buttons ================= */}
-      <div className="flex w-full max-w-5xl mt-8 justify-between md:justify-end gap-4">
+      <div className="fixed bottom-4 flex w-full max-w-5xl justify-between md:justify-end gap-4 px-4">
         <button
           onClick={handlePrevious}
           disabled={currentStep === 1}
