@@ -24,6 +24,11 @@ const CustomerLayout = () => {
           >
             <CgMenu size={24} />
           </button>
+          <img
+            src={logo}
+            alt="Logo"
+            className="hidden sm:block w-32 h-auto object-contain"
+          />
         </div>
 
         {/* Right: Icons + Profile */}
