@@ -138,7 +138,7 @@ const NewShipment = () => {
   const currentLogo = logoMobile;
 
   return (
-    <div className="w-full h-screen flex flex-col items-center relative">
+    <div className="w-full h-screen flex flex-col items-center relative py-10">
       {/* ================= Steps Header ================= */}
       <div className="w-full max-w-4xl flex gap-2 relative mb-10 px-4 items-center">
         {steps.map((step, index) => {
