@@ -10,11 +10,14 @@ import logo from "../assets/images/logo.png";
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [profilePopup, setProfilePopup] = useState(false);
 
+  // Sidebar width
+  const sidebarWidth = sidebarOpen ? 256 : 64; // 64px = 16rem, 256px = 64rem
+
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 relative">
       {/* Header */}
       <header className="sticky top-0 z-30 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
         <div className="flex items-center gap-4">
@@ -55,24 +58,21 @@ const CustomerLayout = () => {
         </div>
       </header>
 
-      {/* Layout */}
-      <div className="flex">
-        {/* Sidebar */}
-        <Sidebar
-          mobileOpen={mobileMenuOpen}
-          setMobileOpen={setMobileMenuOpen}
-          isOpen={sidebarOpen}
-          setIsOpen={setSidebarOpen}
-        />
+      {/* Sidebar (fixed) */}
+      <Sidebar
+        mobileOpen={mobileMenuOpen}
+        setMobileOpen={setMobileMenuOpen}
+        isOpen={sidebarOpen}
+        setIsOpen={setSidebarOpen}
+      />
 
-        {/* Main content */}
-        <div
-          className={`flex-1 overflow-auto min-h-[calc(100vh-64px)] transition-all duration-300
-            ${sidebarOpen ? "md:ml-64" : "md:ml-16"}`}
-        >
-          <Outlet />
-        </div>
-      </div>
+      {/* Main content */}
+      <main
+        className="overflow-auto min-h-[calc(100vh-64px)] pt-4 pb-8 px-4 sm:px-6 md:px-8"
+        style={{ marginLeft: sidebarOpen ? 256 : 64 }} // push main content
+      >
+        <Outlet />
+      </main>
     </div>
   );
 };
