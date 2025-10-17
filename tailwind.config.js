@@ -24,6 +24,7 @@ module.exports = {
         tabActive: "#997C42",
         scrollbarTrack: "#E5E7EB", // gray-300 equivalent
         scrollbarThumb: "#BF9B53", // system primary
+        systemText: "#333333", // Added for dashboard text background
       },
       fontFamily: {
         montserrat: ["Montserrat", "sans-serif"],
