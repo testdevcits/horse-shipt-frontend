@@ -34,7 +34,7 @@ const NewShipment = () => {
     setErrors({});
 
     // Navigate to dashboard
-    navigate("/dashboard"); // Replace with your dashboard route
+    navigate("/customer/dashboard"); // Replace with your dashboard route
   };
 
   useEffect(() => {
