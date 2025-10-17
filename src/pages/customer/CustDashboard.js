@@ -14,7 +14,7 @@ const CustDashboard = () => {
   const greeting = user?.name ? `Hello ${user.name},` : "Hello,";
 
   const handleStartShipment = () => {
-    navigate("/new-shipment"); // navigate to NewShipment page
+    navigate("/customer/new-shipment"); // navigate to NewShipment page
   };
 
   return (
