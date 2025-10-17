@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import logoDesktop from "../../assets/images/logo.png"; // desktop logo
-import logoMobile from "../../assets/images/mobileLogo.png"; // mobile/tablet logo
+import logoMobile from "../../assets/images/mobileLogo.png";
 import { useNavigate } from "react-router-dom";
 
 const steps = [
@@ -13,35 +12,20 @@ const steps = [
 
 const NewShipment = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-
-  // Form state for Step 1
   const [pickupLocation, setPickupLocation] = useState("");
   const [pickupTimeOption, setPickupTimeOption] = useState("");
   const [pickupDate, setPickupDate] = useState("");
-
-  // Error state
   const [errors, setErrors] = useState({});
-
   const navigate = useNavigate();
 
   const handleCancel = () => {
-    // Reset form fields
     setPickupLocation("");
     setPickupTimeOption("");
     setPickupDate("");
     setCurrentStep(1);
     setErrors({});
-
-    // Navigate to dashboard
-    navigate("/customer/dashboard"); // Replace with your dashboard route
+    navigate("/customer/dashboard");
   };
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const validateStep = () => {
     const stepErrors = {};
@@ -52,7 +36,6 @@ const NewShipment = () => {
         stepErrors.pickupTimeOption = "Please select a time option";
       if (!pickupDate) stepErrors.pickupDate = "Pickup date is required";
     }
-    // Add more validations for other steps if needed
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
@@ -73,7 +56,7 @@ const NewShipment = () => {
           <div className="flex flex-col w-full max-w-5xl gap-4 font-montserrat">
             {/* Pickup Location */}
             <div>
-              <label className="block text-sm text-gray-500 mb-1">
+              <label className="block text-sm font-semibold mb-1 text-gray-500">
                 Pickup Location
               </label>
               <input
@@ -104,9 +87,9 @@ const NewShipment = () => {
                   borderRadius: "6px",
                   padding: "9px 10px",
                   background: "#F3F4F6",
-                  opacity: 1,
                 }}
               >
+                <option value="">Select</option>
                 <option value="on">On</option>
                 <option value="before">Before</option>
                 <option value="after">After</option>
@@ -153,7 +136,7 @@ const NewShipment = () => {
 
   return (
     <div className="w-full h-screen flex flex-col items-center relative py-10">
-      {/* ================= Steps Header ================= */}
+      {/* Steps Header */}
       <div className="w-full max-w-4xl flex gap-2 relative mb-10 px-4 items-center">
         {steps.map((step, index) => {
           const isCompleted = currentStep > step.id;
@@ -185,7 +168,7 @@ const NewShipment = () => {
         })}
       </div>
 
-      {/* ================= Step Header ================= */}
+      {/* Step Header */}
       <div className="flex flex-row justify-between w-full max-w-5xl gap-2 relative mt-4 items-center">
         <div className="font-montserrat font-semibold text-[20px] leading-[30px] tracking-[0%]">
           New Shipment
@@ -198,7 +181,7 @@ const NewShipment = () => {
         </div>
       </div>
 
-      {/* ================= Step Content ================= */}
+      {/* Step Content */}
       <div className="flex-1 w-full max-w-5xl flex flex-col items-start mt-6 overflow-y-auto pb-28">
         <p className="font-montserrat text-gray-500 text-[20px] leading-[30px] mb-4">
           {steps[currentStep - 1].title}
@@ -206,7 +189,7 @@ const NewShipment = () => {
         {renderStepContent()}
       </div>
 
-      {/* ================= Buttons ================= */}
+      {/* Buttons Fixed at Bottom */}
       <div className="fixed bottom-4 flex w-full max-w-5xl justify-between md:justify-end gap-4 px-4">
         <button
           onClick={handlePrevious}
