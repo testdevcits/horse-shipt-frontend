@@ -22,15 +22,41 @@ module.exports = {
         },
         header: "#F2EBDD",
         tabActive: "#997C42",
-        scrollbarTrack: "#E5E7EB", // gray-300 equivalent
-        scrollbarThumb: "#BF9B53", // system primary
-        systemText: "#333333", // Added for dashboard text background
+        scrollbarTrack: "#E5E7EB",
+        scrollbarThumb: "#BF9B53",
+        systemText: "#333333",
+        success: {
+          DEFAULT: "#10B981",
+          50: "#E6F9F1",
+          100: "#C2F0D9",
+          200: "#99E7C0",
+          300: "#70DDA6",
+          400: "#4CD590",
+          500: "#26CC77",
+          600: "#10B981",
+          700: "#0E9A66",
+          800: "#0B7B53",
+          900: "#075B3A",
+        },
+        yellow: {
+          DEFAULT: "#F59E0B",
+          50: "#FFF7E6",
+          100: "#FFE9BF",
+          200: "#FFD999",
+          300: "#FFC966",
+          400: "#FFB933",
+          500: "#F59E0B",
+          600: "#D48809",
+          700: "#B27307",
+          800: "#8F5C05",
+          900: "#6B4603",
+        },
       },
       fontFamily: {
         montserrat: ["Montserrat", "sans-serif"],
       },
       fontSize: {
-        paragraph: ["18px", "28px"], // 18px font-size, 28px line-height
+        paragraph: ["18px", "28px"],
       },
       borderRadius: {
         xl: "1rem",

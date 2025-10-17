@@ -1,17 +1,22 @@
+// src/pages/customer/CustDashboard.js
 import React from "react";
 import MyUpcomingShipments from "./MyUpcomingShipments";
 import TopRatedShippers from "./TopRatedShippers";
 import Button from "../../components/common/Button";
 import logo from "../../assets/images/defultlogo.png";
+import { useAuth } from "../../contexts/AuthContext"; // import the AuthContext hook
 
 const CustDashboard = () => {
-  const user = "Hello Marcus,";
+  const { user } = useAuth(); // get the current user from context
+
+  // Display "Hello [Name]" or fallback text
+  const greeting = user?.name ? `Hello ${user.name},` : "Hello,";
 
   return (
-    <div className="flex flex-col p-4 md:p-8 gap-6 min-h-screen w-full">
+    <div className="flex flex-col gap-6 min-h-screen w-full">
       {/* User Name */}
       <div className="font-montserrat font-semibold text-[24px] leading-[32px] text-systemText">
-        {user}
+        {greeting}
       </div>
 
       {/* Dashboard Card */}
