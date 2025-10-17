@@ -1,4 +1,3 @@
-// src/pages/customer/MyUpcomingShipments.js
 import React from "react";
 import { MdNavigateNext } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +8,6 @@ import Button from "../../components/common/Button";
 const MyUpcomingShipments = () => {
   const navigate = useNavigate();
 
-  // Separate current shipments (Today) and upcoming shipments
   const currentShipments = shipments.filter(
     (shipment) => shipment.deliveryStatus === "Today"
   );
@@ -17,11 +15,10 @@ const MyUpcomingShipments = () => {
     (shipment) => shipment.deliveryStatus !== "Today"
   );
 
-  // Show only first 3 shipments for upcoming
   const upcomingToShow = upcomingShipments.slice(0, 3);
 
   const handleSeeAll = () => {
-    navigate("/all-shipments"); // Update this route as per your project
+    navigate("/all-shipments");
   };
 
   return (
@@ -32,7 +29,7 @@ const MyUpcomingShipments = () => {
           <h2 className="font-montserrat font-semibold text-lg text-systemText">
             Current Shipments
           </h2>
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {currentShipments.map((shipment) => (
               <ShipmentCard key={shipment.id} shipment={shipment} />
             ))}
@@ -46,14 +43,9 @@ const MyUpcomingShipments = () => {
           <h2 className="font-montserrat font-semibold text-lg text-systemText">
             My Upcoming Shipments
           </h2>
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {upcomingToShow.map((shipment) => (
-              <ShipmentCard
-                key={shipment.id}
-                shipment={shipment}
-                // Show only one card on mobile, all 3 on md+
-                className="md:flex"
-              />
+              <ShipmentCard key={shipment.id} shipment={shipment} />
             ))}
           </div>
         </div>

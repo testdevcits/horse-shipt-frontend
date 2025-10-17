@@ -11,6 +11,7 @@ import RedirectIfAuth from "../pages/auth/RedirectIfAuth";
 import { useAuth } from "../contexts/AuthContext";
 import MainLayout from "../layouts/MainLayout";
 import Home from "../pages/Home";
+import CustDashboard from "../pages/customer/CustDashboard";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -30,6 +31,7 @@ const CustomerDashboard = lazy(() => import("../pages/customer/CustDashboard"));
 const CustomerOrders = lazy(() => import("../pages/customer/Orders"));
 const CustomerProfile = lazy(() => import("../pages/customer/Profile"));
 const CustomerSettings = lazy(() => import("../pages/customer/Settings"));
+const NewShipment = lazy(() => import("../pages/customer/NewShipment"));
 
 // ---------------- 404 Page ----------------
 const NotFoundPage = lazy(() => import("../pages/NotFound"));
@@ -83,6 +85,8 @@ const AppRoutes = () => {
             element={
               <RedirectIfAuth>
                 <Home />
+                {/* <CustDashboard /> */}
+                {/* <NewShipment /> */}
               </RedirectIfAuth>
             }
           />
@@ -140,6 +144,7 @@ const AppRoutes = () => {
           <Route path="orders" element={<CustomerOrders />} />
           <Route path="profile" element={<CustomerProfile />} />
           <Route path="settings" element={<CustomerSettings />} />
+          <Route path="new-shipment" element={<NewShipment />} />
         </Route>
 
         {/* ---------- Fallback ---------- */}

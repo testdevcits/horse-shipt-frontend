@@ -1,22 +1,23 @@
 import React from "react";
-import { MdLocationOn, MdCalendarToday } from "react-icons/md";
+import { IoLocationOutline } from "react-icons/io5";
+import { LuCalendarDays } from "react-icons/lu";
 
 const ShipmentCard = ({ shipment }) => {
   return (
-    <div className="flex flex-row flex-wrap w-full border border-gray-300 rounded-[14px] p-3 gap-4 bg-white shadow-sm">
+    <div className="flex flex-row w-full border border-gray-300 rounded-[14px] p-3 gap-4 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200">
       {/* Left Image */}
       <div className="flex-shrink-0">
         <img
           src={shipment.image}
-          alt="Horse"
-          className="w-[80px] h-[124px] sm:w-[100px] sm:h-[140px] md:w-[160px] md:h-[160px] lg:h-[180px] rounded-[16px] object-cover"
+          alt={shipment.name}
+          className="w-[80px] h-[124px] sm:w-[100px] sm:h-[140px] md:w-[140px] md:h-[160px] lg:h-[180px] rounded-[16px] object-cover"
         />
       </div>
 
       {/* Right Content */}
-      <div className="flex flex-col justify-between flex-1 gap-2 min-w-[200px]">
+      <div className="flex flex-col justify-between flex-1 gap-2 min-w-0">
         {/* Shipment Name */}
-        <div className="font-montserrat font-semibold text-[14px] md:text-[16px] leading-[20px] text-[#333333]">
+        <div className="font-montserrat font-semibold text-[14px] md:text-[16px] leading-[20px] text-[#333333] ">
           {shipment.name}
         </div>
 
@@ -38,13 +39,13 @@ const ShipmentCard = ({ shipment }) => {
 
         {/* Address */}
         <div className="flex items-center gap-2 text-gray-700 text-sm md:text-[14px] font-montserrat">
-          <MdLocationOn size={18} />
+          <IoLocationOutline size={18} />
           <span>{shipment.address}</span>
         </div>
 
         {/* Date */}
         <div className="flex items-center gap-2 text-gray-700 text-sm md:text-[14px] font-montserrat">
-          <MdCalendarToday size={18} />
+          <LuCalendarDays size={18} />
           <span>{shipment.date}</span>
         </div>
       </div>

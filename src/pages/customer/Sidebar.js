@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
 import { LuArrowRightFromLine, LuArrowLeftFromLine } from "react-icons/lu";
 import { CiCircleQuestion } from "react-icons/ci";
-import { FaTachometerAlt, FaBoxOpen, FaCog } from "react-icons/fa";
+import { FaTachometerAlt, FaBoxOpen, FaCog, FaPlus } from "react-icons/fa";
 
 const navItems = [
   { name: "Dashboard", path: "/customer/dashboard", icon: <FaTachometerAlt /> },
@@ -15,6 +15,11 @@ const navItems = [
       { name: "Pending", path: "/customer/orders/pending" },
       { name: "Completed", path: "/customer/orders/completed" },
     ],
+  },
+  {
+    name: "New Shipment",
+    path: "/customer/new-shipment",
+    icon: <FaPlus />,
   },
   { name: "Settings", path: "/customer/settings", icon: <FaCog /> },
 ];

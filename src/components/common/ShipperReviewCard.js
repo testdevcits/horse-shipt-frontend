@@ -19,13 +19,13 @@ const ShipperReviewCard = ({ shipper }) => {
 
     for (let i = 0; i < fullStars; i++) {
       stars.push(
-        <GoStar key={i} className="text-yellow-500 w-4 h-4 sm:w-5 sm:h-5" />
+        <GoStar key={i} className="text-yellow-500  w-4 h-4 sm:w-5 sm:h-5" />
       );
     }
 
     if (rating - fullStars >= 0.5) {
       stars.push(
-        <GoStar key="half" className="text-yellow-500 w-4 h-4 sm:w-5 sm:h-5" />
+        <GoStar key="half" className="text-yellow-500  w-4 h-4 sm:w-5 sm:h-5" />
       );
     }
 
