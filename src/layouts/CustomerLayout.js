@@ -59,7 +59,7 @@ const CustomerLayout = () => {
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex min-h-screen bg-gray-100">
         {/* Sidebar */}
         <Sidebar
           mobileOpen={mobileMenuOpen}
@@ -70,9 +70,11 @@ const CustomerLayout = () => {
 
         {/* Main content */}
         <main
-          className={`flex-1 transition-all duration-300 p-2 sm:p-6 md:p-8 ${
-            sidebarOpen ? "lg:ml-10" : "lg:ml-6"
-          }`}
+          className={`flex-1 transition-all duration-300 p-4 sm:p-6 md:p-8 overflow-auto min-h-screen
+      ${
+        sidebarOpen ? "md:ml-64" : "md:ml-16"
+      }  // push main content based on sidebar width
+    `}
         >
           <Outlet />
         </main>
