@@ -16,14 +16,16 @@ const NewShipment = () => {
   const [pickupLocation, setPickupLocation] = useState("");
   const [pickupTimeOption, setPickupTimeOption] = useState("");
   const [pickupDate, setPickupDate] = useState("");
-  const [deliveryLocation, setDeliveryLocation] = useState(""); // example field for step 2
-  const [numberOfHorses, setNumberOfHorses] = useState(""); // step 3
-  const [additionalInfo, setAdditionalInfo] = useState(""); // step 4
+  const [deliveryLocation, setDeliveryLocation] = useState("");
+  const [numberOfHorses, setNumberOfHorses] = useState("");
+  const [additionalInfo, setAdditionalInfo] = useState("");
   const [errors, setErrors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const navigate = useNavigate();
+  const currentLogo = logoMobile;
 
+  // Cancel and reset all fields
   const handleCancel = () => {
     setPickupLocation("");
     setPickupTimeOption("");
@@ -36,6 +38,7 @@ const NewShipment = () => {
     navigate("/customer/dashboard");
   };
 
+  // Validate current step
   const validateStep = () => {
     const stepErrors = {};
     if (currentStep === 1) {
@@ -54,21 +57,23 @@ const NewShipment = () => {
     return Object.keys(stepErrors).length === 0;
   };
 
+  // Next step
   const handleNext = () => {
     if (!validateStep()) return;
-
     if (currentStep < steps.length) {
       setCurrentStep((prev) => prev + 1);
     } else {
-      // Finish clicked on last step
+      // Finish clicked, show modal
       setIsModalOpen(true);
     }
   };
 
+  // Previous step
   const handlePrevious = () => {
     if (currentStep > 1) setCurrentStep((prev) => prev - 1);
   };
-  const currentLogo = logoMobile;
+
+  // Render content for each step
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -216,7 +221,6 @@ const NewShipment = () => {
         {steps.map((step, index) => {
           const isCompleted = currentStep > step.id;
           const isCurrent = currentStep === step.id;
-
           return (
             <div key={step.id} className="flex-1 flex justify-center relative">
               {isCurrent && (
@@ -242,6 +246,7 @@ const NewShipment = () => {
           );
         })}
       </div>
+
       {/* Step Header */}
       <div className="flex flex-row justify-between w-full max-w-5xl gap-2 relative mt-4 items-center px-4">
         <div className="font-montserrat font-semibold text-[20px] leading-[30px] tracking-[0%]">
@@ -279,11 +284,7 @@ const NewShipment = () => {
 
         <button
           onClick={handleNext}
-          className={`px-6 py-2 rounded-lg font-montserrat ${
-            currentStep === steps.length
-              ? "bg-[#BF9B53] text-white hover:bg-[#a7863e]"
-              : "bg-[#BF9B53] text-white hover:bg-[#a7863e]"
-          }`}
+          className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e]"
         >
           {currentStep === steps.length ? "Finish" : "Next"}
         </button>

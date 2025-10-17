@@ -10,7 +10,7 @@ const ModalOfferPublished = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 font-montserrat">
       <div
         className="bg-white rounded-[12px] w-[343px] h-[372px] p-4 flex flex-col justify-between"
         style={{
@@ -37,7 +37,7 @@ const ModalOfferPublished = ({
         <div className="flex flex-col gap-2 mt-4">
           <button
             onClick={onViewShipments}
-            className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+            className="w-full py-2 bg-[#BF9B53] text-white rounded-md hover:bg-blue-700 transition"
           >
             Go to My Shipments
           </button>
