@@ -3,9 +3,8 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/customer/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
-import { HiOutlineChatBubbleLeft, HiOutlineBell } from "react-icons/hi2";
-import { HiOutlineShare } from "react-icons/hi";
 import logo from "../assets/images/logo.png";
+import { MdOutlineNotificationsActive } from "react-icons/md";
 
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
@@ -30,12 +29,11 @@ const CustomerLayout = () => {
 
         {/* Right: Icons + Profile */}
         <div className="flex items-center gap-4 relative">
-          <HiOutlineShare size={20} className="text-gray-500 cursor-pointer" />
-          <HiOutlineBell size={20} className="text-gray-500 cursor-pointer" />
-          <HiOutlineChatBubbleLeft
+          <MdOutlineNotificationsActive
             size={20}
             className="text-gray-500 cursor-pointer"
           />
+
           {/* Profile */}
           <div className="relative">
             <img
