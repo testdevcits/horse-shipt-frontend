@@ -10,11 +10,11 @@ import logo from "../assets/images/logo.png";
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
+    <div className="relative min-h-screen bg-gray-100">
       {/* Header */}
       <header className="sticky top-0 z-30 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
         {/* Left: Logo + Mobile Menu */}
@@ -59,7 +59,7 @@ const CustomerLayout = () => {
         </div>
       </header>
 
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex">
         {/* Sidebar */}
         <Sidebar
           mobileOpen={mobileMenuOpen}
@@ -68,13 +68,10 @@ const CustomerLayout = () => {
           setIsOpen={setSidebarOpen}
         />
 
-        {/* Main content */}
+        {/* Main Content */}
         <main
-          className={`flex-1 transition-all duration-300 p-4 sm:p-6 md:p-8 overflow-auto min-h-screen
-      ${
-        sidebarOpen ? "md:ml-64" : "md:ml-16"
-      }  // push main content based on sidebar width
-    `}
+          className={`flex-1 transition-all duration-300 overflow-auto min-h-screen pt-4 pb-8 px-4 sm:px-6 md:px-8
+            ${sidebarOpen ? "md:ml-64" : "md:ml-16"}`}
         >
           <Outlet />
         </main>
