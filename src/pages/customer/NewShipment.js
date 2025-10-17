@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import logoDesktop from "../../assets/images/logo.png"; // desktop logo
 import logoMobile from "../../assets/images/mobileLogo.png"; // mobile/tablet logo
+import { useNavigate } from "react-router-dom";
 
 const steps = [
   { id: 1, title: "Pickup" },
@@ -21,6 +22,20 @@ const NewShipment = () => {
 
   // Error state
   const [errors, setErrors] = useState({});
+
+  const navigate = useNavigate();
+
+  const handleCancel = () => {
+    // Reset form fields
+    setPickupLocation("");
+    setPickupTimeOption("");
+    setPickupDate("");
+    setCurrentStep(1);
+    setErrors({});
+
+    // Navigate to dashboard
+    navigate("/dashboard"); // Replace with your dashboard route
+  };
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -66,7 +81,7 @@ const NewShipment = () => {
                 value={pickupLocation}
                 onChange={(e) => setPickupLocation(e.target.value)}
                 placeholder="Enter pickup location"
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
               />
               {errors.pickupLocation && (
                 <p className="text-red-500 text-sm mt-1">
@@ -176,7 +191,10 @@ const NewShipment = () => {
         <div className="font-montserrat font-semibold text-[20px] leading-[30px] tracking-[0%]">
           New Shipment
         </div>
-        <div className="font-montserrat cursor-pointer text-gray-500">
+        <div
+          className="font-montserrat cursor-pointer text-gray-500"
+          onClick={handleCancel}
+        >
           Cancel
         </div>
       </div>
