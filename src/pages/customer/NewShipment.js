@@ -42,7 +42,7 @@ const NewShipment = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="flex flex-col w-full max-w-5xl max-w-md gap-4 font-montserrat">
+          <div className="flex flex-col w-full max-w-5xl gap-4 font-montserrat">
             {/* Pickup Location */}
             <div>
               <label className="block text-sm text-gray-500 mb-1">
