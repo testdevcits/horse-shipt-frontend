@@ -1,5 +1,5 @@
 import React from "react";
-import logo from "../assets/images/logo.png"; // replace with your logo path
+import footerLogo from "../assets/images/footerLogo.png"; // replace with your logo path
 
 const Footer = () => {
   return (
@@ -16,15 +16,15 @@ const Footer = () => {
           {/* Left: Logo */}
           <div className="flex-shrink-0">
             <img
-              src={logo}
+              src={footerLogo}
               alt="Logo"
-              className="h-10 md:h-12 object-contain"
+              className="h-32 md:h-24 object-contain"
             />
           </div>
 
           {/* Right: Copyright */}
-          <div className="text-gray-700 text-sm md:text-base text-center md:text-right">
-            &copy; {new Date().getFullYear()} MyWebsite. All rights reserved.
+          <div className="text-gray-700  text-center md:text-right">
+            &copy; {new Date().getFullYear()} All rights reserved.
           </div>
         </div>
       </div>

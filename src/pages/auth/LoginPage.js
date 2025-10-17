@@ -7,7 +7,7 @@ import Button from "../../components/common/Button";
 import Toast from "../../components/common/Toast";
 import loginBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
-
+import loginLogo from "../../assets/images/loginLogo.png";
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
@@ -126,12 +126,13 @@ const LoginPage = () => {
     >
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-20">
         {/* Logo */}
-        <div className="flex items-center justify-center w-full md:w-[450px] h-[150px]">
-          <svg width="120" height="120" viewBox="0 0 64 64" fill="none">
-            <circle cx="32" cy="32" r="32" fill="#E5E7EB" />
-            <path d="M32 16L40 32H24L32 16Z" fill="#1E40AF" />
-            <circle cx="32" cy="42" r="4" fill="#1E40AF" />
-          </svg>
+        <div className="flex items-center justify-center w-full md:w-[1168px] h-[64px] gap-4 opacity-100">
+          {/* Logo Image */}
+          <img
+            src={loginLogo} // import your logo at the top: import logo from '../assets/images/logo.png';
+            alt="Logo"
+            className="h-full object-contain"
+          />
         </div>
 
         {/* Login form */}

@@ -22,6 +22,8 @@ module.exports = {
         },
         header: "#F2EBDD",
         tabActive: "#997C42",
+        scrollbarTrack: "#E5E7EB", // gray-300 equivalent
+        scrollbarThumb: "#BF9B53", // system primary
       },
       fontFamily: {
         montserrat: ["Montserrat", "sans-serif"],
@@ -74,5 +76,17 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        ".hide-scrollbar": {
+          "-ms-overflow-style": "none",
+          "scrollbar-width": "none",
+        },
+        ".hide-scrollbar::-webkit-scrollbar": {
+          display: "none",
+        },
+      });
+    },
+  ],
 };

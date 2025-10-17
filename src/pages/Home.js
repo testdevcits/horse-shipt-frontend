@@ -4,6 +4,7 @@ import heroSec2 from "../assets/images/heroSec2.png";
 import handDrawnUnderline from "../assets/images/Hand-drawn underlines.svg";
 import SecondSection from "./SecondSection";
 import ThirdSection from "./ThirdSection";
+import SignupSection from "./SignupSection";
 
 const Home = () => {
   const [showLeft, setShowLeft] = useState(false);
@@ -88,6 +89,7 @@ const Home = () => {
       </section>
       <SecondSection />
       <ThirdSection />
+      <SignupSection />
     </>
   );
 };
