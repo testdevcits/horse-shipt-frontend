@@ -112,7 +112,6 @@ const NewShipment = () => {
                   background: "#F3F4F6",
                 }}
               >
-                <option value="">Select</option>
                 <option value="on">On</option>
                 <option value="before">Before</option>
                 <option value="after">After</option>
