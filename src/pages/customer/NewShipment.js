@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logoMobile from "../../assets/images/mobileLogo.png";
 import ModalOfferPublished from "./ModalOfferPublished";
+import CustomCalendar from "../../components/common/CustomCalendar";
 
 const steps = [
   { id: 1, title: "Pickup" },
@@ -14,13 +15,14 @@ const steps = [
 const NewShipment = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [pickupLocation, setPickupLocation] = useState("");
-  const [pickupTimeOption, setPickupTimeOption] = useState("");
+  const [pickupTimeOption, setPickupTimeOption] = useState("on");
   const [pickupDate, setPickupDate] = useState("");
   const [deliveryLocation, setDeliveryLocation] = useState("");
   const [numberOfHorses, setNumberOfHorses] = useState("");
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [errors, setErrors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const navigate = useNavigate();
   const currentLogo = logoMobile;
@@ -124,18 +126,35 @@ const NewShipment = () => {
               )}
             </div>
 
-            <div>
+            <div className="relative w-full">
               <label className="block text-sm font-semibold mb-1 text-gray-500">
-                Pickup Date
+                Date
               </label>
               <input
-                type="date"
+                type="text"
+                readOnly
                 value={pickupDate}
-                onChange={(e) => setPickupDate(e.target.value)}
-                className="w-full text-gray-500 border border-gray-300 rounded px-3 py-2"
+                onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                placeholder="Select pickup date(s)"
+                className="w-full text-gray-500 border border-gray-300 rounded px-3 py-2 cursor-pointer"
               />
               {errors.pickupDate && (
                 <p className="text-red-500 text-sm mt-1">{errors.pickupDate}</p>
+              )}
+
+              {/* Calendar Popover */}
+              {isCalendarOpen && (
+                <div className="absolute z-50 mt-2">
+                  <CustomCalendar
+                    selectedColor="bg-system-primary"
+                    unavailableDates={""} // Example unavailable days
+                    initialSelected={pickupDate ? pickupDate.split(",") : []}
+                    onSelectDates={(dates) => {
+                      setPickupDate(dates.join(","));
+                      setIsCalendarOpen(false); // Close calendar after selection
+                    }}
+                  />
+                </div>
               )}
             </div>
           </div>
