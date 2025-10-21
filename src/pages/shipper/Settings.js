@@ -1,6 +1,7 @@
 // src/pages/shipper/Settings.js
 import React, { useState } from "react";
 import CommentBanner from "../../components/common/CommentBanner";
+import Profile from "./Profile";
 
 const ShipperSettings = () => {
   const tabs = [
@@ -15,7 +16,7 @@ const ShipperSettings = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case "profile":
-        return <p>Profile settings content goes here.</p>;
+        return <Profile />;
       case "shipment":
         return <p>Next shipment settings content goes here.</p>;
       case "payment":
