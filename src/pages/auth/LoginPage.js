@@ -62,35 +62,29 @@ const LoginPage = () => {
   // ----------------- Handle normal login -----------------
   const handleLogin = async (values, { setSubmitting, setFieldError }) => {
     setLoading(true);
+
     try {
-      console.log("[LOGIN FRONTEND DEBUG] Sending:", values); // Debug log
+      // Call AuthContext login function (it handles API request)
+      const result = await login(values); // <-- only one API call
 
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values), // <-- plain password
-      });
-
-      const data = await res.json();
-      console.log("[LOGIN FRONTEND DEBUG] Response:", data);
-
-      if (data.success) {
-        login(data.data); // Update AuthContext
+      if (result.success) {
+        // Navigate based on role
         navigate(
-          data.data.role === "shipper"
+          values.role === "shipper"
             ? "/shipper/dashboard"
             : "/customer/dashboard",
           { replace: true }
         );
       } else {
-        if (data.errors?.length > 0) {
-          const emailError = data.errors.find((e) =>
+        // Handle validation errors from backend
+        if (result.errors?.length > 0) {
+          const emailError = result.errors.find((e) =>
             e.toLowerCase().includes("email")
           );
           if (emailError) setFieldError("email", emailError);
-          setToast({ message: data.errors.join(", "), type: "error" });
-        } else if (data.message) {
-          setToast({ message: data.message, type: "error" });
+
+          // Show toast for all errors
+          setToast({ message: result.errors.join(", "), type: "error" });
         } else {
           setToast({ message: "Login failed", type: "error" });
         }
