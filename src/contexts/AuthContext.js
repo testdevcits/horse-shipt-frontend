@@ -147,6 +147,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        setUser, // <-- expose setUser to update user globally
         token,
         loading,
         login,

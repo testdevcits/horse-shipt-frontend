@@ -6,7 +6,7 @@ const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const Profile = () => {
-  const { user, token } = useAuth();
+  const { user, token, setUser } = useAuth(); // <-- get setUser from context
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
   const [locale, setLocale] = useState(user?.locale || "");
@@ -53,6 +53,14 @@ const Profile = () => {
         },
       });
 
+      const updatedData = res.data.data;
+
+      // Update AuthContext and localStorage
+      const updatedUser = { ...user, ...updatedData };
+      setUser(updatedUser);
+      localStorage.setItem("horseShiptUser", JSON.stringify(updatedUser));
+
+      setPreview(updatedUser.profilePicture || preview); // update preview if changed
       setMessage(res.data.message || "Profile updated successfully");
     } catch (err) {
       console.error(err);
