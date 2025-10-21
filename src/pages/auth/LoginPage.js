@@ -63,33 +63,31 @@ const LoginPage = () => {
   const handleLogin = async (values, { setSubmitting, setFieldError }) => {
     setLoading(true);
     try {
+      console.log("[LOGIN FRONTEND DEBUG] Sending:", values); // Debug log
+
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify(values), // <-- plain password
       });
 
       const data = await res.json();
+      console.log("[LOGIN FRONTEND DEBUG] Response:", data);
 
       if (data.success) {
-        const user = data.data;
-        login(user); // Update AuthContext
+        login(data.data); // Update AuthContext
         navigate(
-          user.role === "shipper"
+          data.data.role === "shipper"
             ? "/shipper/dashboard"
             : "/customer/dashboard",
           { replace: true }
         );
       } else {
-        // Handle backend errors
         if (data.errors?.length > 0) {
-          // Set first error on form field if matches
           const emailError = data.errors.find((e) =>
             e.toLowerCase().includes("email")
           );
           if (emailError) setFieldError("email", emailError);
-
-          // Show toast for all errors
           setToast({ message: data.errors.join(", "), type: "error" });
         } else if (data.message) {
           setToast({ message: data.message, type: "error" });
@@ -98,6 +96,7 @@ const LoginPage = () => {
         }
       }
     } catch (err) {
+      console.error("[LOGIN FRONTEND ERROR]", err);
       setToast({ message: "Login error", type: "error" });
     } finally {
       setSubmitting(false);
