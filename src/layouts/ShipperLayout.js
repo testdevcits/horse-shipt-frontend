@@ -10,6 +10,9 @@ import {
   HiOutlineShare,
 } from "react-icons/hi2";
 
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -42,11 +45,16 @@ const ShipperLayout = () => {
           {/* Profile */}
           <div className="relative">
             <img
-              src={user?.photo || "https://via.placeholder.com/40"}
+              src={
+                user?.profilePicture
+                  ? `${process.env.API_BASE_URL}${user.profilePicture}` // make sure server serves this file publicly
+                  : "https://via.placeholder.com/40"
+              }
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
               onClick={() => setProfilePopup(!profilePopup)}
             />
+
             {/* Profile popup */}
             {profilePopup && (
               <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg">
