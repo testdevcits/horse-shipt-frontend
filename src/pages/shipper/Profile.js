@@ -6,12 +6,18 @@ const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const Profile = () => {
-  const { user, token, setUser } = useAuth(); // <-- get setUser from context
+  const { user, token, setUser } = useAuth();
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
   const [locale, setLocale] = useState(user?.locale || "");
   const [profilePicture, setProfilePicture] = useState(null);
-  const [preview, setPreview] = useState(user?.profilePicture || "");
+  const [preview, setPreview] = useState(
+    user?.profilePicture
+      ? user.profilePicture.startsWith("http")
+        ? user.profilePicture
+        : `${API_BASE_URL}/${user.profilePicture.replace(/^\/?/, "")}`
+      : ""
+  );
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -40,7 +46,7 @@ const Profile = () => {
       formData.append("locale", locale);
       if (profilePicture) formData.append("profilePicture", profilePicture);
 
-      // Determine route based on user role
+      // Determine route based on role
       const route =
         user.role === "shipper"
           ? "shipper/update-profile"
@@ -60,7 +66,18 @@ const Profile = () => {
       setUser(updatedUser);
       localStorage.setItem("horseShiptUser", JSON.stringify(updatedUser));
 
-      setPreview(updatedUser.profilePicture || preview); // update preview if changed
+      // Update preview to full URL
+      setPreview(
+        updatedUser.profilePicture
+          ? updatedUser.profilePicture.startsWith("http")
+            ? updatedUser.profilePicture
+            : `${API_BASE_URL}/${updatedUser.profilePicture.replace(
+                /^\/?/,
+                ""
+              )}`
+          : ""
+      );
+
       setMessage(res.data.message || "Profile updated successfully");
     } catch (err) {
       console.error(err);

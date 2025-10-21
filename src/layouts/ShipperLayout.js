@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
-import logo from "../assets/images/logo.png"; // <-- Logo import
+import logo from "../assets/images/logo.png";
 import {
   HiOutlineBell,
   HiOutlineChatBubbleLeft,
@@ -19,11 +19,11 @@ const ShipperLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
 
-  // Convert user.profilePicture to full URL if exists
+  // Determine profile image URL
   const profileImage = user?.profilePicture
     ? user.profilePicture.startsWith("http")
-      ? user.profilePicture // already full URL
-      : `${API_BASE_URL}${user.profilePicture}` // prepend API URL
+      ? user.profilePicture
+      : `${API_BASE_URL}/${user.profilePicture.replace(/^\/?/, "")}`
     : "https://via.placeholder.com/40";
 
   return (
@@ -41,7 +41,7 @@ const ShipperLayout = () => {
           <img src={logo} alt="Logo" className="w-32 h-auto object-contain" />
         </div>
 
-        {/* Right: Profile */}
+        {/* Right: Profile & Icons */}
         <div className="flex items-center gap-4 relative">
           <HiOutlineShare size={20} className="text-gray-500 cursor-pointer" />
           <HiOutlineBell size={20} className="text-gray-500 cursor-pointer" />
@@ -57,7 +57,6 @@ const ShipperLayout = () => {
               className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
               onClick={() => setProfilePopup(!profilePopup)}
             />
-
             {/* Profile popup */}
             {profilePopup && (
               <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg">
@@ -84,7 +83,7 @@ const ShipperLayout = () => {
 
         {/* Main content */}
         <main
-          className={`flex-1 transition-all duration-300  p-4 sm:p-6 md:p-8 ${
+          className={`flex-1 transition-all duration-300 p-4 sm:p-6 md:p-8 ${
             sidebarOpen ? "lg:ml-4" : "lg:ml-4"
           }`}
         >
