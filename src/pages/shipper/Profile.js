@@ -90,7 +90,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 border rounded shadow">
+    <div className="max-full mx-auto mt-10 p-6 border rounded shadow">
       <h2 className="text-2xl font-bold mb-4">Update Profile</h2>
 
       {message && <p className="mb-4 text-green-600">{message}</p>}
