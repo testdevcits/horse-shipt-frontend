@@ -19,6 +19,13 @@ const ShipperLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
 
+  // Convert user.profilePicture to full URL if exists
+  const profileImage = user?.profilePicture
+    ? user.profilePicture.startsWith("http")
+      ? user.profilePicture // already full URL
+      : `${API_BASE_URL}${user.profilePicture}` // prepend API URL
+    : "https://via.placeholder.com/40";
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
@@ -45,11 +52,7 @@ const ShipperLayout = () => {
           {/* Profile */}
           <div className="relative">
             <img
-              src={
-                user?.profilePicture
-                  ? `${process.env.API_BASE_URL}${user.profilePicture}` // make sure server serves this file publicly
-                  : "https://via.placeholder.com/40"
-              }
+              src={profileImage}
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
               onClick={() => setProfilePopup(!profilePopup)}
