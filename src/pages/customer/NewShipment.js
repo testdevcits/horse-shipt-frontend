@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logoMobile from "../../assets/images/mobileLogo.png";
 import ModalOfferPublished from "./ModalOfferPublished";
-import CustomCalendar from "../../components/common/CustomCalendar";
+import DateInput from "../../components/common/DateInput";
 
 const steps = [
   { id: 1, title: "Pickup" },
@@ -22,15 +22,13 @@ const NewShipment = () => {
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [errors, setErrors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const navigate = useNavigate();
   const currentLogo = logoMobile;
 
-  // Cancel and reset all fields
   const handleCancel = () => {
     setPickupLocation("");
-    setPickupTimeOption("");
+    setPickupTimeOption("on");
     setPickupDate("");
     setDeliveryLocation("");
     setNumberOfHorses("");
@@ -40,7 +38,6 @@ const NewShipment = () => {
     navigate("/customer/dashboard");
   };
 
-  // Validate current step
   const validateStep = () => {
     const stepErrors = {};
     if (currentStep === 1) {
@@ -59,28 +56,24 @@ const NewShipment = () => {
     return Object.keys(stepErrors).length === 0;
   };
 
-  // Next step
   const handleNext = () => {
     if (!validateStep()) return;
     if (currentStep < steps.length) {
       setCurrentStep((prev) => prev + 1);
     } else {
-      // Finish clicked, show modal
       setIsModalOpen(true);
     }
   };
 
-  // Previous step
   const handlePrevious = () => {
     if (currentStep > 1) setCurrentStep((prev) => prev - 1);
   };
 
-  // Render content for each step
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="flex flex-col w-full max-w-5xl gap-4 font-montserrat">
+          <div className="flex flex-col w-full max-w-5xl gap-4 font-montserrat relative">
             <div>
               <label className="block text-sm font-semibold mb-1 text-gray-500">
                 Pickup Location
@@ -130,32 +123,11 @@ const NewShipment = () => {
               <label className="block text-sm font-semibold mb-1 text-gray-500">
                 Date
               </label>
-              <input
-                type="text"
-                readOnly
+              <DateInput
                 value={pickupDate}
-                onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                placeholder="Select pickup date(s)"
-                className="w-full text-gray-500 border border-gray-300 rounded px-3 py-2 cursor-pointer"
+                onChange={setPickupDate}
+                error={errors.pickupDate}
               />
-              {errors.pickupDate && (
-                <p className="text-red-500 text-sm mt-1">{errors.pickupDate}</p>
-              )}
-
-              {/* Calendar Popover */}
-              {isCalendarOpen && (
-                <div className="absolute z-50 mt-2">
-                  <CustomCalendar
-                    selectedColor="bg-system-primary"
-                    unavailableDates={""} // Example unavailable days
-                    initialSelected={pickupDate ? pickupDate.split(",") : []}
-                    onSelectDates={(dates) => {
-                      setPickupDate(dates.join(","));
-                      setIsCalendarOpen(false); // Close calendar after selection
-                    }}
-                  />
-                </div>
-              )}
             </div>
           </div>
         );
@@ -279,33 +251,33 @@ const NewShipment = () => {
       </div>
 
       {/* Step Content */}
-      <div className="flex-1 w-full max-w-5xl flex flex-col items-start mt-6 overflow-y-auto pb-28">
+      <div className="flex-1 w-full max-w-5xl flex flex-col items-start mt-6 pb-8">
         <p className="font-montserrat text-gray-500 text-[20px] leading-[30px] mb-4">
           {steps[currentStep - 1].title}
         </p>
         {renderStepContent()}
-      </div>
 
-      {/* Buttons Fixed at Bottom */}
-      <div className="fixed bottom-4 flex w-full max-w-5xl justify-between md:justify-end gap-4 px-4">
-        <button
-          onClick={handlePrevious}
-          disabled={currentStep === 1}
-          className={`px-6 py-2 max-w-2xl rounded-lg font-montserrat border ${
-            currentStep === 1
-              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-              : "bg-white text-gray-500 border-gray-300 hover:bg-[#BF9B53] hover:text-white"
-          }`}
-        >
-          Previous
-        </button>
+        {/* Buttons (natural flow, not fixed) */}
+        <div className="flex w-full justify-between md:justify-end gap-4 mt-6">
+          <button
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+            className={`px-6 py-2 max-w-2xl rounded-lg font-montserrat border ${
+              currentStep === 1
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-white text-gray-500 border-gray-300 hover:bg-[#BF9B53] hover:text-white"
+            }`}
+          >
+            Previous
+          </button>
 
-        <button
-          onClick={handleNext}
-          className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e]"
-        >
-          {currentStep === steps.length ? "Finish" : "Next"}
-        </button>
+          <button
+            onClick={handleNext}
+            className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e]"
+          >
+            {currentStep === steps.length ? "Finish" : "Next"}
+          </button>
+        </div>
       </div>
 
       {/* Modal */}
