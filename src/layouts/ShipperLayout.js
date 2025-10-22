@@ -15,7 +15,7 @@ const API_BASE_URL =
 
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(true); // desktop toggle
+  const [sidebarOpen, setSidebarOpen] = useState(false); // desktop toggle
   const [mobileOpen, setMobileOpen] = useState(false); // mobile overlay toggle
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);

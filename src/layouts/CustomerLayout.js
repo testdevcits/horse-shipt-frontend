@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/customer/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
@@ -11,6 +11,14 @@ const CustomerLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false); // desktop toggle
   const [mobileOpen, setMobileOpen] = useState(false); // mobile overlay
   const [profilePopup, setProfilePopup] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+
+  // Update isDesktop on resize
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -66,10 +74,9 @@ const CustomerLayout = () => {
 
         {/* Main content */}
         <main
-          className={`flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300`}
+          className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300"
           style={{
-            marginLeft:
-              window.innerWidth >= 1024 ? (sidebarOpen ? 256 : 64) : 0,
+            marginLeft: isDesktop ? (sidebarOpen ? 256 : 64) : 0,
           }}
         >
           <Outlet />
