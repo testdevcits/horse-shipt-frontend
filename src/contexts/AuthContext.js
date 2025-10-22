@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const AuthContext = createContext();
 
@@ -11,7 +11,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // navigation works because AuthProvider is inside Router
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // ----------------- Auto-login on page load -----------------
   useEffect(() => {
@@ -98,14 +99,11 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Logout Error:", err.response?.data || err.message);
     } finally {
-      // Clear frontend state
       setUser(null);
       setToken(null);
       localStorage.removeItem("horseShiptUser");
       localStorage.removeItem("token");
       localStorage.removeItem("role");
-
-      // Redirect to login page
       navigate("/login", { replace: true });
     }
   };
@@ -124,7 +122,7 @@ export const AuthProvider = ({ children }) => {
     if (!token || !role) return;
 
     const oauthUser = {
-      _id: id || "",
+      _id: id || "", // <-- now frontend will get actual _id
       token,
       role,
       provider,
@@ -143,11 +141,38 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("role", role);
   };
 
+  // ----------------- Handle OAuth redirect on mount -----------------
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    const token = query.get("token");
+    const id = query.get("id");
+    const role = query.get("role");
+    const name = query.get("name");
+    const email = query.get("email");
+    const photo = query.get("photo");
+    const providerId = query.get("providerId");
+
+    if (token && id && role) {
+      oauthLogin({
+        token,
+        id,
+        role,
+        name,
+        email,
+        photo,
+        provider: "google",
+        providerId,
+      });
+      // Remove query params from URL after login
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.search]); // run only on mount
+
   return (
     <AuthContext.Provider
       value={{
         user,
-        setUser, // <-- expose setUser to update user globally
+        setUser,
         token,
         loading,
         login,
