@@ -30,7 +30,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* Mobile overlay */}
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/30 z-40 lg:hidden"
@@ -40,12 +40,12 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full bg-white shadow-lg z-50 transform transition-transform duration-300
+        className={`fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300
           ${isOpen ? "w-64" : "w-16"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        {/* Mobile Close Button */}
+        {/* Mobile close button */}
         {mobileOpen && (
           <div className="flex justify-end p-4 lg:hidden">
             <button
@@ -57,7 +57,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           </div>
         )}
 
-        {/* Desktop Toggle */}
+        {/* Desktop toggle */}
         {!mobileOpen && (
           <div className="flex justify-end p-4 hidden lg:flex">
             <button onClick={() => setIsOpen(!isOpen)}>
@@ -71,7 +71,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         )}
 
         {/* Navigation */}
-        <nav className="flex flex-col mt-2 overflow-y-auto h-[calc(100%-64px)]">
+        <nav className="flex flex-col mt-2 h-full">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);

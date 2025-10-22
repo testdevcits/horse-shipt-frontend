@@ -9,7 +9,7 @@ import { MdOutlineNotificationsActive } from "react-icons/md";
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // default open on desktop
+  const [sidebarOpen, setSidebarOpen] = useState(true); // default open
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
@@ -38,7 +38,6 @@ const CustomerLayout = () => {
             className="text-gray-500 cursor-pointer"
           />
 
-          {/* Profile */}
           <div className="relative">
             <img
               src={user?.photo || "https://via.placeholder.com/40"}
@@ -62,44 +61,18 @@ const CustomerLayout = () => {
 
       {/* Layout Body */}
       <div className="flex flex-1 relative">
-        {/* Sidebar - Desktop fixed */}
-        <div
-          className={`hidden lg:flex fixed top-16 left-0 h-[calc(100vh-64px)] bg-white shadow-md z-40 transition-all duration-300 ${
-            sidebarOpen ? "w-64" : "w-16"
-          }`}
-        >
-          <Sidebar
-            mobileOpen={mobileMenuOpen}
-            setMobileOpen={setMobileMenuOpen}
-            isOpen={sidebarOpen}
-            setIsOpen={setSidebarOpen}
-          />
-        </div>
-
-        {/* Sidebar - Mobile overlay */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 flex">
-            <div
-              className="fixed inset-0 bg-black/30"
-              onClick={() => setMobileMenuOpen(false)}
-            />
-            <div className="relative w-64 bg-white shadow-md">
-              <Sidebar
-                mobileOpen={mobileMenuOpen}
-                setMobileOpen={setMobileMenuOpen}
-                isOpen={true}
-                setIsOpen={setSidebarOpen}
-              />
-            </div>
-          </div>
-        )}
+        {/* Sidebar */}
+        <Sidebar
+          mobileOpen={mobileMenuOpen}
+          setMobileOpen={setMobileMenuOpen}
+          isOpen={sidebarOpen}
+          setIsOpen={setSidebarOpen}
+        />
 
         {/* Main content */}
         <main
           className={`flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300`}
-          style={{
-            marginLeft: sidebarOpen ? 256 : 64, // desktop margin
-          }}
+          style={{ marginLeft: sidebarOpen ? 256 : 64 }}
         >
           <Outlet />
         </main>
