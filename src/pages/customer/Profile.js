@@ -20,7 +20,7 @@ const CustomerProfile = () => {
       </div>
 
       {/* Edit Picture Button */}
-      <button className="flex items-center gap-2 px-3 py-2 text-white bg-system-primary rounded hover:bg-system-primary-dark transition text-sm sm:text-base md:text-lg">
+      <button className="flex items-center gap-2 px-3 py-2 text-white  transition text-sm sm:text-base md:text-lg">
         <FiEdit3 /> Edit Picture
       </button>
 
