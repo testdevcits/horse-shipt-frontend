@@ -40,8 +40,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-16 left-0 z-50 h-[calc(100%-64px)] bg-white text-system-primary shadow-lg transition-all duration-300
-          md:relative md:h-auto md:shadow-none
+        className={`fixed top-16 left-0 z-50 h-[calc(100%-64px)] bg-white shadow-lg transition-all duration-300
           ${isOpen ? "w-64" : "w-16"}
           ${
             mobileOpen
@@ -76,7 +75,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 mt-2 overflow-y-auto h-[calc(100%-96px)]">
+        <nav className="flex-1 mt-2">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
