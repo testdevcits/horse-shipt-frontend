@@ -11,7 +11,7 @@ const Switch = ({
   className = "",
 }) => {
   const sizeMap = {
-    sm: { width: 36, height: 20, knob: 16 },
+    sm: { width: 32, height: 18, knob: 14 },
     md: { width: 44, height: 24, knob: 20 },
     lg: { width: 60, height: 28, knob: 24 },
   };

@@ -40,7 +40,6 @@ const CustomerNotifications = () => {
 
   return (
     <div className="max-w-full mx-auto p-4 sm:p-6 font-montserrat">
-      {/* Heading */}
       <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">
         Notifications
       </h1>
@@ -50,17 +49,17 @@ const CustomerNotifications = () => {
         while you’re away.
       </p>
 
-      {/* Container */}
-      <div className="w-full sm:w-auto sm:max-w-md flex flex-col space-y-4 p-4 border border-gray-200 rounded-xl bg-white">
+      <div className="w-full sm:max-w-md flex flex-col space-y-4 p-4 border border-gray-200 rounded-xl bg-white">
         {notificationsList.map((item) => (
           <div
             key={item.id}
             className="flex justify-between items-center gap-2 flex-wrap"
           >
-            <span className="text-[14px] sm:text-sm md:text-base lg:text-lg text-gray-800 flex-1 break-words">
+            <span className="text-[14px] sm:text-sm md:text-base lg:text-lg text-gray-800 flex-1 break-words font-normal">
               {item.label}
             </span>
-            <div className="flex-shrink-0">
+
+            <div className="flex-shrink-0 mt-1 sm:mt-0">
               <Switch
                 checked={notifications[item.id]}
                 onChange={() => handleToggle(item.id)}
@@ -71,7 +70,6 @@ const CustomerNotifications = () => {
         ))}
       </div>
 
-      {/* Toast */}
       {toast && (
         <Toast
           message={toast.message}
