@@ -118,7 +118,6 @@ export const AuthProvider = ({ children }) => {
     if (!token) return;
 
     try {
-      // Fetch full user from backend using token
       const res = await axios.get(`${API_BASE_URL}/auth/oauth-user`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
@@ -129,14 +128,14 @@ export const AuthProvider = ({ children }) => {
       setUser({ ...userData, isLogin: true });
       setToken(userData.token);
 
-      // Save OAuth user to localStorage
+      // Save in localStorage including _id
       localStorage.setItem(
         "horseShiptUser",
         JSON.stringify({ ...userData, isLogin: true })
       );
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
-      localStorage.setItem("userId", userData._id || "");
+      localStorage.setItem("userId", userData._id); // <-- Save _id here
     } catch (err) {
       console.error("OAuth Login Error:", err.response?.data || err.message);
     }
