@@ -32,6 +32,7 @@ const CustomerOrders = lazy(() => import("../pages/customer/Orders"));
 const CustomerProfile = lazy(() => import("../pages/customer/Profile"));
 const CustomerSettings = lazy(() => import("../pages/customer/Settings"));
 const NewShipment = lazy(() => import("../pages/customer/NewShipment"));
+const EditProfile = lazy(() => import("../pages/customer/EditProfile"));
 
 // ---------------- 404 Page ----------------
 const NotFoundPage = lazy(() => import("../pages/NotFound"));
@@ -145,6 +146,8 @@ const AppRoutes = () => {
           <Route path="profile" element={<CustomerProfile />} />
           <Route path="settings" element={<CustomerSettings />} />
           <Route path="new-shipment" element={<NewShipment />} />
+          <Route path="profile/edit" element={<EditProfile />} />{" "}
+          {/* <-- relative path */}
         </Route>
 
         {/* ---------- Fallback ---------- */}
