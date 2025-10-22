@@ -32,29 +32,25 @@ const CustomerSettings = () => {
   };
 
   return (
-    <div className="flex flex-col items-center w-full px-2 sm:px-4 md:px-6 lg:px-8">
+    <div className="flex flex-col w-full px-2 sm:px-4 md:px-6 lg:px-8">
       {/* Tabs */}
-      <div className="w-full mb-6 mt-6 overflow-x-auto">
-        <div className="flex flex-nowrap gap-2 sm:gap-4">
+      <div className="w-full mb-6 mt-6">
+        <div className="flex justify-between border-b border-gray-300">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-shrink-0 transition-colors duration-200 font-montserrat font-semibold text-sm sm:text-base md:text-lg
+              className={`flex-1 text-center py-2 sm:py-3 transition-colors duration-200 font-montserrat font-semibold
                 ${
                   activeTab === tab.id
-                    ? "text-system-primary border-b-[1px] border-system-primary"
-                    : "text-gray-600 border-b-[1px] border-gray-300 hover:text-gray-900"
-                }`}
-              style={{
-                minWidth: "100px", // minimum width per tab
-                padding: "0 16px",
-                height: "36px",
-                opacity: 1,
-                transform: "rotate(0deg)",
-              }}
+                    ? "border-b-[1px] border-system-primary text-system-primary"
+                    : "border-b-[1px] border-gray-300 text-gray-600 hover:text-gray-900"
+                }
+              `}
             >
-              {tab.label}
+              <span className="text-sm sm:text-base md:text-lg lg:text-xl">
+                {tab.label}
+              </span>
             </button>
           ))}
         </div>
