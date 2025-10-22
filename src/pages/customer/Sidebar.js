@@ -46,14 +46,14 @@ const Sidebar = ({
       {/* Sidebar */}
       <div
         className={`
-          fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300
+          fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300 font-montserrat
           ${
             mobileOpen
               ? "translate-x-0 w-full"
               : "-translate-x-full lg:translate-x-0"
           }
         `}
-        style={{ width: sidebarOpen ? 256 : 64 }}
+        style={{ width: sidebarOpen && window.innerWidth >= 1024 ? 256 : 64 }}
       >
         {/* Desktop toggle */}
         <div className="flex justify-end p-4 hidden lg:flex">
