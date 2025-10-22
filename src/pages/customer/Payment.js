@@ -8,14 +8,32 @@ const Payment = () => {
     pkLive: "",
     skLive: "",
   });
+  const [errors, setErrors] = useState({}); // <-- store error messages
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Remove error if user types something
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validation
+    const newErrors = {};
+    if (!formData.serviceName.trim())
+      newErrors.serviceName = "Service Name is required";
+    if (!formData.pkLive.trim()) newErrors.pkLive = "PK_LIVE is required";
+    if (!formData.skLive.trim()) newErrors.skLive = "SK_LIVE is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    // Log values
     console.log("Payment Setup Data:", formData);
     alert("Payment details submitted successfully!");
   };
@@ -24,7 +42,7 @@ const Payment = () => {
     <div className="flex flex-col items-center justify-center font-montserrat">
       <div className="w-full sm:p-8">
         {/* Heading */}
-        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-start mb-4">
           Payment
         </h1>
 
@@ -47,7 +65,7 @@ const Payment = () => {
             {/* Button */}
             <button
               onClick={() => setShowForm(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-semibold mt-4 transition"
+              className="text-gray-300 px-6 py-2 border border-gary-300 rounded-lg font-semibold mt-4 transition"
             >
               Set up Stripe Account
             </button>
@@ -70,9 +88,17 @@ const Payment = () => {
                 value={formData.serviceName}
                 onChange={handleChange}
                 placeholder="Enter your service name"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                required
+                className={`w-full border p-2 rounded-lg outline-none focus:ring-2 ${
+                  errors.serviceName
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-indigo-500"
+                }`}
               />
+              {errors.serviceName && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.serviceName}
+                </p>
+              )}
             </div>
 
             <div>
@@ -85,9 +111,15 @@ const Payment = () => {
                 value={formData.pkLive}
                 onChange={handleChange}
                 placeholder="Enter your PK_LIVE key"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                required
+                className={`w-full border p-2 rounded-lg outline-none focus:ring-2 ${
+                  errors.pkLive
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-indigo-500"
+                }`}
               />
+              {errors.pkLive && (
+                <p className="text-red-500 text-sm mt-1">{errors.pkLive}</p>
+              )}
             </div>
 
             <div>
@@ -100,9 +132,15 @@ const Payment = () => {
                 value={formData.skLive}
                 onChange={handleChange}
                 placeholder="Enter your SK_LIVE key"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                required
+                className={`w-full border p-2 rounded-lg outline-none focus:ring-2 ${
+                  errors.skLive
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-indigo-500"
+                }`}
               />
+              {errors.skLive && (
+                <p className="text-red-500 text-sm mt-1">{errors.skLive}</p>
+              )}
             </div>
 
             <button
