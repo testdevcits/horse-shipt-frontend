@@ -8,43 +8,49 @@ const CustomerProfile = () => {
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
-    <div className="flex flex-col items-center w-full px-2 sm:px-4 md:px-6 lg:px-8 py-6 space-y-6">
+    <div className="flex flex-col items-center w-full px-4 sm:px-6 md:px-8 lg:px-16 py-6 space-y-6 bg-gray-50 min-h-screen">
       {/* Top Profile Image */}
       <div className="relative">
         <img
           src={user?.photo || "https://via.placeholder.com/80"}
           alt="Profile"
-          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border border-gray-300 cursor-pointer"
+          className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border border-gray-300 cursor-pointer"
           onClick={() => setProfilePopup(!profilePopup)}
         />
       </div>
 
       {/* Edit Picture Button */}
-      <button className="flex items-center gap-2 px-2 py-2 text-white hover:bg-system-primary-dark transition">
+      <button className="flex items-center gap-2 px-3 py-2 text-white bg-system-primary rounded hover:bg-system-primary-dark transition text-sm sm:text-base md:text-lg">
         <FiEdit3 /> Edit Picture
       </button>
 
-      {/* Mobile First Div */}
-      <div className="w-[343px] h-[62px] flex items-center justify-between px-4 py-2 border rounded-[14px] border-gray-300 bg-white">
+      {/* Mobile Info Div (Shipments + Rating) */}
+      <div className="w-full max-w-sm flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300 bg-white">
         {/* Shipment */}
         <div className="flex flex-col items-center justify-center">
-          <span className="text-base font-bold sm:text-lg">10</span>
-          <span className="text-sm text-gray-500">Shipment</span>
+          <span className="text-base sm:text-lg md:text-xl font-bold">10</span>
+          <span className="text-xs sm:text-sm md:text-base text-gray-500">
+            Shipment
+          </span>
         </div>
 
         {/* Rating */}
         <div className="flex flex-col items-center justify-center">
-          <span className="flex items-center gap-1 text-base font-bold sm:text-lg">
+          <span className="flex items-center gap-1 text-base sm:text-lg md:text-xl font-bold">
             5.0 <FaStar className="text-system-primary" />
           </span>
-          <span className="text-sm text-gray-500">Rating</span>
+          <span className="text-xs sm:text-sm md:text-base text-gray-500">
+            Rating
+          </span>
         </div>
       </div>
 
       {/* Basic Info Section */}
-      <div className="w-full max-w-md bg-white p-4 rounded-lg shadow-sm flex flex-col gap-4">
+      <div className="w-full max-w-md bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm flex flex-col gap-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-base sm:text-lg font-semibold">Basic Info</h3>
+          <h3 className="text-base sm:text-lg md:text-xl font-semibold">
+            Basic Info
+          </h3>
           <button className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition">
             <FiEdit3 />
           </button>
@@ -52,19 +58,27 @@ const CustomerProfile = () => {
 
         {/* Info Fields */}
         <div className="flex flex-col gap-2 w-full">
-          <div className="flex justify-between items-center border-b border-gray-300 pb-2">
-            <span className="text-gray-500">Name:</span>
-            <span className="font-medium">{user?.name || "John Doe"}</span>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-300 pb-2">
+            <span className="text-gray-500 text-sm sm:text-base md:text-lg">
+              Name:
+            </span>
+            <span className="font-medium text-sm sm:text-base md:text-lg">
+              {user?.name || "John Doe"}
+            </span>
           </div>
-          <div className="flex justify-between items-center border-b border-gray-300 pb-2">
-            <span className="text-gray-500">Email:</span>
-            <span className="font-medium">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-300 pb-2">
+            <span className="text-gray-500 text-sm sm:text-base md:text-lg">
+              Email:
+            </span>
+            <span className="font-medium text-sm sm:text-base md:text-lg">
               {user?.email || "johndoe@example.com"}
             </span>
           </div>
-          <div className="flex justify-between items-center border-b border-gray-300 pb-2">
-            <span className="text-gray-500">Phone:</span>
-            <span className="font-medium">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-300 pb-2">
+            <span className="text-gray-500 text-sm sm:text-base md:text-lg">
+              Phone:
+            </span>
+            <span className="font-medium text-sm sm:text-base md:text-lg">
               {user?.phone || "+91 9876543210"}
             </span>
           </div>
