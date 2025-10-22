@@ -9,7 +9,7 @@ import { MdOutlineNotificationsActive } from "react-icons/md";
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false); // desktop toggle
-  const [mobileOpen, setMobileOpen] = useState(false); // mobile overlay toggle
+  const [mobileOpen, setMobileOpen] = useState(false); // mobile overlay
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
@@ -18,7 +18,6 @@ const CustomerLayout = () => {
       <header className="sticky top-0 z-50 flex items-center justify-between bg-white shadow-md px-4 py-3 border-b border-gray-300 lg:px-6">
         {/* Left: Mobile menu + logo */}
         <div className="flex items-center gap-4">
-          {/* Mobile menu button */}
           <button
             className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
             onClick={() => setMobileOpen(true)}
@@ -68,7 +67,10 @@ const CustomerLayout = () => {
         {/* Main content */}
         <main
           className={`flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300`}
-          style={{ marginLeft: sidebarOpen ? 256 : 32 }}
+          style={{
+            marginLeft:
+              window.innerWidth >= 1024 ? (sidebarOpen ? 256 : 64) : 0,
+          }}
         >
           <Outlet />
         </main>

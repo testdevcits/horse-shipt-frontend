@@ -15,7 +15,7 @@ const API_BASE_URL =
 
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(true); // desktop toggle
+  const [sidebarOpen, setSidebarOpen] = useState(false); // desktop toggle
   const [mobileOpen, setMobileOpen] = useState(false); // mobile overlay toggle
   const [profilePopup, setProfilePopup] = useState(false);
 
@@ -24,6 +24,8 @@ const ShipperLayout = () => {
       ? user.profilePicture
       : `${API_BASE_URL}/${user.profilePicture.replace(/^\/?/, "")}`
     : "https://via.placeholder.com/40";
+
+  const isDesktop = window.innerWidth >= 1024;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -82,8 +84,10 @@ const ShipperLayout = () => {
 
         {/* Main content */}
         <main
-          className={`flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300`}
-          style={{ marginLeft: sidebarOpen ? 256 : 64 }}
+          className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300"
+          style={{
+            marginLeft: isDesktop ? (sidebarOpen ? 256 : 64) : 0,
+          }}
         >
           <Outlet />
         </main>
