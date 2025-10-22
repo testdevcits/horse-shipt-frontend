@@ -39,33 +39,9 @@ const LoginPage = () => {
 
     const token = params.get("token");
     if (token) {
-      const role = params.get("role") || "customer";
-      const userData = {
-        _id: params.get("_id"),
-        name: params.get("name"),
-        email: params.get("email"),
-        profilePicture: params.get("photo") || "",
-        role,
-        provider: params.get("provider"),
-        providerId: params.get("providerId"),
-        isLogin: true,
-        token,
-      };
-
-      // Update AuthContext and localStorage
-      setUser(userData);
-      setToken(token);
-      localStorage.setItem("horseShiptUser", JSON.stringify(userData));
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
-      localStorage.setItem("userId", userData._id || "");
-
-      navigate(
-        role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard",
-        { replace: true }
-      );
+      oauthLogin(token); // centralized OAuth login from context
     }
-  }, [location.search, navigate, setUser, setToken]);
+  }, [location.search, oauthLogin]);
 
   // ----------------- Handle normal login -----------------
   const handleLogin = async (values, { setSubmitting, setFieldError }) => {
