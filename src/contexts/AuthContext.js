@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
@@ -11,8 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate = useNavigate(); // navigation works because AuthProvider is inside Router
 
   // ----------------- Auto-login on page load -----------------
   useEffect(() => {
@@ -24,15 +23,6 @@ export const AuthProvider = ({ children }) => {
     }
     setLoading(false);
   }, []);
-
-  // ----------------- Handle OAuth redirect on page load -----------------
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const oauthToken = params.get("token");
-    if (oauthToken) {
-      oauthLogin(oauthToken);
-    }
-  }, [location.search]);
 
   // ----------------- Normal Login -----------------
   const login = async ({ email, password, role, deviceId, location }) => {
@@ -46,14 +36,12 @@ export const AuthProvider = ({ children }) => {
       );
 
       const userData = res.data.data;
-
       setUser(userData);
       setToken(userData.token);
 
       localStorage.setItem("horseShiptUser", JSON.stringify(userData));
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
-      localStorage.setItem("userId", userData._id || "");
 
       return { success: true };
     } catch (err) {
@@ -79,14 +67,12 @@ export const AuthProvider = ({ children }) => {
       );
 
       const newUser = res.data.data;
-
       setUser(newUser);
       setToken(newUser.token);
 
       localStorage.setItem("horseShiptUser", JSON.stringify(newUser));
       localStorage.setItem("token", newUser.token);
       localStorage.setItem("role", newUser.role);
-      localStorage.setItem("userId", newUser._id || "");
 
       return { success: true };
     } catch (err) {
@@ -112,56 +98,56 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Logout Error:", err.response?.data || err.message);
     } finally {
+      // Clear frontend state
       setUser(null);
       setToken(null);
       localStorage.removeItem("horseShiptUser");
       localStorage.removeItem("token");
       localStorage.removeItem("role");
-      localStorage.removeItem("userId");
 
+      // Redirect to login page
       navigate("/login", { replace: true });
     }
   };
 
   // ----------------- OAuth Login -----------------
-  const oauthLogin = async (token) => {
-    if (!token) return;
-    try {
-      const res = await axios.get(`${API_BASE_URL}/auth/oauth-user`, {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      });
+  const oauthLogin = ({
+    token,
+    role,
+    provider,
+    providerId,
+    email,
+    name,
+    photo,
+    id,
+  }) => {
+    if (!token || !role) return;
 
-      const userData = res.data.data;
+    const oauthUser = {
+      _id: id || "",
+      token,
+      role,
+      provider,
+      providerId,
+      email,
+      name,
+      photo,
+      isLogin: true,
+    };
 
-      setUser({ ...userData, isLogin: true });
-      setToken(userData.token);
+    setUser(oauthUser);
+    setToken(token);
 
-      localStorage.setItem(
-        "horseShiptUser",
-        JSON.stringify({ ...userData, isLogin: true })
-      );
-      localStorage.setItem("token", userData.token);
-      localStorage.setItem("role", userData.role);
-      localStorage.setItem("userId", userData._id);
-
-      // Navigate based on role
-      navigate(
-        userData.role === "shipper"
-          ? "/shipper/dashboard"
-          : "/customer/dashboard",
-        { replace: true }
-      );
-    } catch (err) {
-      console.error("OAuth Login Error:", err.response?.data || err.message);
-    }
+    localStorage.setItem("horseShiptUser", JSON.stringify(oauthUser));
+    localStorage.setItem("token", token);
+    localStorage.setItem("role", role);
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        setUser,
+        setUser, // <-- expose setUser to update user globally
         token,
         loading,
         login,

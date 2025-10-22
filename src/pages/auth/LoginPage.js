@@ -8,12 +8,11 @@ import Toast from "../../components/common/Toast";
 import loginBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
 import loginLogo from "../../assets/images/loginLogo.png";
-
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const LoginPage = () => {
-  const { login, oauthLogin, setUser, setToken } = useAuth();
+  const { login, oauthLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [toast, setToast] = useState(null);
@@ -39,18 +38,37 @@ const LoginPage = () => {
 
     const token = params.get("token");
     if (token) {
-      oauthLogin(token); // centralized OAuth login from context
+      const oauthUser = {
+        _id: params.get("id"),
+        role: params.get("role") || "customer",
+        name: params.get("name"),
+        email: params.get("email"),
+        photo: params.get("photo") || "",
+        provider: params.get("provider"),
+        providerId: params.get("providerId"),
+      };
+
+      oauthLogin({ token, ...oauthUser });
+
+      navigate(
+        oauthUser.role === "shipper"
+          ? "/shipper/dashboard"
+          : "/customer/dashboard",
+        { replace: true }
+      );
     }
-  }, [location.search, oauthLogin]);
+  }, [location.search, oauthLogin, navigate]);
 
   // ----------------- Handle normal login -----------------
   const handleLogin = async (values, { setSubmitting, setFieldError }) => {
     setLoading(true);
 
     try {
-      const result = await login(values);
+      // Call AuthContext login function (it handles API request)
+      const result = await login(values); // <-- only one API call
 
       if (result.success) {
+        // Navigate based on role
         navigate(
           values.role === "shipper"
             ? "/shipper/dashboard"
@@ -58,12 +76,14 @@ const LoginPage = () => {
           { replace: true }
         );
       } else {
+        // Handle validation errors from backend
         if (result.errors?.length > 0) {
           const emailError = result.errors.find((e) =>
             e.toLowerCase().includes("email")
           );
           if (emailError) setFieldError("email", emailError);
 
+          // Show toast for all errors
           setToast({ message: result.errors.join(", "), type: "error" });
         } else {
           setToast({ message: "Login failed", type: "error" });
@@ -100,7 +120,12 @@ const LoginPage = () => {
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-20">
         {/* Logo */}
         <div className="flex items-center justify-center w-full md:w-[1168px] h-[64px] gap-4 opacity-100">
-          <img src={loginLogo} alt="Logo" className="h-full object-contain" />
+          {/* Logo Image */}
+          <img
+            src={loginLogo} // import your logo at the top: import logo from '../assets/images/logo.png';
+            alt="Logo"
+            className="h-full object-contain"
+          />
         </div>
 
         {/* Login form */}
