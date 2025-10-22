@@ -16,7 +16,6 @@ const CustomerLayout = () => {
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
       <header className="sticky top-0 z-30 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
-        {/* Left: Logo + Mobile Menu */}
         <div className="flex items-center gap-4">
           <button
             className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
@@ -31,7 +30,6 @@ const CustomerLayout = () => {
           />
         </div>
 
-        {/* Right: Icons + Profile */}
         <div className="flex items-center gap-4 relative">
           <MdOutlineNotificationsActive
             size={20}
@@ -59,7 +57,7 @@ const CustomerLayout = () => {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-h-0">
         {/* Sidebar */}
         <Sidebar
           mobileOpen={mobileMenuOpen}
@@ -69,7 +67,11 @@ const CustomerLayout = () => {
         />
 
         {/* Main content */}
-        <main className="flex-1 overflow-auto p-4 sm:p-6 md:p-8">
+        <main
+          className={`flex-1 overflow-auto transition-all duration-300 p-2 sm:p-6 md:p-8 ${
+            sidebarOpen ? "lg:ml-64" : "lg:ml-16"
+          }`}
+        >
           <Outlet />
         </main>
       </div>
