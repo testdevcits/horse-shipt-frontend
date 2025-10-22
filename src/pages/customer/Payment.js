@@ -1,19 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import stripeLogo from "../../assets/images/stripeLogo.png";
 import Button from "../../components/common/Button";
 import axios from "axios";
 
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+
 const Payment = () => {
   const { user } = useAuth(); // get logged-in user
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    serviceName: "",
+    serviceName: "Stripe", // fixed pre-filled value
     pkLive: "",
     skLive: "",
   });
-
   const [errors, setErrors] = useState({}); // store validation errors
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,8 +25,6 @@ const Payment = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.serviceName)
-      newErrors.serviceName = "Service Name is required";
     if (!formData.pkLive || !formData.pkLive.startsWith("pk_live_"))
       newErrors.pkLive = "PK_LIVE must start with pk_live_";
     if (!formData.skLive || !formData.skLive.startsWith("sk_live_"))
@@ -40,24 +41,35 @@ const Payment = () => {
     }
 
     try {
+      setLoading(true);
+
       const payload = {
-        ...formData,
-        userId: user?._id, // send current user _id
+        serviceName: formData.serviceName,
+        pkLive: formData.pkLive,
+        skLive: formData.skLive,
       };
 
       console.log("Submitting payment setup data:", payload);
 
-      // Example API call
-      // const res = await axios.post(`${API_BASE_URL}/payment/setup`, payload);
-      // console.log(res.data);
+      // Call your backend API
+      const res = await axios.post(`${API_BASE_URL}/shipper/payment`, payload, {
+        headers: { Authorization: `Bearer ${user?.token}` },
+      });
 
-      alert("Payment details submitted successfully!");
+      console.log(res.data);
+      alert(res.data.message || "Payment details submitted successfully!");
+
       setShowForm(false);
-      setFormData({ serviceName: "", pkLive: "", skLive: "" });
+      setFormData({ serviceName: "Stripe", pkLive: "", skLive: "" });
       setErrors({});
     } catch (err) {
-      console.error("Payment setup error:", err);
-      alert("Failed to submit payment data.");
+      console.error("Payment setup error:", err.response || err.message);
+      alert(
+        err.response?.data?.message ||
+          "Failed to submit payment data. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -105,16 +117,9 @@ const Payment = () => {
                 type="text"
                 name="serviceName"
                 value={formData.serviceName}
-                onChange={handleChange}
-                placeholder="Enter your service name"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                required
+                readOnly
+                className="w-full border border-gray-300 rounded-lg p-2 bg-gray-100 cursor-not-allowed outline-none"
               />
-              {errors.serviceName && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.serviceName}
-                </p>
-              )}
             </div>
 
             <div>
@@ -153,8 +158,14 @@ const Payment = () => {
               )}
             </div>
 
-            <Button type="submit" variant="primary" fullWidth rounded>
-              Submit
+            <Button
+              type="submit"
+              variant="primary"
+              fullWidth
+              rounded
+              disabled={loading}
+            >
+              {loading ? "Submitting..." : "Submit"}
             </Button>
           </form>
         )}
