@@ -49,11 +49,11 @@ const CustomerNotifications = () => {
         while you’re away.
       </p>
 
-      <div className="space-y-4 p-4 border border-gray-100 rounded-lg shadow-sm bg-white">
+      <div className="space-y-4 p-4 border border-gray-300 rounded-lg shadow-sm bg-white">
         {notificationsList.map((item) => (
           <div
             key={item.id}
-            className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0"
+            className="flex justify-between items-center gap-2 flex-wrap"
           >
             <span className="text-[14px] sm:text-sm md:text-base lg:text-lg text-gray-800 break-words">
               {item.label}
