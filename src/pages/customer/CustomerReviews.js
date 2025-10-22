@@ -3,9 +3,8 @@ import { FaStar } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 
 const CustomerReviews = () => {
-  const { user } = useAuth(); // Get logged-in user
+  const { user } = useAuth();
 
-  // ---------- MOCK REVIEW DATA ----------
   const reviews = [
     {
       id: 1,
@@ -50,15 +49,15 @@ const CustomerReviews = () => {
   ];
 
   return (
-    <div className="w-full px-4 sm:px-6 md:px-8 lg:px-16 py-6">
+    <div className="w-full  sm:px-6 md:px-8 lg:px-16">
       <h2 className="text-xl sm:text-2xl font-bold mb-4">Reviews Received</h2>
 
-      {/* Horizontal scroll container */}
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      {/* Horizontal scroll only on mobile */}
+      <div className="flex flex-nowrap sm:flex-wrap gap-4 overflow-x-auto sm:overflow-x-visible pb-2">
         {reviews.map((review) => (
           <div
             key={review.id}
-            className="flex-shrink-0 w-72 bg-white p-4 rounded-lg border border-gray-300 shadow-sm"
+            className="flex-shrink-0 w-72 sm:w-full bg-white p-4 rounded-lg border border-gray-300 shadow-sm"
           >
             {/* Stars */}
             <div className="flex items-center gap-1 mb-2">
@@ -75,7 +74,7 @@ const CustomerReviews = () => {
               {review.comment}
             </p>
 
-            {/* Reviewer Info Row */}
+            {/* Reviewer Info */}
             <div className="flex items-center gap-2 mt-2">
               <img
                 src={review.reviewerPhoto}
