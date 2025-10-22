@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FiEdit3 } from "react-icons/fi";
 import { useAuth } from "../../contexts/AuthContext";
 import { FaStar } from "react-icons/fa";
+import CustomerReviews from "./CustomerReviews";
 
 const CustomerProfile = () => {
   const { user } = useAuth();
@@ -17,7 +18,6 @@ const CustomerProfile = () => {
           className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border border-gray-300 cursor-pointer"
         />
       </div>
-
       {/* Edit Picture Button */}
       <button
         className="flex items-center gap-2 transition text-sm sm:text-base md:text-lg"
@@ -25,7 +25,6 @@ const CustomerProfile = () => {
       >
         <FiEdit3 /> Edit Picture
       </button>
-
       {/* Shipments & Rating Card */}
       <div className="w-full  bg-white flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300 ">
         {/* Shipments */}
@@ -46,7 +45,6 @@ const CustomerProfile = () => {
           </span>
         </div>
       </div>
-
       {/* Basic Info Section */}
       <div className="w-full bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm flex flex-col gap-3 border rounded-[14px] border-gray-300 ">
         {/* Header with Edit Button */}
@@ -92,6 +90,7 @@ const CustomerProfile = () => {
           </div>
         </div>
       </div>
+      <CustomerReviews /> {/* call the new page/component here */}
     </div>
   );
 };
