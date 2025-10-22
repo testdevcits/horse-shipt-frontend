@@ -46,7 +46,7 @@ const CustomerProfile = () => {
       </div>
 
       {/* Basic Info Section */}
-      <div className="w-full max-w-sm flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300">
+      <div className="w-full max-w-md bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm flex flex-col gap-4">
         <div className="flex justify-between items-center">
           <h3 className="text-base sm:text-lg md:text-xl font-semibold">
             Basic Info
@@ -57,7 +57,7 @@ const CustomerProfile = () => {
         </div>
 
         {/* Info Fields */}
-        <div className="flex flex-col gap-2 w-full">
+        <div className="w-full max-w-sm flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-300 pb-2">
             <span className="text-gray-500 text-sm sm:text-base md:text-lg">
               Name:

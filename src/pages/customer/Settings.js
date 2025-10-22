@@ -57,7 +57,7 @@ const CustomerSettings = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="w-full min-h-[200px] text-sm sm:text-base md:text-lg lg:text-xl">
+      <div className="w-full  text-sm sm:text-base md:text-lg lg:text-xl">
         {renderTabContent()}
       </div>
     </div>
