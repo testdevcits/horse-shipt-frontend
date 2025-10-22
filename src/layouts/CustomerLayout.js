@@ -3,17 +3,17 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/customer/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
+import { IoMdClose } from "react-icons/io";
 import logo from "../assets/images/logo.png";
 import { MdOutlineNotificationsActive } from "react-icons/md";
 
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false); // desktop toggle
-  const [mobileOpen, setMobileOpen] = useState(false); // mobile overlay toggle
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-  // Detect screen resize
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
     window.addEventListener("resize", handleResize);
@@ -24,18 +24,31 @@ const CustomerLayout = () => {
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
       <header className="sticky top-0 z-50 flex items-center justify-between bg-white shadow-md px-4 py-3 border-b border-gray-300 lg:px-6">
-        {/* Left: Mobile menu + logo */}
         <div className="flex items-center gap-4">
-          <button
-            className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
-            onClick={() => setMobileOpen(true)}
-          >
-            <CgMenu size={24} />
-          </button>
-          <img src={logo} alt="Logo" className="w-32 h-auto object-contain" />
+          {!mobileOpen && (
+            <button
+              className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
+              onClick={() => setMobileOpen(true)}
+            >
+              <CgMenu size={24} />
+            </button>
+          )}
+          {mobileOpen && (
+            <button
+              className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
+              onClick={() => setMobileOpen(false)}
+            >
+              <IoMdClose size={24} />
+            </button>
+          )}
+          {/* Logo: hidden on mobile, shown on tablet and desktop */}
+          <img
+            src={logo}
+            alt="Logo"
+            className="hidden sm:block w-32 h-auto object-contain"
+          />
         </div>
 
-        {/* Right: Notifications + profile */}
         <div className="flex items-center gap-4 relative">
           <MdOutlineNotificationsActive
             size={20}
@@ -64,20 +77,15 @@ const CustomerLayout = () => {
 
       {/* Layout Body */}
       <div className="flex flex-1 relative">
-        {/* Sidebar */}
         <Sidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           mobileOpen={mobileOpen}
-          setMobileOpen={setMobileOpen}
         />
 
-        {/* Main content */}
         <main
           className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300"
-          style={{
-            marginLeft: isDesktop ? (sidebarOpen ? 256 : 64) : 0,
-          }}
+          style={{ marginLeft: isDesktop ? (sidebarOpen ? 256 : 64) : 0 }}
         >
           <Outlet />
         </main>

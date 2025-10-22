@@ -56,7 +56,12 @@ const ShipperLayout = () => {
               <IoMdClose size={24} />
             </button>
           )}
-          <img src={logo} alt="Logo" className="w-32 h-auto object-contain" />
+          {/* Logo: hidden on mobile, shown on tablet and desktop */}
+          <img
+            src={logo}
+            alt="Logo"
+            className="hidden sm:block w-32 h-auto object-contain"
+          />
         </div>
 
         {/* Right: Icons + Profile */}
