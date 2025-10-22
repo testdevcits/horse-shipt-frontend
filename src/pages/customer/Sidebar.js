@@ -51,8 +51,8 @@ const Sidebar = ({
               ? "translate-x-0 w-64"
               : "-translate-x-full lg:translate-x-0"
           }
-          ${!mobileOpen && "lg:w-" + (sidebarOpen ? "64" : "16")}
         `}
+        style={{ width: sidebarOpen ? 256 : 64 }}
       >
         {/* Desktop toggle */}
         <div className="flex justify-end p-4 hidden lg:flex">
@@ -99,6 +99,7 @@ const Sidebar = ({
                     ) : null}
                   </NavLink>
 
+                  {/* Submenu */}
                   {item.subPaths && (sidebarOpen || mobileOpen) && (
                     <ul className="ml-8 mt-1 space-y-1">
                       {item.subPaths.map((sub) => {
