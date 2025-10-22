@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
 import { LuArrowRightFromLine, LuArrowLeftFromLine } from "react-icons/lu";
 import { CiCircleQuestion } from "react-icons/ci";
@@ -16,11 +16,7 @@ const navItems = [
       { name: "Completed", path: "/customer/orders/completed" },
     ],
   },
-  {
-    name: "New Shipment",
-    path: "/customer/new-shipment",
-    icon: <FaPlus />,
-  },
+  { name: "New Shipment", path: "/customer/new-shipment", icon: <FaPlus /> },
   { name: "Settings", path: "/customer/settings", icon: <FaCog /> },
 ];
 
@@ -33,7 +29,8 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
   };
 
   return (
-    <>
+    <div className="flex flex-1 min-h-screen">
+      {/* Mobile overlay */}
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/30 z-40 md:hidden"
@@ -41,17 +38,19 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         />
       )}
 
-      <div
+      {/* Sidebar */}
+      <aside
         className={`fixed top-0 left-0 z-50 h-full bg-white text-system-primary shadow-lg transition-all duration-300
-        md:relative md:h-auto md:shadow-none
-        ${isOpen ? "w-64" : "w-16"}
-        ${
-          mobileOpen
-            ? "translate-x-0 w-full"
-            : "-translate-x-full md:translate-x-0"
-        }
-      `}
+          md:relative md:h-auto md:shadow-none
+          ${isOpen ? "w-64" : "w-16"}
+          ${
+            mobileOpen
+              ? "translate-x-0 w-full"
+              : "-translate-x-full md:translate-x-0"
+          }
+        `}
       >
+        {/* Mobile close button */}
         {mobileOpen && (
           <div className="flex justify-end p-4">
             <button
@@ -63,6 +62,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           </div>
         )}
 
+        {/* Sidebar toggle for desktop */}
         {!mobileOpen && (
           <div className="flex justify-end p-4">
             <button onClick={() => setIsOpen(!isOpen)}>
@@ -76,7 +76,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto min-h-[calc(100vh-64px)]">
+        <nav className="flex-1 mt-2 overflow-y-auto min-h-[calc(100%-64px)]">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
@@ -129,8 +129,13 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
             <CiCircleQuestion size={20} />
           </button>
         </div>
-      </div>
-    </>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 ml-16 md:ml-64 overflow-auto p-4 sm:p-6 md:p-8">
+        <Outlet />
+      </main>
+    </div>
   );
 };
 

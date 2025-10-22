@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { Outlet } from "react-router-dom";
-import Sidebar from "../pages/customer/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
+import Sidebar from "../pages/customer/Sidebar";
 import { CgMenu } from "react-icons/cg";
 import logo from "../assets/images/logo.png";
 import { MdOutlineNotificationsActive } from "react-icons/md";
@@ -9,7 +8,7 @@ import { MdOutlineNotificationsActive } from "react-icons/md";
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
@@ -57,24 +56,13 @@ const CustomerLayout = () => {
         </div>
       </header>
 
-      <div className="flex flex-1 min-h-0">
-        {/* Sidebar */}
-        <Sidebar
-          mobileOpen={mobileMenuOpen}
-          setMobileOpen={setMobileMenuOpen}
-          isOpen={sidebarOpen}
-          setIsOpen={setSidebarOpen}
-        />
-
-        {/* Main content */}
-        <main
-          className={`flex-1 overflow-auto transition-all duration-300 p-2 sm:p-6 md:p-8 ${
-            sidebarOpen ? "lg:ml-64" : "lg:ml-16"
-          }`}
-        >
-          <Outlet />
-        </main>
-      </div>
+      {/* Sidebar + Content */}
+      <Sidebar
+        mobileOpen={mobileMenuOpen}
+        setMobileOpen={setMobileMenuOpen}
+        isOpen={sidebarOpen}
+        setIsOpen={setSidebarOpen}
+      />
     </div>
   );
 };
