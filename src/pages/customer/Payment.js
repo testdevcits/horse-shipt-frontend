@@ -3,12 +3,13 @@ import { useAuth } from "../../contexts/AuthContext";
 import stripeLogo from "../../assets/images/stripeLogo.png";
 import Button from "../../components/common/Button";
 import axios from "axios";
+import Toast from "../../components/common/Toast"; // <-- import Toast
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const Payment = () => {
-  const { user } = useAuth(); // Get logged-in user (normal or OAuth)
+  const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     serviceName: "Stripe",
@@ -17,6 +18,7 @@ const Payment = () => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null); // <-- toast state
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,6 +34,10 @@ const Payment = () => {
     return newErrors;
   };
 
+  const showToast = (message, type = "info") => {
+    setToast({ message, type });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
@@ -41,7 +47,7 @@ const Payment = () => {
     }
 
     if (!user?._id || !user?.token) {
-      alert("User not logged in. Please login first.");
+      showToast("User not logged in. Please login first.", "error");
       return;
     }
 
@@ -49,35 +55,34 @@ const Payment = () => {
       setLoading(true);
 
       const payload = {
-        userId: user._id, // <-- Ensure correct _id from OAuth user
+        userId: user._id,
         serviceName: formData.serviceName,
         pkLive: formData.pkLive,
         skLive: formData.skLive,
       };
 
-      console.log("Submitting payment setup data:", payload);
-
       const res = await axios.post(
         `${API_BASE_URL}/customer/payment`,
         payload,
         {
-          headers: {
-            Authorization: `Bearer ${user.token}`, // <-- OAuth token
-          },
+          headers: { Authorization: `Bearer ${user.token}` },
         }
       );
 
-      console.log(res.data);
-      alert(res.data.message || "Payment details submitted successfully!");
+      showToast(
+        res.data.message || "Payment details submitted successfully!",
+        "success"
+      );
 
       setShowForm(false);
       setFormData({ serviceName: "Stripe", pkLive: "", skLive: "" });
       setErrors({});
     } catch (err) {
       console.error("Payment setup error:", err.response || err.message);
-      alert(
+      showToast(
         err.response?.data?.message ||
-          "Failed to submit payment data. Please try again."
+          "Failed to submit payment data. Please try again.",
+        "error"
       );
     } finally {
       setLoading(false);
@@ -169,31 +174,48 @@ const Payment = () => {
               )}
             </div>
 
-            <Button
-              type="submit"
-              variant="primary"
-              fullWidth
-              rounded
-              disabled={loading}
-            >
-              {loading ? "Submitting..." : "Submit"}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              fullWidth
-              rounded
-              onClick={() => {
-                setShowForm(false); // hide form
-                setFormData({ serviceName: "Stripe", pkLive: "", skLive: "" }); // reset form
-                setErrors({}); // clear errors
-              }}
-            >
-              Cancel
-            </Button>
+            <div className="flex space-x-3">
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
+                rounded
+                disabled={loading}
+              >
+                {loading ? "Submitting..." : "Submit"}
+              </Button>
+
+              <Button
+                type="button"
+                variant="secondary"
+                fullWidth
+                rounded
+                onClick={() => {
+                  setShowForm(false);
+                  setFormData({
+                    serviceName: "Stripe",
+                    pkLive: "",
+                    skLive: "",
+                  });
+                  setErrors({});
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
           </form>
         )}
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={4000}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };
