@@ -49,7 +49,7 @@ const CustomerNotifications = () => {
         while you’re away.
       </p>
 
-      <div className="w-full sm:max-w-md flex flex-col space-y-4 p-4 border border-gray-200 rounded-xl bg-white">
+      <div className="w-full flex flex-col space-y-4 p-4 border border-gray-200 rounded-xl bg-white">
         {notificationsList.map((item) => (
           <div
             key={item.id}
