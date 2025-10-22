@@ -25,7 +25,7 @@ const CustomerProfile = () => {
       </button>
 
       {/* Mobile Info Div (Shipments + Rating) */}
-      <div className="w-full max-w-sm flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300 bg-white">
+      <div className="w-full max-w-sm flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300">
         {/* Shipment */}
         <div className="flex flex-col items-center justify-center">
           <span className="text-base sm:text-lg md:text-xl font-bold">10</span>
@@ -46,7 +46,7 @@ const CustomerProfile = () => {
       </div>
 
       {/* Basic Info Section */}
-      <div className="w-full max-w-md bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm flex flex-col gap-4">
+      <div className="w-full max-w-sm flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300">
         <div className="flex justify-between items-center">
           <h3 className="text-base sm:text-lg md:text-xl font-semibold">
             Basic Info
