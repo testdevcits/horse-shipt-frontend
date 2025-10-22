@@ -8,11 +8,12 @@ import Toast from "../../components/common/Toast";
 import loginBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
 import loginLogo from "../../assets/images/loginLogo.png";
+
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const LoginPage = () => {
-  const { login, oauthLogin } = useAuth();
+  const { login, oauthLogin, setUser, setToken } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [toast, setToast] = useState(null);
@@ -28,7 +29,6 @@ const LoginPage = () => {
   });
 
   // ----------------- Handle OAuth redirect -----------------
-  // ----------------- Handle OAuth redirect -----------------
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
@@ -39,35 +39,42 @@ const LoginPage = () => {
 
     const token = params.get("token");
     if (token) {
-      // Call AuthContext oauthLogin with token only
-      const fetchUser = async () => {
-        await oauthLogin(token); // oauthLogin now fetches full user from backend
-
-        // Get role from localStorage (set by oauthLogin)
-        const storedRole = localStorage.getItem("role") || "customer";
-
-        navigate(
-          storedRole === "shipper"
-            ? "/shipper/dashboard"
-            : "/customer/dashboard",
-          { replace: true }
-        );
+      const role = params.get("role") || "customer";
+      const userData = {
+        _id: params.get("_id"),
+        name: params.get("name"),
+        email: params.get("email"),
+        profilePicture: params.get("photo") || "",
+        role,
+        provider: params.get("provider"),
+        providerId: params.get("providerId"),
+        isLogin: true,
+        token,
       };
 
-      fetchUser();
+      // Update AuthContext and localStorage
+      setUser(userData);
+      setToken(token);
+      localStorage.setItem("horseShiptUser", JSON.stringify(userData));
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+      localStorage.setItem("userId", userData._id || "");
+
+      navigate(
+        role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard",
+        { replace: true }
+      );
     }
-  }, [location.search, oauthLogin, navigate]);
+  }, [location.search, navigate, setUser, setToken]);
 
   // ----------------- Handle normal login -----------------
   const handleLogin = async (values, { setSubmitting, setFieldError }) => {
     setLoading(true);
 
     try {
-      // Call AuthContext login function (it handles API request)
-      const result = await login(values); // <-- only one API call
+      const result = await login(values);
 
       if (result.success) {
-        // Navigate based on role
         navigate(
           values.role === "shipper"
             ? "/shipper/dashboard"
@@ -75,14 +82,12 @@ const LoginPage = () => {
           { replace: true }
         );
       } else {
-        // Handle validation errors from backend
         if (result.errors?.length > 0) {
           const emailError = result.errors.find((e) =>
             e.toLowerCase().includes("email")
           );
           if (emailError) setFieldError("email", emailError);
 
-          // Show toast for all errors
           setToast({ message: result.errors.join(", "), type: "error" });
         } else {
           setToast({ message: "Login failed", type: "error" });
@@ -119,12 +124,7 @@ const LoginPage = () => {
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-20">
         {/* Logo */}
         <div className="flex items-center justify-center w-full md:w-[1168px] h-[64px] gap-4 opacity-100">
-          {/* Logo Image */}
-          <img
-            src={loginLogo} // import your logo at the top: import logo from '../assets/images/logo.png';
-            alt="Logo"
-            className="h-full object-contain"
-          />
+          <img src={loginLogo} alt="Logo" className="h-full object-contain" />
         </div>
 
         {/* Login form */}

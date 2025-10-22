@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const AuthContext = createContext();
 
@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // ----------------- Auto-login on page load -----------------
   useEffect(() => {
@@ -23,6 +24,15 @@ export const AuthProvider = ({ children }) => {
     }
     setLoading(false);
   }, []);
+
+  // ----------------- Handle OAuth redirect on page load -----------------
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const oauthToken = params.get("token");
+    if (oauthToken) {
+      oauthLogin(oauthToken);
+    }
+  }, [location.search]);
 
   // ----------------- Normal Login -----------------
   const login = async ({ email, password, role, deviceId, location }) => {
@@ -116,7 +126,6 @@ export const AuthProvider = ({ children }) => {
   // ----------------- OAuth Login -----------------
   const oauthLogin = async (token) => {
     if (!token) return;
-
     try {
       const res = await axios.get(`${API_BASE_URL}/auth/oauth-user`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -128,14 +137,21 @@ export const AuthProvider = ({ children }) => {
       setUser({ ...userData, isLogin: true });
       setToken(userData.token);
 
-      // Save in localStorage including _id
       localStorage.setItem(
         "horseShiptUser",
         JSON.stringify({ ...userData, isLogin: true })
       );
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
-      localStorage.setItem("userId", userData._id); // <-- Save _id here
+      localStorage.setItem("userId", userData._id);
+
+      // Navigate based on role
+      navigate(
+        userData.role === "shipper"
+          ? "/shipper/dashboard"
+          : "/customer/dashboard",
+        { replace: true }
+      );
     } catch (err) {
       console.error("OAuth Login Error:", err.response?.data || err.message);
     }
