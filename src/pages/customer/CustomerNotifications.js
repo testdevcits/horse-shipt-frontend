@@ -15,9 +15,7 @@ const notificationsList = [
 ];
 
 const CustomerNotifications = () => {
-  // State for switches
   const [notifications, setNotifications] = useState(() => {
-    // Initialize all switches to true by default
     const initialState = {};
     notificationsList.forEach((n) => {
       initialState[n.id] = true;
@@ -41,23 +39,25 @@ const CustomerNotifications = () => {
   };
 
   return (
-    <div className="max-w-full mx-auto  font-montserrat">
-      <h1 className="text-2xl sm:text-3xl font-bold text-start mb-4">
+    <div className="max-w-full mx-auto p-4 sm:p-6 font-montserrat">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">
         Notifications
       </h1>
-      <p className="text-gray-600 mb-6">
+      <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-6">
         Notifications are customizable alerts that keep you updated about
-        specific activities in HorseShipt, they ensure you never miss anything
+        specific activities in HorseShipt. They ensure you never miss anything
         while you’re away.
       </p>
 
-      <div className="space-y-4">
+      <div className="space-y-4 p-4 border border-gray-100 rounded-lg shadow-sm bg-white">
         {notificationsList.map((item) => (
           <div
             key={item.id}
-            className="flex items-center justify-between p-4  rounded-lg shadow-sm"
+            className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0"
           >
-            <span className="text-gray-800">{item.label}</span>
+            <span className="text-[14px] sm:text-sm md:text-base lg:text-lg text-gray-800 break-words">
+              {item.label}
+            </span>
             <Switch
               checked={notifications[item.id]}
               onChange={() => handleToggle(item.id)}
