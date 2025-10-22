@@ -178,6 +178,19 @@ const Payment = () => {
             >
               {loading ? "Submitting..." : "Submit"}
             </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              fullWidth
+              rounded
+              onClick={() => {
+                setShowForm(false); // hide form
+                setFormData({ serviceName: "Stripe", pkLive: "", skLive: "" }); // reset form
+                setErrors({}); // clear errors
+              }}
+            >
+              Cancel
+            </Button>
           </form>
         )}
       </div>
