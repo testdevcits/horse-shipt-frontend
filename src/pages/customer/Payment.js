@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import stripeLogo from "../../assets/images/stripeLogo.png";
 import Button from "../../components/common/Button";
-import axios from "axios";
 import Toast from "../../components/common/Toast";
+import axios from "axios";
+import stripeLogo from "../../assets/images/stripeLogo.png";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
@@ -13,7 +13,6 @@ const Payment = () => {
 
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
-
   const [paymentData, setPaymentData] = useState(null);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
@@ -23,7 +22,7 @@ const Payment = () => {
   const [formData, setFormData] = useState({ pkLive: "", skLive: "" });
   const [errors, setErrors] = useState({});
 
-  // Fetch existing payment
+  // Fetch existing payment setup
   const fetchPayment = async () => {
     if (!user?._id || !user?.token) return;
     try {
@@ -36,7 +35,7 @@ const Payment = () => {
         skLive: res.data.data.skLive,
       });
     } catch (err) {
-      console.error(err);
+      console.error(err.response || err.message);
     }
   };
 
@@ -44,20 +43,16 @@ const Payment = () => {
     fetchPayment();
   }, [user]);
 
-  // OTP cooldown
+  // OTP cooldown timer
   useEffect(() => {
     let timer;
     if (otpCooldown > 0) {
-      timer = setInterval(() => {
-        setOtpCooldown((prev) => prev - 1);
-      }, 1000);
+      timer = setInterval(() => setOtpCooldown((prev) => prev - 1), 1000);
     }
     return () => clearInterval(timer);
   }, [otpCooldown]);
 
-  const showToast = (message, type = "info") => {
-    setToast({ message, type });
-  };
+  const showToast = (message, type = "info") => setToast({ message, type });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -73,7 +68,7 @@ const Payment = () => {
     return newErrors;
   };
 
-  // Send OTP
+  // Send OTP for update
   const handleSendOtp = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -90,7 +85,7 @@ const Payment = () => {
       );
       showToast("OTP sent to your email.", "success");
       setOtpSent(true);
-      setOtpCooldown(30); // 30 seconds cooldown before resending
+      setOtpCooldown(30); // 30 sec cooldown
     } catch (err) {
       console.error(err.response || err.message);
       showToast(err.response?.data?.message || "Failed to send OTP", "error");
@@ -99,17 +94,15 @@ const Payment = () => {
     }
   };
 
-  // Verify OTP
+  // Verify OTP & update payment
   const handleVerifyOtp = async () => {
-    if (!otp) {
-      showToast("Please enter OTP", "error");
-      return;
-    }
+    if (!otp) return showToast("Please enter OTP", "error");
+
     try {
       setLoading(true);
       const res = await axios.post(
         `${API_BASE_URL}/customer/payment/verify-otp`,
-        { otp },
+        { otp, pkLive: formData.pkLive, skLive: formData.skLive },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
       showToast(res.data.message || "Payment updated successfully!", "success");
@@ -139,15 +132,16 @@ const Payment = () => {
         {/* Existing Payment */}
         {paymentData && !showUpdateForm && (
           <div className="bg-gray-100 p-4 rounded-lg space-y-3 text-center">
-            <p className="text-gray-700">
+            <img src={stripeLogo} alt="Stripe" className="mx-auto w-32" />
+            <p>
               <span className="font-semibold">Service:</span>{" "}
               {paymentData.serviceName}
             </p>
-            <p className="text-gray-700 break-words">
+            <p className="break-words">
               <span className="font-semibold">PK_LIVE:</span>{" "}
               {paymentData.pkLive}
             </p>
-            <p className="text-gray-700 break-words">
+            <p className="break-words">
               <span className="font-semibold">SK_LIVE:</span>{" "}
               {paymentData.skLive}
             </p>
@@ -181,6 +175,7 @@ const Payment = () => {
                     <p className="text-red-500 text-sm">{errors.pkLive}</p>
                   )}
                 </div>
+
                 <div>
                   <label className="block text-gray-700 font-medium mb-1">
                     SK_LIVE
@@ -253,6 +248,7 @@ const Payment = () => {
         )}
       </div>
 
+      {/* Toast */}
       {toast && (
         <Toast
           message={toast.message}
