@@ -22,11 +22,15 @@ const CustomerLayout = () => {
         setIsOpen={setSidebarOpen}
       />
 
-      {/* Main area */}
+      {/* Main content area */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-30 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
-          {/* Left: Logo + Mobile Menu */}
+        <header
+          className={`flex items-center justify-between bg-white shadow-md p-3 sm:p-4 md:p-6 transition-all duration-300 ${
+            sidebarOpen ? "ml-64" : "ml-16"
+          }`}
+        >
+          {/* Left: Menu Button + Logo */}
           <div className="flex items-center gap-4">
             <button
               className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
@@ -34,11 +38,7 @@ const CustomerLayout = () => {
             >
               <CgMenu size={24} />
             </button>
-            <img
-              src={logo}
-              alt="Logo"
-              className="hidden sm:block w-32 h-auto object-contain"
-            />
+            <img src={logo} alt="Logo" className="w-32 h-auto object-contain" />
           </div>
 
           {/* Right: Icons + Profile */}
@@ -71,7 +71,11 @@ const CustomerLayout = () => {
         </header>
 
         {/* Main content */}
-        <main className="flex-1 overflow-auto p-2 sm:p-6 md:p-8">
+        <main
+          className={`flex-1 overflow-auto p-2 sm:p-6 md:p-8 transition-all duration-300 ${
+            sidebarOpen ? "ml-64" : "ml-16"
+          }`}
+        >
           <Outlet />
         </main>
       </div>
