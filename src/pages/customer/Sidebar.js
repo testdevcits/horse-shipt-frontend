@@ -40,8 +40,8 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 z-50 h-full bg-white text-system-primary shadow-lg transition-all duration-300
-          md:relative md:h-screen md:shadow-none
+        className={`fixed top-16 left-0 z-50 h-[calc(100%-64px)] bg-white text-system-primary shadow-lg transition-all duration-300
+          md:relative md:h-auto md:shadow-none
           ${isOpen ? "w-64" : "w-16"}
           ${
             mobileOpen
@@ -76,7 +76,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-auto">
+        <nav className="flex-1 mt-2 overflow-y-auto h-[calc(100%-96px)]">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
@@ -97,21 +97,24 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
                   {item.subPaths && (isOpen || mobileOpen) && (
                     <ul className="ml-8 mt-1 space-y-1">
-                      {item.subPaths.map((sub) => (
-                        <li key={sub.path}>
-                          <NavLink
-                            to={sub.path}
-                            onClick={() => mobileOpen && setMobileOpen(false)}
-                            className={`block px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
-                              window.location.pathname === sub.path
-                                ? "bg-gray-100 font-semibold text-system-primary"
-                                : ""
-                            }`}
-                          >
-                            {sub.name}
-                          </NavLink>
-                        </li>
-                      ))}
+                      {item.subPaths.map((sub) => {
+                        const subActive = window.location.pathname === sub.path;
+                        return (
+                          <li key={sub.path}>
+                            <NavLink
+                              to={sub.path}
+                              onClick={() => mobileOpen && setMobileOpen(false)}
+                              className={`block px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
+                                subActive
+                                  ? "bg-gray-100 font-semibold text-system-primary"
+                                  : ""
+                              }`}
+                            >
+                              {sub.name}
+                            </NavLink>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </li>
@@ -120,7 +123,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           </ul>
         </nav>
 
-        {/* Bottom question icon */}
+        {/* Bottom Question Icon */}
         <div className="absolute bottom-4 w-full px-4">
           <button className="flex items-center justify-center w-full py-2 bg-gray-100 hover:bg-gray-200 text-system-primary rounded transition-all duration-300">
             <CiCircleQuestion size={20} />
