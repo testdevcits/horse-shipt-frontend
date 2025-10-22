@@ -11,7 +11,9 @@ const CustomerReviews = () => {
       reviewerName: user?.name || "John Doe",
       reviewerPhoto: user?.photo || "https://via.placeholder.com/32",
       rating: 5,
-      comment: "Excellent service! Fast and reliable.",
+      comment: `Always good to work with ${
+        user?.name || "John"
+      }, a great customer.`,
       createdAt: "2025-10-20T10:30:00Z",
     },
     {
@@ -52,17 +54,17 @@ const CustomerReviews = () => {
     <div className="w-full">
       <h2 className="text-xl sm:text-2xl font-bold mb-4">Reviews Received</h2>
 
-      {/* Horizontal scroll only on mobile */}
-      <div className="flex flex-nowrap sm:flex-wrap gap-4 overflow-x-auto sm:overflow-x-visible pb-2">
+      {/* Mobile: horizontal scroll | Tablet/Desktop: grid */}
+      <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-x-auto sm:overflow-x-visible pb-2">
         {reviews.map((review) => (
           <div
             key={review.id}
-            className="flex-shrink-0 w-72 sm:w-full bg-white p-4 rounded-lg border border-gray-300 shadow-sm"
+            className="flex-shrink-0 w-72 sm:w-auto bg-white p-4 rounded-lg border border-gray-300 shadow-sm"
           >
             {/* Stars */}
             <div className="flex items-center gap-1 mb-2">
               {Array.from({ length: review.rating }).map((_, i) => (
-                <FaStar key={i} className="text-system-primary" />
+                <FaStar key={i} className="text-yellow-500" />
               ))}
               {Array.from({ length: 5 - review.rating }).map((_, i) => (
                 <FaStar key={i} className="text-gray-300" />
