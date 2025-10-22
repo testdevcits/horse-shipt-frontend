@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
+import { IoMdClose } from "react-icons/io";
 import logo from "../assets/images/logo.png";
 import {
   HiOutlineBell,
@@ -37,14 +38,24 @@ const ShipperLayout = () => {
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
       <header className="sticky top-0 z-50 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
-        {/* Left: Mobile menu + logo */}
+        {/* Left: Mobile menu / close + logo */}
         <div className="flex items-center gap-4">
-          <button
-            className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
-            onClick={() => setMobileOpen(true)}
-          >
-            <CgMenu size={24} />
-          </button>
+          {!mobileOpen && (
+            <button
+              className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
+              onClick={() => setMobileOpen(true)}
+            >
+              <CgMenu size={24} />
+            </button>
+          )}
+          {mobileOpen && (
+            <button
+              className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
+              onClick={() => setMobileOpen(false)}
+            >
+              <IoMdClose size={24} />
+            </button>
+          )}
           <img src={logo} alt="Logo" className="w-32 h-auto object-contain" />
         </div>
 
@@ -84,12 +95,11 @@ const ShipperLayout = () => {
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           mobileOpen={mobileOpen}
-          setMobileOpen={setMobileOpen}
         />
 
         {/* Main content */}
         <main
-          className={`flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300`}
+          className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300"
           style={{
             marginLeft: isDesktop ? (sidebarOpen ? 256 : 64) : 0,
           }}

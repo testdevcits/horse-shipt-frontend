@@ -33,6 +33,13 @@ const Sidebar = ({
     return false;
   };
 
+  // Full width on mobile, toggle width on desktop
+  const sidebarWidth = mobileOpen
+    ? "100%"
+    : sidebarOpen && window.innerWidth >= 1024
+    ? 256
+    : 64;
+
   return (
     <>
       {/* Mobile overlay */}
@@ -45,15 +52,10 @@ const Sidebar = ({
 
       {/* Sidebar */}
       <div
-        className={`
-          fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300 font-montserrat
-          ${
-            mobileOpen
-              ? "translate-x-0 w-full"
-              : "-translate-x-full lg:translate-x-0"
-          }
+        className={`fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300 font-montserrat
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
-        style={{ width: sidebarOpen && window.innerWidth >= 1024 ? 256 : 64 }}
+        style={{ width: sidebarWidth }}
       >
         {/* Desktop toggle */}
         <div className="flex justify-end p-4 hidden lg:flex">
