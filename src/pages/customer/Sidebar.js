@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
-import { LuArrowRightFromLine, LuArrowLeftFromLine } from "react-icons/lu";
+import { LuArrowLeftFromLine } from "react-icons/lu";
 import { CiCircleQuestion } from "react-icons/ci";
 import { FaTachometerAlt, FaBoxOpen, FaCog, FaPlus } from "react-icons/fa";
 
@@ -20,7 +20,7 @@ const navItems = [
   { name: "Settings", path: "/customer/settings", icon: <FaCog /> },
 ];
 
-const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
+const Sidebar = ({ mobileOpen, setMobileOpen }) => {
   const isActivePath = (path, subPaths) => {
     if (window.location.pathname === path) return true;
     if (subPaths)
@@ -40,35 +40,19 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300
-          ${isOpen ? "w-64" : "w-16"}
+        className={`fixed top-16 left-0 h-[calc(100%-64px)] w-64 bg-white shadow-lg z-50 transform transition-transform duration-300
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
         {/* Mobile close button */}
-        {mobileOpen && (
-          <div className="flex justify-end p-4 lg:hidden">
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="text-gray-700 hover:text-gray-900"
-            >
-              <IoMdClose size={28} />
-            </button>
-          </div>
-        )}
-
-        {/* Desktop toggle */}
-        {!mobileOpen && (
-          <div className="flex justify-end p-4 hidden lg:flex">
-            <button onClick={() => setIsOpen(!isOpen)}>
-              {isOpen ? (
-                <LuArrowLeftFromLine size={24} />
-              ) : (
-                <LuArrowRightFromLine size={24} />
-              )}
-            </button>
-          </div>
-        )}
+        <div className="flex justify-end p-4 lg:hidden">
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="text-gray-700 hover:text-gray-900"
+          >
+            <IoMdClose size={28} />
+          </button>
+        </div>
 
         {/* Navigation */}
         <nav className="flex flex-col mt-2 h-full">
@@ -79,7 +63,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
                 <li key={item.path}>
                   <NavLink
                     to={item.path}
-                    onClick={() => mobileOpen && setMobileOpen(false)}
+                    onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-3 px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
                       active
                         ? "bg-gray-100 font-semibold text-system-primary"
@@ -87,10 +71,10 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
                     }`}
                   >
                     <span className="text-lg">{item.icon}</span>
-                    {isOpen || mobileOpen ? <span>{item.name}</span> : null}
+                    <span>{item.name}</span>
                   </NavLink>
 
-                  {item.subPaths && (isOpen || mobileOpen) && (
+                  {item.subPaths && (
                     <ul className="ml-8 mt-1 space-y-1">
                       {item.subPaths.map((sub) => {
                         const subActive = window.location.pathname === sub.path;
@@ -98,7 +82,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
                           <li key={sub.path}>
                             <NavLink
                               to={sub.path}
-                              onClick={() => mobileOpen && setMobileOpen(false)}
+                              onClick={() => setMobileOpen(false)}
                               className={`block px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
                                 subActive
                                   ? "bg-gray-100 font-semibold text-system-primary"
