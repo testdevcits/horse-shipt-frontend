@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/customer/Sidebar";
+import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
 import logo from "../assets/images/logo.png";
 import { MdOutlineNotificationsActive } from "react-icons/md";
@@ -56,13 +57,20 @@ const CustomerLayout = () => {
         </div>
       </header>
 
-      {/* Sidebar + Content */}
-      <Sidebar
-        mobileOpen={mobileMenuOpen}
-        setMobileOpen={setMobileMenuOpen}
-        isOpen={sidebarOpen}
-        setIsOpen={setSidebarOpen}
-      />
+      <div className="flex flex-1">
+        {/* Sidebar */}
+        <Sidebar
+          mobileOpen={mobileMenuOpen}
+          setMobileOpen={setMobileMenuOpen}
+          isOpen={sidebarOpen}
+          setIsOpen={setSidebarOpen}
+        />
+
+        {/* Main content */}
+        <main className="flex-1 overflow-auto p-2 sm:p-6 md:p-8">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

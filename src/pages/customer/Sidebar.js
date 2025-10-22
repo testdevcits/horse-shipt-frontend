@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { IoMdClose } from "react-icons/io";
 import { LuArrowRightFromLine, LuArrowLeftFromLine } from "react-icons/lu";
 import { CiCircleQuestion } from "react-icons/ci";
@@ -29,7 +29,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
   };
 
   return (
-    <div className="flex flex-1 min-h-screen">
+    <>
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
@@ -41,13 +41,13 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 z-50 h-full bg-white text-system-primary shadow-lg transition-all duration-300
-          md:relative md:h-auto md:shadow-none
           ${isOpen ? "w-64" : "w-16"}
           ${
             mobileOpen
               ? "translate-x-0 w-full"
               : "-translate-x-full md:translate-x-0"
           }
+          md:relative md:translate-x-0 md:h-screen
         `}
       >
         {/* Mobile close button */}
@@ -62,7 +62,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           </div>
         )}
 
-        {/* Sidebar toggle for desktop */}
+        {/* Desktop toggle button */}
         {!mobileOpen && (
           <div className="flex justify-end p-4">
             <button onClick={() => setIsOpen(!isOpen)}>
@@ -76,7 +76,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 mt-2 overflow-y-auto min-h-[calc(100%-64px)]">
+        <nav className="mt-2 overflow-y-auto h-[calc(100%-64px)]">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
@@ -123,19 +123,14 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           </ul>
         </nav>
 
-        {/* Bottom Question Icon */}
+        {/* Bottom icon */}
         <div className="absolute bottom-4 w-full px-4">
           <button className="flex items-center justify-center w-full py-2 bg-gray-100 hover:bg-gray-200 text-system-primary rounded transition-all duration-300">
             <CiCircleQuestion size={20} />
           </button>
         </div>
       </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 ml-16 md:ml-64 overflow-auto p-4 sm:p-6 md:p-8">
-        <Outlet />
-      </main>
-    </div>
+    </>
   );
 };
 
