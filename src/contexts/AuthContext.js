@@ -119,12 +119,12 @@ export const AuthProvider = ({ children }) => {
     email,
     name,
     photo,
-    id,
+    _id,
   }) => {
     if (!token || !role) return;
 
     const oauthUser = {
-      _id: id || "",
+      _id: _id || "",
       token,
       role,
       provider,

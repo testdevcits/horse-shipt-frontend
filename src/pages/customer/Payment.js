@@ -1,8 +1,11 @@
 import React, { useState } from "react";
-import stripeLogo from "../../assets/images/stripeLogo.png"; // replace with your image path
-import Button from "../../components/common/Button"; // import your Button component
+import { useAuth } from "../../contexts/AuthContext";
+import stripeLogo from "../../assets/images/stripeLogo.png";
+import Button from "../../components/common/Button";
+import axios from "axios";
 
 const Payment = () => {
+  const { user } = useAuth(); // get logged-in user
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     serviceName: "",
@@ -10,27 +13,62 @@ const Payment = () => {
     skLive: "",
   });
 
+  const [errors, setErrors] = useState({}); // store validation errors
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.serviceName)
+      newErrors.serviceName = "Service Name is required";
+    if (!formData.pkLive || !formData.pkLive.startsWith("pk_live_"))
+      newErrors.pkLive = "PK_LIVE must start with pk_live_";
+    if (!formData.skLive || !formData.skLive.startsWith("sk_live_"))
+      newErrors.skLive = "SK_LIVE must start with sk_live_";
+    return newErrors;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Payment Setup Data:", formData);
-    alert("Payment details submitted successfully!");
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    try {
+      const payload = {
+        ...formData,
+        userId: user?._id, // send current user _id
+      };
+
+      console.log("Submitting payment setup data:", payload);
+
+      // Example API call
+      // const res = await axios.post(`${API_BASE_URL}/payment/setup`, payload);
+      // console.log(res.data);
+
+      alert("Payment details submitted successfully!");
+      setShowForm(false);
+      setFormData({ serviceName: "", pkLive: "", skLive: "" });
+      setErrors({});
+    } catch (err) {
+      console.error("Payment setup error:", err);
+      alert("Failed to submit payment data.");
+    }
   };
 
   return (
     <div className="flex flex-col items-center justify-center font-montserrat">
       <div className="w-full sm:p-8">
-        {/* Heading */}
         <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4">
           Payment
         </h1>
 
-        {/* Before form */}
-        {!showForm && (
+        {!showForm ? (
           <div className="flex flex-col items-center text-center space-y-4">
             <p className="text-gray-600 text-base sm:text-lg leading-relaxed">
               Do your payments through{" "}
@@ -38,14 +76,12 @@ const Payment = () => {
               secure and easy way, click below to set up your data.
             </p>
 
-            {/* Stripe Image */}
             <img
               src={stripeLogo}
               alt="Stripe"
               className="w-32 sm:w-40 object-contain mt-4"
             />
 
-            {/* Set up Stripe Button */}
             <Button
               onClick={() => setShowForm(true)}
               variant="custom"
@@ -56,10 +92,7 @@ const Payment = () => {
               Set up Stripe Account
             </Button>
           </div>
-        )}
-
-        {/* Form */}
-        {showForm && (
+        ) : (
           <form
             onSubmit={handleSubmit}
             className="space-y-5 mt-4 animate-fadeIn"
@@ -77,6 +110,11 @@ const Payment = () => {
                 className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
                 required
               />
+              {errors.serviceName && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.serviceName}
+                </p>
+              )}
             </div>
 
             <div>
@@ -92,6 +130,9 @@ const Payment = () => {
                 className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
                 required
               />
+              {errors.pkLive && (
+                <p className="text-red-500 text-sm mt-1">{errors.pkLive}</p>
+              )}
             </div>
 
             <div>
@@ -107,9 +148,11 @@ const Payment = () => {
                 className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
                 required
               />
+              {errors.skLive && (
+                <p className="text-red-500 text-sm mt-1">{errors.skLive}</p>
+              )}
             </div>
 
-            {/* Submit Button using reusable Button component */}
             <Button type="submit" variant="primary" fullWidth rounded>
               Submit
             </Button>
