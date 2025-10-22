@@ -39,13 +39,13 @@ const LoginPage = () => {
     const token = params.get("token");
     if (token) {
       const oauthUser = {
-        _id: params.get("id"),
+        _id: params.get("_id") || "", // <-- FIXED
         role: params.get("role") || "customer",
-        name: params.get("name"),
-        email: params.get("email"),
+        name: params.get("name") || "",
+        email: params.get("email") || "",
         photo: params.get("photo") || "",
-        provider: params.get("provider"),
-        providerId: params.get("providerId"),
+        provider: params.get("provider") || "",
+        providerId: params.get("providerId") || "",
       };
 
       oauthLogin({ token, ...oauthUser });
