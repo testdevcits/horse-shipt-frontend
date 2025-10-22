@@ -68,7 +68,7 @@ const CustomerLayout = () => {
         {/* Main content */}
         <main
           className={`flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300`}
-          style={{ marginLeft: sidebarOpen ? 256 : 64 }}
+          style={{ marginLeft: sidebarOpen ? 256 : 32 }}
         >
           <Outlet />
         </main>
