@@ -44,6 +44,7 @@ const Payment = () => {
       setLoading(true);
 
       const payload = {
+        userId: localStorage.getItem("userId"), // <-- include userId
         serviceName: formData.serviceName,
         pkLive: formData.pkLive,
         skLive: formData.skLive,
@@ -52,9 +53,13 @@ const Payment = () => {
       console.log("Submitting payment setup data:", payload);
 
       // Call your backend API
-      const res = await axios.post(`${API_BASE_URL}/shipper/payment`, payload, {
-        headers: { Authorization: `Bearer ${user?.token}` },
-      });
+      const res = await axios.post(
+        `${API_BASE_URL}/customer/payment`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${user?.token}` },
+        }
+      );
 
       console.log(res.data);
       alert(res.data.message || "Payment details submitted successfully!");

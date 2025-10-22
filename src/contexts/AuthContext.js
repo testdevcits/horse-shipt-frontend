@@ -11,13 +11,15 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // navigation works because AuthProvider is inside Router
+  const navigate = useNavigate();
 
   // ----------------- Auto-login on page load -----------------
   useEffect(() => {
     const storedUser = localStorage.getItem("horseShiptUser");
     const storedToken = localStorage.getItem("token");
-    if (storedUser && storedToken) {
+    const storedId = localStorage.getItem("userId");
+
+    if (storedUser && storedToken && storedId) {
       setUser(JSON.parse(storedUser));
       setToken(storedToken);
     }
@@ -39,9 +41,11 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       setToken(userData.token);
 
+      // store in localStorage
       localStorage.setItem("horseShiptUser", JSON.stringify(userData));
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
+      localStorage.setItem("userId", userData._id); // <-- store user id separately
 
       return { success: true };
     } catch (err) {
@@ -70,9 +74,11 @@ export const AuthProvider = ({ children }) => {
       setUser(newUser);
       setToken(newUser.token);
 
+      // store in localStorage
       localStorage.setItem("horseShiptUser", JSON.stringify(newUser));
       localStorage.setItem("token", newUser.token);
       localStorage.setItem("role", newUser.role);
+      localStorage.setItem("userId", newUser._id); // <-- store user id separately
 
       return { success: true };
     } catch (err) {
@@ -98,14 +104,12 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Logout Error:", err.response?.data || err.message);
     } finally {
-      // Clear frontend state
       setUser(null);
       setToken(null);
       localStorage.removeItem("horseShiptUser");
       localStorage.removeItem("token");
       localStorage.removeItem("role");
-
-      // Redirect to login page
+      localStorage.removeItem("userId"); // <-- remove user id on logout
       navigate("/login", { replace: true });
     }
   };
@@ -138,16 +142,18 @@ export const AuthProvider = ({ children }) => {
     setUser(oauthUser);
     setToken(token);
 
+    // store in localStorage
     localStorage.setItem("horseShiptUser", JSON.stringify(oauthUser));
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
+    localStorage.setItem("userId", _id || ""); // <-- store user id
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        setUser, // <-- expose setUser to update user globally
+        setUser,
         token,
         loading,
         login,
