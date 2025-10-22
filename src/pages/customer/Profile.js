@@ -20,7 +20,7 @@ const CustomerProfile = () => {
 
       {/* Edit Picture Button */}
       <button
-        className="flex items-center gap-2 px-3 py-2  text-gray-400 transition text-sm sm:text-base md:text-lg"
+        className="flex items-center gap-2 transition text-sm sm:text-base md:text-lg"
         onClick={() => setProfilePopup(!profilePopup)}
       >
         <FiEdit3 /> Edit Picture
@@ -48,7 +48,7 @@ const CustomerProfile = () => {
       </div>
 
       {/* Basic Info Section */}
-      <div className="w-full max-w-md bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm flex flex-col gap-4">
+      <div className="w-full max-w-md bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm flex flex-col gap-3">
         {/* Header with Edit Button */}
         <div className="flex justify-between items-center">
           <h3 className="text-base sm:text-lg md:text-xl font-semibold">
