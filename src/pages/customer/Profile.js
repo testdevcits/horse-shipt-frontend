@@ -15,18 +15,20 @@ const CustomerProfile = () => {
           src={user?.photo || "https://via.placeholder.com/80"}
           alt="Profile"
           className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border border-gray-300 cursor-pointer"
-          onClick={() => setProfilePopup(!profilePopup)}
         />
       </div>
 
       {/* Edit Picture Button */}
-      <button className="flex items-center gap-2 px-3 py-2 text-white  transition text-sm sm:text-base md:text-lg">
+      <button
+        className="flex items-center gap-2 px-3 py-2  text-gray-100 transition text-sm sm:text-base md:text-lg"
+        onClick={() => setProfilePopup(!profilePopup)}
+      >
         <FiEdit3 /> Edit Picture
       </button>
 
-      {/* Mobile Info Div (Shipments + Rating) */}
-      <div className="w-full max-w-sm flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300">
-        {/* Shipment */}
+      {/* Shipments & Rating Card */}
+      <div className="w-full max-w-sm bg-white flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300 ">
+        {/* Shipments */}
         <div className="flex flex-col items-center justify-center">
           <span className="text-base sm:text-lg md:text-xl font-bold">10</span>
           <span className="text-xs sm:text-sm md:text-base text-gray-500">
@@ -47,18 +49,20 @@ const CustomerProfile = () => {
 
       {/* Basic Info Section */}
       <div className="w-full max-w-md bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm flex flex-col gap-4">
+        {/* Header with Edit Button */}
         <div className="flex justify-between items-center">
           <h3 className="text-base sm:text-lg md:text-xl font-semibold">
             Basic Info
           </h3>
-          <button className="p-1 bg-gray-100 rounded hover:bg-gray-200 transition">
+          <button className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition">
             <FiEdit3 />
           </button>
         </div>
 
         {/* Info Fields */}
-        <div className="w-full max-w-sm flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-300 pb-2">
+        <div className="flex flex-col w-full gap-3">
+          {/* Name */}
+          <div className="flex justify-between items-center border-b border-gray-300 pb-2">
             <span className="text-gray-500 text-sm sm:text-base md:text-lg">
               Name:
             </span>
@@ -66,7 +70,9 @@ const CustomerProfile = () => {
               {user?.name || "John Doe"}
             </span>
           </div>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-300 pb-2">
+
+          {/* Email */}
+          <div className="flex justify-between items-center border-b border-gray-300 pb-2">
             <span className="text-gray-500 text-sm sm:text-base md:text-lg">
               Email:
             </span>
@@ -74,7 +80,9 @@ const CustomerProfile = () => {
               {user?.email || "johndoe@example.com"}
             </span>
           </div>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-300 pb-2">
+
+          {/* Phone */}
+          <div className="flex justify-between items-center border-b border-gray-300 pb-2">
             <span className="text-gray-500 text-sm sm:text-base md:text-lg">
               Phone:
             </span>
