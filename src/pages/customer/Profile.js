@@ -9,7 +9,7 @@ const CustomerProfile = () => {
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
-    <div className="flex flex-col items-center w-full px-4 sm:px-6 md:px-8 lg:px-16 py-6 space-y-6">
+    <div className="flex flex-col items-center w-full space-y-6">
       {/* Top Profile Image */}
       <div className="relative">
         <img
