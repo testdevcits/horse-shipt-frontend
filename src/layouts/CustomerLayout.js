@@ -9,7 +9,7 @@ import { MdOutlineNotificationsActive } from "react-icons/md";
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
@@ -38,7 +38,6 @@ const CustomerLayout = () => {
             className="text-gray-500 cursor-pointer"
           />
 
-          {/* Profile */}
           <div className="relative">
             <img
               src={user?.photo || "https://via.placeholder.com/40"}
@@ -46,7 +45,6 @@ const CustomerLayout = () => {
               className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
               onClick={() => setProfilePopup(!profilePopup)}
             />
-            {/* Profile popup */}
             {profilePopup && (
               <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg">
                 <div
@@ -61,7 +59,7 @@ const CustomerLayout = () => {
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <Sidebar
           mobileOpen={mobileMenuOpen}
@@ -71,11 +69,7 @@ const CustomerLayout = () => {
         />
 
         {/* Main content */}
-        <main
-          className={`flex-1 transition-all duration-300 p-2 sm:p-6 md:p-8 ${
-            sidebarOpen ? "lg:ml-10" : "lg:ml-6"
-          }`}
-        >
+        <main className="flex-1 overflow-auto p-4 sm:p-6 md:p-8">
           <Outlet />
         </main>
       </div>

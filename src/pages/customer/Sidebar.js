@@ -16,11 +16,7 @@ const navItems = [
       { name: "Completed", path: "/customer/orders/completed" },
     ],
   },
-  {
-    name: "New Shipment",
-    path: "/customer/new-shipment",
-    icon: <FaPlus />,
-  },
+  { name: "New Shipment", path: "/customer/new-shipment", icon: <FaPlus /> },
   { name: "Settings", path: "/customer/settings", icon: <FaCog /> },
 ];
 
@@ -45,7 +41,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
       {/* Sidebar */}
       <div
         className={`fixed top-0 left-0 z-50 h-full bg-white text-system-primary shadow-lg transition-all duration-300
-          md:relative md:h-auto md:shadow-none
+          md:relative md:h-screen md:shadow-none
           ${isOpen ? "w-64" : "w-16"}
           ${
             mobileOpen
@@ -66,7 +62,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           </div>
         )}
 
-        {/* Sidebar toggle for desktop */}
+        {/* Desktop toggle button */}
         {!mobileOpen && (
           <div className="flex justify-end p-4">
             <button onClick={() => setIsOpen(!isOpen)}>
@@ -80,7 +76,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 mt-2 overflow-y-auto min-h-[calc(100%-64px)]">
+        <nav className="flex-1 overflow-y-auto pb-20 mt-2">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
@@ -99,6 +95,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
                     {isOpen || mobileOpen ? <span>{item.name}</span> : null}
                   </NavLink>
 
+                  {/* Sub-navigation */}
                   {item.subPaths && (isOpen || mobileOpen) && (
                     <ul className="ml-8 mt-1 space-y-1">
                       {item.subPaths.map((sub) => {
