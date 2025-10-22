@@ -17,9 +17,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const storedUser = localStorage.getItem("horseShiptUser");
     const storedToken = localStorage.getItem("token");
-    const storedId = localStorage.getItem("userId");
-
-    if (storedUser && storedToken && storedId) {
+    if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
       setToken(storedToken);
     }
@@ -38,14 +36,16 @@ export const AuthProvider = ({ children }) => {
       );
 
       const userData = res.data.data;
+
+      // Store user and token
       setUser(userData);
       setToken(userData.token);
 
-      // store in localStorage
+      // Save to localStorage
       localStorage.setItem("horseShiptUser", JSON.stringify(userData));
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
-      localStorage.setItem("userId", userData._id); // <-- store user id separately
+      localStorage.setItem("userId", userData._id);
 
       return { success: true };
     } catch (err) {
@@ -71,14 +71,14 @@ export const AuthProvider = ({ children }) => {
       );
 
       const newUser = res.data.data;
+
       setUser(newUser);
       setToken(newUser.token);
 
-      // store in localStorage
       localStorage.setItem("horseShiptUser", JSON.stringify(newUser));
       localStorage.setItem("token", newUser.token);
       localStorage.setItem("role", newUser.role);
-      localStorage.setItem("userId", newUser._id); // <-- store user id separately
+      localStorage.setItem("userId", newUser._id);
 
       return { success: true };
     } catch (err) {
@@ -109,44 +109,35 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("horseShiptUser");
       localStorage.removeItem("token");
       localStorage.removeItem("role");
-      localStorage.removeItem("userId"); // <-- remove user id on logout
+      localStorage.removeItem("userId");
+
       navigate("/login", { replace: true });
     }
   };
 
   // ----------------- OAuth Login -----------------
-  const oauthLogin = ({
-    token,
-    role,
-    provider,
-    providerId,
-    email,
-    name,
-    photo,
-    _id,
-  }) => {
-    if (!token || !role) return;
+  const oauthLogin = (userData) => {
+    if (!userData.token || !userData.role) return;
 
     const oauthUser = {
-      _id: _id || "",
-      token,
-      role,
-      provider,
-      providerId,
-      email,
-      name,
-      photo,
+      _id: userData._id || "", // store _id properly
+      token: userData.token,
+      role: userData.role,
+      provider: userData.provider || "",
+      providerId: userData.providerId || "",
+      email: userData.email || "",
+      name: userData.name || "",
+      photo: userData.photo || "",
       isLogin: true,
     };
 
     setUser(oauthUser);
-    setToken(token);
+    setToken(userData.token);
 
-    // store in localStorage
     localStorage.setItem("horseShiptUser", JSON.stringify(oauthUser));
-    localStorage.setItem("token", token);
-    localStorage.setItem("role", role);
-    localStorage.setItem("userId", _id || ""); // <-- store user id
+    localStorage.setItem("token", userData.token);
+    localStorage.setItem("role", userData.role);
+    localStorage.setItem("userId", userData._id || "");
   };
 
   return (
