@@ -9,11 +9,11 @@ import { MdOutlineNotificationsActive } from "react-icons/md";
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false); // desktop toggle
-  const [mobileOpen, setMobileOpen] = useState(false); // mobile overlay
+  const [mobileOpen, setMobileOpen] = useState(false); // mobile overlay toggle
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-  // Update isDesktop on resize
+  // Detect screen resize
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
     window.addEventListener("resize", handleResize);
