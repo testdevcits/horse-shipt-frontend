@@ -40,14 +40,13 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full bg-white text-system-primary shadow-lg transition-all duration-300
+        className={`fixed top-0 left-0 z-50 h-screen bg-white text-system-primary shadow-lg transition-all duration-300
           ${isOpen ? "w-64" : "w-16"}
           ${
             mobileOpen
               ? "translate-x-0 w-full"
               : "-translate-x-full md:translate-x-0"
           }
-          md:relative md:translate-x-0 md:h-screen
         `}
       >
         {/* Mobile close button */}
@@ -76,7 +75,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         )}
 
         {/* Navigation */}
-        <nav className="mt-2 overflow-y-auto h-[calc(100%-64px)]">
+        <nav className="mt-2">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);

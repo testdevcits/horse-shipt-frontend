@@ -67,7 +67,7 @@ const CustomerLayout = () => {
         />
 
         {/* Main content */}
-        <main className="flex-1 overflow-auto p-2 sm:p-6 md:p-8">
+        <main className="flex-1 overflow-auto h-screen p-2 sm:p-6 md:p-8">
           <Outlet />
         </main>
       </div>
