@@ -45,10 +45,11 @@ const Sidebar = ({
 
       {/* Sidebar */}
       <div
-        className={`fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-all duration-300
+        className={`
+          fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300
           ${
             mobileOpen
-              ? "translate-x-0 w-64"
+              ? "translate-x-0 w-full"
               : "-translate-x-full lg:translate-x-0"
           }
         `}
@@ -78,7 +79,7 @@ const Sidebar = ({
         )}
 
         {/* Navigation */}
-        <nav className="flex flex-col mt-2 h-full overflow-y-auto font-montserrat">
+        <nav className="flex flex-col mt-2 h-full overflow-y-auto">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
@@ -95,11 +96,10 @@ const Sidebar = ({
                   >
                     <span className="text-lg">{item.icon}</span>
                     {sidebarOpen || mobileOpen ? (
-                      <span className="font-montserrat">{item.name}</span>
+                      <span>{item.name}</span>
                     ) : null}
                   </NavLink>
 
-                  {/* Submenu */}
                   {item.subPaths && (sidebarOpen || mobileOpen) && (
                     <ul className="ml-8 mt-1 space-y-1">
                       {item.subPaths.map((sub) => {
