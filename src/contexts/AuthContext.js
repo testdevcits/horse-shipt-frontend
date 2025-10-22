@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("horseShiptUser", JSON.stringify(userData));
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
-      localStorage.setItem("userId", userData._id);
+      localStorage.setItem("userId", userData._id || "");
 
       return { success: true };
     } catch (err) {
@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("horseShiptUser", JSON.stringify(newUser));
       localStorage.setItem("token", newUser.token);
       localStorage.setItem("role", newUser.role);
-      localStorage.setItem("userId", newUser._id);
+      localStorage.setItem("userId", newUser._id || "");
 
       return { success: true };
     } catch (err) {
@@ -120,7 +120,7 @@ export const AuthProvider = ({ children }) => {
     if (!userData.token || !userData.role) return;
 
     const oauthUser = {
-      _id: userData._id || "", // store _id properly
+      _id: userData._id || "", // ensure _id is stored
       token: userData.token,
       role: userData.role,
       provider: userData.provider || "",
@@ -134,6 +134,7 @@ export const AuthProvider = ({ children }) => {
     setUser(oauthUser);
     setToken(userData.token);
 
+    // Save OAuth user to localStorage
     localStorage.setItem("horseShiptUser", JSON.stringify(oauthUser));
     localStorage.setItem("token", userData.token);
     localStorage.setItem("role", userData.role);

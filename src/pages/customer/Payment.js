@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import stripeLogo from "../../assets/images/stripeLogo.png";
 import Button from "../../components/common/Button";
@@ -11,11 +11,11 @@ const Payment = () => {
   const { user } = useAuth(); // get logged-in user
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    serviceName: "Stripe", // fixed pre-filled value
+    serviceName: "Stripe",
     pkLive: "",
     skLive: "",
   });
-  const [errors, setErrors] = useState({}); // store validation errors
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -44,7 +44,7 @@ const Payment = () => {
       setLoading(true);
 
       const payload = {
-        userId: localStorage.getItem("userId"), // <-- include userId
+        userId: user?._id || localStorage.getItem("userId"), // Ensure userId exists
         serviceName: formData.serviceName,
         pkLive: formData.pkLive,
         skLive: formData.skLive,
@@ -52,12 +52,15 @@ const Payment = () => {
 
       console.log("Submitting payment setup data:", payload);
 
-      // Call your backend API
       const res = await axios.post(
         `${API_BASE_URL}/customer/payment`,
         payload,
         {
-          headers: { Authorization: `Bearer ${user?.token}` },
+          headers: {
+            Authorization: `Bearer ${
+              user?.token || localStorage.getItem("token")
+            }`,
+          },
         }
       );
 
