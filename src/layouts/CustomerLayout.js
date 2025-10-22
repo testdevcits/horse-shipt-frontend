@@ -9,7 +9,7 @@ import { MdOutlineNotificationsActive } from "react-icons/md";
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true); // default open
+  const [sidebarOpen, setSidebarOpen] = useState(false); // default open
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
@@ -63,15 +63,24 @@ const CustomerLayout = () => {
       {/* Layout Body */}
       <div className="flex flex-1 relative">
         {/* Sidebar */}
-        <Sidebar
-          mobileOpen={mobileMenuOpen}
-          setMobileOpen={setMobileMenuOpen}
-          isOpen={sidebarOpen}
-          setIsOpen={setSidebarOpen}
-        />
+        <div
+          className={`fixed top-16 left-0 h-[calc(100vh-64px)] bg-white shadow-md z-40 transition-all duration-300 ${
+            sidebarOpen ? "w-64" : "w-16"
+          }`}
+        >
+          <Sidebar
+            mobileOpen={mobileMenuOpen}
+            setMobileOpen={setMobileMenuOpen}
+            isOpen={sidebarOpen}
+            setIsOpen={setSidebarOpen}
+          />
+        </div>
 
         {/* Main content */}
-        <main className={`flex-1 p-4 sm:p-6 md:p-8 overflow-auto`}>
+        <main
+          className={`flex-1 p-4 sm:p-6 md:p-8 overflow-auto ml-16 transition-all duration-300`}
+          style={{ marginLeft: sidebarOpen ? 256 : 64 }}
+        >
           <Outlet />
         </main>
       </div>
