@@ -20,7 +20,7 @@ const CustomerProfile = () => {
 
       {/* Edit Picture Button */}
       <button
-        className="flex items-center gap-2 px-3 py-2  text-gray-100 transition text-sm sm:text-base md:text-lg"
+        className="flex items-center gap-2 px-3 py-2  text-gray-400 transition text-sm sm:text-base md:text-lg"
         onClick={() => setProfilePopup(!profilePopup)}
       >
         <FiEdit3 /> Edit Picture
