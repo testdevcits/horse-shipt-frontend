@@ -17,12 +17,11 @@ const Payment = () => {
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otpCooldown, setOtpCooldown] = useState(0);
-
   const [otp, setOtp] = useState("");
   const [formData, setFormData] = useState({ pkLive: "", skLive: "" });
   const [errors, setErrors] = useState({});
 
-  // Fetch existing payment setup
+  // Fetch existing payment
   const fetchPayment = async () => {
     if (!user?._id || !user?.token) return;
     try {
@@ -124,7 +123,7 @@ const Payment = () => {
 
   return (
     <div className="flex flex-col items-center justify-center font-montserrat">
-      <div className="w-full sm:p-8">
+      <div className="w-full sm:p-8 max-w-md">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">
           Payment
         </h1>
