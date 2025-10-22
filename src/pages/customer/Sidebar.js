@@ -78,7 +78,7 @@ const Sidebar = ({
         )}
 
         {/* Navigation */}
-        <nav className="flex flex-col mt-2 h-full overflow-y-auto">
+        <nav className="flex flex-col mt-2 h-full overflow-y-auto font-montserrat">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
@@ -95,7 +95,7 @@ const Sidebar = ({
                   >
                     <span className="text-lg">{item.icon}</span>
                     {sidebarOpen || mobileOpen ? (
-                      <span>{item.name}</span>
+                      <span className="font-montserrat">{item.name}</span>
                     ) : null}
                   </NavLink>
 

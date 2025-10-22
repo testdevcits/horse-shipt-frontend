@@ -78,7 +78,7 @@ const Sidebar = ({
         )}
 
         {/* Navigation */}
-        <nav className="flex flex-col mt-2 h-full overflow-y-auto">
+        <nav className="flex flex-col mt-2 h-full overflow-y-auto font-montserrat">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
