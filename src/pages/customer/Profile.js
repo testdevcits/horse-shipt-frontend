@@ -27,7 +27,7 @@ const CustomerProfile = () => {
       </button>
 
       {/* Shipments & Rating Card */}
-      <div className="w-full max-w-sm bg-white flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300 ">
+      <div className="w-full  bg-white flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300 ">
         {/* Shipments */}
         <div className="flex flex-col items-center justify-center">
           <span className="text-base sm:text-lg md:text-xl font-bold">10</span>
@@ -48,7 +48,7 @@ const CustomerProfile = () => {
       </div>
 
       {/* Basic Info Section */}
-      <div className="w-full max-w-md bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm flex flex-col gap-3 border rounded-[14px] border-gray-300 ">
+      <div className="w-full bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm flex flex-col gap-3 border rounded-[14px] border-gray-300 ">
         {/* Header with Edit Button */}
         <div className="flex justify-between items-center">
           <h3 className="text-base sm:text-lg md:text-xl font-semibold">
