@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import stripeLogo from "../../assets/images/stripeLogo.png"; // replace with your image path
+import Button from "../../components/common/Button"; // import your Button component
 
 const Payment = () => {
   const [showForm, setShowForm] = useState(false);
@@ -8,32 +9,14 @@ const Payment = () => {
     pkLive: "",
     skLive: "",
   });
-  const [errors, setErrors] = useState({}); // <-- store error messages
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
-    // Remove error if user types something
-    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Validation
-    const newErrors = {};
-    if (!formData.serviceName.trim())
-      newErrors.serviceName = "Service Name is required";
-    if (!formData.pkLive.trim()) newErrors.pkLive = "PK_LIVE is required";
-    if (!formData.skLive.trim()) newErrors.skLive = "SK_LIVE is required";
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    // Log values
     console.log("Payment Setup Data:", formData);
     alert("Payment details submitted successfully!");
   };
@@ -42,7 +25,7 @@ const Payment = () => {
     <div className="flex flex-col items-center justify-center font-montserrat">
       <div className="w-full sm:p-8">
         {/* Heading */}
-        <h1 className="text-2xl sm:text-3xl font-bold text-start mb-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4">
           Payment
         </h1>
 
@@ -62,13 +45,16 @@ const Payment = () => {
               className="w-32 sm:w-40 object-contain mt-4"
             />
 
-            {/* Button */}
-            <button
+            {/* Set up Stripe Button */}
+            <Button
               onClick={() => setShowForm(true)}
-              className="text-gray-300 px-6 py-2 border border-gary-300 rounded-lg font-semibold mt-4 transition"
+              variant="custom"
+              textColor="#4B5563"
+              borderColor="#D1D5DB"
+              className="mt-4"
             >
               Set up Stripe Account
-            </button>
+            </Button>
           </div>
         )}
 
@@ -88,17 +74,9 @@ const Payment = () => {
                 value={formData.serviceName}
                 onChange={handleChange}
                 placeholder="Enter your service name"
-                className={`w-full border p-2 rounded-lg outline-none focus:ring-2 ${
-                  errors.serviceName
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:ring-indigo-500"
-                }`}
+                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                required
               />
-              {errors.serviceName && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.serviceName}
-                </p>
-              )}
             </div>
 
             <div>
@@ -111,15 +89,9 @@ const Payment = () => {
                 value={formData.pkLive}
                 onChange={handleChange}
                 placeholder="Enter your PK_LIVE key"
-                className={`w-full border p-2 rounded-lg outline-none focus:ring-2 ${
-                  errors.pkLive
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:ring-indigo-500"
-                }`}
+                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                required
               />
-              {errors.pkLive && (
-                <p className="text-red-500 text-sm mt-1">{errors.pkLive}</p>
-              )}
             </div>
 
             <div>
@@ -132,23 +104,15 @@ const Payment = () => {
                 value={formData.skLive}
                 onChange={handleChange}
                 placeholder="Enter your SK_LIVE key"
-                className={`w-full border p-2 rounded-lg outline-none focus:ring-2 ${
-                  errors.skLive
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:ring-indigo-500"
-                }`}
+                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                required
               />
-              {errors.skLive && (
-                <p className="text-red-500 text-sm mt-1">{errors.skLive}</p>
-              )}
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition"
-            >
+            {/* Submit Button using reusable Button component */}
+            <Button type="submit" variant="primary" fullWidth rounded>
               Submit
-            </button>
+            </Button>
           </form>
         )}
       </div>
