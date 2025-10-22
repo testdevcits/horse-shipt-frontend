@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
@@ -15,9 +15,10 @@ const API_BASE_URL =
 
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false); // desktop toggle
+  const [sidebarOpen, setSidebarOpen] = useState(true); // desktop toggle
   const [mobileOpen, setMobileOpen] = useState(false); // mobile overlay toggle
   const [profilePopup, setProfilePopup] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
   const profileImage = user?.profilePicture
     ? user.profilePicture.startsWith("http")
@@ -25,7 +26,12 @@ const ShipperLayout = () => {
       : `${API_BASE_URL}/${user.profilePicture.replace(/^\/?/, "")}`
     : "https://via.placeholder.com/40";
 
-  const isDesktop = window.innerWidth >= 1024;
+  // Handle resize to update isDesktop
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -50,7 +56,6 @@ const ShipperLayout = () => {
             size={20}
             className="text-gray-500 cursor-pointer"
           />
-
           <div className="relative">
             <img
               src={profileImage}
@@ -84,7 +89,7 @@ const ShipperLayout = () => {
 
         {/* Main content */}
         <main
-          className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300"
+          className={`flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300`}
           style={{
             marginLeft: isDesktop ? (sidebarOpen ? 256 : 64) : 0,
           }}
