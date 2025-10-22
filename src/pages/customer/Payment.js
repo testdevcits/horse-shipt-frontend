@@ -8,7 +8,7 @@ const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const Payment = () => {
-  const { user } = useAuth(); // get logged-in user
+  const { user } = useAuth(); // Get logged-in user (normal or OAuth)
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     serviceName: "Stripe",
@@ -40,11 +40,16 @@ const Payment = () => {
       return;
     }
 
+    if (!user?._id || !user?.token) {
+      alert("User not logged in. Please login first.");
+      return;
+    }
+
     try {
       setLoading(true);
 
       const payload = {
-        userId: user?._id || localStorage.getItem("userId"), // Ensure userId exists
+        userId: user._id, // <-- Ensure correct _id from OAuth user
         serviceName: formData.serviceName,
         pkLive: formData.pkLive,
         skLive: formData.skLive,
@@ -57,9 +62,7 @@ const Payment = () => {
         payload,
         {
           headers: {
-            Authorization: `Bearer ${
-              user?.token || localStorage.getItem("token")
-            }`,
+            Authorization: `Bearer ${user.token}`, // <-- OAuth token
           },
         }
       );
