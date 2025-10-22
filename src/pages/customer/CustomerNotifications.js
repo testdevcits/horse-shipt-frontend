@@ -53,7 +53,10 @@ const CustomerNotifications = () => {
 
       <div className="space-y-4">
         {notificationsList.map((item) => (
-          <div key={item.id} className="flex items-center justify-between ">
+          <div
+            key={item.id}
+            className="flex items-center justify-between p-4  rounded-lg shadow-sm"
+          >
             <span className="text-gray-800">{item.label}</span>
             <Switch
               checked={notifications[item.id]}

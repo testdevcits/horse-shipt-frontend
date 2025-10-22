@@ -6,22 +6,22 @@ const Switch = ({
   disabled = false,
   size = "md", // sm, md, lg
   color = "#BF9B53", // active color
-  offColor = "#E5E7EB", // bg when off
+  offColor = "#E5E7EB", // background when off
   rounded = true,
   className = "",
 }) => {
-  // size mapping
   const sizeMap = {
     sm: { width: 36, height: 20, knob: 16 },
     md: { width: 44, height: 24, knob: 20 },
     lg: { width: 60, height: 28, knob: 24 },
   };
+
   const { width, height, knob } = sizeMap[size] || sizeMap.md;
 
   return (
     <label
-      className={`relative inline-flex items-center cursor-pointer ${className} ${
-        disabled ? "cursor-not-allowed opacity-50" : ""
+      className={`relative inline-block ${className} ${
+        disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
       }`}
       style={{ width: width, height: height }}
     >
@@ -32,21 +32,22 @@ const Switch = ({
         disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
       />
+      {/* Track */}
       <span
         className={`block w-full h-full transition-colors duration-300 ${
           rounded ? "rounded-full" : "rounded-md"
         }`}
         style={{ backgroundColor: checked ? color : offColor }}
       ></span>
+      {/* Knob */}
       <span
-        className={`absolute top-1/2 left-1 transform -translate-y-1/2 bg-white shadow-md transition-transform duration-300`}
+        className="absolute bg-white shadow-md transition-all duration-300"
         style={{
           width: knob,
           height: knob,
           borderRadius: rounded ? "50%" : "6px",
-          transform: checked
-            ? `translateX(${width - knob}px) translateY(-50%)`
-            : `translateX(0) translateY(-50%)`,
+          top: (height - knob) / 2,
+          left: checked ? width - knob : 0,
         }}
       ></span>
     </label>
