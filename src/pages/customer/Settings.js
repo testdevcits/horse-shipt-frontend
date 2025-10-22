@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Profile from "./Profile";
+import Payment from "./Payment";
 
 const CustomerSettings = () => {
   const tabs = [
@@ -15,11 +16,7 @@ const CustomerSettings = () => {
       case "profile":
         return <Profile />;
       case "payment":
-        return (
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl">
-            Payment settings content goes here.
-          </p>
-        );
+        return <Payment />;
       case "notification":
         return (
           <p className="text-sm sm:text-base md:text-lg lg:text-xl">
