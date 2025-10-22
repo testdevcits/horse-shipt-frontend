@@ -13,61 +13,65 @@ const CustomerLayout = () => {
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="sticky top-0 z-30 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
-        <div className="flex items-center gap-4">
-          <button
-            className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <CgMenu size={24} />
-          </button>
-          <img
-            src={logo}
-            alt="Logo"
-            className="hidden sm:block w-32 h-auto object-contain"
-          />
-        </div>
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
+      {/* Sidebar */}
+      <Sidebar
+        mobileOpen={mobileMenuOpen}
+        setMobileOpen={setMobileMenuOpen}
+        isOpen={sidebarOpen}
+        setIsOpen={setSidebarOpen}
+      />
 
-        <div className="flex items-center gap-4 relative">
-          <MdOutlineNotificationsActive
-            size={20}
-            className="text-gray-500 cursor-pointer"
-          />
-
-          <div className="relative">
+      {/* Main area */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className="sticky top-0 z-30 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
+          {/* Left: Logo + Mobile Menu */}
+          <div className="flex items-center gap-4">
+            <button
+              className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <CgMenu size={24} />
+            </button>
             <img
-              src={user?.photo || "https://via.placeholder.com/40"}
-              alt="Profile"
-              className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
-              onClick={() => setProfilePopup(!profilePopup)}
+              src={logo}
+              alt="Logo"
+              className="hidden sm:block w-32 h-auto object-contain"
             />
-            {profilePopup && (
-              <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg">
-                <div
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={logout}
-                >
-                  <span>Logout</span>
-                </div>
-              </div>
-            )}
           </div>
-        </div>
-      </header>
 
-      <div className="flex flex-1">
-        {/* Sidebar */}
-        <Sidebar
-          mobileOpen={mobileMenuOpen}
-          setMobileOpen={setMobileMenuOpen}
-          isOpen={sidebarOpen}
-          setIsOpen={setSidebarOpen}
-        />
+          {/* Right: Icons + Profile */}
+          <div className="flex items-center gap-4 relative">
+            <MdOutlineNotificationsActive
+              size={20}
+              className="text-gray-500 cursor-pointer"
+            />
+
+            {/* Profile */}
+            <div className="relative">
+              <img
+                src={user?.photo || "https://via.placeholder.com/40"}
+                alt="Profile"
+                className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
+                onClick={() => setProfilePopup(!profilePopup)}
+              />
+              {profilePopup && (
+                <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg">
+                  <div
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={logout}
+                  >
+                    <span>Logout</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
 
         {/* Main content */}
-        <main className="flex-1 overflow-auto h-screen p-2 sm:p-6 md:p-8">
+        <main className="flex-1 overflow-auto p-2 sm:p-6 md:p-8">
           <Outlet />
         </main>
       </div>
