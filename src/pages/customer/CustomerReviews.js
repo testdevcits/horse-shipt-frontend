@@ -49,7 +49,7 @@ const CustomerReviews = () => {
   ];
 
   return (
-    <div className="w-full  sm:px-6 md:px-8 lg:px-16">
+    <div className="w-full">
       <h2 className="text-xl sm:text-2xl font-bold mb-4">Reviews Received</h2>
 
       {/* Horizontal scroll only on mobile */}
