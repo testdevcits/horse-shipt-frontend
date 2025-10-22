@@ -27,17 +27,19 @@ const Toast = ({ message, type = "info", duration = 3000, onClose }) => {
 
   return (
     <div
-      className={`fixed top-5 right-5 z-50 px-4 py-2 rounded-md text-white shadow-lg ${bgColor} ${
+      className={`fixed top-4 right-4 sm:top-5 sm:right-5 z-50 max-w-xs w-[90%] sm:w-auto px-4 py-2 rounded-md text-white shadow-lg break-words ${bgColor} ${
         leaving ? "animate-slide-out-right" : "animate-slide-in-right"
       }`}
     >
-      {message}
-      <button
-        onClick={() => setLeaving(true)}
-        className="ml-2 text-white font-bold px-1 py-0.5 rounded hover:bg-white/20"
-      >
-        ×
-      </button>
+      <div className="flex justify-between items-center">
+        <span className="text-sm sm:text-base">{message}</span>
+        <button
+          onClick={() => setLeaving(true)}
+          className="ml-2 text-white font-bold px-2 py-1 rounded hover:bg-white/20"
+        >
+          ×
+        </button>
+      </div>
     </div>
   );
 };
