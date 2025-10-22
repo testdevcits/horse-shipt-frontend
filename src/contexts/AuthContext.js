@@ -114,29 +114,32 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ----------------- OAuth Login -----------------
-  const oauthLogin = (userData) => {
-    if (!userData.token || !userData.role) return;
+  const oauthLogin = async (token) => {
+    if (!token) return;
 
-    const oauthUser = {
-      _id: userData._id || "", // ensure _id is stored
-      token: userData.token,
-      role: userData.role,
-      provider: userData.provider || "",
-      providerId: userData.providerId || "",
-      email: userData.email || "",
-      name: userData.name || "",
-      photo: userData.photo || "",
-      isLogin: true,
-    };
+    try {
+      // Fetch full user from backend using token
+      const res = await axios.get(`${API_BASE_URL}/auth/oauth-user`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
 
-    setUser(oauthUser);
-    setToken(userData.token);
+      const userData = res.data.data;
 
-    // Save OAuth user to localStorage
-    localStorage.setItem("horseShiptUser", JSON.stringify(oauthUser));
-    localStorage.setItem("token", userData.token);
-    localStorage.setItem("role", userData.role);
-    localStorage.setItem("userId", userData._id || "");
+      setUser({ ...userData, isLogin: true });
+      setToken(userData.token);
+
+      // Save OAuth user to localStorage
+      localStorage.setItem(
+        "horseShiptUser",
+        JSON.stringify({ ...userData, isLogin: true })
+      );
+      localStorage.setItem("token", userData.token);
+      localStorage.setItem("role", userData.role);
+      localStorage.setItem("userId", userData._id || "");
+    } catch (err) {
+      console.error("OAuth Login Error:", err.response?.data || err.message);
+    }
   };
 
   return (

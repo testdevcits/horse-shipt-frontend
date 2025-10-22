@@ -28,6 +28,7 @@ const LoginPage = () => {
   });
 
   // ----------------- Handle OAuth redirect -----------------
+  // ----------------- Handle OAuth redirect -----------------
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
@@ -38,24 +39,22 @@ const LoginPage = () => {
 
     const token = params.get("token");
     if (token) {
-      const oauthUser = {
-        _id: params.get("_id") || "", // <-- FIXED
-        role: params.get("role") || "customer",
-        name: params.get("name") || "",
-        email: params.get("email") || "",
-        photo: params.get("photo") || "",
-        provider: params.get("provider") || "",
-        providerId: params.get("providerId") || "",
+      // Call AuthContext oauthLogin with token only
+      const fetchUser = async () => {
+        await oauthLogin(token); // oauthLogin now fetches full user from backend
+
+        // Get role from localStorage (set by oauthLogin)
+        const storedRole = localStorage.getItem("role") || "customer";
+
+        navigate(
+          storedRole === "shipper"
+            ? "/shipper/dashboard"
+            : "/customer/dashboard",
+          { replace: true }
+        );
       };
 
-      oauthLogin({ token, ...oauthUser });
-
-      navigate(
-        oauthUser.role === "shipper"
-          ? "/shipper/dashboard"
-          : "/customer/dashboard",
-        { replace: true }
-      );
+      fetchUser();
     }
   }, [location.search, oauthLogin, navigate]);
 
