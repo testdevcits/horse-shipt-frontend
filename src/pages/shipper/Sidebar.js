@@ -19,7 +19,12 @@ const navItems = [
   { name: "Settings", path: "/shipper/settings", icon: <FaCog /> },
 ];
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen, mobileOpen }) => {
+const Sidebar = ({
+  sidebarOpen,
+  setSidebarOpen,
+  mobileOpen,
+  setMobileOpen,
+}) => {
   const isActivePath = (path, subPaths) => {
     if (window.location.pathname === path) return true;
     if (subPaths)
@@ -27,7 +32,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, mobileOpen }) => {
     return false;
   };
 
-  // Sidebar width
   const sidebarWidth = mobileOpen
     ? "100%"
     : sidebarOpen && window.innerWidth >= 1024
@@ -61,6 +65,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, mobileOpen }) => {
               <li key={item.path}>
                 <NavLink
                   to={item.path}
+                  onClick={() => mobileOpen && setMobileOpen(false)} // <-- Close sidebar on mobile
                   className={`flex items-center gap-3 px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
                     active
                       ? "bg-gray-100 font-semibold text-system-primary"
@@ -71,7 +76,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, mobileOpen }) => {
                   {sidebarOpen || mobileOpen ? <span>{item.name}</span> : null}
                 </NavLink>
 
-                {/* Submenu */}
                 {item.subPaths && (sidebarOpen || mobileOpen) && (
                   <ul className="ml-8 mt-1 space-y-1">
                     {item.subPaths.map((sub) => {
@@ -80,6 +84,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, mobileOpen }) => {
                         <li key={sub.path}>
                           <NavLink
                             to={sub.path}
+                            onClick={() => mobileOpen && setMobileOpen(false)} // <-- Close sidebar on mobile
                             className={`block px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
                               subActive
                                 ? "bg-gray-100 font-semibold text-system-primary"

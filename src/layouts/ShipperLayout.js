@@ -16,8 +16,8 @@ const API_BASE_URL =
 
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false); // desktop toggle
-  const [mobileOpen, setMobileOpen] = useState(false); // mobile overlay toggle
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
@@ -27,7 +27,6 @@ const ShipperLayout = () => {
       : `${API_BASE_URL}/${user.profilePicture.replace(/^\/?/, "")}`
     : "https://via.placeholder.com/40";
 
-  // Handle resize to update isDesktop
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
     window.addEventListener("resize", handleResize);
@@ -56,7 +55,6 @@ const ShipperLayout = () => {
               <IoMdClose size={24} />
             </button>
           )}
-          {/* Logo: hidden on mobile, shown on tablet and desktop */}
           <img
             src={logo}
             alt="Logo"
@@ -100,6 +98,7 @@ const ShipperLayout = () => {
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           mobileOpen={mobileOpen}
+          setMobileOpen={setMobileOpen} // <-- Pass setter
         />
 
         {/* Main content */}

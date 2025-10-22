@@ -41,7 +41,7 @@ const CustomerLayout = () => {
               <IoMdClose size={24} />
             </button>
           )}
-          {/* Logo: hidden on mobile, shown on tablet and desktop */}
+          {/* Logo: shown on tablet+ */}
           <img
             src={logo}
             alt="Logo"
@@ -81,6 +81,7 @@ const CustomerLayout = () => {
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           mobileOpen={mobileOpen}
+          setMobileOpen={setMobileOpen} // <-- pass setter to close on link click
         />
 
         <main

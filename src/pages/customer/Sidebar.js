@@ -19,7 +19,12 @@ const navItems = [
   { name: "Settings", path: "/customer/settings", icon: <FaCog /> },
 ];
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen, mobileOpen }) => {
+const Sidebar = ({
+  sidebarOpen,
+  setSidebarOpen,
+  mobileOpen,
+  setMobileOpen,
+}) => {
   const isActivePath = (path, subPaths) => {
     if (window.location.pathname === path) return true;
     if (subPaths)
@@ -60,12 +65,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, mobileOpen }) => {
               <li key={item.path}>
                 <NavLink
                   to={item.path}
+                  onClick={() => mobileOpen && setMobileOpen(false)} // <-- close on mobile
                   className={`flex items-center gap-3 px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
                     active
                       ? "bg-gray-100 font-semibold text-system-primary"
                       : ""
                   }`}
-                  onClick={() => mobileOpen && setSidebarOpen(false)}
                 >
                   <span className="text-lg">{item.icon}</span>
                   {sidebarOpen || mobileOpen ? <span>{item.name}</span> : null}
@@ -79,12 +84,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, mobileOpen }) => {
                         <li key={sub.path}>
                           <NavLink
                             to={sub.path}
+                            onClick={() => mobileOpen && setMobileOpen(false)} // <-- close on mobile
                             className={`block px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
                               subActive
                                 ? "bg-gray-100 font-semibold text-system-primary"
                                 : ""
                             }`}
-                            onClick={() => mobileOpen && setSidebarOpen(false)}
                           >
                             {sub.name}
                           </NavLink>
