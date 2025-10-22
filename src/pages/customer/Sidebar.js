@@ -30,28 +30,24 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
 
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-40 md:hidden"
+          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed top-16 left-0 z-50 h-[calc(100%-64px)] bg-white shadow-lg transition-all duration-300
+        className={`fixed top-0 left-0 h-full bg-white shadow-lg z-50 transform transition-transform duration-300
           ${isOpen ? "w-64" : "w-16"}
-          ${
-            mobileOpen
-              ? "translate-x-0 w-full"
-              : "-translate-x-full md:translate-x-0"
-          }
+          ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        {/* Mobile close button */}
+        {/* Mobile Close Button */}
         {mobileOpen && (
-          <div className="flex justify-end p-4">
+          <div className="flex justify-end p-4 lg:hidden">
             <button
               onClick={() => setMobileOpen(false)}
               className="text-gray-700 hover:text-gray-900"
@@ -61,9 +57,9 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
           </div>
         )}
 
-        {/* Desktop toggle */}
+        {/* Desktop Toggle */}
         {!mobileOpen && (
-          <div className="flex justify-end p-4">
+          <div className="flex justify-end p-4 hidden lg:flex">
             <button onClick={() => setIsOpen(!isOpen)}>
               {isOpen ? (
                 <LuArrowLeftFromLine size={24} />
@@ -75,7 +71,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isOpen, setIsOpen }) => {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 mt-2">
+        <nav className="flex flex-col mt-2 overflow-y-auto h-[calc(100%-64px)]">
           <ul className="space-y-2 px-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);

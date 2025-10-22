@@ -9,7 +9,7 @@ import { MdOutlineNotificationsActive } from "react-icons/md";
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // default open
+  const [sidebarOpen, setSidebarOpen] = useState(false); // default open on desktop
   const [profilePopup, setProfilePopup] = useState(false);
 
   return (
@@ -62,9 +62,9 @@ const CustomerLayout = () => {
 
       {/* Layout Body */}
       <div className="flex flex-1 relative">
-        {/* Sidebar */}
+        {/* Sidebar - Desktop fixed */}
         <div
-          className={`fixed top-16 left-0 h-[calc(100vh-64px)] bg-white shadow-md z-40 transition-all duration-300 ${
+          className={`hidden lg:flex fixed top-16 left-0 h-[calc(100vh-64px)] bg-white shadow-md z-40 transition-all duration-300 ${
             sidebarOpen ? "w-64" : "w-16"
           }`}
         >
@@ -76,10 +76,30 @@ const CustomerLayout = () => {
           />
         </div>
 
+        {/* Sidebar - Mobile overlay */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden fixed inset-0 z-50 flex">
+            <div
+              className="fixed inset-0 bg-black/30"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <div className="relative w-64 bg-white shadow-md">
+              <Sidebar
+                mobileOpen={mobileMenuOpen}
+                setMobileOpen={setMobileMenuOpen}
+                isOpen={true}
+                setIsOpen={setSidebarOpen}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Main content */}
         <main
-          className={`flex-1 p-4 sm:p-6 md:p-8 overflow-auto ml-16 transition-all duration-300`}
-          style={{ marginLeft: sidebarOpen ? 256 : 64 }}
+          className={`flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300`}
+          style={{
+            marginLeft: sidebarOpen ? 256 : 64, // desktop margin
+          }}
         >
           <Outlet />
         </main>
