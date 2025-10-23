@@ -23,6 +23,7 @@ const CustomerNotifications = () => {
   const { token } = useAuth();
   const [toast, setToast] = useState(null);
 
+  // ---------------- Toggle notification ----------------
   const handleToggle = (id) => {
     const newValue = !notifications[id];
     updateNotification(id, newValue);
@@ -45,8 +46,11 @@ const CustomerNotifications = () => {
       );
       setToast({ message: "Test notification sent!", type: "success" });
     } catch (err) {
-      console.error(err);
-      setToast({ message: "Failed to send test notification", type: "error" });
+      console.error("Test notification error:", err);
+      setToast({
+        message: "Failed to send test notification",
+        type: "error",
+      });
     }
   };
 
@@ -72,6 +76,7 @@ const CustomerNotifications = () => {
         </button>
       </div>
 
+      {/* Notification Toggles */}
       <div className="w-full flex flex-col space-y-4 p-4 border border-gray-200 rounded-xl bg-white">
         {notificationsList.map((item) => (
           <div
@@ -92,6 +97,7 @@ const CustomerNotifications = () => {
         ))}
       </div>
 
+      {/* Toast */}
       {toast && (
         <Toast
           message={toast.message}
