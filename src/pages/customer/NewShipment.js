@@ -167,7 +167,36 @@ const NewShipment = () => {
     if (!validateStep()) return;
 
     try {
-      // Example: Prepare form data
+      // Prepare payload object for logging
+      const payload = {
+        pickupLocation,
+        pickupTimeOption,
+        pickupDate,
+        deliveryLocation,
+        deliveryTimeOption,
+        deliveryDate,
+        numberOfHorses,
+        additionalInfo,
+        horses: horses.map((h) => ({
+          registeredName: h.registeredName,
+          barnName: h.barnName,
+          breed: h.breed,
+          colour: h.colour,
+          age: h.age,
+          sex: h.sex,
+          photo: h.photo ? h.photo.name : null,
+          cogins: h.cogins ? h.cogins.name : null,
+          healthCertificate: h.healthCertificate
+            ? h.healthCertificate.name
+            : null,
+          generalInfo: h.generalInfo,
+        })),
+      };
+
+      // Log all values BEFORE API call
+      console.log("🚀 Final shipment values before API call:", payload);
+
+      // Prepare FormData for API
       const formData = new FormData();
       formData.append("pickupLocation", pickupLocation);
       formData.append("pickupTimeOption", pickupTimeOption);
@@ -195,7 +224,7 @@ const NewShipment = () => {
         formData.append(`horses[${idx}][generalInfo]`, h.generalInfo);
       });
 
-      // Example: API call
+      // Make API call
       const response = await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/api/shipments`,
         formData,
@@ -210,6 +239,7 @@ const NewShipment = () => {
       console.error("Error creating shipment:", error);
     }
   };
+
   // ------------------------------------------------------------
   const renderStepContent = () => {
     switch (currentStep) {
