@@ -14,7 +14,7 @@ const Payment = () => {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [paymentData, setPaymentData] = useState(null);
-  const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otpCooldown, setOtpCooldown] = useState(0);
   const [otp, setOtp] = useState("");
@@ -75,36 +75,7 @@ const Payment = () => {
     return newErrors;
   };
 
-  // ---------------- Add new payment (no OTP) ----------------
-  const handleAddPayment = async () => {
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const res = await axios.post(
-        `${API_BASE_URL}/customer/payment`,
-        { pkLive: formData.pkLive, skLive: formData.skLive },
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
-      setPaymentData(res.data.data);
-      showToast(res.data.message || "Payment added successfully!", "success");
-      setFormData({ pkLive: "", skLive: "" });
-    } catch (err) {
-      console.error(err.response || err.message);
-      showToast(
-        err.response?.data?.message || "Failed to add payment",
-        "error"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ---------------- Send OTP for update ----------------
+  // ---------------- Send OTP for new or update ----------------
   const handleSendOtp = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -122,6 +93,7 @@ const Payment = () => {
       showToast("OTP sent to your email.", "success");
       setOtpSent(true);
       setOtpCooldown(30);
+      setShowForm(true);
     } catch (err) {
       console.error(err.response || err.message);
       showToast(err.response?.data?.message || "Failed to send OTP", "error");
@@ -130,7 +102,7 @@ const Payment = () => {
     }
   };
 
-  // ---------------- Verify OTP & update ----------------
+  // ---------------- Verify OTP & save payment ----------------
   const handleVerifyOtp = async () => {
     if (!otp) return showToast("Please enter OTP", "error");
 
@@ -142,10 +114,10 @@ const Payment = () => {
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
       setPaymentData(res.data.data);
-      showToast(res.data.message || "Payment updated successfully!", "success");
+      showToast(res.data.message || "Payment saved successfully!", "success");
       setOtp("");
       setOtpSent(false);
-      setShowUpdateForm(false);
+      setShowForm(false);
     } catch (err) {
       console.error(err.response || err.message);
       showToast(
@@ -164,8 +136,8 @@ const Payment = () => {
           Payment Details
         </h1>
 
-        {/* ---------------- Existing Payment ---------------- */}
-        {paymentData && !showUpdateForm && (
+        {/* ---------------- Existing Payment Display ---------------- */}
+        {paymentData && !showForm && (
           <div className="bg-gray-100 p-4 rounded-lg text-center space-y-3">
             <img
               src={stripeLogo}
@@ -185,7 +157,7 @@ const Payment = () => {
               {paymentData.skLive}
             </p>
             <Button
-              onClick={() => setShowUpdateForm(true)}
+              onClick={() => setShowForm(true)}
               variant="primary"
               rounded
               className="w-full sm:w-auto mt-2"
@@ -195,8 +167,8 @@ const Payment = () => {
           </div>
         )}
 
-        {/* ---------------- Add / Update Form ---------------- */}
-        {(!paymentData || showUpdateForm) && (
+        {/* ---------------- Add / Update Payment Form ---------------- */}
+        {showForm && (
           <div className="mt-4 space-y-4">
             {!otpSent ? (
               <>
@@ -235,19 +207,13 @@ const Payment = () => {
                 </div>
 
                 <Button
-                  onClick={isUpdate ? handleSendOtp : handleAddPayment}
+                  onClick={handleSendOtp}
                   disabled={loading}
                   variant="primary"
                   rounded
                   className="w-full sm:w-auto"
                 >
-                  {loading
-                    ? isUpdate
-                      ? "Sending OTP..."
-                      : "Adding Payment..."
-                    : isUpdate
-                    ? "Send OTP"
-                    : "Add Payment"}
+                  {loading ? "Sending OTP..." : "Send OTP"}
                 </Button>
               </>
             ) : (
@@ -273,13 +239,14 @@ const Payment = () => {
                     rounded
                     className="w-full sm:w-auto"
                   >
-                    {loading ? "Verifying..." : "Verify OTP & Update"}
+                    {loading ? "Verifying..." : "Verify OTP & Save"}
                   </Button>
 
                   <Button
                     onClick={() => {
                       setOtpSent(false);
                       setOtp("");
+                      setShowForm(false);
                     }}
                     variant="secondary"
                     rounded

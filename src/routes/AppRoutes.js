@@ -12,7 +12,7 @@ import { useAuth } from "../contexts/AuthContext";
 import MainLayout from "../layouts/MainLayout";
 import Home from "../pages/Home";
 import CustDashboard from "../pages/customer/CustDashboard";
-
+import SignaturePad from "../pages/customer/SignaturePad";
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 const SignupPage = lazy(() => import("../pages/auth/SignupPage"));
@@ -88,6 +88,7 @@ const AppRoutes = () => {
                 <Home />
                 {/* <CustDashboard /> */}
                 {/* <NewShipment /> */}
+                {/* <SignaturePad /> */}
               </RedirectIfAuth>
             }
           />
