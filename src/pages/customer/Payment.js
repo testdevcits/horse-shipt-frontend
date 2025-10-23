@@ -21,7 +21,7 @@ const Payment = () => {
   const [formData, setFormData] = useState({ pkLive: "", skLive: "" });
   const [errors, setErrors] = useState({});
 
-  // Fetch existing payment setup
+  // Fetch payment details
   const fetchPayment = async () => {
     if (!user?._id || !user?.token) return;
     try {
@@ -36,11 +36,11 @@ const Payment = () => {
           skLive: res.data.data.skLive,
         });
       } else {
-        setShowUpdateForm(true); // Show form if no data
+        setPaymentData(null);
       }
     } catch (err) {
       console.error(err.response || err.message);
-      setShowUpdateForm(true); // Show form if error or no payment found
+      setPaymentData(null);
     }
   };
 
@@ -73,7 +73,6 @@ const Payment = () => {
     return newErrors;
   };
 
-  // Send OTP for update or create
   const handleSendOtp = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -99,7 +98,6 @@ const Payment = () => {
     }
   };
 
-  // Verify OTP & update payment
   const handleVerifyOtp = async () => {
     if (!otp) return showToast("Please enter OTP", "error");
 
@@ -128,41 +126,29 @@ const Payment = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center font-montserrat">
-      <div className="w-full sm:p-8 max-w-md">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 text-center">
-          Payment Setup
+    <div className="flex flex-col items-center justify-center font-montserrat p-4 sm:p-6 md:p-8">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-5 sm:p-8">
+        <h1 className="text-xl sm:text-2xl font-bold mb-6 text-center">
+          Payment Details
         </h1>
 
-        {/* No Payment Data - Show New Form */}
-        {!paymentData && !showUpdateForm && (
-          <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg text-center shadow-sm">
-            <p className="text-gray-600 mb-2">
-              No payment details found. Please set up your payment method.
-            </p>
-            <Button
-              onClick={() => setShowUpdateForm(true)}
-              variant="primary"
-              rounded
-            >
-              Add Payment
-            </Button>
-          </div>
-        )}
-
-        {/* Existing Payment */}
+        {/* 1️⃣ Existing Payment Data */}
         {paymentData && !showUpdateForm && (
-          <div className="bg-gray-100 p-4 rounded-lg space-y-3 text-center">
-            <img src={stripeLogo} alt="Stripe" className="mx-auto w-32" />
+          <div className="bg-gray-100 p-4 rounded-lg text-center space-y-3">
+            <img
+              src={stripeLogo}
+              alt="Stripe"
+              className="mx-auto w-28 sm:w-36"
+            />
             <p>
               <span className="font-semibold">Service:</span>{" "}
               {paymentData.serviceName}
             </p>
-            <p className="break-words">
+            <p className="break-words text-sm sm:text-base">
               <span className="font-semibold">PK_LIVE:</span>{" "}
               {paymentData.pkLive}
             </p>
-            <p className="break-words">
+            <p className="break-words text-sm sm:text-base">
               <span className="font-semibold">SK_LIVE:</span>{" "}
               {paymentData.skLive}
             </p>
@@ -170,15 +156,16 @@ const Payment = () => {
               onClick={() => setShowUpdateForm(true)}
               variant="primary"
               rounded
+              className="w-full sm:w-auto mt-2"
             >
               Update Payment
             </Button>
           </div>
         )}
 
-        {/* Payment Form (Create or Update) */}
-        {showUpdateForm && (
-          <div className="space-y-4 mt-4 bg-white shadow-md p-4 rounded-lg border border-gray-200">
+        {/* 2️⃣ New Payment Form (if no data) OR Update Form */}
+        {(!paymentData || showUpdateForm) && (
+          <div className="mt-4 space-y-4">
             {!otpSent ? (
               <>
                 <div>
@@ -190,11 +177,11 @@ const Payment = () => {
                     name="pkLive"
                     value={formData.pkLive}
                     onChange={handleChange}
-                    placeholder="Enter your pk_live_ key"
-                    className="w-full border border-gray-300 rounded-lg p-2 outline-none"
+                    className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-400"
+                    placeholder="Enter pk_live_..."
                   />
                   {errors.pkLive && (
-                    <p className="text-red-500 text-sm">{errors.pkLive}</p>
+                    <p className="text-red-500 text-sm mt-1">{errors.pkLive}</p>
                   )}
                 </div>
 
@@ -207,11 +194,11 @@ const Payment = () => {
                     name="skLive"
                     value={formData.skLive}
                     onChange={handleChange}
-                    placeholder="Enter your sk_live_ key"
-                    className="w-full border border-gray-300 rounded-lg p-2 outline-none"
+                    className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-400"
+                    placeholder="Enter sk_live_..."
                   />
                   {errors.skLive && (
-                    <p className="text-red-500 text-sm">{errors.skLive}</p>
+                    <p className="text-red-500 text-sm mt-1">{errors.skLive}</p>
                   )}
                 </div>
 
@@ -220,6 +207,7 @@ const Payment = () => {
                   disabled={loading}
                   variant="primary"
                   rounded
+                  className="w-full sm:w-auto"
                 >
                   {loading ? "Sending OTP..." : "Send OTP"}
                 </Button>
@@ -234,19 +222,20 @@ const Payment = () => {
                     type="text"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    placeholder="Enter OTP sent to your email"
-                    className="w-full border border-gray-300 rounded-lg p-2 outline-none"
+                    className="w-full border border-gray-300 rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-400"
+                    placeholder="Enter OTP"
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
                   <Button
                     onClick={handleVerifyOtp}
                     disabled={loading}
                     variant="primary"
                     rounded
+                    className="w-full sm:w-auto"
                   >
-                    {loading ? "Verifying..." : "Verify & Save"}
+                    {loading ? "Verifying..." : "Verify OTP & Update"}
                   </Button>
 
                   <Button
@@ -256,23 +245,24 @@ const Payment = () => {
                     }}
                     variant="secondary"
                     rounded
+                    className="w-full sm:w-auto"
                   >
                     Cancel
                   </Button>
-                </div>
 
-                {otpCooldown > 0 && (
-                  <p className="text-gray-500 text-sm text-center mt-2">
-                    Resend in {otpCooldown}s
-                  </p>
-                )}
+                  {otpCooldown > 0 && (
+                    <p className="text-gray-500 text-sm">
+                      Resend in {otpCooldown}s
+                    </p>
+                  )}
+                </div>
               </>
             )}
           </div>
         )}
       </div>
 
-      {/* Toast */}
+      {/* Toast Notification */}
       {toast && (
         <Toast
           message={toast.message}
