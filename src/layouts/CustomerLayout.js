@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/customer/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
+import { useCustomerNotifications } from "../contexts/CustomerNotificationContext";
 import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
 import logo from "../assets/images/logo.png";
@@ -9,6 +10,7 @@ import { MdOutlineNotificationsActive } from "react-icons/md";
 
 const CustomerLayout = () => {
   const { user, logout } = useAuth();
+  const { notificationCount } = useCustomerNotifications(); // Added
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
@@ -50,10 +52,17 @@ const CustomerLayout = () => {
         </div>
 
         <div className="flex items-center gap-4 relative">
-          <MdOutlineNotificationsActive
-            size={20}
-            className="text-gray-500 cursor-pointer"
-          />
+          {/* Notification Bell with Count */}
+          <div className="relative cursor-pointer">
+            <MdOutlineNotificationsActive size={24} className="text-gray-500" />
+            {notificationCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center text-[10px] font-bold text-white bg-red-600 rounded-full">
+                {notificationCount}
+              </span>
+            )}
+          </div>
+
+          {/* Profile */}
           <div className="relative">
             <img
               src={user?.photo || "https://via.placeholder.com/40"}

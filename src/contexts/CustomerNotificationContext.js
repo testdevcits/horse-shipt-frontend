@@ -23,6 +23,7 @@ export const CustomerNotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [notificationCount, setNotificationCount] = useState(0); // NEW: count of notifications
 
   // ---------------- Fetch notification settings ----------------
   const fetchNotifications = async () => {
@@ -32,8 +33,14 @@ export const CustomerNotificationProvider = ({ children }) => {
       const res = await axios.get(`${API_BASE_URL}/customer/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.data.success) setNotifications(res.data.data);
-      else setError(res.data.message || "Failed to fetch notifications");
+      if (res.data.success) {
+        setNotifications(res.data.data);
+        // Count notifications that are enabled (true)
+        const count = Object.values(res.data.data).filter(Boolean).length;
+        setNotificationCount(count);
+      } else {
+        setError(res.data.message || "Failed to fetch notifications");
+      }
     } catch (err) {
       console.error("Fetch notifications error:", err);
       setError(err.response?.data?.message || err.message);
@@ -51,8 +58,13 @@ export const CustomerNotificationProvider = ({ children }) => {
         { value },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      if (res.data.success) setNotifications(res.data.data);
-      else setError(res.data.message || "Failed to update notification");
+      if (res.data.success) {
+        setNotifications(res.data.data);
+        const count = Object.values(res.data.data).filter(Boolean).length;
+        setNotificationCount(count);
+      } else {
+        setError(res.data.message || "Failed to update notification");
+      }
     } catch (err) {
       console.error("Update notification error:", err);
       setError(err.response?.data?.message || err.message);
@@ -106,6 +118,7 @@ export const CustomerNotificationProvider = ({ children }) => {
         notifications,
         loading,
         error,
+        notificationCount, // NEW
         fetchNotifications,
         updateNotification,
       }}
