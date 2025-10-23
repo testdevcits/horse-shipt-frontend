@@ -276,6 +276,7 @@ const NewShipment = () => {
             </div>
           </div>
         );
+
       case 2:
         return (
           <div className="flex flex-col w-full gap-4">
@@ -329,6 +330,7 @@ const NewShipment = () => {
             </div>
           </div>
         );
+
       case 3:
         return (
           <div className="flex flex-col w-full gap-4">
@@ -348,11 +350,13 @@ const NewShipment = () => {
                 ))}
               </select>
             </div>
+
             {horses.map((horse, idx) => (
-              <div key={idx} className="bg-gray-50 p-3 rounded-md">
+              <div key={idx} className="bg-gray-50">
                 <p className="font-semibold mb-2">
                   Horse {idx + 1}: {horse.registeredName || "Unnamed"}
                 </p>
+
                 <div className="mb-2">
                   <label className="block font-semibold text-sm mb-1 text-gray-500">
                     Registered Name
@@ -372,11 +376,12 @@ const NewShipment = () => {
                     ))}
                   </select>
                   {errors[`registeredName${idx}`] && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-red-500 text-sm mt-1">
                       {errors[`registeredName${idx}`]}
                     </p>
                   )}
                 </div>
+
                 <div className="mb-2">
                   <label className="block font-semibold text-sm mb-1 text-gray-500">
                     Barn Name
@@ -387,142 +392,195 @@ const NewShipment = () => {
                     onChange={(e) =>
                       handleHorseChange(idx, "barnName", e.target.value)
                     }
-                    className="w-full border border-gray-300 text-gray-500 rounded px-2 py-2"
+                    className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
                   />
                   {errors[`barnName${idx}`] && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-red-500 text-sm mt-1">
                       {errors[`barnName${idx}`]}
                     </p>
                   )}
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-500">
-                      Breed
-                    </label>
-                    <select
-                      value={horse.breed}
-                      onChange={(e) =>
-                        handleHorseChange(idx, "breed", e.target.value)
-                      }
-                      className="w-full border border-gray-300 text-gray-500 rounded px-2 py-1 bg-gray-100"
-                    >
-                      <option value="">Select Breed</option>
-                      {breeds.map((b) => (
-                        <option key={b} value={b}>
-                          {b}
-                        </option>
-                      ))}
-                    </select>
-                    {errors[`breed${idx}`] && (
-                      <p className="text-red-500 text-sm">
-                        {errors[`breed${idx}`]}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-500">
-                      Colour
-                    </label>
-                    <input
-                      type="text"
-                      value={horse.colour}
-                      onChange={(e) =>
-                        handleHorseChange(idx, "colour", e.target.value)
-                      }
-                      className="w-full border border-gray-300 text-gray-500 rounded px-2 py-1"
-                    />
-                    {errors[`colour${idx}`] && (
-                      <p className="text-red-500 text-sm">
-                        {errors[`colour${idx}`]}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-500">
-                      Age
-                    </label>
-                    <input
-                      type="number"
-                      value={horse.age}
-                      onChange={(e) =>
-                        handleHorseChange(idx, "age", e.target.value)
-                      }
-                      className="w-full border border-gray-300 text-gray-500 rounded px-2 py-1"
-                    />
-                    {errors[`age${idx}`] && (
-                      <p className="text-red-500 text-sm">
-                        {errors[`age${idx}`]}
-                      </p>
-                    )}
-                  </div>
-                  <div className="col-span-3">
-                    <label className="block text-sm font-semibold text-gray-500">
-                      Sex
-                    </label>
-                    <select
-                      value={horse.sex}
-                      onChange={(e) =>
-                        handleHorseChange(idx, "sex", e.target.value)
-                      }
-                      className="w-full border border-gray-300 text-gray-500 rounded px-2 py-1 bg-gray-100"
-                    >
-                      <option value="">Select Sex</option>
-                      {sexes.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                    {errors[`sex${idx}`] && (
-                      <p className="text-red-500 text-sm">
-                        {errors[`sex${idx}`]}
-                      </p>
-                    )}
-                  </div>
+
+                <div className="mb-2">
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    Breed
+                  </label>
+                  <select
+                    value={horse.breed}
+                    onChange={(e) =>
+                      handleHorseChange(idx, "breed", e.target.value)
+                    }
+                    className="w-full border border-gray-300 text-gray-500 rounded px-2 py-2 bg-gray-100"
+                  >
+                    <option value="">Select Breed</option>
+                    {breeds.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </select>
+                  {errors[`breed${idx}`] && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors[`breed${idx}`]}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mb-2">
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    Colour
+                  </label>
+                  <input
+                    type="text"
+                    value={horse.colour}
+                    onChange={(e) =>
+                      handleHorseChange(idx, "colour", e.target.value)
+                    }
+                    className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
+                  />
+                  {errors[`colour${idx}`] && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors[`colour${idx}`]}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mb-2">
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    Age
+                  </label>
+                  <input
+                    type="text"
+                    value={horse.age}
+                    onChange={(e) =>
+                      handleHorseChange(idx, "age", e.target.value)
+                    }
+                    className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
+                  />
+                  {errors[`age${idx}`] && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors[`age${idx}`]}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mb-2">
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    Sex
+                  </label>
+                  <select
+                    value={horse.sex}
+                    onChange={(e) =>
+                      handleHorseChange(idx, "sex", e.target.value)
+                    }
+                    className="w-full border border-gray-300 text-gray-500 rounded px-2 py-2 bg-gray-100"
+                  >
+                    <option value="">Select Sex</option>
+                    {sexes.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                  {errors[`sex${idx}`] && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors[`sex${idx}`]}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         );
+
       case 4:
         return (
           <div className="flex flex-col w-full gap-6">
-            <div>
-              <label className="block font-semibold text-gray-500 mb-1">
-                Additional Information
-              </label>
-              <textarea
-                value={additionalInfo}
-                onChange={(e) => setAdditionalInfo(e.target.value)}
-                className="w-full border border-gray-300 text-gray-500 rounded px-2 py-2"
-              />
-            </div>
             {horses.map((horse, idx) => (
-              <div key={idx} className="border p-2 rounded-md">
-                <p className="font-semibold mb-1">Horse {idx + 1} Files</p>
-                <div className="flex flex-col gap-2">
+              <div key={idx} className="">
+                {/* Horse Name Heading */}
+                <h2
+                  className="text-gray-800 font-semibold mb-3 rounded-[15px] bg-[#F2EBDD] "
+                  style={{
+                    fontSize: "16px",
+                    lineHeight: "24px",
+                    padding: "14px",
+                    borderRadius: "15px",
+                  }}
+                >
+                  Horse {idx + 1} - {horse.registeredName || "Unnamed"}
+                </h2>
+
+                {/* Upload a Photo Section */}
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                    Upload a photo of the horse
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-2">
+                    A picture enhances your listing, making it more appealing
+                    and increasing the likelihood of attracting attention from
+                    potential carriers.
+                  </p>
                   <input
                     type="file"
                     onChange={(e) =>
                       handleHorseFileChange(idx, "photo", e.target.files[0])
                     }
+                    className="w-full border border-gray-300 rounded px-3 py-2"
                   />
-                  <input
-                    type="file"
+                </div>
+
+                {/* Documents Section */}
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                    Documents
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Provide the required paperwork to facilitate a smooth and
+                    safe delivery process.
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="file"
+                      onChange={(e) =>
+                        handleHorseFileChange(idx, "cogins", e.target.files[0])
+                      }
+                      className="w-full border border-gray-300 rounded px-3 py-2"
+                      placeholder="Coggins"
+                    />
+                    <input
+                      type="file"
+                      onChange={(e) =>
+                        handleHorseFileChange(
+                          idx,
+                          "healthCertificate",
+                          e.target.files[0]
+                        )
+                      }
+                      className="w-full border border-gray-300 rounded px-3 py-2"
+                      placeholder="Health Certificate"
+                    />
+                  </div>
+                </div>
+
+                {/* General Information Section */}
+                <div className="mb-2">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                    General Information
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Describe any specific preferences or restrictions you may
+                    have for the shipment, such as preferred vehicle types and
+                    other relevant details.
+                  </p>
+                  <textarea
+                    value={horse.generalInfo}
                     onChange={(e) =>
-                      handleHorseFileChange(idx, "cogins", e.target.files[0])
+                      handleHorseChange(idx, "generalInfo", e.target.value)
                     }
-                  />
-                  <input
-                    type="file"
-                    onChange={(e) =>
-                      handleHorseFileChange(
-                        idx,
-                        "healthCertificate",
-                        e.target.files[0]
-                      )
-                    }
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-gray-500"
+                    rows={3}
+                    placeholder="Enter additional details"
                   />
                 </div>
               </div>
