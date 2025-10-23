@@ -167,9 +167,11 @@ const NewShipment = () => {
     if (!validateStep()) return;
 
     try {
+      // Ensure horses count is a valid number
       const horsesCount = Number(numberOfHorses) || 0;
-      const horseList = horses || [];
+      const horseList = Array.isArray(horses) ? horses : [];
 
+      // Prepare payload for debugging/logging
       const payload = {
         pickupLocation,
         pickupTimeOption,
@@ -178,33 +180,35 @@ const NewShipment = () => {
         deliveryTimeOption,
         deliveryDate,
         numberOfHorses: horsesCount,
-        additionalInfo,
+        additionalInfo: additionalInfo || "",
         horses: horseList.map((h) => ({
-          registeredName: h.registeredName,
-          barnName: h.barnName,
-          breed: h.breed,
-          colour: h.colour,
-          age: h.age,
-          sex: h.sex,
+          registeredName: h.registeredName || "",
+          barnName: h.barnName || "",
+          breed: h.breed || "",
+          colour: h.colour || "",
+          age: h.age || "",
+          sex: h.sex || "",
           photo: h.photo?.name || null,
           cogins: h.cogins?.name || null,
           healthCertificate: h.healthCertificate?.name || null,
-          generalInfo: h.generalInfo,
+          generalInfo: h.generalInfo || "",
         })),
       };
 
       console.log("Final shipment values before API call:", payload);
 
+      // Prepare FormData for backend submission
       const formData = new FormData();
-      formData.append("pickupLocation", pickupLocation);
-      formData.append("pickupTimeOption", pickupTimeOption);
-      formData.append("pickupDate", pickupDate);
-      formData.append("deliveryLocation", deliveryLocation);
-      formData.append("deliveryTimeOption", deliveryTimeOption);
-      formData.append("deliveryDate", deliveryDate);
+      formData.append("pickupLocation", pickupLocation || "");
+      formData.append("pickupTimeOption", pickupTimeOption || "");
+      formData.append("pickupDate", pickupDate || "");
+      formData.append("deliveryLocation", deliveryLocation || "");
+      formData.append("deliveryTimeOption", deliveryTimeOption || "");
+      formData.append("deliveryDate", deliveryDate || "");
       formData.append("numberOfHorses", horsesCount);
-      formData.append("additionalInfo", additionalInfo);
+      formData.append("additionalInfo", additionalInfo || "");
 
+      // Append horse fields and files
       horseList.forEach((h, idx) => {
         formData.append(
           `horses[${idx}][registeredName]`,
@@ -228,6 +232,7 @@ const NewShipment = () => {
           );
       });
 
+      // API call
       const response = await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/customer/shipments`,
         formData,
@@ -236,6 +241,7 @@ const NewShipment = () => {
 
       console.log("Shipment created:", response.data);
 
+      // Optional push notification
       if (response.data.success) {
         try {
           const notifResponse = await axios.post(
@@ -249,6 +255,7 @@ const NewShipment = () => {
         }
       }
 
+      // Open confirmation modal
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error creating shipment:", error);
