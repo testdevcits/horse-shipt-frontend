@@ -230,7 +230,7 @@ const NewShipment = () => {
 
       // Make API call
       const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/api/shipments`,
+        `${process.env.REACT_APP_API_BASE_URL}/shipments`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
