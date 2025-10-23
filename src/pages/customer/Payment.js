@@ -66,7 +66,6 @@ const Payment = () => {
     return newErrors;
   };
 
-  // Send OTP for update
   const handleSendOtp = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
