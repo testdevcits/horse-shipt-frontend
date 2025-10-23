@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Switch from "../../components/common/Switch";
 import Toast from "../../components/common/Toast";
+import { useCustomerNotifications } from "../../contexts/CustomerNotificationContext";
 
 const notificationsList = [
   { id: "newQuote", label: "When I receive a new quote" },
@@ -15,28 +16,22 @@ const notificationsList = [
 ];
 
 const CustomerNotifications = () => {
-  const [notifications, setNotifications] = useState(() => {
-    const initialState = {};
-    notificationsList.forEach((n) => {
-      initialState[n.id] = true;
-    });
-    return initialState;
-  });
-
+  const { notifications, updateNotification, loading } =
+    useCustomerNotifications();
   const [toast, setToast] = useState(null);
 
   const handleToggle = (id) => {
-    setNotifications((prev) => {
-      const newState = { ...prev, [id]: !prev[id] };
-      setToast({
-        message: `${notificationsList.find((n) => n.id === id).label} ${
-          newState[id] ? "enabled" : "disabled"
-        }`,
-        type: "success",
-      });
-      return newState;
+    const newValue = !notifications[id];
+    updateNotification(id, newValue);
+    setToast({
+      message: `${notificationsList.find((n) => n.id === id).label} ${
+        newValue ? "enabled" : "disabled"
+      }`,
+      type: "success",
     });
   };
+
+  if (loading || !notifications) return <p>Loading...</p>;
 
   return (
     <div className="max-w-full mx-auto p-4 sm:p-6 font-montserrat">
@@ -45,8 +40,7 @@ const CustomerNotifications = () => {
       </h1>
       <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-6">
         Notifications are customizable alerts that keep you updated about
-        specific activities in HorseShipt. They ensure you never miss anything
-        while you’re away.
+        specific activities in HorseShipt.
       </p>
 
       <div className="w-full flex flex-col space-y-4 p-4 border border-gray-200 rounded-xl bg-white">
@@ -58,7 +52,6 @@ const CustomerNotifications = () => {
             <span className="text-[14px] sm:text-sm md:text-base lg:text-lg text-gray-800 flex-1 break-words font-normal">
               {item.label}
             </span>
-
             <div className="flex-shrink-0 mt-1 sm:mt-0">
               <Switch
                 checked={notifications[item.id]}
