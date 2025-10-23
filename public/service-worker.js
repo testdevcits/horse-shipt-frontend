@@ -12,8 +12,8 @@ self.addEventListener("push", (event) => {
   const options = {
     body: data.body,
     icon: "/HorseShipt192.png", // Replace with your app icon
-    badge: "/HorseShipt192.png", // Optional: small badge icon
-    data: { url: data.url || "/" }, // Pass URL to notificationclick
+    badge: "/HorseShipt192.png", // Optional small badge icon
+    data: { url: data.url || "/" }, // URL to open on click
   };
 
   event.waitUntil(self.registration.showNotification(data.title, options));
