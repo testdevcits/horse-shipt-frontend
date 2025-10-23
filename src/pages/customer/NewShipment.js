@@ -22,7 +22,7 @@ const breeds = ["Arabian", "Thoroughbred", "Quarter Horse", "Warmblood"];
 const sexes = ["Male", "Female"];
 
 const NewShipment = () => {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -139,6 +139,7 @@ const NewShipment = () => {
   const handleNext = () => {
     if (!validateStep()) return;
     if (currentStep < steps.length) setCurrentStep((prev) => prev + 1);
+    else setIsModalOpen(true);
   };
 
   const handlePrevious = () => {
@@ -161,61 +162,54 @@ const NewShipment = () => {
     });
   };
 
+  // ---------------------- New: handleFinish ----------------------
   const handleFinish = async () => {
-    const shipmentData = {
-      customerId: user?._id,
-      pickupLocation,
-      pickupTimeOption,
-      pickupDate,
-      deliveryLocation,
-      deliveryTimeOption,
-      deliveryDate,
-      numberOfHorses,
-      horses,
-      additionalInfo,
-    };
-
-    console.log("Shipment Data:", shipmentData);
+    // Validate final step
+    if (!validateStep()) return;
 
     try {
+      // Example: Prepare form data
       const formData = new FormData();
-      Object.entries(shipmentData).forEach(([key, value]) => {
-        if (key === "horses") {
-          value.forEach((h, idx) => {
-            Object.entries(h).forEach(([hk, hv]) => {
-              if (hv instanceof File)
-                formData.append(`horses[${idx}][${hk}]`, hv);
-              else formData.append(`horses[${idx}][${hk}]`, hv);
-            });
-          });
-        } else {
-          formData.append(key, value);
-        }
+      formData.append("pickupLocation", pickupLocation);
+      formData.append("pickupTimeOption", pickupTimeOption);
+      formData.append("pickupDate", pickupDate);
+      formData.append("deliveryLocation", deliveryLocation);
+      formData.append("deliveryTimeOption", deliveryTimeOption);
+      formData.append("deliveryDate", deliveryDate);
+      formData.append("numberOfHorses", numberOfHorses);
+      formData.append("additionalInfo", additionalInfo);
+
+      horses.forEach((h, idx) => {
+        formData.append(`horses[${idx}][registeredName]`, h.registeredName);
+        formData.append(`horses[${idx}][barnName]`, h.barnName);
+        formData.append(`horses[${idx}][breed]`, h.breed);
+        formData.append(`horses[${idx}][colour]`, h.colour);
+        formData.append(`horses[${idx}][age]`, h.age);
+        formData.append(`horses[${idx}][sex]`, h.sex);
+        if (h.photo) formData.append(`horses[${idx}][photo]`, h.photo);
+        if (h.cogins) formData.append(`horses[${idx}][cogins]`, h.cogins);
+        if (h.healthCertificate)
+          formData.append(
+            `horses[${idx}][healthCertificate]`,
+            h.healthCertificate
+          );
+        formData.append(`horses[${idx}][generalInfo]`, h.generalInfo);
       });
 
-      await axios.post(
-        `${
-          process.env.REACT_APP_API_BASE_URL ||
-          "https://horse-shipt.vercel.app/api"
-        }/shipments`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // Example: API call
+      const response = await axios.post("/api/shipments", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
+      console.log("Shipment created:", response.data);
+
+      // Open modal
       setIsModalOpen(true);
     } catch (error) {
-      console.error(
-        "Error submitting shipment:",
-        error.response?.data || error.message
-      );
+      console.error("Error creating shipment:", error);
     }
   };
-
+  // ------------------------------------------------------------
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -587,35 +581,77 @@ const NewShipment = () => {
             ))}
           </div>
         );
+
       case 5:
         return (
           <div className="flex flex-col w-full gap-4">
-            <h3 className="font-semibold text-lg mb-2">Review your shipment</h3>
-            <pre className="bg-gray-100 p-3 rounded">
-              {JSON.stringify(
-                {
-                  pickupLocation,
-                  pickupTimeOption,
-                  pickupDate,
-                  deliveryLocation,
-                  deliveryTimeOption,
-                  deliveryDate,
-                  numberOfHorses,
-                  horses,
-                  additionalInfo,
-                },
-                null,
-                2
-              )}
-            </pre>
-            <button
-              onClick={handleFinish}
-              className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e]"
-            >
-              Finish & Submit
-            </button>
+            {/* Shipment Details */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
+              <div className="flex items-center gap-2">
+                <IoLocationOutline className="text-gray-500 text-lg" />
+                <p>
+                  <span className="font-semibold">Pickup:</span>{" "}
+                  {pickupLocation}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <LuCalendarDays className="text-gray-500 text-lg" />
+                <p>
+                  {pickupDate} ({pickupTimeOption})
+                </p>
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <IoLocationOutline className="text-gray-500 text-lg" />
+                <p>
+                  <span className="font-semibold">Delivery:</span>{" "}
+                  {deliveryLocation}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <LuCalendarDays className="text-gray-500 text-lg" />
+                <p>
+                  {deliveryDate} ({deliveryTimeOption})
+                </p>
+              </div>
+
+              <button
+                className="flex items-center gap-2 text-blue-500 hover:underline mt-2"
+                onClick={() => setCurrentStep(1)} // Move to Step 1
+              >
+                <FiEdit3 /> Edit details
+              </button>
+            </div>
+
+            {/* Horses & Additional Info */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm mt-4 space-y-2">
+              <p className="font-semibold">
+                Number of horses: {numberOfHorses}
+              </p>
+              {horses.map((h, idx) => (
+                <div key={idx} className="border p-3 rounded-md">
+                  <p className="font-semibold mb-1">
+                    Horse {idx + 1}: {h.registeredName || "Unnamed"}
+                  </p>
+                  <p>
+                    Breed: {h.breed || "N/A"}, Colour: {h.colour || "N/A"}, Age:{" "}
+                    {h.age || "N/A"}, Sex: {h.sex || "N/A"}
+                  </p>
+                  <div>Photo: {h.photo?.name || "N/A"}</div>
+                  <div>Cog-ins: {h.cogins?.name || "N/A"}</div>
+                  <div>
+                    Health Certificate: {h.healthCertificate?.name || "N/A"}
+                  </div>
+                  <div>General Info: {h.generalInfo || "N/A"}</div>
+                </div>
+              ))}
+              <div className="mt-2">
+                <p className="font-semibold">Additional Info:</p>
+                <p>{additionalInfo || "N/A"}</p>
+              </div>
+            </div>
           </div>
         );
+
       default:
         return null;
     }
@@ -668,7 +704,7 @@ const NewShipment = () => {
       </div>
 
       {/* Step Title */}
-      <div className="w-full max-w-5xl px-4 mb-4 mt-4">
+      <div className="w-full max-w-5xl px-4 mb-4">
         <p className="font-montserrat text-xl font-semibold text-gray-700">
           {steps[currentStep - 1].title}
         </p>
@@ -691,7 +727,13 @@ const NewShipment = () => {
           Previous
         </button>
         <button
-          onClick={handleNext}
+          onClick={() => {
+            if (currentStep === steps.length) {
+              handleFinish(); // Call finish function
+            } else {
+              handleNext(); // Go to next step
+            }
+          }}
           className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e]"
         >
           {currentStep === steps.length ? "Finish" : "Next"}
