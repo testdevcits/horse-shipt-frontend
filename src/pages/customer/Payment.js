@@ -1,63 +1,41 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useCustomerPayment } from "../../contexts/CustomerPaymentContext";
 import Button from "../../components/common/Button";
 import Toast from "../../components/common/Toast";
-import axios from "axios";
 import stripeLogo from "../../assets/images/stripeLogo.png";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const Payment = () => {
   const { user } = useAuth();
+  const {
+    paymentData,
+    fetchPayment,
+    sendOtp,
+    verifyOtp,
+    loading,
+    otpSent,
+    otpCooldown,
+    setOtpSent,
+    setOtpCooldown,
+  } = useCustomerPayment();
 
-  const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
-  const [paymentData, setPaymentData] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCooldown, setOtpCooldown] = useState(0);
   const [otp, setOtp] = useState("");
   const [formData, setFormData] = useState({ pkLive: "", skLive: "" });
   const [errors, setErrors] = useState({});
 
-  const isUpdate = !!paymentData; // true if payment exists
-
-  // ---------------- Fetch payment ----------------
-  const fetchPayment = async () => {
-    if (!user?._id || !user?.token) return;
-    try {
-      const res = await axios.get(`${API_BASE_URL}/customer/payment`, {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-
-      if (res.data?.data) {
-        setPaymentData(res.data.data);
-        setFormData({
-          pkLive: res.data.data.pkLive,
-          skLive: res.data.data.skLive,
-        });
-      } else {
-        setPaymentData(null);
-      }
-    } catch (err) {
-      console.error(err.response || err.message);
-      setPaymentData(null);
-    }
-  };
-
+  // ---------------- Fetch payment on user login ----------------
   useEffect(() => {
     fetchPayment();
   }, [user]);
 
-  // ---------------- OTP cooldown timer ----------------
+  // ---------------- Set form data if payment exists ----------------
   useEffect(() => {
-    let timer;
-    if (otpCooldown > 0) {
-      timer = setInterval(() => setOtpCooldown((prev) => prev - 1), 1000);
+    if (paymentData) {
+      setFormData({ pkLive: paymentData.pkLive, skLive: paymentData.skLive });
     }
-    return () => clearInterval(timer);
-  }, [otpCooldown]);
+  }, [paymentData]);
 
   const showToast = (message, type = "info") => setToast({ message, type });
 
@@ -75,7 +53,7 @@ const Payment = () => {
     return newErrors;
   };
 
-  // ---------------- Send OTP for new or update ----------------
+  // ---------------- Send OTP ----------------
   const handleSendOtp = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -83,49 +61,40 @@ const Payment = () => {
       return;
     }
 
-    try {
-      setLoading(true);
-      await axios.post(
-        `${API_BASE_URL}/customer/payment/request-otp`,
-        { pkLive: formData.pkLive, skLive: formData.skLive },
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
+    const paymentId = paymentData?._id || null; // pass existing paymentId if updating
+    const res = await sendOtp({
+      pkLive: formData.pkLive,
+      skLive: formData.skLive,
+      paymentId,
+    });
+
+    if (res.success) {
       showToast("OTP sent to your email.", "success");
-      setOtpSent(true);
-      setOtpCooldown(30);
       setShowForm(true);
-    } catch (err) {
-      console.error(err.response || err.message);
-      showToast(err.response?.data?.message || "Failed to send OTP", "error");
-    } finally {
-      setLoading(false);
+    } else {
+      showToast(res.message, "error");
     }
   };
 
-  // ---------------- Verify OTP & save payment ----------------
+  // ---------------- Verify OTP ----------------
   const handleVerifyOtp = async () => {
     if (!otp) return showToast("Please enter OTP", "error");
 
-    try {
-      setLoading(true);
-      const res = await axios.post(
-        `${API_BASE_URL}/customer/payment/verify-otp`,
-        { otp, pkLive: formData.pkLive, skLive: formData.skLive },
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
-      setPaymentData(res.data.data);
-      showToast(res.data.message || "Payment saved successfully!", "success");
+    const paymentId = paymentData?._id || null;
+    const res = await verifyOtp({
+      otp,
+      pkLive: formData.pkLive,
+      skLive: formData.skLive,
+      paymentId,
+    });
+
+    if (res.success) {
+      showToast(res.message, "success");
       setOtp("");
       setOtpSent(false);
       setShowForm(false);
-    } catch (err) {
-      console.error(err.response || err.message);
-      showToast(
-        err.response?.data?.message || "OTP verification failed",
-        "error"
-      );
-    } finally {
-      setLoading(false);
+    } else {
+      showToast(res.message, "error");
     }
   };
 
