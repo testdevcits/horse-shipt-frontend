@@ -8,6 +8,7 @@ import { IoLocationOutline } from "react-icons/io5";
 import { LuCalendarDays } from "react-icons/lu";
 import { FiEdit3 } from "react-icons/fi";
 import axios from "axios";
+import Toast from "../../components/common/Toast";
 
 const steps = [
   { id: 1, title: "Pickup" },
@@ -167,7 +168,7 @@ const NewShipment = () => {
     if (!validateStep()) return;
 
     try {
-      // Prepare payload object for logging
+      //  Prepare payload for logging/debugging
       const payload = {
         pickupLocation,
         pickupTimeOption,
@@ -193,10 +194,9 @@ const NewShipment = () => {
         })),
       };
 
-      // Log all values BEFORE API call
-      console.log("🚀 Final shipment values before API call:", payload);
+      console.log("Final shipment values before API call:", payload);
 
-      // Prepare FormData for API
+      // Prepare FormData for API submission
       const formData = new FormData();
       formData.append("pickupLocation", pickupLocation);
       formData.append("pickupTimeOption", pickupTimeOption);
@@ -208,20 +208,24 @@ const NewShipment = () => {
       formData.append("additionalInfo", additionalInfo);
 
       horses.forEach((h, idx) => {
-        formData.append(`horses[${idx}][registeredName]`, h.registeredName);
-        formData.append(`horses[${idx}][barnName]`, h.barnName);
-        formData.append(`horses[${idx}][breed]`, h.breed);
-        formData.append(`horses[${idx}][colour]`, h.colour);
-        formData.append(`horses[${idx}][age]`, h.age);
-        formData.append(`horses[${idx}][sex]`, h.sex);
-        if (h.photo) formData.append(`horses[${idx}][photo]`, h.photo);
-        if (h.cogins) formData.append(`horses[${idx}][cogins]`, h.cogins);
-        if (h.healthCertificate)
-          formData.append(
-            `horses[${idx}][healthCertificate]`,
-            h.healthCertificate
-          );
-        formData.append(`horses[${idx}][generalInfo]`, h.generalInfo);
+        try {
+          formData.append(`horses[${idx}][registeredName]`, h.registeredName);
+          formData.append(`horses[${idx}][barnName]`, h.barnName);
+          formData.append(`horses[${idx}][breed]`, h.breed);
+          formData.append(`horses[${idx}][colour]`, h.colour);
+          formData.append(`horses[${idx}][age]`, h.age);
+          formData.append(`horses[${idx}][sex]`, h.sex);
+          if (h.photo) formData.append(`horses[${idx}][photo]`, h.photo);
+          if (h.cogins) formData.append(`horses[${idx}][cogins]`, h.cogins);
+          if (h.healthCertificate)
+            formData.append(
+              `horses[${idx}][healthCertificate]`,
+              h.healthCertificate
+            );
+          formData.append(`horses[${idx}][generalInfo]`, h.generalInfo);
+        } catch (err) {
+          console.warn(`Skipping horse index ${idx} due to error:`, err);
+        }
       });
 
       // Make API call
@@ -233,10 +237,12 @@ const NewShipment = () => {
 
       console.log("Shipment created:", response.data);
 
-      // Open modal
+      // Open confirmation modal
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error creating shipment:", error);
+      // Optional: show toast or alert
+      Toast.error("Failed to create shipment. Please try again.");
     }
   };
 
