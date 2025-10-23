@@ -708,7 +708,7 @@ const NewShipment = () => {
   };
 
   return (
-    <div className="w-full flex flex-col items-center relative py-10 bg-gray-50 min-h-screen">
+    <div className="w-full flex flex-col items-center relative py-10 ">
       {/* Stepper */}
       <div className="w-full max-w-4xl flex gap-2 relative mb-10 px-4 items-center">
         {steps.map((step, index) => {
