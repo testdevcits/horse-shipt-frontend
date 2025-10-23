@@ -164,11 +164,11 @@ const NewShipment = () => {
 
   // ---------------------- New: handleFinish ----------------------
   const handleFinish = async () => {
-    // Validate final step
+    // 1️⃣ Validate final step
     if (!validateStep()) return;
 
     try {
-      //  Prepare payload for logging/debugging
+      // 2️⃣ Prepare payload for debugging
       const payload = {
         pickupLocation,
         pickupTimeOption,
@@ -176,7 +176,7 @@ const NewShipment = () => {
         deliveryLocation,
         deliveryTimeOption,
         deliveryDate,
-        numberOfHorses,
+        numberOfHorses: Number(numberOfHorses),
         additionalInfo,
         horses: horses.map((h) => ({
           registeredName: h.registeredName,
@@ -196,7 +196,7 @@ const NewShipment = () => {
 
       console.log("Final shipment values before API call:", payload);
 
-      // Prepare FormData for API submission
+      // 3️⃣ Prepare FormData for API submission
       const formData = new FormData();
       formData.append("pickupLocation", pickupLocation);
       formData.append("pickupTimeOption", pickupTimeOption);
@@ -204,31 +204,34 @@ const NewShipment = () => {
       formData.append("deliveryLocation", deliveryLocation);
       formData.append("deliveryTimeOption", deliveryTimeOption);
       formData.append("deliveryDate", deliveryDate);
-      formData.append("numberOfHorses", numberOfHorses);
+      formData.append("numberOfHorses", Number(numberOfHorses));
       formData.append("additionalInfo", additionalInfo);
 
+      // Append horses fields and files
       horses.forEach((h, idx) => {
-        try {
-          formData.append(`horses[${idx}][registeredName]`, h.registeredName);
-          formData.append(`horses[${idx}][barnName]`, h.barnName);
-          formData.append(`horses[${idx}][breed]`, h.breed);
-          formData.append(`horses[${idx}][colour]`, h.colour);
-          formData.append(`horses[${idx}][age]`, h.age);
-          formData.append(`horses[${idx}][sex]`, h.sex);
-          if (h.photo) formData.append(`horses[${idx}][photo]`, h.photo);
-          if (h.cogins) formData.append(`horses[${idx}][cogins]`, h.cogins);
-          if (h.healthCertificate)
-            formData.append(
-              `horses[${idx}][healthCertificate]`,
-              h.healthCertificate
-            );
-          formData.append(`horses[${idx}][generalInfo]`, h.generalInfo);
-        } catch (err) {
-          console.warn(`Skipping horse index ${idx} due to error:`, err);
-        }
+        formData.append(
+          `horses[${idx}][registeredName]`,
+          h.registeredName || ""
+        );
+        formData.append(`horses[${idx}][barnName]`, h.barnName || "");
+        formData.append(`horses[${idx}][breed]`, h.breed || "");
+        formData.append(`horses[${idx}][colour]`, h.colour || "");
+        formData.append(`horses[${idx}][age]`, h.age || "");
+        formData.append(`horses[${idx}][sex]`, h.sex || "");
+        formData.append(`horses[${idx}][generalInfo]`, h.generalInfo || "");
+
+        if (h.photo instanceof File)
+          formData.append(`horses[${idx}][photo]`, h.photo);
+        if (h.cogins instanceof File)
+          formData.append(`horses[${idx}][cogins]`, h.cogins);
+        if (h.healthCertificate instanceof File)
+          formData.append(
+            `horses[${idx}][healthCertificate]`,
+            h.healthCertificate
+          );
       });
 
-      // Make API call
+      // 4️⃣ Make API call
       const response = await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/customer/shipments`,
         formData,
@@ -237,11 +240,24 @@ const NewShipment = () => {
 
       console.log("Shipment created:", response.data);
 
-      // Open confirmation modal
+      // 5️⃣ Optionally send push notification after creation
+      if (response.data.success) {
+        try {
+          const notifResponse = await axios.post(
+            `${process.env.REACT_APP_API_BASE_URL}/customer/test-notification`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          console.log("Test notification sent:", notifResponse.data);
+        } catch (notifErr) {
+          console.warn("Failed to send notification:", notifErr);
+        }
+      }
+
+      // 6️⃣ Open confirmation modal
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error creating shipment:", error);
-      // Optional: show toast or alert
       Toast.error("Failed to create shipment. Please try again.");
     }
   };
@@ -625,11 +641,9 @@ const NewShipment = () => {
             {/* Shipment Details */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
               <div className="flex items-center gap-2">
+                <span className="font-semibold">Pickup:</span>{" "}
                 <IoLocationOutline className="text-gray-500 text-lg" />
-                <p>
-                  <span className="font-semibold">Pickup:</span>{" "}
-                  {pickupLocation}
-                </p>
+                <p>{pickupLocation}</p>
               </div>
               <div className="flex items-center gap-2">
                 <LuCalendarDays className="text-gray-500 text-lg" />
@@ -638,21 +652,19 @@ const NewShipment = () => {
                 </p>
               </div>
               <div className="flex items-center gap-2 mt-2">
+                <span className="font-semibold">Delivery:</span>{" "}
                 <IoLocationOutline className="text-gray-500 text-lg" />
-                <p>
-                  <span className="font-semibold">Delivery:</span>{" "}
-                  {deliveryLocation}
-                </p>
+                <p>{deliveryLocation}</p>
               </div>
               <div className="flex items-center gap-2">
                 <LuCalendarDays className="text-gray-500 text-lg" />
                 <p>
-                  {deliveryDate} ({deliveryTimeOption})
+                  ({deliveryTimeOption}) {deliveryDate}
                 </p>
               </div>
 
               <button
-                className="flex items-center gap-2 text-blue-500 hover:underline mt-2"
+                className="flex items-center gap-2 text-gray-300  mt-2"
                 onClick={() => setCurrentStep(1)} // Move to Step 1
               >
                 <FiEdit3 /> Edit details
@@ -665,7 +677,7 @@ const NewShipment = () => {
                 Number of horses: {numberOfHorses}
               </p>
               {horses.map((h, idx) => (
-                <div key={idx} className="border p-3 rounded-md">
+                <div key={idx} className="rounded-md">
                   <p className="font-semibold mb-1">
                     Horse {idx + 1}: {h.registeredName || "Unnamed"}
                   </p>
