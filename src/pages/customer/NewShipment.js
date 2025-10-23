@@ -543,10 +543,43 @@ const NewShipment = () => {
   return (
     <div className="w-full flex flex-col items-center relative py-10 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="flex justify-between w-full max-w-5xl px-4 mb-6 items-center">
-        <img src={logoMobile} alt="Logo" className="h-12" />
+      <div className="w-full max-w-4xl flex gap-2 relative mb-10 px-4 items-center">
+        {steps.map((step, index) => {
+          const isCompleted = currentStep > step.id;
+          const isCurrent = currentStep === step.id;
+          return (
+            <div key={step.id} className="flex-1 flex justify-center relative">
+              {isCurrent && (
+                <img
+                  src={logoMobile}
+                  alt="Step Logo"
+                  className="absolute -top-10 w-12 h-12 object-contain z-10"
+                />
+              )}
+              {index <= steps.length - 1 && (
+                <div
+                  className={`absolute top-5 left-0 w-full h-2 rounded-full ${
+                    isCompleted
+                      ? "bg-[#BF9B53]"
+                      : isCurrent
+                      ? "bg-[#4C3E21]"
+                      : "bg-gray-300"
+                  }`}
+                  style={{ zIndex: 0 }}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Step Header */}
+      <div className="flex flex-row justify-between w-full max-w-5xl gap-2 relative mt-4 items-center px-4">
+        <div className="font-montserrat font-semibold text-[20px] leading-[30px] tracking-[0%]">
+          New Shipment
+        </div>
         <div
-          className="text-gray-500 cursor-pointer font-semibold"
+          className="font-montserrat cursor-pointer text-gray-500"
           onClick={handleCancel}
         >
           Cancel
