@@ -54,9 +54,9 @@ const CustomerLayout = () => {
         <div className="flex items-center gap-4 relative">
           {/* Notification Bell with Count */}
           <div className="relative cursor-pointer">
-            <MdOutlineNotificationsActive size={24} className="text-gray-500" />
+            <MdOutlineNotificationsActive size={24} />
             {notificationCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center text-[10px] font-bold text-white bg-red-600 rounded-full">
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                 {notificationCount}
               </span>
             )}
