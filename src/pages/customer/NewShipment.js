@@ -22,9 +22,8 @@ const breeds = ["Arabian", "Thoroughbred", "Quarter Horse", "Warmblood"];
 const sexes = ["Male", "Female"];
 
 const NewShipment = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
-
+  const { token } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
 
   // Step 1: Pickup
@@ -197,9 +196,11 @@ const NewShipment = () => {
       });
 
       // Example: API call
-      const response = await axios.post("/api/shipments", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/shipments`,
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       console.log("Shipment created:", response.data);
 
@@ -704,7 +705,7 @@ const NewShipment = () => {
       </div>
 
       {/* Step Title */}
-      <div className="w-full max-w-5xl px-4 mb-4">
+      <div className="w-full max-w-5xl px-4 mb-4 mt-4">
         <p className="font-montserrat text-xl font-semibold text-gray-700">
           {steps[currentStep - 1].title}
         </p>
