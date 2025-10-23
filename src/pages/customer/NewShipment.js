@@ -565,42 +565,82 @@ const NewShipment = () => {
 
   return (
     <div className="w-full flex flex-col items-center relative py-10 bg-gray-50 min-h-screen">
-      <div className="flex w-full max-w-5xl justify-between items-center px-4 mb-6">
-        <img src={logoMobile} alt="Logo" className="h-10" />
-        <button
-          onClick={handleCancel}
-          className="text-gray-500 hover:text-gray-800"
-        >
-          Cancel
-        </button>
-      </div>
-      <div className="flex w-full max-w-5xl flex-col gap-6 px-4">
-        <div className="flex gap-2 items-center text-gray-600 font-semibold mb-4">
-          <span>
-            Step {currentStep} of {steps.length}:
-          </span>
-          <span className="mt-4">{steps[currentStep - 1].title}</span>
-        </div>
-        {renderStepContent()}
-        {currentStep !== 5 && (
-          <div className="flex w-full justify-between mt-6 px-4">
-            <button
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-              className="px-6 py-2 rounded-lg border border-gray-300 bg-white text-gray-500 hover:bg-[#BF9B53] hover:text-white"
-            >
-              Previous
-            </button>
-            <button
-              onClick={handleNext}
-              className="px-6 py-2 rounded-lg bg-[#BF9B53] text-white hover:bg-[#a7863e]"
-            >
-              Next
-            </button>
-          </div>
-        )}
+      {/* Stepper */}
+      <div className="w-full max-w-4xl flex gap-2 relative mb-10 px-4 items-center">
+        {steps.map((step, index) => {
+          const isCompleted = currentStep > step.id;
+          const isCurrent = currentStep === step.id;
+          return (
+            <div key={step.id} className="flex-1 flex justify-center relative">
+              {isCurrent && (
+                <img
+                  src={logoMobile}
+                  alt="Step Logo"
+                  className="absolute -top-10 w-12 h-12 object-contain z-10"
+                />
+              )}
+              {index <= steps.length - 1 && (
+                <div
+                  className={`absolute top-5 left-0 w-full h-2 rounded-full ${
+                    isCompleted
+                      ? "bg-[#BF9B53]"
+                      : isCurrent
+                      ? "bg-[#4C3E21]"
+                      : "bg-gray-300"
+                  }`}
+                  style={{ zIndex: 0 }}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
 
+      {/* Header */}
+      <div className="flex flex-row justify-between w-full max-w-5xl gap-2 relative mt-4 items-center px-4">
+        <div className="font-montserrat font-semibold text-[20px] leading-[30px] tracking-[0%]">
+          New Shipment
+        </div>
+        <div
+          className="font-montserrat cursor-pointer text-gray-500"
+          onClick={handleCancel}
+        >
+          Cancel
+        </div>
+      </div>
+
+      {/* Step Title */}
+      <div className="w-full max-w-5xl px-4 mb-4 mt-4">
+        <p className="font-montserrat text-xl font-semibold text-gray-700">
+          {steps[currentStep - 1].title}
+        </p>
+      </div>
+
+      {/* Step Content */}
+      <div className="w-full max-w-5xl px-4">{renderStepContent()}</div>
+
+      {/* Navigation Buttons */}
+      <div className="flex w-full max-w-5xl justify-between md:justify-end gap-4 mt-6 px-4">
+        <button
+          onClick={handlePrevious}
+          disabled={currentStep === 1}
+          className={`px-6 py-2 rounded-lg font-montserrat border ${
+            currentStep === 1
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-white text-gray-500 border-gray-300 hover:bg-[#BF9B53] hover:text-white"
+          }`}
+        >
+          Previous
+        </button>
+        <button
+          onClick={handleNext}
+          className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e]"
+        >
+          {currentStep === steps.length ? "Finish" : "Next"}
+        </button>
+      </div>
+
+      {/* Modal */}
       {isModalOpen && (
         <ModalOfferPublished
           isOpen={isModalOpen}
