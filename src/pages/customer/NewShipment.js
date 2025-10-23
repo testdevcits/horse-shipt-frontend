@@ -242,18 +242,18 @@ const NewShipment = () => {
       console.log("Shipment created:", response.data);
 
       // Optional push notification
-      if (response.data.success) {
-        try {
-          const notifResponse = await axios.post(
-            `${process.env.REACT_APP_API_BASE_URL}/customer/test-notification`,
-            {},
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          console.log("Test notification sent:", notifResponse.data);
-        } catch (notifErr) {
-          console.warn("Failed to send notification:", notifErr);
-        }
-      }
+      // if (response.data.success) {
+      //   try {
+      //     const notifResponse = await axios.post(
+      //       `${process.env.REACT_APP_API_BASE_URL}/customer/test-notification`,
+      //       {},
+      //       { headers: { Authorization: `Bearer ${token}` } }
+      //     );
+      //     console.log("Test notification sent:", notifResponse.data);
+      //   } catch (notifErr) {
+      //     console.warn("Failed to send notification:", notifErr);
+      //   }
+      // }
 
       // Open confirmation modal
       setIsModalOpen(true);
