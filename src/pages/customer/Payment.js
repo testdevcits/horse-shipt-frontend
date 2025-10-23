@@ -21,19 +21,26 @@ const Payment = () => {
   const [formData, setFormData] = useState({ pkLive: "", skLive: "" });
   const [errors, setErrors] = useState({});
 
+  // Fetch existing payment setup
   const fetchPayment = async () => {
     if (!user?._id || !user?.token) return;
     try {
       const res = await axios.get(`${API_BASE_URL}/customer/payment`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
-      setPaymentData(res.data.data);
-      setFormData({
-        pkLive: res.data.data.pkLive,
-        skLive: res.data.data.skLive,
-      });
+
+      if (res.data?.data) {
+        setPaymentData(res.data.data);
+        setFormData({
+          pkLive: res.data.data.pkLive,
+          skLive: res.data.data.skLive,
+        });
+      } else {
+        setShowUpdateForm(true); // Show form if no data
+      }
     } catch (err) {
       console.error(err.response || err.message);
+      setShowUpdateForm(true); // Show form if error or no payment found
     }
   };
 
@@ -66,6 +73,7 @@ const Payment = () => {
     return newErrors;
   };
 
+  // Send OTP for update or create
   const handleSendOtp = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -122,9 +130,25 @@ const Payment = () => {
   return (
     <div className="flex flex-col items-center justify-center font-montserrat">
       <div className="w-full sm:p-8 max-w-md">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">
-          Payment
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 text-center">
+          Payment Setup
         </h1>
+
+        {/* No Payment Data - Show New Form */}
+        {!paymentData && !showUpdateForm && (
+          <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg text-center shadow-sm">
+            <p className="text-gray-600 mb-2">
+              No payment details found. Please set up your payment method.
+            </p>
+            <Button
+              onClick={() => setShowUpdateForm(true)}
+              variant="primary"
+              rounded
+            >
+              Add Payment
+            </Button>
+          </div>
+        )}
 
         {/* Existing Payment */}
         {paymentData && !showUpdateForm && (
@@ -152,9 +176,9 @@ const Payment = () => {
           </div>
         )}
 
-        {/* Payment Update Form */}
+        {/* Payment Form (Create or Update) */}
         {showUpdateForm && (
-          <div className="space-y-4 mt-4">
+          <div className="space-y-4 mt-4 bg-white shadow-md p-4 rounded-lg border border-gray-200">
             {!otpSent ? (
               <>
                 <div>
@@ -166,6 +190,7 @@ const Payment = () => {
                     name="pkLive"
                     value={formData.pkLive}
                     onChange={handleChange}
+                    placeholder="Enter your pk_live_ key"
                     className="w-full border border-gray-300 rounded-lg p-2 outline-none"
                   />
                   {errors.pkLive && (
@@ -182,6 +207,7 @@ const Payment = () => {
                     name="skLive"
                     value={formData.skLive}
                     onChange={handleChange}
+                    placeholder="Enter your sk_live_ key"
                     className="w-full border border-gray-300 rounded-lg p-2 outline-none"
                   />
                   {errors.skLive && (
@@ -208,18 +234,19 @@ const Payment = () => {
                     type="text"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
+                    placeholder="Enter OTP sent to your email"
                     className="w-full border border-gray-300 rounded-lg p-2 outline-none"
                   />
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-between">
                   <Button
                     onClick={handleVerifyOtp}
                     disabled={loading}
                     variant="primary"
                     rounded
                   >
-                    {loading ? "Verifying..." : "Verify OTP & Update"}
+                    {loading ? "Verifying..." : "Verify & Save"}
                   </Button>
 
                   <Button
@@ -232,13 +259,13 @@ const Payment = () => {
                   >
                     Cancel
                   </Button>
-
-                  {otpCooldown > 0 && (
-                    <p className="text-gray-500 text-sm">
-                      Resend in {otpCooldown}s
-                    </p>
-                  )}
                 </div>
+
+                {otpCooldown > 0 && (
+                  <p className="text-gray-500 text-sm text-center mt-2">
+                    Resend in {otpCooldown}s
+                  </p>
+                )}
               </>
             )}
           </div>
