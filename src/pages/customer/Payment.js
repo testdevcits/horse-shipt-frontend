@@ -21,7 +21,6 @@ const Payment = () => {
   const [formData, setFormData] = useState({ pkLive: "", skLive: "" });
   const [errors, setErrors] = useState({});
 
-  // Fetch existing payment
   const fetchPayment = async () => {
     if (!user?._id || !user?.token) return;
     try {
