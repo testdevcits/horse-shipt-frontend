@@ -1,7 +1,16 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css"; // <- Tailwind ko import karo
 import App from "./App";
+import "./index.css";
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .register("/service-worker.js")
+    .then((registration) => {
+      console.log("Service Worker registered:", registration);
+    })
+    .catch((err) => console.error("Service Worker registration failed:", err));
+}
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

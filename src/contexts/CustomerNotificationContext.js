@@ -2,6 +2,16 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import axios from "axios";
 
+// Utils
+const urlBase64ToUint8Array = (base64String) => {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, "+")
+    .replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  return new Uint8Array([...rawData].map((char) => char.charCodeAt(0)));
+};
+
 const CustomerNotificationContext = createContext();
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
@@ -12,6 +22,7 @@ export const CustomerNotificationProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ---------------- Fetch notification settings ----------------
   const fetchNotifications = async () => {
     if (!user || !token) return;
     setLoading(true);
@@ -29,6 +40,7 @@ export const CustomerNotificationProvider = ({ children }) => {
     }
   };
 
+  // ---------------- Update a single notification ----------------
   const updateNotification = async (type, value) => {
     if (!user || !token) return;
     try {
@@ -45,8 +57,37 @@ export const CustomerNotificationProvider = ({ children }) => {
     }
   };
 
+  // ---------------- Subscribe to push notifications ----------------
+  const subscribeToPush = async () => {
+    if (!("serviceWorker" in navigator) || !token) return;
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(
+          process.env.REACT_APP_VAPID_PUBLIC_KEY
+        ),
+      });
+
+      await axios.post(
+        `${API_BASE_URL}/customer/notifications/subscribe`,
+        { subscription },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("Subscribed to push notifications successfully!");
+    } catch (err) {
+      console.error("Push subscription failed:", err);
+    }
+  };
+
+  // ---------------- Effect: fetch notifications + subscribe ----------------
   useEffect(() => {
-    fetchNotifications();
+    if (user && token) {
+      fetchNotifications();
+      subscribeToPush();
+    }
   }, [user, token]);
 
   return (

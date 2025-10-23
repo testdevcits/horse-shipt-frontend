@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import Switch from "../../components/common/Switch";
 import Toast from "../../components/common/Toast";
 import { useCustomerNotifications } from "../../contexts/CustomerNotificationContext";
+import axios from "axios";
+import { useAuth } from "../../contexts/AuthContext";
 
 const notificationsList = [
   { id: "newQuote", label: "When I receive a new quote" },
@@ -18,6 +20,7 @@ const notificationsList = [
 const CustomerNotifications = () => {
   const { notifications, updateNotification, loading } =
     useCustomerNotifications();
+  const { token } = useAuth();
   const [toast, setToast] = useState(null);
 
   const handleToggle = (id) => {
@@ -31,6 +34,22 @@ const CustomerNotifications = () => {
     });
   };
 
+  // ---------------- Test Notification ----------------
+  const sendTestNotification = async () => {
+    if (!token) return;
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/customer/test-notification`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setToast({ message: "Test notification sent!", type: "success" });
+    } catch (err) {
+      console.error(err);
+      setToast({ message: "Failed to send test notification", type: "error" });
+    }
+  };
+
   if (loading || !notifications) return <p>Loading...</p>;
 
   return (
@@ -42,6 +61,16 @@ const CustomerNotifications = () => {
         Notifications are customizable alerts that keep you updated about
         specific activities in HorseShipt.
       </p>
+
+      {/* Test Notification Button */}
+      <div className="mb-4">
+        <button
+          onClick={sendTestNotification}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
+          Send Test Notification
+        </button>
+      </div>
 
       <div className="w-full flex flex-col space-y-4 p-4 border border-gray-200 rounded-xl bg-white">
         {notificationsList.map((item) => (
