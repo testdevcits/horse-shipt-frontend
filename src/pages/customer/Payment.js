@@ -21,7 +21,9 @@ const Payment = () => {
   const [formData, setFormData] = useState({ pkLive: "", skLive: "" });
   const [errors, setErrors] = useState({});
 
-  // Fetch payment details
+  const isUpdate = !!paymentData; // true if payment exists
+
+  // ---------------- Fetch payment ----------------
   const fetchPayment = async () => {
     if (!user?._id || !user?.token) return;
     try {
@@ -48,7 +50,7 @@ const Payment = () => {
     fetchPayment();
   }, [user]);
 
-  // OTP cooldown timer
+  // ---------------- OTP cooldown timer ----------------
   useEffect(() => {
     let timer;
     if (otpCooldown > 0) {
@@ -73,6 +75,36 @@ const Payment = () => {
     return newErrors;
   };
 
+  // ---------------- Add new payment (no OTP) ----------------
+  const handleAddPayment = async () => {
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await axios.post(
+        `${API_BASE_URL}/customer/payment`,
+        { pkLive: formData.pkLive, skLive: formData.skLive },
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      setPaymentData(res.data.data);
+      showToast(res.data.message || "Payment added successfully!", "success");
+      setFormData({ pkLive: "", skLive: "" });
+    } catch (err) {
+      console.error(err.response || err.message);
+      showToast(
+        err.response?.data?.message || "Failed to add payment",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ---------------- Send OTP for update ----------------
   const handleSendOtp = async () => {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -89,7 +121,7 @@ const Payment = () => {
       );
       showToast("OTP sent to your email.", "success");
       setOtpSent(true);
-      setOtpCooldown(30); // 30 sec cooldown
+      setOtpCooldown(30);
     } catch (err) {
       console.error(err.response || err.message);
       showToast(err.response?.data?.message || "Failed to send OTP", "error");
@@ -98,6 +130,7 @@ const Payment = () => {
     }
   };
 
+  // ---------------- Verify OTP & update ----------------
   const handleVerifyOtp = async () => {
     if (!otp) return showToast("Please enter OTP", "error");
 
@@ -108,12 +141,11 @@ const Payment = () => {
         { otp, pkLive: formData.pkLive, skLive: formData.skLive },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
-      showToast(res.data.message || "Payment updated successfully!", "success");
       setPaymentData(res.data.data);
-      setShowUpdateForm(false);
+      showToast(res.data.message || "Payment updated successfully!", "success");
       setOtp("");
       setOtpSent(false);
-      setErrors({});
+      setShowUpdateForm(false);
     } catch (err) {
       console.error(err.response || err.message);
       showToast(
@@ -132,7 +164,7 @@ const Payment = () => {
           Payment Details
         </h1>
 
-        {/* 1️⃣ Existing Payment Data */}
+        {/* ---------------- Existing Payment ---------------- */}
         {paymentData && !showUpdateForm && (
           <div className="bg-gray-100 p-4 rounded-lg text-center space-y-3">
             <img
@@ -163,7 +195,7 @@ const Payment = () => {
           </div>
         )}
 
-        {/* 2️⃣ New Payment Form (if no data) OR Update Form */}
+        {/* ---------------- Add / Update Form ---------------- */}
         {(!paymentData || showUpdateForm) && (
           <div className="mt-4 space-y-4">
             {!otpSent ? (
@@ -203,13 +235,19 @@ const Payment = () => {
                 </div>
 
                 <Button
-                  onClick={handleSendOtp}
+                  onClick={isUpdate ? handleSendOtp : handleAddPayment}
                   disabled={loading}
                   variant="primary"
                   rounded
                   className="w-full sm:w-auto"
                 >
-                  {loading ? "Sending OTP..." : "Send OTP"}
+                  {loading
+                    ? isUpdate
+                      ? "Sending OTP..."
+                      : "Adding Payment..."
+                    : isUpdate
+                    ? "Send OTP"
+                    : "Add Payment"}
                 </Button>
               </>
             ) : (
@@ -262,7 +300,7 @@ const Payment = () => {
         )}
       </div>
 
-      {/* Toast Notification */}
+      {/* ---------------- Toast Notification ---------------- */}
       {toast && (
         <Toast
           message={toast.message}
