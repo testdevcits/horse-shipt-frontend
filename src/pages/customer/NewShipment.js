@@ -10,12 +10,11 @@ import { LuCalendarDays } from "react-icons/lu";
 const steps = [
   { id: 1, title: "Pickup" },
   { id: 2, title: "Delivery" },
-  { id: 3, title: "Number of horses" },
+  { id: 3, title: "Number of Horses" },
   { id: 4, title: "Additional Information & Uploads" },
   { id: 5, title: "Review your shipment details" },
 ];
 
-// Example options
 const registeredNames = ["Starfire", "Lightning", "Thunder", "Blaze"];
 const breeds = ["Arabian", "Thoroughbred", "Quarter Horse", "Warmblood"];
 const sexes = ["Male", "Female"];
@@ -23,6 +22,7 @@ const sexes = ["Male", "Female"];
 const NewShipment = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
   const [currentStep, setCurrentStep] = useState(1);
 
   // Step 1: Pickup
@@ -80,7 +80,6 @@ const NewShipment = () => {
     }
   }, [numberOfHorses]);
 
-  // Cancel form
   const handleCancel = () => {
     setPickupLocation("");
     setPickupTimeOption("on");
@@ -109,7 +108,6 @@ const NewShipment = () => {
     navigate("/customer/dashboard");
   };
 
-  // Validation per step
   const validateStep = () => {
     const stepErrors = {};
     if (currentStep === 1) {
@@ -162,14 +160,13 @@ const NewShipment = () => {
     });
   };
 
-  // Render step content
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
           <div className="flex flex-col w-full gap-4">
             <div>
-              <label className="block text-gray-500 mb-1">
+              <label className="block text-sm font-semibold mb-1 text-gray-500">
                 Pickup Location
               </label>
               <input
@@ -177,20 +174,28 @@ const NewShipment = () => {
                 value={pickupLocation}
                 onChange={(e) => setPickupLocation(e.target.value)}
                 placeholder="Address"
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
               />
               {errors.pickupLocation && (
-                <p className="text-red-500 text-sm">{errors.pickupLocation}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.pickupLocation}
+                </p>
               )}
             </div>
             <div>
-              <label className="block text-gray-500 mb-1">
-                Pickup Time Option
+              <label className="block text-sm font-semibold mb-1 text-gray-500">
+                When can your horse(s) be picked up?
               </label>
               <select
                 value={pickupTimeOption}
                 onChange={(e) => setPickupTimeOption(e.target.value)}
-                className="w-full border border-gray-300 rounded px-2 py-1 bg-gray-100"
+                className="text-gray-500 w-full border border-gray-300 rounded hover:bg-gray-300"
+                style={{
+                  height: "38px",
+                  borderRadius: "6px",
+                  padding: "9px 10px",
+                  background: "#F3F4F6",
+                }}
               >
                 <option value="on">On</option>
                 <option value="before">Before</option>
@@ -198,13 +203,15 @@ const NewShipment = () => {
                 <option value="between">Between</option>
               </select>
               {errors.pickupTimeOption && (
-                <p className="text-red-500 text-sm">
+                <p className="text-red-500 text-sm mt-1">
                   {errors.pickupTimeOption}
                 </p>
               )}
             </div>
             <div>
-              <label className="block text-gray-500 mb-1">Pickup Date</label>
+              <label className="block text-sm font-semibold mb-1 text-gray-500">
+                Pickup Date
+              </label>
               <DateInput
                 value={pickupDate}
                 onChange={setPickupDate}
@@ -218,7 +225,7 @@ const NewShipment = () => {
         return (
           <div className="flex flex-col w-full gap-4">
             <div>
-              <label className="block text-gray-500 mb-1">
+              <label className="block text-sm font-semibold mb-1 text-gray-500">
                 Delivery Location
               </label>
               <input
@@ -226,22 +233,28 @@ const NewShipment = () => {
                 value={deliveryLocation}
                 onChange={(e) => setDeliveryLocation(e.target.value)}
                 placeholder="Address"
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
               />
               {errors.deliveryLocation && (
-                <p className="text-red-500 text-sm">
+                <p className="text-red-500 text-sm mt-1">
                   {errors.deliveryLocation}
                 </p>
               )}
             </div>
             <div>
-              <label className="block text-gray-500 mb-1">
-                Delivery Time Option
+              <label className="block text-sm font-semibold mb-1 text-gray-500">
+                When should your horse(s) be delivered?
               </label>
               <select
                 value={deliveryTimeOption}
                 onChange={(e) => setDeliveryTimeOption(e.target.value)}
-                className="w-full border border-gray-300 rounded px-2 py-1 bg-gray-100"
+                className="text-gray-500 w-full border border-gray-300 rounded hover:bg-gray-300"
+                style={{
+                  height: "38px",
+                  borderRadius: "6px",
+                  padding: "9px 10px",
+                  background: "#F3F4F6",
+                }}
               >
                 <option value="on">On</option>
                 <option value="before">Before</option>
@@ -250,7 +263,9 @@ const NewShipment = () => {
               </select>
             </div>
             <div>
-              <label className="block text-gray-500 mb-1">Delivery Date</label>
+              <label className="block text-sm font-semibold mb-1 text-gray-500">
+                Delivery Date
+              </label>
               <DateInput
                 value={deliveryDate}
                 onChange={setDeliveryDate}
@@ -263,28 +278,31 @@ const NewShipment = () => {
       case 3:
         return (
           <div className="flex flex-col w-full gap-4">
-            <label className="block text-gray-500 mb-1">Number of Horses</label>
-            <select
-              value={numberOfHorses}
-              onChange={(e) => setNumberOfHorses(Number(e.target.value))}
-              className="w-full border border-gray-300 rounded px-2 py-1"
-            >
-              {[...Array(10).keys()].map((i) => (
-                <option key={i + 1} value={i + 1}>
-                  {i + 1}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-500">
+                Number of Horses
+              </label>
+              <select
+                value={numberOfHorses}
+                onChange={(e) => setNumberOfHorses(Number(e.target.value))}
+                className="w-full border border-gray-300 text-gray-500 rounded px-2 py-2 bg-gray-100"
+              >
+                {[...Array(10).keys()].map((i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {horses.map((horse, idx) => (
-              <div key={idx} className="border p-4 rounded-md mt-3 bg-gray-50">
+              <div key={idx} className="border p-4 rounded-md bg-gray-50">
                 <p className="font-semibold mb-2">
                   Horse {idx + 1}: {horse.registeredName || "Unnamed"}
                 </p>
 
-                {/* Registered Name */}
                 <div className="mb-2">
-                  <label className="text-gray-500 text-sm">
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
                     Registered Name
                   </label>
                   <select
@@ -292,7 +310,7 @@ const NewShipment = () => {
                     onChange={(e) =>
                       handleHorseChange(idx, "registeredName", e.target.value)
                     }
-                    className="w-full border border-gray-300 rounded px-2 py-1"
+                    className="w-full border border-gray-300 text-gray-500 rounded px-2 py-2 bg-gray-100"
                   >
                     <option value="">Select Name</option>
                     {registeredNames.map((n) => (
@@ -302,39 +320,41 @@ const NewShipment = () => {
                     ))}
                   </select>
                   {errors[`registeredName${idx}`] && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-red-500 text-sm mt-1">
                       {errors[`registeredName${idx}`]}
                     </p>
                   )}
                 </div>
 
-                {/* Barn Name */}
                 <div className="mb-2">
-                  <label className="text-gray-500 text-sm">Barn Name</label>
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    Barn Name
+                  </label>
                   <input
                     type="text"
                     value={horse.barnName}
                     onChange={(e) =>
                       handleHorseChange(idx, "barnName", e.target.value)
                     }
-                    className="w-full border border-gray-300 rounded px-2 py-1"
+                    className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
                   />
                   {errors[`barnName${idx}`] && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-red-500 text-sm mt-1">
                       {errors[`barnName${idx}`]}
                     </p>
                   )}
                 </div>
 
-                {/* Breed */}
                 <div className="mb-2">
-                  <label className="text-gray-500 text-sm">Breed</label>
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    Breed
+                  </label>
                   <select
                     value={horse.breed}
                     onChange={(e) =>
                       handleHorseChange(idx, "breed", e.target.value)
                     }
-                    className="w-full border border-gray-300 rounded px-2 py-1"
+                    className="w-full border border-gray-300 text-gray-500 rounded px-2 py-2 bg-gray-100"
                   >
                     <option value="">Select Breed</option>
                     {breeds.map((b) => (
@@ -344,53 +364,73 @@ const NewShipment = () => {
                     ))}
                   </select>
                   {errors[`breed${idx}`] && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-red-500 text-sm mt-1">
                       {errors[`breed${idx}`]}
                     </p>
                   )}
                 </div>
 
-                {/* Colour, Age, Sex */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="text-gray-500 text-sm">Colour</label>
-                    <input
-                      type="text"
-                      value={horse.colour}
-                      onChange={(e) =>
-                        handleHorseChange(idx, "colour", e.target.value)
-                      }
-                      className="w-full border border-gray-300 rounded px-2 py-1"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-gray-500 text-sm">Age</label>
-                    <input
-                      type="text"
-                      value={horse.age}
-                      onChange={(e) =>
-                        handleHorseChange(idx, "age", e.target.value)
-                      }
-                      className="w-full border border-gray-300 rounded px-2 py-1"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-gray-500 text-sm">Sex</label>
-                    <select
-                      value={horse.sex}
-                      onChange={(e) =>
-                        handleHorseChange(idx, "sex", e.target.value)
-                      }
-                      className="w-full border border-gray-300 rounded px-2 py-1"
-                    >
-                      <option value="">Select Sex</option>
-                      {sexes.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="mb-2">
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    Colour
+                  </label>
+                  <input
+                    type="text"
+                    value={horse.colour}
+                    onChange={(e) =>
+                      handleHorseChange(idx, "colour", e.target.value)
+                    }
+                    className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
+                  />
+                  {errors[`colour${idx}`] && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors[`colour${idx}`]}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mb-2">
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    Age
+                  </label>
+                  <input
+                    type="text"
+                    value={horse.age}
+                    onChange={(e) =>
+                      handleHorseChange(idx, "age", e.target.value)
+                    }
+                    className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
+                  />
+                  {errors[`age${idx}`] && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors[`age${idx}`]}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mb-2">
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    Sex
+                  </label>
+                  <select
+                    value={horse.sex}
+                    onChange={(e) =>
+                      handleHorseChange(idx, "sex", e.target.value)
+                    }
+                    className="w-full border border-gray-300 text-gray-500 rounded px-2 py-2 bg-gray-100"
+                  >
+                    <option value="">Select Sex</option>
+                    {sexes.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                  {errors[`sex${idx}`] && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors[`sex${idx}`]}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
@@ -399,35 +439,59 @@ const NewShipment = () => {
 
       case 4:
         return (
-          <div className="flex flex-col w-full gap-4">
+          <div className="flex flex-col w-full gap-6">
             {horses.map((horse, idx) => (
-              <div key={idx} className="border p-4 rounded-md bg-gray-50">
-                <p className="font-semibold mb-2">
-                  Upload Files for Horse {idx + 1}
-                </p>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-gray-500 text-sm">Photo</label>
-                    <input
-                      type="file"
-                      onChange={(e) =>
-                        handleHorseFileChange(idx, "photo", e.target.files[0])
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="text-gray-500 text-sm">Coggins</label>
+              <div key={idx} className="rounded-[15px] bg-[#F2EBDD] p-4">
+                {/* Horse Name Heading */}
+                <h2
+                  className="text-gray-800 font-semibold mb-3"
+                  style={{
+                    fontSize: "16px",
+                    lineHeight: "24px",
+                    padding: "14px",
+                    borderRadius: "15px",
+                  }}
+                >
+                  Horse {idx + 1} - {horse.registeredName || "Unnamed"}
+                </h2>
+
+                {/* Upload a Photo Section */}
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                    Upload a photo of the horse
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-2">
+                    A picture enhances your listing, making it more appealing
+                    and increasing the likelihood of attracting attention from
+                    potential carriers.
+                  </p>
+                  <input
+                    type="file"
+                    onChange={(e) =>
+                      handleHorseFileChange(idx, "photo", e.target.files[0])
+                    }
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                  />
+                </div>
+
+                {/* Documents Section */}
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                    Documents
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Provide the required paperwork to facilitate a smooth and
+                    safe delivery process.
+                  </p>
+                  <div className="flex flex-col gap-2">
                     <input
                       type="file"
                       onChange={(e) =>
                         handleHorseFileChange(idx, "cogins", e.target.files[0])
                       }
+                      className="w-full border border-gray-300 rounded px-3 py-2"
+                      placeholder="Coggins"
                     />
-                  </div>
-                  <div>
-                    <label className="text-gray-500 text-sm">
-                      Health Certificate
-                    </label>
                     <input
                       type="file"
                       onChange={(e) =>
@@ -437,45 +501,40 @@ const NewShipment = () => {
                           e.target.files[0]
                         )
                       }
+                      className="w-full border border-gray-300 rounded px-3 py-2"
+                      placeholder="Health Certificate"
                     />
                   </div>
                 </div>
-                <div className="mt-2">
-                  <label className="text-gray-500 text-sm">
-                    Additional Info
-                  </label>
+
+                {/* General Information Section */}
+                <div className="mb-2">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                    General Information
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Describe any specific preferences or restrictions you may
+                    have for the shipment, such as preferred vehicle types and
+                    other relevant details.
+                  </p>
                   <textarea
                     value={horse.generalInfo}
                     onChange={(e) =>
                       handleHorseChange(idx, "generalInfo", e.target.value)
                     }
-                    className="w-full border border-gray-300 rounded px-2 py-1"
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-gray-500"
+                    rows={3}
+                    placeholder="Enter additional details"
                   />
                 </div>
               </div>
             ))}
-
-            <div className="mt-4">
-              <label className="text-gray-500 text-sm">
-                Overall Additional Info
-              </label>
-              <textarea
-                value={additionalInfo}
-                onChange={(e) => setAdditionalInfo(e.target.value)}
-                className="w-full border border-gray-300 rounded px-2 py-1"
-              />
-            </div>
           </div>
         );
 
       case 5:
         return (
-          <div className="flex flex-col w-full max-w-5xl gap-4 font-montserrat">
-            <p className="text-gray-700 font-semibold mb-2">
-              Review your shipment details
-            </p>
-
-            {/* Pickup & Delivery Box */}
+          <div className="flex flex-col w-full gap-4">
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
               <div className="flex items-center gap-2">
                 <IoLocationOutline className="text-gray-500 text-lg" />
@@ -505,7 +564,6 @@ const NewShipment = () => {
               </div>
             </div>
 
-            {/* Horses */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm mt-4 space-y-2">
               <p className="font-semibold">
                 Number of horses: {numberOfHorses}
@@ -542,7 +600,7 @@ const NewShipment = () => {
 
   return (
     <div className="w-full flex flex-col items-center relative py-10 bg-gray-50 min-h-screen">
-      {/* Header */}
+      {/* Stepper */}
       <div className="w-full max-w-4xl flex gap-2 relative mb-10 px-4 items-center">
         {steps.map((step, index) => {
           const isCompleted = currentStep > step.id;
@@ -573,7 +631,7 @@ const NewShipment = () => {
         })}
       </div>
 
-      {/* Step Header */}
+      {/* Header */}
       <div className="flex flex-row justify-between w-full max-w-5xl gap-2 relative mt-4 items-center px-4">
         <div className="font-montserrat font-semibold text-[20px] leading-[30px] tracking-[0%]">
           New Shipment
@@ -622,6 +680,11 @@ const NewShipment = () => {
         <ModalOfferPublished
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
+          onViewShipments={() => {
+            setIsModalOpen(false);
+            navigate("/customer/my-shipments");
+          }}
+          onAnotherAction={() => setIsModalOpen(false)}
         />
       )}
     </div>
