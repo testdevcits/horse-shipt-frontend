@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import logoMobile from "../../assets/images/mobileLogo.png";
+import { useAuth } from "../../contexts/AuthContext";
 import ModalOfferPublished from "./ModalOfferPublished";
 import DateInput from "../../components/common/DateInput";
-import { useAuth } from "../../contexts/AuthContext";
-import { FiEdit3 } from "react-icons/fi";
+import logoMobile from "../../assets/images/mobileLogo.png";
 import { IoLocationOutline } from "react-icons/io5";
 import { LuCalendarDays } from "react-icons/lu";
 
@@ -12,70 +11,58 @@ const steps = [
   { id: 1, title: "Pickup" },
   { id: 2, title: "Delivery" },
   { id: 3, title: "Number of horses" },
-  { id: 4, title: "Additional Information" },
+  { id: 4, title: "Additional Information & Uploads" },
   { id: 5, title: "Review your shipment details" },
 ];
 
+// Example options
+const registeredNames = ["Starfire", "Lightning", "Thunder", "Blaze"];
+const breeds = ["Arabian", "Thoroughbred", "Quarter Horse", "Warmblood"];
+const sexes = ["Male", "Female"];
+
 const NewShipment = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Step 1: Pickup
   const [pickupLocation, setPickupLocation] = useState("");
   const [pickupTimeOption, setPickupTimeOption] = useState("on");
   const [pickupDate, setPickupDate] = useState("");
+
+  // Step 2: Delivery
   const [deliveryLocation, setDeliveryLocation] = useState("");
   const [deliveryTimeOption, setDeliveryTimeOption] = useState("on");
   const [deliveryDate, setDeliveryDate] = useState("");
+
+  // Step 3 & 4: Horses
   const [numberOfHorses, setNumberOfHorses] = useState(1);
-  const [horses, setHorses] = useState([]);
+  const [horses, setHorses] = useState([
+    {
+      registeredName: "",
+      barnName: "",
+      breed: "",
+      colour: "",
+      age: "",
+      sex: "",
+      photo: null,
+      cogins: null,
+      healthCertificate: null,
+      generalInfo: "",
+    },
+  ]);
+
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [errors, setErrors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedHorse, setSelectedHorse] = useState(0);
 
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const currentLogo = logoMobile;
-
-  const handleCancel = () => {
-    setPickupLocation("");
-    setPickupTimeOption("on");
-    setPickupDate("");
-    setDeliveryLocation("");
-    setDeliveryTimeOption("on");
-    setDeliveryDate("");
-    setNumberOfHorses(1);
-    setHorses([]);
-    setAdditionalInfo("");
-    setCurrentStep(1);
-    setErrors({});
-    navigate("/customer/dashboard");
-  };
-
-  const validateStep = () => {
-    const stepErrors = {};
-    if (currentStep === 1) {
-      if (!pickupLocation.trim()) stepErrors.pickupLocation = "Required";
-      if (!pickupTimeOption) stepErrors.pickupTimeOption = "Select time";
-      if (!pickupDate) stepErrors.pickupDate = "Required";
-    } else if (currentStep === 2) {
-      if (!deliveryLocation.trim()) stepErrors.deliveryLocation = "Required";
-      if (!deliveryTimeOption) stepErrors.deliveryTimeOption = "Select time";
-      if (!deliveryDate) stepErrors.deliveryDate = "Required";
-    } else if (currentStep === 3) {
-      if (!numberOfHorses || numberOfHorses < 1)
-        stepErrors.numberOfHorses = "Enter number of horses";
-    }
-    setErrors(stepErrors);
-    return Object.keys(stepErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (!validateStep()) return;
-
-    if (currentStep === 3) {
-      // Initialize horses array based on numberOfHorses
-      const newHorses = [];
-      for (let i = 0; i < numberOfHorses; i++) {
-        newHorses.push({
+  // Update horses array when numberOfHorses changes
+  useEffect(() => {
+    const diff = numberOfHorses - horses.length;
+    if (diff > 0) {
+      setHorses((prev) => [
+        ...prev,
+        ...Array(diff).fill({
           registeredName: "",
           barnName: "",
           breed: "",
@@ -86,53 +73,103 @@ const NewShipment = () => {
           cogins: null,
           healthCertificate: null,
           generalInfo: "",
-        });
-      }
-      setHorses(newHorses);
+        }),
+      ]);
+    } else if (diff < 0) {
+      setHorses((prev) => prev.slice(0, numberOfHorses));
     }
+  }, [numberOfHorses]);
 
-    if (currentStep < steps.length) {
-      setCurrentStep((prev) => prev + 1);
-    } else {
-      console.log({
-        userId: user?._id,
-        pickupLocation,
-        pickupTimeOption,
-        pickupDate,
-        deliveryLocation,
-        deliveryTimeOption,
-        deliveryDate,
-        numberOfHorses,
-        horses,
-        additionalInfo,
+  // Cancel form
+  const handleCancel = () => {
+    setPickupLocation("");
+    setPickupTimeOption("on");
+    setPickupDate("");
+    setDeliveryLocation("");
+    setDeliveryTimeOption("on");
+    setDeliveryDate("");
+    setNumberOfHorses(1);
+    setHorses([
+      {
+        registeredName: "",
+        barnName: "",
+        breed: "",
+        colour: "",
+        age: "",
+        sex: "",
+        photo: null,
+        cogins: null,
+        healthCertificate: null,
+        generalInfo: "",
+      },
+    ]);
+    setAdditionalInfo("");
+    setCurrentStep(1);
+    setErrors({});
+    navigate("/customer/dashboard");
+  };
+
+  // Validation per step
+  const validateStep = () => {
+    const stepErrors = {};
+    if (currentStep === 1) {
+      if (!pickupLocation.trim())
+        stepErrors.pickupLocation = "Pickup location is required";
+      if (!pickupTimeOption) stepErrors.pickupTimeOption = "Select time option";
+      if (!pickupDate) stepErrors.pickupDate = "Pickup date is required";
+    } else if (currentStep === 2) {
+      if (!deliveryLocation.trim())
+        stepErrors.deliveryLocation = "Delivery location is required";
+      if (!deliveryDate) stepErrors.deliveryDate = "Delivery date is required";
+    } else if (currentStep === 3) {
+      horses.forEach((h, idx) => {
+        if (!h.registeredName)
+          stepErrors[`registeredName${idx}`] = "Registered Name required";
+        if (!h.barnName) stepErrors[`barnName${idx}`] = "Barn Name required";
+        if (!h.breed) stepErrors[`breed${idx}`] = "Breed required";
+        if (!h.colour) stepErrors[`colour${idx}`] = "Colour required";
+        if (!h.age) stepErrors[`age${idx}`] = "Age required";
+        if (!h.sex) stepErrors[`sex${idx}`] = "Sex required";
       });
-      setIsModalOpen(true);
     }
+    setErrors(stepErrors);
+    return Object.keys(stepErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (!validateStep()) return;
+    if (currentStep < steps.length) setCurrentStep((prev) => prev + 1);
+    else setIsModalOpen(true);
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) setCurrentStep((prev) => prev - 1);
   };
 
-  const handleHorseChange = (idx, key, value) => {
-    const updatedHorses = [...horses];
-    updatedHorses[idx][key] = value;
-    setHorses(updatedHorses);
+  const handleHorseChange = (index, field, value) => {
+    setHorses((prev) => {
+      const updated = [...prev];
+      updated[index][field] = value;
+      return updated;
+    });
   };
 
-  const handleHorseFileChange = (idx, key, file) => {
-    const updatedHorses = [...horses];
-    updatedHorses[idx][key] = file;
-    setHorses(updatedHorses);
+  const handleHorseFileChange = (index, field, file) => {
+    setHorses((prev) => {
+      const updated = [...prev];
+      updated[index][field] = file;
+      return updated;
+    });
   };
 
+  // Render step content
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="flex flex-col w-full max-w-5xl gap-4 font-montserrat relative">
+          <div className="flex flex-col w-full gap-4">
             <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-500">
+              <label className="block text-gray-500 mb-1">
                 Pickup Location
               </label>
               <input
@@ -140,29 +177,20 @@ const NewShipment = () => {
                 value={pickupLocation}
                 onChange={(e) => setPickupLocation(e.target.value)}
                 placeholder="Address"
-                className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
+                className="w-full border border-gray-300 rounded px-3 py-2"
               />
               {errors.pickupLocation && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.pickupLocation}
-                </p>
+                <p className="text-red-500 text-sm">{errors.pickupLocation}</p>
               )}
             </div>
-
             <div>
-              <label className="block font-semibold text-sm mb-1 text-gray-500">
-                When can your horse(s) be picked up?
+              <label className="block text-gray-500 mb-1">
+                Pickup Time Option
               </label>
               <select
                 value={pickupTimeOption}
                 onChange={(e) => setPickupTimeOption(e.target.value)}
-                className="text-gray-500 w-full border border-gray-300 rounded hover:bg-gray-300"
-                style={{
-                  height: "38px",
-                  borderRadius: "6px",
-                  padding: "9px 10px",
-                  background: "#F3F4F6",
-                }}
+                className="w-full border border-gray-300 rounded px-2 py-1 bg-gray-100"
               >
                 <option value="on">On</option>
                 <option value="before">Before</option>
@@ -170,16 +198,13 @@ const NewShipment = () => {
                 <option value="between">Between</option>
               </select>
               {errors.pickupTimeOption && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-sm">
                   {errors.pickupTimeOption}
                 </p>
               )}
             </div>
-
-            <div className="relative w-full">
-              <label className="block text-sm font-semibold mb-1 text-gray-500">
-                Date
-              </label>
+            <div>
+              <label className="block text-gray-500 mb-1">Pickup Date</label>
               <DateInput
                 value={pickupDate}
                 onChange={setPickupDate}
@@ -188,11 +213,12 @@ const NewShipment = () => {
             </div>
           </div>
         );
+
       case 2:
         return (
-          <div className="flex flex-col w-full max-w-5xl gap-4 font-montserrat relative">
+          <div className="flex flex-col w-full gap-4">
             <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-500">
+              <label className="block text-gray-500 mb-1">
                 Delivery Location
               </label>
               <input
@@ -200,46 +226,31 @@ const NewShipment = () => {
                 value={deliveryLocation}
                 onChange={(e) => setDeliveryLocation(e.target.value)}
                 placeholder="Address"
-                className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
+                className="w-full border border-gray-300 rounded px-3 py-2"
               />
               {errors.deliveryLocation && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-red-500 text-sm">
                   {errors.deliveryLocation}
                 </p>
               )}
             </div>
-
             <div>
-              <label className="block font-semibold text-sm mb-1 text-gray-500">
-                When do you want delivery?
+              <label className="block text-gray-500 mb-1">
+                Delivery Time Option
               </label>
               <select
                 value={deliveryTimeOption}
                 onChange={(e) => setDeliveryTimeOption(e.target.value)}
-                className="text-gray-500 w-full border border-gray-300 rounded hover:bg-gray-300"
-                style={{
-                  height: "38px",
-                  borderRadius: "6px",
-                  padding: "9px 10px",
-                  background: "#F3F4F6",
-                }}
+                className="w-full border border-gray-300 rounded px-2 py-1 bg-gray-100"
               >
                 <option value="on">On</option>
                 <option value="before">Before</option>
                 <option value="after">After</option>
                 <option value="between">Between</option>
               </select>
-              {errors.deliveryTimeOption && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.deliveryTimeOption}
-                </p>
-              )}
             </div>
-
-            <div className="relative w-full">
-              <label className="block text-sm font-semibold mb-1 text-gray-500">
-                Delivery Date
-              </label>
+            <div>
+              <label className="block text-gray-500 mb-1">Delivery Date</label>
               <DateInput
                 value={deliveryDate}
                 onChange={setDeliveryDate}
@@ -248,342 +259,337 @@ const NewShipment = () => {
             </div>
           </div>
         );
+
       case 3:
         return (
-          <div className="flex flex-col w-full max-w-5xl gap-4 font-montserrat relative">
-            <label className="block text-sm font-semibold mb-1 text-gray-500">
-              Number of Horses
-            </label>
-            <input
-              type="number"
+          <div className="flex flex-col w-full gap-4">
+            <label className="block text-gray-500 mb-1">Number of Horses</label>
+            <select
               value={numberOfHorses}
-              min={1}
               onChange={(e) => setNumberOfHorses(Number(e.target.value))}
-              placeholder="Enter number of horses"
-              className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
-            />
-            {errors.numberOfHorses && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.numberOfHorses}
-              </p>
-            )}
+              className="w-full border border-gray-300 rounded px-2 py-1"
+            >
+              {[...Array(10).keys()].map((i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
 
-            {Array.from({ length: numberOfHorses }).map((_, idx) => (
-              <div key={idx} className="mt-2">
-                <p className="font-semibold mb-2">Horse {idx + 1}</p>
-                <input
-                  type="text"
-                  placeholder="Registered Name"
-                  value={horses[idx]?.registeredName || ""}
-                  onChange={(e) =>
-                    handleHorseChange(idx, "registeredName", e.target.value)
-                  }
-                  className="border border-gray-300 rounded px-2 py-1 mb-2 w-full"
-                />
-                <input
-                  type="text"
-                  placeholder="Barn Name"
-                  value={horses[idx]?.barnName || ""}
-                  onChange={(e) =>
-                    handleHorseChange(idx, "barnName", e.target.value)
-                  }
-                  className="border border-gray-300 rounded px-2 py-1 mb-2 w-full"
-                />
-                <input
-                  type="text"
-                  placeholder="Breed"
-                  value={horses[idx]?.breed || ""}
-                  onChange={(e) =>
-                    handleHorseChange(idx, "breed", e.target.value)
-                  }
-                  className="border border-gray-300 rounded px-2 py-1 mb-2 w-full"
-                />
-                <input
-                  type="text"
-                  placeholder="Colour"
-                  value={horses[idx]?.colour || ""}
-                  onChange={(e) =>
-                    handleHorseChange(idx, "colour", e.target.value)
-                  }
-                  className="border border-gray-300 rounded px-2 py-1 mb-2 w-full"
-                />
-                <input
-                  type="text"
-                  placeholder="Age"
-                  value={horses[idx]?.age || ""}
-                  onChange={(e) =>
-                    handleHorseChange(idx, "age", e.target.value)
-                  }
-                  className="border border-gray-300 rounded px-2 py-1 mb-2 w-full"
-                />
-                <input
-                  type="text"
-                  placeholder="Sex"
-                  value={horses[idx]?.sex || ""}
-                  onChange={(e) =>
-                    handleHorseChange(idx, "sex", e.target.value)
-                  }
-                  className="border border-gray-300 rounded px-2 py-1 mb-2 w-full"
-                />
+            {horses.map((horse, idx) => (
+              <div key={idx} className="border p-4 rounded-md mt-3 bg-gray-50">
+                <p className="font-semibold mb-2">
+                  Horse {idx + 1}: {horse.registeredName || "Unnamed"}
+                </p>
+
+                {/* Registered Name */}
+                <div className="mb-2">
+                  <label className="text-gray-500 text-sm">
+                    Registered Name
+                  </label>
+                  <select
+                    value={horse.registeredName}
+                    onChange={(e) =>
+                      handleHorseChange(idx, "registeredName", e.target.value)
+                    }
+                    className="w-full border border-gray-300 rounded px-2 py-1"
+                  >
+                    <option value="">Select Name</option>
+                    {registeredNames.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                  {errors[`registeredName${idx}`] && (
+                    <p className="text-red-500 text-sm">
+                      {errors[`registeredName${idx}`]}
+                    </p>
+                  )}
+                </div>
+
+                {/* Barn Name */}
+                <div className="mb-2">
+                  <label className="text-gray-500 text-sm">Barn Name</label>
+                  <input
+                    type="text"
+                    value={horse.barnName}
+                    onChange={(e) =>
+                      handleHorseChange(idx, "barnName", e.target.value)
+                    }
+                    className="w-full border border-gray-300 rounded px-2 py-1"
+                  />
+                  {errors[`barnName${idx}`] && (
+                    <p className="text-red-500 text-sm">
+                      {errors[`barnName${idx}`]}
+                    </p>
+                  )}
+                </div>
+
+                {/* Breed */}
+                <div className="mb-2">
+                  <label className="text-gray-500 text-sm">Breed</label>
+                  <select
+                    value={horse.breed}
+                    onChange={(e) =>
+                      handleHorseChange(idx, "breed", e.target.value)
+                    }
+                    className="w-full border border-gray-300 rounded px-2 py-1"
+                  >
+                    <option value="">Select Breed</option>
+                    {breeds.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </select>
+                  {errors[`breed${idx}`] && (
+                    <p className="text-red-500 text-sm">
+                      {errors[`breed${idx}`]}
+                    </p>
+                  )}
+                </div>
+
+                {/* Colour, Age, Sex */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-gray-500 text-sm">Colour</label>
+                    <input
+                      type="text"
+                      value={horse.colour}
+                      onChange={(e) =>
+                        handleHorseChange(idx, "colour", e.target.value)
+                      }
+                      className="w-full border border-gray-300 rounded px-2 py-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray-500 text-sm">Age</label>
+                    <input
+                      type="text"
+                      value={horse.age}
+                      onChange={(e) =>
+                        handleHorseChange(idx, "age", e.target.value)
+                      }
+                      className="w-full border border-gray-300 rounded px-2 py-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray-500 text-sm">Sex</label>
+                    <select
+                      value={horse.sex}
+                      onChange={(e) =>
+                        handleHorseChange(idx, "sex", e.target.value)
+                      }
+                      className="w-full border border-gray-300 rounded px-2 py-1"
+                    >
+                      <option value="">Select Sex</option>
+                      {sexes.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         );
+
       case 4:
         return (
-          <div className="flex flex-col w-full max-w-5xl gap-4 font-montserrat relative">
-            <label className="block text-sm font-semibold mb-1 text-gray-500">
-              Additional Information
-            </label>
+          <div className="flex flex-col w-full gap-4">
             {horses.map((horse, idx) => (
-              <div key={idx} className="mt-4">
-                <p
-                  className="font-semibold mb-2"
-                  style={{
-                    borderRadius: "15px",
-                    padding: "14px",
-                    background: "#F2EBDD",
-                    display: "flex",
-                    alignItems: "center",
-                    opacity: 1,
-                  }}
-                >
-                  Horse {idx + 1} - {horse.registeredName || "Unnamed"}
+              <div key={idx} className="border p-4 rounded-md bg-gray-50">
+                <p className="font-semibold mb-2">
+                  Upload Files for Horse {idx + 1}
                 </p>
-
-                <div className="flex flex-col mb-2">
-                  <label className="text-sm text-gray-500 mb-1">
-                    Upload a photo of the horse
-                  </label>
-                  <p className="text-xs text-gray-400 mb-1">
-                    A picture enhances your listing, making it more appealing...
-                  </p>
-                  <input
-                    type="file"
-                    onChange={(e) =>
-                      handleHorseFileChange(idx, "photo", e.target.files[0])
-                    }
-                    className="border border-dashed border-gray-400 rounded p-2"
-                  />
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-gray-500 text-sm">Photo</label>
+                    <input
+                      type="file"
+                      onChange={(e) =>
+                        handleHorseFileChange(idx, "photo", e.target.files[0])
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray-500 text-sm">Coggins</label>
+                    <input
+                      type="file"
+                      onChange={(e) =>
+                        handleHorseFileChange(idx, "cogins", e.target.files[0])
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray-500 text-sm">
+                      Health Certificate
+                    </label>
+                    <input
+                      type="file"
+                      onChange={(e) =>
+                        handleHorseFileChange(
+                          idx,
+                          "healthCertificate",
+                          e.target.files[0]
+                        )
+                      }
+                    />
+                  </div>
                 </div>
-
-                <div className="flex flex-col mb-2">
-                  <label className="text-sm text-gray-500 mb-1">
-                    Documents
+                <div className="mt-2">
+                  <label className="text-gray-500 text-sm">
+                    Additional Info
                   </label>
-                  <p className="text-xs text-gray-400 mb-1">
-                    Provide the required paperwork to facilitate smooth
-                    delivery...
-                  </p>
-                  <input
-                    type="file"
-                    onChange={(e) =>
-                      handleHorseFileChange(idx, "cogins", e.target.files[0])
-                    }
-                    className="border border-dashed border-gray-400 rounded p-2 mb-2"
-                  />
-                  <input
-                    type="file"
-                    onChange={(e) =>
-                      handleHorseFileChange(
-                        idx,
-                        "healthCertificate",
-                        e.target.files[0]
-                      )
-                    }
-                    className="border border-dashed border-gray-400 rounded p-2"
-                  />
-                </div>
-
-                <div className="flex flex-col mb-2">
-                  <label className="text-sm text-gray-500 mb-1">
-                    General Information
-                  </label>
-                  <p className="text-xs text-gray-400 mb-1">
-                    Describe any specific preferences...
-                  </p>
                   <textarea
                     value={horse.generalInfo}
                     onChange={(e) =>
                       handleHorseChange(idx, "generalInfo", e.target.value)
                     }
-                    className="border border-gray-300 rounded p-2"
+                    className="w-full border border-gray-300 rounded px-2 py-1"
                   />
                 </div>
               </div>
             ))}
+
+            <div className="mt-4">
+              <label className="text-gray-500 text-sm">
+                Overall Additional Info
+              </label>
+              <textarea
+                value={additionalInfo}
+                onChange={(e) => setAdditionalInfo(e.target.value)}
+                className="w-full border border-gray-300 rounded px-2 py-1"
+              />
+            </div>
           </div>
         );
+
       case 5:
         return (
-          <div className="flex flex-col w-full max-w-5xl gap-2 font-montserrat">
-            <p className="text-gray-700">Review your shipment details:</p>
-            <div className="text-gray-600 flex flex-col gap-3 bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-              {/* Pickup */}
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="font-semibold text-gray-700">Pickup:</p>
-                <div className="flex items-center gap-1">
-                  <IoLocationOutline className="text-gray-500 text-lg" />
-                  <span>{pickupLocation}</span>
-                </div>
-                <div className="flex items-center gap-1 ml-4">
-                  <LuCalendarDays className="text-gray-500 text-lg" />
-                  <span>
-                    {pickupDate} ({pickupTimeOption})
-                  </span>
-                </div>
-              </div>
+          <div className="flex flex-col w-full max-w-5xl gap-4 font-montserrat">
+            <p className="text-gray-700 font-semibold mb-2">
+              Review your shipment details
+            </p>
 
-              {/* Delivery */}
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="font-semibold text-gray-700">Delivery:</p>
-                <div className="flex items-center gap-1">
-                  <IoLocationOutline className="text-gray-500 text-lg" />
-                  <span>{deliveryLocation}</span>
-                </div>
-                <div className="flex items-center gap-1 ml-4">
-                  <LuCalendarDays className="text-gray-500 text-lg" />
-                  <span>
-                    {deliveryDate} ({deliveryTimeOption})
-                  </span>
-                </div>
+            {/* Pickup & Delivery Box */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
+              <div className="flex items-center gap-2">
+                <IoLocationOutline className="text-gray-500 text-lg" />
+                <p>
+                  <span className="font-semibold">Pickup:</span>{" "}
+                  {pickupLocation}
+                </p>
               </div>
-
-              <button
-                className="flex items-center gap-2 mt-3 text-blue-600 hover:text-blue-800 transition"
-                onClick={() => setCurrentStep(3)}
-              >
-                <FiEdit3 className="text-base" /> Edit Horse Details
-              </button>
+              <div className="flex items-center gap-2">
+                <LuCalendarDays className="text-gray-500 text-lg" />
+                <p>
+                  {pickupDate} ({pickupTimeOption})
+                </p>
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <IoLocationOutline className="text-gray-500 text-lg" />
+                <p>
+                  <span className="font-semibold">Delivery:</span>{" "}
+                  {deliveryLocation}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <LuCalendarDays className="text-gray-500 text-lg" />
+                <p>
+                  {deliveryDate} ({deliveryTimeOption})
+                </p>
+              </div>
             </div>
-            {/* ---------------- Horse Details ---------------- */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-              <p className="font-semibold text-gray-800 mb-2">
-                Total Horses: {numberOfHorses}
+
+            {/* Horses */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm mt-4 space-y-2">
+              <p className="font-semibold">
+                Number of horses: {numberOfHorses}
               </p>
-
-              {numberOfHorses > 1 && (
-                <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2">
-                  <label className="font-semibold text-gray-700 text-sm">
-                    Select Horse:
-                  </label>
-                  <select
-                    value={selectedHorse}
-                    onChange={(e) => setSelectedHorse(Number(e.target.value))}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-gray-700 w-full sm:w-60 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  >
-                    {horses.map((h, idx) => (
-                      <option key={idx} value={idx}>
-                        Horse {idx + 1} - {h.registeredName || "Unnamed"}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Selected Horse Info */}
-              {horses.length > 0 && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="font-semibold text-gray-800 mb-2">
-                    Horse {selectedHorse + 1} -{" "}
-                    {horses[selectedHorse].registeredName || "Unnamed"}
+              {horses.map((h, idx) => (
+                <div key={idx} className="border p-3 rounded-md">
+                  <p className="font-semibold mb-1">
+                    Horse {idx + 1}: {h.registeredName || "Unnamed"}
                   </p>
-                  <div className="text-sm text-gray-600 leading-relaxed space-y-1">
-                    <p>
-                      <strong>Breed:</strong>{" "}
-                      {horses[selectedHorse].breed || "N/A"}
-                    </p>
-                    <p>
-                      <strong>Colour:</strong>{" "}
-                      {horses[selectedHorse].colour || "N/A"}
-                    </p>
-                    <p>
-                      <strong>Age:</strong> {horses[selectedHorse].age || "N/A"}
-                    </p>
-                    <p>
-                      <strong>Sex:</strong> {horses[selectedHorse].sex || "N/A"}
-                    </p>
-                    <p>
-                      <strong>Photo:</strong>{" "}
-                      {horses[selectedHorse].photo?.name || "N/A"}
-                    </p>
-                    <p>
-                      <strong>Cog-ins:</strong>{" "}
-                      {horses[selectedHorse].cogins?.name || "N/A"}
-                    </p>
-                    <p>
-                      <strong>Health Certificate:</strong>{" "}
-                      {horses[selectedHorse].healthCertificate?.name || "N/A"}
-                    </p>
-                    <p>
-                      <strong>General Info:</strong>{" "}
-                      {horses[selectedHorse].generalInfo || "N/A"}
-                    </p>
+                  <p>
+                    Breed: {h.breed || "N/A"}, Colour: {h.colour || "N/A"}, Age:{" "}
+                    {h.age || "N/A"}, Sex: {h.sex || "N/A"}
+                  </p>
+                  <div>Photo: {h.photo?.name || "N/A"}</div>
+                  <div>Cog-ins: {h.cogins?.name || "N/A"}</div>
+                  <div>
+                    Health Certificate: {h.healthCertificate?.name || "N/A"}
                   </div>
-
-                  <button
-                    className="flex items-center gap-2 mt-3 text-blue-600 hover:text-blue-800 transition"
-                    onClick={() => setCurrentStep(3)}
-                  >
-                    <FiEdit3 className="text-base" /> Edit Horse Details
-                  </button>
+                  <div>General Info: {h.generalInfo || "N/A"}</div>
                 </div>
-              )}
-            </div>
-
-            {/* ---------------- Additional Info ---------------- */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-              <p className="font-semibold text-gray-700 mb-1">
-                Additional Info:
-              </p>
-              <p className="text-gray-600">{additionalInfo || "N/A"}</p>
+              ))}
+              <div className="mt-2">
+                <p className="font-semibold">Additional Info:</p>
+                <p>{additionalInfo || "N/A"}</p>
+              </div>
             </div>
           </div>
         );
+
       default:
         return null;
     }
   };
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <img src={currentLogo} alt="Logo" className="h-12" />
-        <button onClick={handleCancel} className="text-red-500">
+    <div className="w-full flex flex-col items-center relative py-10 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="flex justify-between w-full max-w-5xl px-4 mb-6 items-center">
+        <img src={logoMobile} alt="Logo" className="h-12" />
+        <div
+          className="text-gray-500 cursor-pointer font-semibold"
+          onClick={handleCancel}
+        >
           Cancel
-        </button>
+        </div>
       </div>
 
-      <h2 className="text-lg font-semibold mb-4">
-        {steps[currentStep - 1].title}
-      </h2>
-      {renderStepContent()}
+      {/* Step Title */}
+      <div className="w-full max-w-5xl px-4 mb-4">
+        <p className="font-montserrat text-xl font-semibold text-gray-700">
+          {steps[currentStep - 1].title}
+        </p>
+      </div>
 
-      <div className="flex justify-between mt-4">
-        {currentStep > 1 && (
-          <button
-            onClick={handlePrevious}
-            className="px-4 py-2 border rounded hover:bg-gray-200"
-          >
-            Previous
-          </button>
-        )}
+      {/* Step Content */}
+      <div className="w-full max-w-5xl px-4">{renderStepContent()}</div>
+
+      {/* Navigation Buttons */}
+      <div className="flex w-full max-w-5xl justify-between md:justify-end gap-4 mt-6 px-4">
+        <button
+          onClick={handlePrevious}
+          disabled={currentStep === 1}
+          className={`px-6 py-2 rounded-lg font-montserrat border ${
+            currentStep === 1
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-white text-gray-500 border-gray-300 hover:bg-[#BF9B53] hover:text-white"
+          }`}
+        >
+          Previous
+        </button>
         <button
           onClick={handleNext}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e]"
         >
           {currentStep === steps.length ? "Finish" : "Next"}
         </button>
       </div>
 
+      {/* Modal */}
       {isModalOpen && (
         <ModalOfferPublished
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title="Shipment Submitted"
-        >
-          <p>All shipment details have been logged successfully!</p>
-        </ModalOfferPublished>
+        />
       )}
     </div>
   );
