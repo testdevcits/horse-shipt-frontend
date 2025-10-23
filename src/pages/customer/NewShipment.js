@@ -6,6 +6,7 @@ import DateInput from "../../components/common/DateInput";
 import logoMobile from "../../assets/images/mobileLogo.png";
 import { IoLocationOutline } from "react-icons/io5";
 import { LuCalendarDays } from "react-icons/lu";
+import { FiEdit3 } from "react-icons/fi";
 
 const steps = [
   { id: 1, title: "Pickup" },
@@ -282,156 +283,87 @@ const NewShipment = () => {
               <label className="block text-sm font-semibold mb-1 text-gray-500">
                 Number of Horses
               </label>
-              <select
+              <input
+                type="number"
+                min={1}
                 value={numberOfHorses}
                 onChange={(e) => setNumberOfHorses(Number(e.target.value))}
-                className="w-full border border-gray-300 text-gray-500 rounded px-2 py-2 bg-gray-100"
-              >
-                {[...Array(10).keys()].map((i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {i + 1}
-                  </option>
-                ))}
-              </select>
+                className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
+              />
             </div>
-
             {horses.map((horse, idx) => (
-              <div key={idx} className="border p-4 rounded-md bg-gray-50">
-                <p className="font-semibold mb-2">
-                  Horse {idx + 1}: {horse.registeredName || "Unnamed"}
-                </p>
-
-                <div className="mb-2">
-                  <label className="block font-semibold text-sm mb-1 text-gray-500">
-                    Registered Name
-                  </label>
-                  <select
-                    value={horse.registeredName}
-                    onChange={(e) =>
-                      handleHorseChange(idx, "registeredName", e.target.value)
-                    }
-                    className="w-full border border-gray-300 text-gray-500 rounded px-2 py-2 bg-gray-100"
-                  >
-                    <option value="">Select Name</option>
-                    {registeredNames.map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
-                  {errors[`registeredName${idx}`] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors[`registeredName${idx}`]}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mb-2">
-                  <label className="block font-semibold text-sm mb-1 text-gray-500">
-                    Barn Name
-                  </label>
-                  <input
-                    type="text"
-                    value={horse.barnName}
-                    onChange={(e) =>
-                      handleHorseChange(idx, "barnName", e.target.value)
-                    }
-                    className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
-                  />
-                  {errors[`barnName${idx}`] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors[`barnName${idx}`]}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mb-2">
-                  <label className="block font-semibold text-sm mb-1 text-gray-500">
-                    Breed
-                  </label>
-                  <select
-                    value={horse.breed}
-                    onChange={(e) =>
-                      handleHorseChange(idx, "breed", e.target.value)
-                    }
-                    className="w-full border border-gray-300 text-gray-500 rounded px-2 py-2 bg-gray-100"
-                  >
-                    <option value="">Select Breed</option>
-                    {breeds.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
-                  {errors[`breed${idx}`] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors[`breed${idx}`]}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mb-2">
-                  <label className="block font-semibold text-sm mb-1 text-gray-500">
-                    Colour
-                  </label>
-                  <input
-                    type="text"
-                    value={horse.colour}
-                    onChange={(e) =>
-                      handleHorseChange(idx, "colour", e.target.value)
-                    }
-                    className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
-                  />
-                  {errors[`colour${idx}`] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors[`colour${idx}`]}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mb-2">
-                  <label className="block font-semibold text-sm mb-1 text-gray-500">
-                    Age
-                  </label>
-                  <input
-                    type="text"
-                    value={horse.age}
-                    onChange={(e) =>
-                      handleHorseChange(idx, "age", e.target.value)
-                    }
-                    className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
-                  />
-                  {errors[`age${idx}`] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors[`age${idx}`]}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mb-2">
-                  <label className="block font-semibold text-sm mb-1 text-gray-500">
-                    Sex
-                  </label>
-                  <select
-                    value={horse.sex}
-                    onChange={(e) =>
-                      handleHorseChange(idx, "sex", e.target.value)
-                    }
-                    className="w-full border border-gray-300 text-gray-500 rounded px-2 py-2 bg-gray-100"
-                  >
-                    <option value="">Select Sex</option>
-                    {sexes.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                  {errors[`sex${idx}`] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors[`sex${idx}`]}
-                    </p>
-                  )}
-                </div>
+              <div key={idx} className="border rounded p-3 space-y-2 bg-white">
+                <h3 className="font-semibold text-gray-600">Horse {idx + 1}</h3>
+                <input
+                  type="text"
+                  placeholder="Registered Name"
+                  value={horse.registeredName}
+                  onChange={(e) =>
+                    handleHorseChange(idx, "registeredName", e.target.value)
+                  }
+                  className="w-full border border-gray-300 rounded px-2 py-1"
+                />
+                <input
+                  type="text"
+                  placeholder="Barn Name"
+                  value={horse.barnName}
+                  onChange={(e) =>
+                    handleHorseChange(idx, "barnName", e.target.value)
+                  }
+                  className="w-full border border-gray-300 rounded px-2 py-1"
+                />
+                <select
+                  value={horse.breed}
+                  onChange={(e) =>
+                    handleHorseChange(idx, "breed", e.target.value)
+                  }
+                  className="w-full border border-gray-300 rounded px-2 py-1"
+                >
+                  <option value="">Select Breed</option>
+                  {breeds.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  placeholder="Colour"
+                  value={horse.colour}
+                  onChange={(e) =>
+                    handleHorseChange(idx, "colour", e.target.value)
+                  }
+                  className="w-full border border-gray-300 rounded px-2 py-1"
+                />
+                <input
+                  type="number"
+                  placeholder="Age"
+                  value={horse.age}
+                  onChange={(e) =>
+                    handleHorseChange(idx, "age", e.target.value)
+                  }
+                  className="w-full border border-gray-300 rounded px-2 py-1"
+                />
+                <select
+                  value={horse.sex}
+                  onChange={(e) =>
+                    handleHorseChange(idx, "sex", e.target.value)
+                  }
+                  className="w-full border border-gray-300 rounded px-2 py-1"
+                >
+                  <option value="">Select Sex</option>
+                  {sexes.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="file"
+                  onChange={(e) =>
+                    handleHorseFileChange(idx, "photo", e.target.files[0])
+                  }
+                />
               </div>
             ))}
           </div>
@@ -439,96 +371,16 @@ const NewShipment = () => {
 
       case 4:
         return (
-          <div className="flex flex-col w-full gap-6">
-            {horses.map((horse, idx) => (
-              <div key={idx} className="rounded-[15px] bg-[#F2EBDD] p-4">
-                {/* Horse Name Heading */}
-                <h2
-                  className="text-gray-800 font-semibold mb-3"
-                  style={{
-                    fontSize: "16px",
-                    lineHeight: "24px",
-                    padding: "14px",
-                    borderRadius: "15px",
-                  }}
-                >
-                  Horse {idx + 1} - {horse.registeredName || "Unnamed"}
-                </h2>
-
-                {/* Upload a Photo Section */}
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
-                    Upload a photo of the horse
-                  </h3>
-                  <p className="text-xs text-gray-500 mb-2">
-                    A picture enhances your listing, making it more appealing
-                    and increasing the likelihood of attracting attention from
-                    potential carriers.
-                  </p>
-                  <input
-                    type="file"
-                    onChange={(e) =>
-                      handleHorseFileChange(idx, "photo", e.target.files[0])
-                    }
-                    className="w-full border border-gray-300 rounded px-3 py-2"
-                  />
-                </div>
-
-                {/* Documents Section */}
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
-                    Documents
-                  </h3>
-                  <p className="text-xs text-gray-500 mb-2">
-                    Provide the required paperwork to facilitate a smooth and
-                    safe delivery process.
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    <input
-                      type="file"
-                      onChange={(e) =>
-                        handleHorseFileChange(idx, "cogins", e.target.files[0])
-                      }
-                      className="w-full border border-gray-300 rounded px-3 py-2"
-                      placeholder="Coggins"
-                    />
-                    <input
-                      type="file"
-                      onChange={(e) =>
-                        handleHorseFileChange(
-                          idx,
-                          "healthCertificate",
-                          e.target.files[0]
-                        )
-                      }
-                      className="w-full border border-gray-300 rounded px-3 py-2"
-                      placeholder="Health Certificate"
-                    />
-                  </div>
-                </div>
-
-                {/* General Information Section */}
-                <div className="mb-2">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
-                    General Information
-                  </h3>
-                  <p className="text-xs text-gray-500 mb-2">
-                    Describe any specific preferences or restrictions you may
-                    have for the shipment, such as preferred vehicle types and
-                    other relevant details.
-                  </p>
-                  <textarea
-                    value={horse.generalInfo}
-                    onChange={(e) =>
-                      handleHorseChange(idx, "generalInfo", e.target.value)
-                    }
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-gray-500"
-                    rows={3}
-                    placeholder="Enter additional details"
-                  />
-                </div>
-              </div>
-            ))}
+          <div className="flex flex-col w-full gap-4">
+            <label className="block text-sm font-semibold mb-1 text-gray-500">
+              Additional Information
+            </label>
+            <textarea
+              value={additionalInfo}
+              onChange={(e) => setAdditionalInfo(e.target.value)}
+              className="w-full border border-gray-300 rounded px-3 py-2"
+              placeholder="Any extra details about your shipment"
+            />
           </div>
         );
 
@@ -562,33 +414,14 @@ const NewShipment = () => {
                   {deliveryDate} ({deliveryTimeOption})
                 </p>
               </div>
-            </div>
 
-            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm mt-4 space-y-2">
-              <p className="font-semibold">
-                Number of horses: {numberOfHorses}
-              </p>
-              {horses.map((h, idx) => (
-                <div key={idx} className="border p-3 rounded-md">
-                  <p className="font-semibold mb-1">
-                    Horse {idx + 1}: {h.registeredName || "Unnamed"}
-                  </p>
-                  <p>
-                    Breed: {h.breed || "N/A"}, Colour: {h.colour || "N/A"}, Age:{" "}
-                    {h.age || "N/A"}, Sex: {h.sex || "N/A"}
-                  </p>
-                  <div>Photo: {h.photo?.name || "N/A"}</div>
-                  <div>Cog-ins: {h.cogins?.name || "N/A"}</div>
-                  <div>
-                    Health Certificate: {h.healthCertificate?.name || "N/A"}
-                  </div>
-                  <div>General Info: {h.generalInfo || "N/A"}</div>
-                </div>
-              ))}
-              <div className="mt-2">
-                <p className="font-semibold">Additional Info:</p>
-                <p>{additionalInfo || "N/A"}</p>
-              </div>
+              {/* Edit Picture Button */}
+              <button
+                className="flex items-center gap-2 text-blue-500 hover:underline mt-2"
+                onClick={() => setCurrentStep(1)} // Move to Step 1
+              >
+                <FiEdit3 /> Edit details
+              </button>
             </div>
           </div>
         );
@@ -601,77 +434,47 @@ const NewShipment = () => {
   return (
     <div className="w-full flex flex-col items-center relative py-10 bg-gray-50 min-h-screen">
       {/* Stepper */}
-      <div className="w-full max-w-4xl flex gap-2 relative mb-10 px-4 items-center">
-        {steps.map((step, index) => {
-          const isCompleted = currentStep > step.id;
-          const isCurrent = currentStep === step.id;
-          return (
-            <div key={step.id} className="flex-1 flex justify-center relative">
-              {isCurrent && (
-                <img
-                  src={logoMobile}
-                  alt="Step Logo"
-                  className="absolute -top-10 w-12 h-12 object-contain z-10"
-                />
-              )}
-              {index <= steps.length - 1 && (
-                <div
-                  className={`absolute top-5 left-0 w-full h-2 rounded-full ${
-                    isCompleted
-                      ? "bg-[#BF9B53]"
-                      : isCurrent
-                      ? "bg-[#4C3E21]"
-                      : "bg-gray-300"
-                  }`}
-                  style={{ zIndex: 0 }}
-                />
-              )}
+      <div className="flex w-full max-w-5xl justify-between mb-6 px-4">
+        {steps.map((step) => (
+          <div key={step.id} className="flex flex-col items-center">
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                currentStep === step.id
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-300 text-gray-700"
+              }`}
+            >
+              {step.id}
             </div>
-          );
-        })}
-      </div>
-
-      {/* Header */}
-      <div className="flex flex-row justify-between w-full max-w-5xl gap-2 relative mt-4 items-center px-4">
-        <div className="font-montserrat font-semibold text-[20px] leading-[30px] tracking-[0%]">
-          New Shipment
-        </div>
-        <div
-          className="font-montserrat cursor-pointer text-gray-500"
-          onClick={handleCancel}
-        >
-          Cancel
-        </div>
-      </div>
-
-      {/* Step Title */}
-      <div className="w-full max-w-5xl px-4 mb-4">
-        <p className="font-montserrat text-xl font-semibold text-gray-700">
-          {steps[currentStep - 1].title}
-        </p>
+            <span className="text-xs mt-1 text-center">{step.title}</span>
+          </div>
+        ))}
       </div>
 
       {/* Step Content */}
       <div className="w-full max-w-5xl px-4">{renderStepContent()}</div>
 
       {/* Navigation Buttons */}
-      <div className="flex w-full max-w-5xl justify-between md:justify-end gap-4 mt-6 px-4">
+      <div className="flex gap-4 mt-6">
+        {currentStep > 1 && (
+          <button
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            onClick={handlePrevious}
+          >
+            Previous
+          </button>
+        )}
         <button
-          onClick={handlePrevious}
-          disabled={currentStep === 1}
-          className={`px-6 py-2 rounded-lg font-montserrat border ${
-            currentStep === 1
-              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-              : "bg-white text-gray-500 border-gray-300 hover:bg-[#BF9B53] hover:text-white"
-          }`}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          onClick={handleNext}
         >
-          Previous
+          {currentStep === steps.length ? "Submit" : "Next"}
         </button>
         <button
-          onClick={handleNext}
-          className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e]"
+          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          onClick={handleCancel}
         >
-          {currentStep === steps.length ? "Finish" : "Next"}
+          Cancel
         </button>
       </div>
 
@@ -684,7 +487,6 @@ const NewShipment = () => {
             setIsModalOpen(false);
             navigate("/customer/my-shipments");
           }}
-          onAnotherAction={() => setIsModalOpen(false)}
         />
       )}
     </div>
