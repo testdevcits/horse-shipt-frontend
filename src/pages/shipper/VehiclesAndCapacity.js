@@ -227,14 +227,14 @@ const VehiclePage = () => {
               </div>
 
               {/* Delete Button */}
-              <div className="flex justify-end mt-auto px-2">
+              {/* <div className="flex justify-end mt-auto px-2">
                 <button
                   onClick={() => handleDelete(vehicle._id)}
                   className="flex items-center gap-1 text-[14px] border border-red-500 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
                 >
                   <FiTrash2 /> Delete
                 </button>
-              </div>
+              </div> */}
             </div>
           ))}
         </div>
