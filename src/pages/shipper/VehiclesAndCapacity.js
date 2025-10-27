@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { FiArrowLeft, FiPlus, FiTrash2, FiEdit } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiEdit, FiX } from "react-icons/fi";
 import { useVehicle } from "../../contexts/VehicleContext";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import Toast from "../../components/common/Toast";
+import { RiImageAddLine } from "react-icons/ri";
 
 const VehiclePage = () => {
   const {
@@ -14,46 +18,14 @@ const VehiclePage = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    type: "",
-    number: "",
-    color: "",
-    fuelType: "",
-    transmission: "",
-    images: [],
-  });
+  const [toast, setToast] = useState(null);
 
-  // ---------------- Fetch Vehicles ----------------
   useEffect(() => {
     fetchVehicles();
   }, [fetchVehicles]);
 
-  // ---------------- Open & Close Modal ----------------
   const openModal = (vehicle = null) => {
-    if (vehicle) {
-      setEditingVehicle(vehicle);
-      setFormData({
-        name: vehicle.name || "",
-        type: vehicle.type || "",
-        number: vehicle.number || "",
-        color: vehicle.color || "",
-        fuelType: vehicle.fuelType || "",
-        transmission: vehicle.transmission || "",
-        images: vehicle.images || [],
-      });
-    } else {
-      setEditingVehicle(null);
-      setFormData({
-        name: "",
-        type: "",
-        number: "",
-        color: "",
-        fuelType: "",
-        transmission: "",
-        images: [],
-      });
-    }
+    setEditingVehicle(vehicle);
     setShowModal(true);
   };
 
@@ -62,54 +34,86 @@ const VehiclePage = () => {
     setEditingVehicle(null);
   };
 
-  // ---------------- Handle Input ----------------
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // ---------------- Handle Image Upload ----------------
-  const handleImageChange = (e, index) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const preview = URL.createObjectURL(file);
-
-    setFormData((prev) => {
-      const newImages = [...prev.images];
-      newImages[index] = preview;
-      return { ...prev, images: newImages };
-    });
-  };
-
-  // ---------------- Submit Form ----------------
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (editingVehicle) {
-      await updateVehicle(editingVehicle._id, formData);
-    } else {
-      await addVehicle(formData);
-    }
-    closeModal();
-  };
-
-  // ---------------- Delete Vehicle ----------------
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this vehicle?")) {
-      await deleteVehicle(id);
+      const res = await deleteVehicle(id);
+      setToast({
+        message: res.message,
+        type: res.success ? "success" : "error",
+      });
     }
+  };
+
+  const validationSchema = Yup.object({
+    vehicleType: Yup.string().required("Vehicle type is required"),
+    trailerType: Yup.string().required("Trailer type is required"),
+    numberOfStalls: Yup.number()
+      .required("Number of stalls is required")
+      .positive("Must be positive")
+      .integer("Must be an integer"),
+    stallSize: Yup.string().required("Stall size is required"),
+  });
+
+  const getInitialValues = (vehicle) => ({
+    transportType: "Trucking",
+    vehicleType: vehicle?.vehicleType || "",
+    trailerType: vehicle?.trailerType || "Stock Trailer",
+    numberOfStalls: vehicle?.numberOfStalls || "",
+    stallSize: vehicle?.stallSize || "",
+    notes: vehicle?.notes || "",
+    images: vehicle?.images || [],
+  });
+
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    const formData = new FormData();
+    Object.keys(values).forEach((key) => {
+      if (key === "images") {
+        values.images.forEach((img) => {
+          if (img instanceof File) formData.append("images", img);
+        });
+      } else {
+        formData.append(key, values[key]);
+      }
+    });
+
+    let res;
+    if (editingVehicle) {
+      res = await updateVehicle(editingVehicle._id, formData);
+    } else {
+      res = await addVehicle(formData);
+    }
+
+    setToast({ message: res.message, type: res.success ? "success" : "error" });
+
+    if (res.success) {
+      resetForm();
+      closeModal();
+    }
+
+    setSubmitting(false);
   };
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen relative p-4 sm:p-6 md:p-8">
+      {/* Toast */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h2 className="font-montserrat font-semibold text-[18px] sm:text-[20px] md:text-[24px] text-[#333333]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
+        <h2 className="font-semibold text-[20px] sm:text-[22px] text-[#333333]">
           My Registered Vehicles
         </h2>
 
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 bg-[#007bff] text-white px-4 py-2 rounded-lg hover:bg-[#005fcc] transition"
+          className="flex items-center justify-center gap-2 bg-[#007bff] text-white px-4 py-2 rounded-lg hover:bg-[#005fcc] transition w-full sm:w-auto"
         >
           <FiPlus className="text-lg" /> <span>Add Vehicle</span>
         </button>
@@ -130,25 +134,29 @@ const VehiclePage = () => {
               className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-3 border border-gray-200 hover:shadow-md transition"
             >
               <img
-                src={vehicle.images?.[0] || "https://via.placeholder.com/200"}
-                alt={vehicle.name}
+                src={
+                  vehicle.images?.[0]?.url || "https://via.placeholder.com/200"
+                }
+                alt={vehicle.vehicleType}
                 className="w-full h-40 object-cover rounded-lg"
               />
               <h3 className="font-semibold text-[#333] text-lg">
-                {vehicle.name}
+                {vehicle.vehicleType}
               </h3>
-              <p className="text-gray-600 text-sm">Type: {vehicle.type}</p>
+              <p className="text-gray-600 text-sm">
+                Trailer: {vehicle.trailerType || "Stock Trailer"}
+              </p>
 
-              <div className="flex justify-between mt-2">
+              <div className="flex justify-between mt-2 gap-2">
                 <button
                   onClick={() => openModal(vehicle)}
-                  className="flex items-center gap-1 bg-[#007bff] text-white px-3 py-1.5 rounded-lg hover:bg-[#005fcc] transition text-sm"
+                  className="flex-1 flex items-center justify-center gap-1 bg-[#007bff] text-white px-3 py-1.5 rounded-lg hover:bg-[#005fcc] transition text-sm"
                 >
                   <FiEdit /> Edit
                 </button>
                 <button
                   onClick={() => handleDelete(vehicle._id)}
-                  className="flex items-center gap-1 border border-red-500 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition text-sm"
+                  className="flex-1 flex items-center justify-center gap-1 border border-red-500 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition text-sm"
                 >
                   <FiTrash2 /> Delete
                 </button>
@@ -160,129 +168,212 @@ const VehiclePage = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          {/* ✅ Fullscreen Modal for all devices */}
-          <div className="bg-white w-full h-full overflow-y-auto p-6 sm:p-10">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-              <h2 className="font-montserrat font-semibold text-[22px] sm:text-[26px] text-[#333333]">
-                {editingVehicle ? "Edit Vehicle" : "Add a New Vehicle"}
-              </h2>
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto p-2 sm:p-6 md:p-8">
+          {/* Close Button */}
+          <button
+            onClick={closeModal}
+            className="absolute top-4 right-4 text-gray-600 hover:text-[#007bff] transition"
+          >
+            <FiX size={28} />
+          </button>
 
-              <button
-                onClick={closeModal}
-                className="flex items-center gap-2 text-gray-600 hover:text-[#007bff] transition"
-              >
-                <FiArrowLeft className="text-lg" /> <span>Back</span>
-              </button>
-            </div>
+          <div className="max-w-full mx-auto">
+            <h2 className="font-semibold text-[22px] sm:text-[24px] text-[#333333] mb-6 text-center sm:text-left">
+              {editingVehicle ? "Edit Vehicle" : "Add a New Vehicle"}
+            </h2>
 
-            {/* Form */}
-            <form
+            <Formik
+              initialValues={getInitialValues(editingVehicle)}
+              validationSchema={validationSchema}
               onSubmit={handleSubmit}
-              className="grid grid-cols-2 gap-6" // ✅ Always 2 columns
+              enableReinitialize
             >
-              {[
-                { label: "Vehicle Name", name: "name", type: "text" },
-                { label: "Vehicle Type", name: "type", type: "text" },
-                { label: "Number of Stalls", name: "number", type: "number" },
-                {
-                  label: "Stall Type",
-                  name: "color",
-                  type: "select",
-                  options: ["Box Stall", "Open Stall", "Large Stall"],
-                },
-                {
-                  label: "Fuel Type",
-                  name: "fuelType",
-                  type: "select",
-                  options: ["Petrol", "Diesel", "Electric"],
-                },
-                {
-                  label: "Transmission",
-                  name: "transmission",
-                  type: "select",
-                  options: ["Manual", "Automatic"],
-                },
-              ].map((field, i) => (
-                <div key={i}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {field.label}
-                  </label>
-                  {field.type === "select" ? (
-                    <select
-                      name={field.name}
-                      value={formData[field.name]}
-                      onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none"
-                    >
-                      <option value="">Select {field.label}</option>
-                      {field.options.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type={field.type}
-                      name={field.name}
-                      value={formData[field.name]}
-                      onChange={handleChange}
-                      placeholder={`Enter ${field.label.toLowerCase()}`}
-                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none"
+              {({ values, setFieldValue, isSubmitting }) => (
+                <Form className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  {/* Transport Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Transport Type
+                    </label>
+                    <Field
+                      type="text"
+                      name="transportType"
+                      readOnly
+                      className="w-full border border-gray-300 rounded-lg p-2 bg-gray-100 cursor-not-allowed text-gray-700 text-sm sm:text-base"
                     />
-                  )}
-                </div>
-              ))}
+                  </div>
 
-              {/* Upload Images */}
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Upload Vehicle Images
-                </label>
-                <div className="flex flex-wrap gap-3">
-                  {[...Array(5)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="relative w-20 h-20 border border-gray-300 rounded-lg flex items-center justify-center hover:border-[#007bff] cursor-pointer overflow-hidden"
+                  {/* Vehicle Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Vehicle Type
+                    </label>
+                    <Field
+                      as="select"
+                      name="vehicleType"
+                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none text-sm sm:text-base"
                     >
-                      <input
-                        type="file"
-                        onChange={(e) => handleImageChange(e, i)}
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                      />
-                      {formData.images[i] ? (
-                        <img
-                          src={formData.images[i]}
-                          alt="preview"
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      ) : (
-                        <span className="text-gray-400 text-sm">+</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+                      <option value="">Select Vehicle Type</option>
+                      <option value="Truck">Truck</option>
+                      <option value="Trailer">Trailer</option>
+                      <option value="Other">Other</option>
+                    </Field>
+                    <ErrorMessage
+                      name="vehicleType"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
 
-              {/* Buttons */}
-              <div className="col-span-2 flex justify-end gap-4 mt-6">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-5 py-2 border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-[#007bff] text-white rounded-lg hover:bg-[#005fcc] transition"
-                >
-                  {editingVehicle ? "Update Vehicle" : "Add Vehicle"}
-                </button>
-              </div>
-            </form>
+                  {/* Number of Stalls */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Number of Stalls
+                    </label>
+                    <Field
+                      type="number"
+                      name="numberOfStalls"
+                      placeholder="Enter number"
+                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none text-sm sm:text-base"
+                    />
+                    <ErrorMessage
+                      name="numberOfStalls"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  {/* Stall Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Stall Type
+                    </label>
+                    <Field
+                      as="select"
+                      name="trailerType"
+                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none text-sm sm:text-base"
+                    >
+                      {[
+                        "Stock Trailer",
+                        "Slant Load",
+                        "Head to Head",
+                        "Semi",
+                        "Other",
+                      ].map((opt) => (
+                        <option key={opt}>{opt}</option>
+                      ))}
+                    </Field>
+                    <ErrorMessage
+                      name="trailerType"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  {/* Stall Size */}
+                  <div className="col-span-2 w-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Stall Size
+                    </label>
+                    <Field
+                      as="select"
+                      name="stallSize"
+                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none text-sm sm:text-base"
+                    >
+                      {[
+                        "Single Stall",
+                        "Stall and a Half",
+                        "Box Stall",
+                        "Other",
+                      ].map((opt) => (
+                        <option key={opt}>{opt}</option>
+                      ))}
+                    </Field>
+                    <ErrorMessage
+                      name="stallSize"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  {/* Upload Images */}
+                  <div className="col-span-2 w-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Upload Vehicle Images
+                    </label>
+
+                    <div className="flex flex-wrap gap-3 mb-4 p-3 border border-gray-200 rounded-xl bg-white">
+                      {[...Array(5)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="relative w-20 h-20 sm:w-24 sm:h-24 border border-gray-300 border-dashed flex items-center justify-center hover:border-[#BF9B53] cursor-pointer overflow-hidden rounded-[16px] p-2 transition-all duration-200"
+                        >
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (file) {
+                                const updated = [...values.images];
+                                updated[i] = file;
+                                setFieldValue("images", updated);
+                              }
+                            }}
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                          />
+                          {values.images[i] ? (
+                            <img
+                              src={
+                                values.images[i]?.url ||
+                                URL.createObjectURL(values.images[i])
+                              }
+                              alt="preview"
+                              className="w-full h-full object-cover rounded-[16px]"
+                            />
+                          ) : (
+                            <span className="text-gray-400 text-2xl select-none">
+                              <RiImageAddLine />
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  <div className="col-span-2 w-full">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Notes
+                    </label>
+                    <Field
+                      as="textarea"
+                      name="notes"
+                      rows="3"
+                      placeholder="Enter notes (optional)"
+                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none resize-none text-sm sm:text-base"
+                    />
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="col-span-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 mt-6">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="w-full sm:w-auto px-5 py-2 border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-200 bg-gray-100 transition text-sm sm:text-base"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full sm:w-auto px-6 py-2 bg-[#007bff] text-white rounded-lg hover:bg-[#005fcc] transition disabled:opacity-50 text-sm sm:text-base"
+                    >
+                      {editingVehicle ? "Update" : "Save"}
+                    </button>
+                  </div>
+                </Form>
+              )}
+            </Formik>
           </div>
         </div>
       )}

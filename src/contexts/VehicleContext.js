@@ -1,4 +1,3 @@
-// src/contexts/VehicleContext.js
 import React, {
   createContext,
   useContext,
@@ -12,22 +11,22 @@ import { useAuth } from "./AuthContext";
 const VehicleContext = createContext();
 
 const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+  process.env.REACT_APP_API_BASE_URL ||
+  "https://horse-shipt.vercel.app/api/shipper";
 
 export const VehicleProvider = ({ children }) => {
   const { token } = useAuth();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ----------------- Fetch All Vehicles -----------------
   const fetchVehicles = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/vehicle/get-all`, {
+      const res = await axios.get(`${API_BASE_URL}/vehicles`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setVehicles(response.data.data || []);
+      setVehicles(res.data.vehicles || []);
     } catch (err) {
       console.error("Fetch Vehicles Error:", err.response?.data || err.message);
     } finally {
@@ -35,13 +34,15 @@ export const VehicleProvider = ({ children }) => {
     }
   }, [token]);
 
-  // ----------------- Add Vehicle -----------------
-  const addVehicle = async (vehicleData) => {
+  const addVehicle = async (formData) => {
     if (!token) return { success: false, message: "Unauthorized" };
     setLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/vehicle/add`, vehicleData, {
-        headers: { Authorization: `Bearer ${token}` },
+      await axios.post(`${API_BASE_URL}/vehicles`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
       });
       await fetchVehicles();
       return { success: true, message: "Vehicle added successfully" };
@@ -56,13 +57,15 @@ export const VehicleProvider = ({ children }) => {
     }
   };
 
-  // ----------------- Update Vehicle -----------------
-  const updateVehicle = async (id, vehicleData) => {
+  const updateVehicle = async (id, formData) => {
     if (!token) return { success: false, message: "Unauthorized" };
     setLoading(true);
     try {
-      await axios.put(`${API_BASE_URL}/vehicle/update/${id}`, vehicleData, {
-        headers: { Authorization: `Bearer ${token}` },
+      await axios.put(`${API_BASE_URL}/vehicles/${id}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
       });
       await fetchVehicles();
       return { success: true, message: "Vehicle updated successfully" };
@@ -77,12 +80,11 @@ export const VehicleProvider = ({ children }) => {
     }
   };
 
-  // ----------------- Delete Vehicle -----------------
   const deleteVehicle = async (id) => {
     if (!token) return { success: false, message: "Unauthorized" };
     setLoading(true);
     try {
-      await axios.delete(`${API_BASE_URL}/vehicle/delete/${id}`, {
+      await axios.delete(`${API_BASE_URL}/vehicles/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       await fetchVehicles();
@@ -98,7 +100,6 @@ export const VehicleProvider = ({ children }) => {
     }
   };
 
-  // ----------------- Fetch Vehicles on Mount -----------------
   useEffect(() => {
     fetchVehicles();
   }, [fetchVehicles]);
