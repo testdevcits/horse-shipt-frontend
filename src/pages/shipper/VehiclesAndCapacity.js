@@ -154,54 +154,81 @@ const VehiclePage = () => {
 
               {/* ---------- Transport & Vehicle Type ---------- */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
-                <p className="flex text-[16px] font-normal text-systemText leading-[24px]">
-                  <span className="font-medium">Transport: </span>
-                  {vehicle.transportType}
-                </p>
-                <p className="flex text-[16px] font-normal text-systemText leading-[24px]">
-                  <span className="font-medium">Vehicle: </span>
-                  {vehicle.vehicleType}
-                </p>
+                {/* Transport Section */}
+                <div className="flex flex-col">
+                  <span className="text-[16px] font-medium text-systemText leading-[24px]">
+                    Transport:
+                  </span>
+                  <span className="text-[16px] font-normal text-systemText leading-[24px]">
+                    {vehicle.transportType || "N/A"}
+                  </span>
+                </div>
+
+                {/* Vehicle Section */}
+                <div className="flex flex-col">
+                  <span className="text-[16px] font-medium text-systemText leading-[24px]">
+                    Vehicle:
+                  </span>
+                  <span className="text-[16px] font-normal text-systemText leading-[24px]">
+                    {vehicle.vehicleType || "N/A"}
+                  </span>
+                </div>
               </div>
 
               {/* ---------- Number of Stalls & Stall Size ---------- */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
-                <p className="flex text-[16px] font-normal text-systemText leading-[24px]">
-                  <span className="font-medium">Stalls: </span>
-                  {vehicle.numberOfStalls}
-                </p>
-                <p className="flex text-[16px] font-normal text-systemText leading-[24px]">
-                  <span className="font-medium">Size: </span>
-                  {vehicle.stallSize}
-                </p>
+                {/* Stalls Section */}
+                <div className="flex flex-col">
+                  <span className="text-[16px] font-medium text-systemText leading-[24px]">
+                    Stalls:
+                  </span>
+                  <span className="text-[16px] font-normal text-systemText leading-[24px]">
+                    {vehicle.numberOfStalls || "N/A"}
+                  </span>
+                </div>
+
+                {/* Size Section */}
+                <div className="flex flex-col">
+                  <span className="text-[16px] font-medium text-systemText leading-[24px]">
+                    Size:
+                  </span>
+                  <span className="text-[16px] font-normal text-systemText leading-[24px]">
+                    {vehicle.stallSize || "N/A"}
+                  </span>
+                </div>
               </div>
 
               {/* ---------- Image Gallery ---------- */}
-              <div className="flex flex-wrap gap-2 px-2">
-                <span className="flex text-[16px] font-medium text-systemText leading-[24px]">
+              <div className="px-2">
+                {/* Label */}
+                <p className="text-[16px] font-medium text-systemText leading-[24px] mb-2">
                   Images:
-                </span>
-                {vehicle.images?.length > 0 ? (
-                  vehicle.images.map((img, i) => (
+                </p>
+
+                {/* Image List */}
+                <div className="flex flex-wrap gap-2">
+                  {vehicle.images?.length > 0 ? (
+                    vehicle.images.map((img, i) => (
+                      <img
+                        key={i}
+                        src={img.url}
+                        alt={`Vehicle ${index + 1} - ${i}`}
+                        className="w-[80px] h-[80px] object-cover rounded-[16px] border border-dashed border-gray-300 p-[2px]"
+                      />
+                    ))
+                  ) : (
                     <img
-                      key={i}
-                      src={img.url}
-                      alt={`Vehicle ${index + 1} - ${i}`}
+                      src="https://via.placeholder.com/80"
+                      alt="No image"
                       className="w-[80px] h-[80px] object-cover rounded-[16px] border border-dashed border-gray-300 p-[2px]"
                     />
-                  ))
-                ) : (
-                  <img
-                    src="https://via.placeholder.com/80"
-                    alt="No image"
-                    className="w-[80px] h-[80px] object-cover rounded-[16px] border border-dashed border-gray-300 p-[2px]"
-                  />
-                )}
+                  )}
+                </div>
               </div>
 
               {/* ---------- Notes Section ---------- */}
               <div className="px-2">
-                <p className="flex text-[16px] leading-[24px] text-systemText">
+                <p className="text-[16px] leading-[24px] text-systemText">
                   <span className="font-medium">Notes: </span>
                   <span className="font-normal">{vehicle.notes || "N/A"}</span>
                 </p>
