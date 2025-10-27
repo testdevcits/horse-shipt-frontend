@@ -250,7 +250,7 @@ const VehiclePage = () => {
             <FiX size={28} />
           </button>
 
-          <div className="max-w-full mx-auto">
+          <div className="max-w-full">
             <h2 className="font-semibold text-[22px] sm:text-[24px] text-[#333333] mb-6 text-center sm:text-left">
               {editingVehicle ? "Edit Vehicle" : "Add a New Vehicle"}
             </h2>
@@ -434,7 +434,7 @@ const VehiclePage = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full sm:w-auto px-6 py-2 bg-[#007bff] text-white rounded-lg hover:bg-[#005fcc] transition disabled:opacity-50"
+                      className="flex items-center justify-center gap-2 bg-[#bf9b53] text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition w-full sm:w-auto"
                     >
                       {editingVehicle ? "Update" : "Save"}
                     </button>
