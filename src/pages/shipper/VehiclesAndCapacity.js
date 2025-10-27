@@ -19,34 +19,36 @@ const VehiclePage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [confirmData, setConfirmData] = useState({ show: false, id: null });
+  const [fetched, setFetched] = useState(false); // ✅ to prevent repeated fetch calls
 
-  // ✅ Fetch only once when mounted
   useEffect(() => {
-    fetchVehicles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!fetched) {
+      fetchVehicles();
+      setFetched(true);
+    }
+  }, [fetched, fetchVehicles]);
 
+  // ---------- Modal ----------
   const openModal = (vehicle = null) => {
     setEditingVehicle(vehicle);
     setShowModal(true);
   };
-
   const closeModal = () => {
     setShowModal(false);
     setEditingVehicle(null);
   };
 
+  // ---------- Delete ----------
   const handleDelete = (id) => {
     setConfirmData({ show: true, id });
   };
-
   const confirmDelete = async () => {
     await deleteVehicle(confirmData.id);
     setConfirmData({ show: false, id: null });
   };
-
   const cancelDelete = () => setConfirmData({ show: false, id: null });
 
+  // ---------- Validation ----------
   const validationSchema = Yup.object({
     vehicleType: Yup.string().required("Vehicle type is required"),
     trailerType: Yup.string().required("Trailer type is required"),
@@ -67,6 +69,7 @@ const VehiclePage = () => {
     images: vehicle?.images || [],
   });
 
+  // ---------- Submit ----------
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     const formData = new FormData();
     Object.keys(values).forEach((key) => {
@@ -90,6 +93,7 @@ const VehiclePage = () => {
     setSubmitting(false);
   };
 
+  // ---------- Render ----------
   return (
     <div className="min-h-screen relative">
       {/* Delete Confirmation Modal */}
@@ -132,7 +136,7 @@ const VehiclePage = () => {
               key={vehicle._id}
               className="bg-white border border-gray-200 rounded-[14px] p-[10px] shadow-sm hover:shadow-md transition-all flex flex-col gap-4 w-full sm:max-w-[464px] h-auto min-h-[400px] mx-auto"
             >
-              {/* ---------- Header ---------- */}
+              {/* Header */}
               <div className="flex justify-between items-center w-full h-9 px-3">
                 <h2 className="text-[16px] font-semibold text-systemText leading-[24px]">
                   Vehicle {index + 1}
@@ -145,51 +149,51 @@ const VehiclePage = () => {
                 </button>
               </div>
 
-              {/* ---------- Transport & Vehicle Type ---------- */}
+              {/* Transport & Vehicle Type */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
                 <div className="flex flex-col">
-                  <span className="text-[16px] font-medium text-systemText leading-[24px]">
+                  <span className="text-[16px] font-medium text-systemText">
                     Transport:
                   </span>
-                  <span className="text-sm font-semibold mb-1 text-gray-500">
+                  <span className="text-sm text-gray-500">
                     {vehicle.transportType || "N/A"}
                   </span>
                 </div>
 
                 <div className="flex flex-col">
-                  <span className="text-[16px] font-medium text-systemText leading-[24px]">
+                  <span className="text-[16px] font-medium text-systemText">
                     Vehicle:
                   </span>
-                  <span className="text-sm font-semibold mb-1 text-gray-500">
+                  <span className="text-sm text-gray-500">
                     {vehicle.vehicleType || "N/A"}
                   </span>
                 </div>
               </div>
 
-              {/* ---------- Number of Stalls & Stall Size ---------- */}
+              {/* Number of Stalls & Stall Size */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
                 <div className="flex flex-col">
-                  <span className="text-[16px] font-medium text-systemText leading-[24px]">
+                  <span className="text-[16px] font-medium text-systemText">
                     Stalls:
                   </span>
-                  <span className="text-sm font-semibold mb-1 text-gray-500">
+                  <span className="text-sm text-gray-500">
                     {vehicle.numberOfStalls || "N/A"}
                   </span>
                 </div>
 
                 <div className="flex flex-col">
-                  <span className="text-[16px] font-medium text-systemText leading-[24px]">
+                  <span className="text-[16px] font-medium text-systemText">
                     Size:
                   </span>
-                  <span className="text-sm font-semibold mb-1 text-gray-500">
+                  <span className="text-sm text-gray-500">
                     {vehicle.stallSize || "N/A"}
                   </span>
                 </div>
               </div>
 
-              {/* ---------- Image Gallery ---------- */}
+              {/* Image Gallery */}
               <div className="px-2">
-                <p className="text-[16px] font-medium text-systemText leading-[24px] mb-2">
+                <p className="text-[16px] font-medium text-systemText mb-2">
                   Images:
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -212,19 +216,17 @@ const VehiclePage = () => {
                 </div>
               </div>
 
-              {/* ---------- Notes ---------- */}
+              {/* Notes */}
               <div className="px-2">
-                <div className="flex flex-col">
-                  <span className="text-[16px] font-medium text-systemText leading-[24px]">
-                    Notes:
-                  </span>
-                  <span className="text-sm font-semibold mb-1 text-gray-500">
-                    {vehicle.notes || "N/A"}
-                  </span>
-                </div>
+                <span className="text-[16px] font-medium text-systemText">
+                  Notes:
+                </span>
+                <span className="text-sm text-gray-500">
+                  {vehicle.notes || "N/A"}
+                </span>
               </div>
 
-              {/* ---------- Delete Button ---------- */}
+              {/* Delete Button */}
               <div className="flex justify-end mt-auto px-2">
                 <button
                   onClick={() => handleDelete(vehicle._id)}
@@ -261,9 +263,166 @@ const VehiclePage = () => {
             >
               {({ values, setFieldValue, isSubmitting }) => (
                 <Form className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  {/* Form Fields (unchanged) */}
-                  {/* ... same as your version ... */}
+                  {/* Form Fields */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Transport Type
+                    </label>
+                    <Field
+                      type="text"
+                      name="transportType"
+                      readOnly
+                      className="w-full border border-gray-300 rounded-lg p-2 bg-gray-100 cursor-not-allowed text-gray-700 text-sm sm:text-base"
+                    />
+                  </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Vehicle Type
+                    </label>
+                    <Field
+                      as="select"
+                      name="vehicleType"
+                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none text-sm sm:text-base"
+                    >
+                      <option value="">Select Vehicle Type</option>
+                      <option value="Truck">Truck</option>
+                      <option value="Trailer">Trailer</option>
+                      <option value="Other">Other</option>
+                    </Field>
+                    <ErrorMessage
+                      name="vehicleType"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Number of Stalls
+                    </label>
+                    <Field
+                      type="number"
+                      name="numberOfStalls"
+                      placeholder="Enter number"
+                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none text-sm sm:text-base"
+                    />
+                    <ErrorMessage
+                      name="numberOfStalls"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Stall Type
+                    </label>
+                    <Field
+                      as="select"
+                      name="trailerType"
+                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none text-sm sm:text-base"
+                    >
+                      {[
+                        "Stock Trailer",
+                        "Slant Load",
+                        "Head to Head",
+                        "Semi",
+                        "Other",
+                      ].map((opt) => (
+                        <option key={opt}>{opt}</option>
+                      ))}
+                    </Field>
+                    <ErrorMessage
+                      name="trailerType"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Stall Size
+                    </label>
+                    <Field
+                      as="select"
+                      name="stallSize"
+                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none text-sm sm:text-base"
+                    >
+                      {[
+                        "Single Stall",
+                        "Stall and a Half",
+                        "Box Stall",
+                        "Other",
+                      ].map((opt) => (
+                        <option key={opt}>{opt}</option>
+                      ))}
+                    </Field>
+                    <ErrorMessage
+                      name="stallSize"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  {/* Upload Images */}
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Upload Vehicle Images
+                    </label>
+                    <div className="flex flex-wrap gap-3 mb-4 p-3 border border-gray-200 rounded-xl bg-white">
+                      {[...Array(5)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="relative w-20 h-20 sm:w-24 sm:h-24 border border-gray-300 border-dashed flex items-center justify-center hover:border-[#BF9B53] cursor-pointer overflow-hidden rounded-[16px] p-2 transition-all"
+                        >
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (file) {
+                                const updated = [...values.images];
+                                updated[i] = file;
+                                setFieldValue("images", updated);
+                              }
+                            }}
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                          />
+                          {values.images[i] ? (
+                            <img
+                              src={
+                                values.images[i]?.url ||
+                                URL.createObjectURL(values.images[i])
+                              }
+                              alt="preview"
+                              className="w-full h-full object-cover rounded-[16px]"
+                            />
+                          ) : (
+                            <span className="text-gray-400 text-2xl select-none">
+                              <RiImageAddLine />
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Notes
+                    </label>
+                    <Field
+                      as="textarea"
+                      name="notes"
+                      rows="3"
+                      placeholder="Enter notes (optional)"
+                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none resize-none text-sm sm:text-base"
+                    />
+                  </div>
+
+                  {/* Buttons */}
                   <div className="col-span-2 flex flex-col sm:flex-row justify-end gap-3 mt-6">
                     <button
                       type="button"
