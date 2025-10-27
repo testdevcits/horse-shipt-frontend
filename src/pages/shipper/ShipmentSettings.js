@@ -65,7 +65,7 @@ const ShipmentSettings = () => {
   return (
     <div className="space-y-4 animate-slide-fade-in">
       {/* -------- Breadcrumb Header -------- */}
-      <div className="flex items-center flex-wrap gap-2 text-gray-700 font-semibold text-base sm:text-lg">
+      <div className="flex items-center flex-wrap gap-2 text-gray-700 text-[16px] font-semibold text-systemText leading-[24px]">
         <span className="text-systemText">Shipment Settings</span>
         <GrNext />
         <span className="text-system-primary">{activeLabel}</span>
@@ -90,7 +90,7 @@ const ShipmentSettings = () => {
       </div>
 
       {/* -------- Tab Content -------- */}
-      <div className="bg-white p-4 sm:p-6 ">{renderSubTabContent()}</div>
+      <div>{renderSubTabContent()}</div>
     </div>
   );
 };

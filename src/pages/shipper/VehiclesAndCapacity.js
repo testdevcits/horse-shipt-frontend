@@ -19,7 +19,7 @@ const VehiclePage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [confirmData, setConfirmData] = useState({ show: false, id: null });
-  const [fetched, setFetched] = useState(false); // ✅ to prevent repeated fetch calls
+  const [fetched, setFetched] = useState(false);
 
   useEffect(() => {
     if (!fetched) {
