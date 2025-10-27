@@ -98,8 +98,8 @@ const VehiclePage = () => {
   };
 
   return (
-    <div className="min-h-screen relative p-4 sm:p-6 md:p-8">
-      {/* ✅ Delete Confirmation Modal */}
+    <div className="min-h-screen relative">
+      {/* Delete Confirmation Modal */}
       <ConfirmModal
         show={confirmData.show}
         title="Delete Vehicle"
@@ -119,7 +119,7 @@ const VehiclePage = () => {
 
         <button
           onClick={() => openModal()}
-          className="flex items-center justify-center gap-2 bg-[#007bff] text-white px-4 py-2 rounded-lg hover:bg-[#005fcc] transition w-full sm:w-auto"
+          className="flex items-center justify-center gap-2 bg-[#bf9b53] text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition w-full sm:w-auto"
         >
           <FiPlus className="text-lg" /> <span>Add Vehicle</span>
         </button>
@@ -133,85 +133,89 @@ const VehiclePage = () => {
           No vehicles found. Add one to get started!
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 font-montserrat">
           {vehicles.map((vehicle, index) => (
             <div
               key={vehicle._id}
               className="bg-white border border-gray-200 rounded-[14px] p-[10px] shadow-sm hover:shadow-md transition-all flex flex-col gap-4 w-full sm:max-w-[464px] h-auto min-h-[400px] mx-auto"
             >
-              {/* Header */}
+              {/* ---------- Header ---------- */}
               <div className="flex justify-between items-center w-full h-9 px-3">
-                <h2 className="text-sm font-semibold text-gray-800">
+                <h2 className="text-[16px] font-semibold text-systemText leading-[24px] tracking-[0%]">
                   Vehicle {index + 1}
                 </h2>
                 <button
                   onClick={() => openModal(vehicle)}
-                  className="flex items-center gap-1 text-sm bg-gray-100 text-black px-3 py-1 rounded-md hover:bg-gray-300 transition"
+                  className="flex items-center gap-1 text-[14px] font-medium bg-gray-100 text-systemText px-3 py-1 rounded-md hover:bg-gray-200 transition"
                 >
                   <RiEdit2Line className="text-base" /> Edit
                 </button>
               </div>
 
-              {/* Info Rows */}
+              {/* ---------- Transport & Vehicle Type ---------- */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
-                <p className="flex items-center text-sm text-gray-700 font-medium gap-1">
-                  <span>Transport:</span>
-                  <span className="font-normal">{vehicle.transportType}</span>
+                <p className="text-[16px] font-normal text-systemText leading-[24px]">
+                  <span className="font-medium">Transport: </span>
+                  {vehicle.transportType}
                 </p>
-                <p className="flex items-center text-sm text-gray-700 font-medium gap-1">
-                  <span>Vehicle:</span>
-                  <span className="font-normal">{vehicle.vehicleType}</span>
+                <p className="text-[16px] font-normal text-systemText leading-[24px]">
+                  <span className="font-medium">Vehicle: </span>
+                  {vehicle.vehicleType}
                 </p>
               </div>
 
+              {/* ---------- Number of Stalls & Stall Size ---------- */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
-                <p className="flex items-center text-sm text-gray-700 font-medium gap-1">
-                  <span>Stalls:</span>
-                  <span className="font-normal">{vehicle.numberOfStalls}</span>
+                <p className="text-[16px] font-normal text-systemText leading-[24px]">
+                  <span className="font-medium">Stalls: </span>
+                  {vehicle.numberOfStalls}
                 </p>
-                <p className="flex items-center text-sm text-gray-700 font-medium gap-1">
-                  <span>Size:</span>
-                  <span className="font-normal">{vehicle.stallSize}</span>
+                <p className="text-[16px] font-normal text-systemText leading-[24px]">
+                  <span className="font-medium">Size: </span>
+                  {vehicle.stallSize}
                 </p>
               </div>
 
-              {/* Images */}
+              {/* ---------- Image Gallery ---------- */}
               <div className="flex flex-wrap gap-2 px-2">
+                <span className="text-[16px] font-medium text-systemText leading-[24px]">
+                  Images:
+                </span>
                 {vehicle.images?.length > 0 ? (
                   vehicle.images.map((img, i) => (
                     <img
                       key={i}
                       src={img.url}
                       alt={`Vehicle ${index + 1} - ${i}`}
-                      className="w-[80px] h-[80px] object-cover rounded-[16px] border border-gray-300 p-[2px]"
+                      className="w-[80px] h-[80px] object-cover rounded-[16px] border border-dashed border-gray-300 p-[2px]"
                     />
                   ))
                 ) : (
                   <img
                     src="https://via.placeholder.com/80"
                     alt="No image"
-                    className="w-[80px] h-[80px] object-cover rounded-[16px] border border-gray-200"
+                    className="w-[80px] h-[80px] object-cover rounded-[16px] border border-dashed border-gray-300 p-[2px]"
                   />
                 )}
               </div>
 
-              {/* Notes */}
+              {/* ---------- Notes Section ---------- */}
               <div className="px-2">
-                <p className="text-sm text-gray-600 leading-snug">
-                  <span className="font-medium">Notes:</span>{" "}
+                <p className="text-[16px] font-normal text-systemText leading-[24px]">
+                  <span className="font-medium">Notes: </span>
                   {vehicle.notes || "N/A"}
                 </p>
               </div>
 
-              {/* Delete */}
-              <div className="flex justify-end mt-auto px-2">
+              {/* ---------- Delete Button ---------- */}
+              {/* <div className="flex justify-end mt-auto px-2">
                 <button
                   onClick={() => handleDelete(vehicle._id)}
-                  className="flex items-center gap-1 text-sm border border-red-500 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
+                  className="flex items-center gap-1 text-[14px] border border-red-500 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
                 >
                   <FiTrash2 /> Delete
                 </button>
-              </div>
+              </div> */}
             </div>
           ))}
         </div>
