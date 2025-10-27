@@ -95,7 +95,7 @@ const VehiclePage = () => {
 
   // ---------- Render ----------
   return (
-    <div className="min-h-screen relative">
+    <div className="relative">
       {/* Delete Confirmation Modal */}
       <ConfirmModal
         show={confirmData.show}
