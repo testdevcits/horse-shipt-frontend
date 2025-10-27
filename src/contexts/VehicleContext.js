@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
+import Toast from "../components/common/Toast"; // make sure this path is correct
 
 const VehicleContext = createContext();
 
@@ -17,6 +18,21 @@ export const VehicleProvider = ({ children }) => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // ---------------- TOAST STATES ----------------
+  const [toast, setToast] = useState({
+    message: "",
+    type: "",
+    visible: false,
+  });
+
+  const showToast = (message, type = "info") => {
+    setToast({ message, type, visible: true });
+    setTimeout(() => {
+      setToast({ message: "", type: "", visible: false });
+    }, 3000);
+  };
+
+  // ---------------- FETCH VEHICLES ----------------
   const fetchVehicles = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -27,13 +43,22 @@ export const VehicleProvider = ({ children }) => {
       setVehicles(res.data.vehicles || []);
     } catch (err) {
       console.error("Fetch Vehicles Error:", err.response?.data || err.message);
+      showToast(
+        err.response?.data?.message || "Failed to fetch vehicles",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
   }, [token]);
 
+  // ---------------- ADD VEHICLE ----------------
   const addVehicle = async (formData) => {
-    if (!token) return { success: false, message: "Unauthorized" };
+    if (!token) {
+      showToast("Unauthorized. Please log in again.", "error");
+      return { success: false };
+    }
+
     setLoading(true);
     try {
       await axios.post(`${API_BASE_URL}/vehicles`, formData, {
@@ -43,20 +68,27 @@ export const VehicleProvider = ({ children }) => {
         },
       });
       await fetchVehicles();
-      return { success: true, message: "Vehicle added successfully" };
+      showToast("Vehicle added successfully", "success");
+      return { success: true };
     } catch (err) {
       console.error("Add Vehicle Error:", err.response?.data || err.message);
-      return {
-        success: false,
-        message: err.response?.data?.message || "Failed to add vehicle",
-      };
+      showToast(
+        err.response?.data?.message || "Failed to add vehicle",
+        "error"
+      );
+      return { success: false };
     } finally {
       setLoading(false);
     }
   };
 
+  // ---------------- UPDATE VEHICLE ----------------
   const updateVehicle = async (id, formData) => {
-    if (!token) return { success: false, message: "Unauthorized" };
+    if (!token) {
+      showToast("Unauthorized. Please log in again.", "error");
+      return { success: false };
+    }
+
     setLoading(true);
     try {
       await axios.put(`${API_BASE_URL}/vehicles/${id}`, formData, {
@@ -66,38 +98,48 @@ export const VehicleProvider = ({ children }) => {
         },
       });
       await fetchVehicles();
-      return { success: true, message: "Vehicle updated successfully" };
+      showToast("Vehicle updated successfully", "success");
+      return { success: true };
     } catch (err) {
       console.error("Update Vehicle Error:", err.response?.data || err.message);
-      return {
-        success: false,
-        message: err.response?.data?.message || "Failed to update vehicle",
-      };
+      showToast(
+        err.response?.data?.message || "Failed to update vehicle",
+        "error"
+      );
+      return { success: false };
     } finally {
       setLoading(false);
     }
   };
 
+  // ---------------- DELETE VEHICLE ----------------
   const deleteVehicle = async (id) => {
-    if (!token) return { success: false, message: "Unauthorized" };
+    if (!token) {
+      showToast("Unauthorized. Please log in again.", "error");
+      return { success: false };
+    }
+
     setLoading(true);
     try {
       await axios.delete(`${API_BASE_URL}/vehicles/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       await fetchVehicles();
-      return { success: true, message: "Vehicle deleted successfully" };
+      showToast("Vehicle deleted successfully", "success");
+      return { success: true };
     } catch (err) {
       console.error("Delete Vehicle Error:", err.response?.data || err.message);
-      return {
-        success: false,
-        message: err.response?.data?.message || "Failed to delete vehicle",
-      };
+      showToast(
+        err.response?.data?.message || "Failed to delete vehicle",
+        "error"
+      );
+      return { success: false };
     } finally {
       setLoading(false);
     }
   };
 
+  // ---------------- INITIAL FETCH ----------------
   useEffect(() => {
     fetchVehicles();
   }, [fetchVehicles]);
@@ -114,6 +156,21 @@ export const VehicleProvider = ({ children }) => {
       }}
     >
       {children}
+
+      {/* Toast Component */}
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() =>
+            setToast({
+              message: "",
+              type: "",
+              visible: false,
+            })
+          }
+        />
+      )}
     </VehicleContext.Provider>
   );
 };
