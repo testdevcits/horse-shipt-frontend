@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { FiPlus, FiTrash2, FiEdit, FiX } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiX } from "react-icons/fi";
 import { useVehicle } from "../../contexts/VehicleContext";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Toast from "../../components/common/Toast";
 import { RiImageAddLine } from "react-icons/ri";
+import { RiEdit2Line } from "react-icons/ri";
 
 const VehiclePage = () => {
   const {
@@ -128,35 +129,80 @@ const VehiclePage = () => {
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {vehicles.map((vehicle) => (
+          {vehicles.map((vehicle, index) => (
             <div
               key={vehicle._id}
-              className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-3 border border-gray-200 hover:shadow-md transition"
+              className="bg-white rounded-2xl shadow-sm p-3 flex flex-col gap-3 border border-gray-200 hover:shadow-md transition"
             >
-              <img
-                src={
-                  vehicle.images?.[0]?.url || "https://via.placeholder.com/200"
-                }
-                alt={vehicle.vehicleType}
-                className="w-full h-40 object-cover rounded-lg"
-              />
-              <h3 className="font-semibold text-[#333] text-lg">
-                {vehicle.vehicleType}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Trailer: {vehicle.trailerType || "Stock Trailer"}
-              </p>
-
-              <div className="flex justify-between mt-2 gap-2">
+              {/* ---------- Top Header Bar ---------- */}
+              <div className="flex justify-between items-center w-full h-9 px-3 rounded-md bg-gray-50">
+                <h2 className="text-sm font-semibold text-gray-800">
+                  Vehicle {index + 1}
+                </h2>
                 <button
                   onClick={() => openModal(vehicle)}
-                  className="flex-1 flex items-center justify-center gap-1 bg-[#007bff] text-white px-3 py-1.5 rounded-lg hover:bg-[#005fcc] transition text-sm"
+                  className="text-sm bg-gray-100 text-black px-3 py-1 rounded-md hover:bg-gray-300 transition"
                 >
-                  <FiEdit /> Edit
+                  <RiEdit2Line /> Edit
                 </button>
+              </div>
+
+              {/* ---------- Transport & Vehicle Type ---------- */}
+              <div className="flex justify-between items-center w-full px-2">
+                <p className="text-sm text-gray-700 font-medium">
+                  Transport:{" "}
+                  <span className="font-normal">{vehicle.transportType}</span>
+                </p>
+                <p className="text-sm text-gray-700 font-medium">
+                  Vehicle:{" "}
+                  <span className="font-normal">{vehicle.vehicleType}</span>
+                </p>
+              </div>
+
+              {/* ---------- Number of Stalls & Stall Size ---------- */}
+              <div className="flex justify-between items-center w-full px-2">
+                <p className="text-sm text-gray-700 font-medium">
+                  Stalls:{" "}
+                  <span className="font-normal">{vehicle.numberOfStalls}</span>
+                </p>
+                <p className="text-sm text-gray-700 font-medium">
+                  Size: <span className="font-normal">{vehicle.stallSize}</span>
+                </p>
+              </div>
+
+              {/* ---------- Image Gallery (small images) ---------- */}
+              <div className="flex flex-wrap gap-2 px-2">
+                {vehicle.images?.length > 0 ? (
+                  vehicle.images.map((img, i) => (
+                    <img
+                      key={i}
+                      src={img.url}
+                      alt={`Vehicle ${index + 1} - ${i}`}
+                      className="w-20 h-20 object-cover rounded-xl border border-gray-200"
+                    />
+                  ))
+                ) : (
+                  <img
+                    src="https://via.placeholder.com/80"
+                    alt="No image"
+                    className="w-20 h-20 object-cover rounded-xl border border-gray-200"
+                  />
+                )}
+              </div>
+
+              {/* ---------- Notes Section ---------- */}
+              <div className="px-2">
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Notes:</span>{" "}
+                  {vehicle.notes || "N/A"}
+                </p>
+              </div>
+
+              {/* ---------- Delete Button ---------- */}
+              <div className="flex justify-end">
                 <button
                   onClick={() => handleDelete(vehicle._id)}
-                  className="flex-1 flex items-center justify-center gap-1 border border-red-500 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition text-sm"
+                  className="flex items-center gap-1 text-sm border border-red-500 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
                 >
                   <FiTrash2 /> Delete
                 </button>
