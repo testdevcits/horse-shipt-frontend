@@ -141,7 +141,7 @@ const VehiclePage = () => {
             >
               {/* ---------- Header ---------- */}
               <div className="flex justify-between items-center w-full h-9 px-3">
-                <h2 className="text-[16px] font-semibold text-systemText leading-[24px] tracking-[0%]">
+                <h2 className="text-[16px] font-semibold text-systemText leading-[24px]">
                   Vehicle {index + 1}
                 </h2>
                 <button
@@ -154,11 +154,11 @@ const VehiclePage = () => {
 
               {/* ---------- Transport & Vehicle Type ---------- */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
-                <p className="text-[16px] font-normal text-systemText leading-[24px]">
+                <p className="flex text-[16px] font-normal text-systemText leading-[24px]">
                   <span className="font-medium">Transport: </span>
                   {vehicle.transportType}
                 </p>
-                <p className="text-[16px] font-normal text-systemText leading-[24px]">
+                <p className="flex text-[16px] font-normal text-systemText leading-[24px]">
                   <span className="font-medium">Vehicle: </span>
                   {vehicle.vehicleType}
                 </p>
@@ -166,11 +166,11 @@ const VehiclePage = () => {
 
               {/* ---------- Number of Stalls & Stall Size ---------- */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
-                <p className="text-[16px] font-normal text-systemText leading-[24px]">
+                <p className="flex text-[16px] font-normal text-systemText leading-[24px]">
                   <span className="font-medium">Stalls: </span>
                   {vehicle.numberOfStalls}
                 </p>
-                <p className="text-[16px] font-normal text-systemText leading-[24px]">
+                <p className="flex text-[16px] font-normal text-systemText leading-[24px]">
                   <span className="font-medium">Size: </span>
                   {vehicle.stallSize}
                 </p>
@@ -178,7 +178,7 @@ const VehiclePage = () => {
 
               {/* ---------- Image Gallery ---------- */}
               <div className="flex flex-wrap gap-2 px-2">
-                <span className="text-[16px] font-medium text-systemText leading-[24px]">
+                <span className="flex text-[16px] font-medium text-systemText leading-[24px]">
                   Images:
                 </span>
                 {vehicle.images?.length > 0 ? (
@@ -201,21 +201,21 @@ const VehiclePage = () => {
 
               {/* ---------- Notes Section ---------- */}
               <div className="px-2">
-                <p className="text-[16px] font-normal text-systemText leading-[24px]">
+                <p className="flex text-[16px] leading-[24px] text-systemText">
                   <span className="font-medium">Notes: </span>
-                  {vehicle.notes || "N/A"}
+                  <span className="font-normal">{vehicle.notes || "N/A"}</span>
                 </p>
               </div>
 
               {/* ---------- Delete Button ---------- */}
-              {/* <div className="flex justify-end mt-auto px-2">
+              <div className="flex justify-end mt-auto px-2">
                 <button
                   onClick={() => handleDelete(vehicle._id)}
                   className="flex items-center gap-1 text-[14px] border border-red-500 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
                 >
                   <FiTrash2 /> Delete
                 </button>
-              </div> */}
+              </div>
             </div>
           ))}
         </div>
