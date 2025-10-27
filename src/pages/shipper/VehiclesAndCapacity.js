@@ -159,7 +159,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Transport:
                   </span>
-                  <span className="text-[16px] font-normal text-systemText leading-[24px]">
+                  <span className=" font-normal text-systemText leading-[24px]">
                     {vehicle.transportType || "N/A"}
                   </span>
                 </div>
@@ -169,7 +169,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Vehicle:
                   </span>
-                  <span className="text-[16px] font-normal text-systemText leading-[24px]">
+                  <span className=" font-normal text-systemText leading-[24px]">
                     {vehicle.vehicleType || "N/A"}
                   </span>
                 </div>
@@ -182,7 +182,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Stalls:
                   </span>
-                  <span className="text-[16px] font-normal text-systemText leading-[24px]">
+                  <span className="font-normal text-systemText leading-[24px]">
                     {vehicle.numberOfStalls || "N/A"}
                   </span>
                 </div>
@@ -192,7 +192,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Size:
                   </span>
-                  <span className="text-[16px] font-normal text-systemText leading-[24px]">
+                  <span className=" font-normal text-systemText leading-[24px]">
                     {vehicle.stallSize || "N/A"}
                   </span>
                 </div>
@@ -228,10 +228,14 @@ const VehiclePage = () => {
 
               {/* ---------- Notes Section ---------- */}
               <div className="px-2">
-                <p className="text-[16px] leading-[24px] text-systemText">
-                  <span className="font-medium">Notes: </span>
-                  <span className="font-normal">{vehicle.notes || "N/A"}</span>
-                </p>
+                <div className="flex flex-col">
+                  <span className="text-[16px] font-medium text-systemText leading-[24px]">
+                    Notes:
+                  </span>
+                  <span className="font-normal text-systemText leading-[24px]">
+                    {vehicle.notes || "N/A"}
+                  </span>
+                </div>
               </div>
 
               {/* ---------- Delete Button ---------- */}
