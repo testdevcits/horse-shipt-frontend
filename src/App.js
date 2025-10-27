@@ -4,6 +4,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { CustomerPaymentProvider } from "./contexts/CustomerPaymentContext";
 import { CustomerNotificationProvider } from "./contexts/CustomerNotificationContext"; // <-- import here
 import AppRoutes from "./routes/AppRoutes";
+import { VehicleProvider } from "./contexts/VehicleContext";
 
 function App() {
   return (
@@ -11,7 +12,9 @@ function App() {
       <AuthProvider>
         <CustomerPaymentProvider>
           <CustomerNotificationProvider>
-            <AppRoutes />
+            <VehicleProvider>
+              <AppRoutes />
+            </VehicleProvider>
           </CustomerNotificationProvider>
         </CustomerPaymentProvider>
       </AuthProvider>

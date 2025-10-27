@@ -4,8 +4,10 @@ import { LuArrowLeftFromLine, LuArrowRightFromLine } from "react-icons/lu";
 import { CiCircleQuestion } from "react-icons/ci";
 import { FaTachometerAlt, FaBoxOpen, FaUser, FaCog } from "react-icons/fa";
 
+// ---------------- NAV ITEMS ----------------
 const navItems = [
   { name: "Dashboard", path: "/shipper/dashboard", icon: <FaTachometerAlt /> },
+
   {
     name: "Orders",
     path: "/shipper/orders",
@@ -15,10 +17,23 @@ const navItems = [
       { name: "Completed", path: "/shipper/orders/completed" },
     ],
   },
+
   { name: "Profile", path: "/shipper/profile", icon: <FaUser /> },
-  { name: "Settings", path: "/shipper/settings", icon: <FaCog /> },
+
+  {
+    name: "Settings",
+    path: "/shipper/settings",
+    icon: <FaCog />,
+    subPaths: [
+      { name: "Profile Settings", path: "/shipper/settings/profile" },
+      { name: "Shipment Settings", path: "/shipper/settings/shipment" },
+      { name: "Payments", path: "/shipper/settings/payment" },
+      { name: "Notification Settings", path: "/shipper/settings/notification" },
+    ],
+  },
 ];
 
+// ---------------- SIDEBAR COMPONENT ----------------
 const Sidebar = ({
   sidebarOpen,
   setSidebarOpen,
@@ -45,7 +60,7 @@ const Sidebar = ({
       `}
       style={{ width: sidebarWidth }}
     >
-      {/* Desktop toggle */}
+      {/* Desktop Toggle */}
       <div className="flex justify-end p-4 hidden lg:flex">
         <button onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? (
@@ -65,7 +80,7 @@ const Sidebar = ({
               <li key={item.path}>
                 <NavLink
                   to={item.path}
-                  onClick={() => mobileOpen && setMobileOpen(false)} // <-- Close sidebar on mobile
+                  onClick={() => mobileOpen && setMobileOpen(false)}
                   className={`flex items-center gap-3 px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
                     active
                       ? "bg-gray-100 font-semibold text-system-primary"
@@ -76,6 +91,7 @@ const Sidebar = ({
                   {sidebarOpen || mobileOpen ? <span>{item.name}</span> : null}
                 </NavLink>
 
+                {/* Sub Menu Items */}
                 {item.subPaths && (sidebarOpen || mobileOpen) && (
                   <ul className="ml-8 mt-1 space-y-1">
                     {item.subPaths.map((sub) => {
@@ -84,7 +100,7 @@ const Sidebar = ({
                         <li key={sub.path}>
                           <NavLink
                             to={sub.path}
-                            onClick={() => mobileOpen && setMobileOpen(false)} // <-- Close sidebar on mobile
+                            onClick={() => mobileOpen && setMobileOpen(false)}
                             className={`block px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
                               subActive
                                 ? "bg-gray-100 font-semibold text-system-primary"
@@ -104,7 +120,7 @@ const Sidebar = ({
         </ul>
       </nav>
 
-      {/* Bottom Question Icon */}
+      {/* Bottom Help Icon */}
       <div className="absolute bottom-4 w-full px-4">
         <button className="flex items-center justify-center w-full py-2 bg-gray-100 hover:bg-gray-200 text-system-primary rounded transition-all duration-300">
           <CiCircleQuestion size={20} />

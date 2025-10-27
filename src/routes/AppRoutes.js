@@ -10,9 +10,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import RedirectIfAuth from "../pages/auth/RedirectIfAuth";
 import { useAuth } from "../contexts/AuthContext";
 import MainLayout from "../layouts/MainLayout";
-import Home from "../pages/Home";
-import CustDashboard from "../pages/customer/CustDashboard";
-import SignaturePad from "../pages/customer/SignaturePad";
+
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 const SignupPage = lazy(() => import("../pages/auth/SignupPage"));
@@ -23,7 +21,7 @@ const ShipperLayout = lazy(() => import("../layouts/ShipperLayout"));
 const ShipperDashboard = lazy(() => import("../pages/shipper/Dashboard"));
 const ShipperOrders = lazy(() => import("../pages/shipper/Orders"));
 const ShipperProfile = lazy(() => import("../pages/shipper/Profile"));
-const ShipperSettings = lazy(() => import("../pages/shipper/Settings"));
+const ShipperSettings = lazy(() => import("../pages/shipper/Settings")); // ✅ tab-based settings page
 
 // ---------------- Customer Pages ----------------
 const CustomerLayout = lazy(() => import("../layouts/CustomerLayout"));
@@ -34,7 +32,15 @@ const CustomerSettings = lazy(() => import("../pages/customer/Settings"));
 const NewShipment = lazy(() => import("../pages/customer/NewShipment"));
 const EditProfile = lazy(() => import("../pages/customer/EditProfile"));
 
-// ---------------- 404 Page ----------------
+// ---------------- Common Pages ----------------
+const Home = lazy(() => import("../pages/Home"));
+const SignaturePad = lazy(() => import("../pages/customer/SignaturePad"));
+const ShipmentSettings = lazy(() =>
+  import("../pages/shipper/ShipmentSettings")
+);
+const VehiclesAndCapacity = lazy(() =>
+  import("../pages/shipper/VehiclesAndCapacity")
+);
 const NotFoundPage = lazy(() => import("../pages/NotFound"));
 
 const AppRoutes = () => {
@@ -63,7 +69,6 @@ const AppRoutes = () => {
           name,
           photo,
         });
-
         navigate(`/${role}/dashboard`, { replace: true });
       }
     }
@@ -79,22 +84,17 @@ const AppRoutes = () => {
       }
     >
       <Routes>
-        {/* ---------- Public Pages (with Header/Footer) ---------- */}
+        {/* ---------- Public Pages (Main Layout) ---------- */}
         <Route element={<MainLayout />}>
           <Route
             path="/"
             element={
               <RedirectIfAuth>
                 <Home />
-                {/* <CustDashboard /> */}
-                {/* <NewShipment /> */}
-                {/* <SignaturePad /> */}
+                {/* <ShipmentSettings /> */}
               </RedirectIfAuth>
             }
           />
-          {/* Add more pages here */}
-          {/* <Route path="/about" element={<About />} /> */}
-          {/* <Route path="/contact" element={<Contact />} /> */}
         </Route>
 
         {/* ---------- Auth Pages ---------- */}
@@ -129,7 +129,10 @@ const AppRoutes = () => {
           <Route path="dashboard" element={<ShipperDashboard />} />
           <Route path="orders" element={<ShipperOrders />} />
           <Route path="profile" element={<ShipperProfile />} />
-          <Route path="settings" element={<ShipperSettings />} />
+          <Route path="vehicles" element={<VehiclesAndCapacity />} />
+          <Route path="shipment-settings" element={<ShipmentSettings />} />
+          <Route path="settings" element={<ShipperSettings />} />{" "}
+          {/* ✅ tab-based page */}
         </Route>
 
         {/* ---------- Customer Routes ---------- */}
@@ -147,8 +150,7 @@ const AppRoutes = () => {
           <Route path="profile" element={<CustomerProfile />} />
           <Route path="settings" element={<CustomerSettings />} />
           <Route path="new-shipment" element={<NewShipment />} />
-          <Route path="profile/edit" element={<EditProfile />} />{" "}
-          {/* <-- relative path */}
+          <Route path="profile/edit" element={<EditProfile />} />
         </Route>
 
         {/* ---------- Fallback ---------- */}

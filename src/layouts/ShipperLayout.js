@@ -21,11 +21,13 @@ const ShipperLayout = () => {
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-  const profileImage = user?.profilePicture
-    ? user.profilePicture.startsWith("http")
-      ? user.profilePicture
-      : `${API_BASE_URL}/${user.profilePicture.replace(/^\/?/, "")}`
-    : "https://via.placeholder.com/40";
+  const profileImage =
+    user?.photo ||
+    (user?.profilePicture
+      ? user.profilePicture.startsWith("http")
+        ? user.profilePicture
+        : `${API_BASE_URL}/${user.profilePicture.replace(/^\/?/, "")}`
+      : "https://via.placeholder.com/40");
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
