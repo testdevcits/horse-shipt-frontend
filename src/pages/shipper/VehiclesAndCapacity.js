@@ -113,7 +113,7 @@ const VehiclePage = () => {
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
-        <h2 className="font-semibold text-[20px] sm:text-[22px] text-[#333333]">
+        <h2 className="text-[16px] font-semibold text-systemText leading-[24px]">
           My Registered Vehicles
         </h2>
 
@@ -159,7 +159,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Transport:
                   </span>
-                  <span className=" font-normal text-systemText leading-[24px]">
+                  <span className=" font-normal text-systemText ">
                     {vehicle.transportType || "N/A"}
                   </span>
                 </div>
@@ -169,7 +169,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Vehicle:
                   </span>
-                  <span className=" font-normal text-systemText leading-[24px]">
+                  <span className=" font-normal text-systemText">
                     {vehicle.vehicleType || "N/A"}
                   </span>
                 </div>
@@ -182,7 +182,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Stalls:
                   </span>
-                  <span className="font-normal text-systemText leading-[24px]">
+                  <span className="font-normal text-systemText ">
                     {vehicle.numberOfStalls || "N/A"}
                   </span>
                 </div>
@@ -192,7 +192,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Size:
                   </span>
-                  <span className=" font-normal text-systemText leading-[24px]">
+                  <span className=" font-normal text-systemText">
                     {vehicle.stallSize || "N/A"}
                   </span>
                 </div>
@@ -232,7 +232,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Notes:
                   </span>
-                  <span className="font-normal text-systemText leading-[24px]">
+                  <span className="font-normal text-systemText">
                     {vehicle.notes || "N/A"}
                   </span>
                 </div>
