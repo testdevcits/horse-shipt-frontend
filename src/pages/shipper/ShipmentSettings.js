@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { GrNext } from "react-icons/gr";
 import VehiclesAndCapacity from "./VehiclesAndCapacity";
+import PreferredAreas from "./PreferredAreasPage";
 
 const ShipmentSettings = () => {
   const subTabs = [
@@ -47,12 +48,7 @@ const ShipmentSettings = () => {
         );
 
       case "preferredAreas":
-        return (
-          <div className="text-gray-700 text-base sm:text-lg">
-            Preferred areas setup will go here — for example, select regions,
-            cities, or states where you prefer to operate.
-          </div>
-        );
+        return <PreferredAreas />;
 
       default:
         return null;

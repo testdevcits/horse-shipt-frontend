@@ -5,6 +5,7 @@ import { CustomerPaymentProvider } from "./contexts/CustomerPaymentContext";
 import { CustomerNotificationProvider } from "./contexts/CustomerNotificationContext"; // <-- import here
 import AppRoutes from "./routes/AppRoutes";
 import { VehicleProvider } from "./contexts/VehicleContext";
+import { PreferredAreasProvider } from "./contexts/PreferredAreasContext";
 
 function App() {
   return (
@@ -13,7 +14,9 @@ function App() {
         <CustomerPaymentProvider>
           <CustomerNotificationProvider>
             <VehicleProvider>
-              <AppRoutes />
+              <PreferredAreasProvider>
+                <AppRoutes />
+              </PreferredAreasProvider>
             </VehicleProvider>
           </CustomerNotificationProvider>
         </CustomerPaymentProvider>
