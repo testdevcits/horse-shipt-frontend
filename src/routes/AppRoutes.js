@@ -34,7 +34,7 @@ const EditProfile = lazy(() => import("../pages/customer/EditProfile"));
 
 // ---------------- Common Pages ----------------
 const Home = lazy(() => import("../pages/Home"));
-const SignaturePad = lazy(() => import("../pages/customer/SignaturePad"));
+// const SignaturePad = lazy(() => import("../pages/customer/SignaturePad"));
 const ShipmentSettings = lazy(() =>
   import("../pages/shipper/ShipmentSettings")
 );

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FiPlus, FiTrash2, FiX } from "react-icons/fi";
-import { useVehicle } from "../../contexts/VehicleContext";
+import { RiImageAddLine, RiEdit2Line } from "react-icons/ri";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import Toast from "../../components/common/Toast";
-import { RiImageAddLine } from "react-icons/ri";
-import { RiEdit2Line } from "react-icons/ri";
+import { useVehicle } from "../../contexts/VehicleContext";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
 const VehiclePage = () => {
   const {
@@ -20,6 +19,7 @@ const VehiclePage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [toast, setToast] = useState(null);
+  const [confirmData, setConfirmData] = useState({ show: false, id: null });
 
   useEffect(() => {
     fetchVehicles();
@@ -35,15 +35,20 @@ const VehiclePage = () => {
     setEditingVehicle(null);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this vehicle?")) {
-      const res = await deleteVehicle(id);
-      setToast({
-        message: res.message,
-        type: res.success ? "success" : "error",
-      });
-    }
+  const handleDelete = (id) => {
+    setConfirmData({ show: true, id });
   };
+
+  const confirmDelete = async () => {
+    const res = await deleteVehicle(confirmData.id);
+    setToast({
+      message: res.message,
+      type: res.success ? "success" : "error",
+    });
+    setConfirmData({ show: false, id: null });
+  };
+
+  const cancelDelete = () => setConfirmData({ show: false, id: null });
 
   const validationSchema = Yup.object({
     vehicleType: Yup.string().required("Vehicle type is required"),
@@ -85,26 +90,26 @@ const VehiclePage = () => {
     }
 
     setToast({ message: res.message, type: res.success ? "success" : "error" });
-
     if (res.success) {
       resetForm();
       closeModal();
     }
-
     setSubmitting(false);
   };
 
   return (
     <div className="min-h-screen relative p-4 sm:p-6 md:p-8">
-      {/* Toast */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          duration={3000}
-          onClose={() => setToast(null)}
-        />
-      )}
+      {/* ✅ Delete Confirmation Modal */}
+      <ConfirmModal
+        show={confirmData.show}
+        title="Delete Vehicle"
+        message="Are you sure you want to delete this vehicle? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmColor="bg-red-500 hover:bg-red-600"
+      />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
@@ -128,49 +133,49 @@ const VehiclePage = () => {
           No vehicles found. Add one to get started!
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {vehicles.map((vehicle, index) => (
             <div
               key={vehicle._id}
-              className="bg-white rounded-2xl shadow-sm p-3 flex flex-col gap-3 border border-gray-200 hover:shadow-md transition"
+              className="bg-white border border-gray-200 rounded-[14px] p-[10px] shadow-sm hover:shadow-md transition-all flex flex-col gap-4 w-full sm:max-w-[464px] h-auto min-h-[400px] mx-auto"
             >
-              {/* ---------- Top Header Bar ---------- */}
-              <div className="flex justify-between items-center w-full h-9 px-3 rounded-md bg-gray-50">
+              {/* Header */}
+              <div className="flex justify-between items-center w-full h-9 px-3">
                 <h2 className="text-sm font-semibold text-gray-800">
                   Vehicle {index + 1}
                 </h2>
                 <button
                   onClick={() => openModal(vehicle)}
-                  className="text-sm bg-gray-100 text-black px-3 py-1 rounded-md hover:bg-gray-300 transition"
+                  className="flex items-center gap-1 text-sm bg-gray-100 text-black px-3 py-1 rounded-md hover:bg-gray-300 transition"
                 >
-                  <RiEdit2Line /> Edit
+                  <RiEdit2Line className="text-base" /> Edit
                 </button>
               </div>
 
-              {/* ---------- Transport & Vehicle Type ---------- */}
-              <div className="flex justify-between items-center w-full px-2">
-                <p className="text-sm text-gray-700 font-medium">
-                  Transport:{" "}
+              {/* Info Rows */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
+                <p className="flex items-center text-sm text-gray-700 font-medium gap-1">
+                  <span>Transport:</span>
                   <span className="font-normal">{vehicle.transportType}</span>
                 </p>
-                <p className="text-sm text-gray-700 font-medium">
-                  Vehicle:{" "}
+                <p className="flex items-center text-sm text-gray-700 font-medium gap-1">
+                  <span>Vehicle:</span>
                   <span className="font-normal">{vehicle.vehicleType}</span>
                 </p>
               </div>
 
-              {/* ---------- Number of Stalls & Stall Size ---------- */}
-              <div className="flex justify-between items-center w-full px-2">
-                <p className="text-sm text-gray-700 font-medium">
-                  Stalls:{" "}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
+                <p className="flex items-center text-sm text-gray-700 font-medium gap-1">
+                  <span>Stalls:</span>
                   <span className="font-normal">{vehicle.numberOfStalls}</span>
                 </p>
-                <p className="text-sm text-gray-700 font-medium">
-                  Size: <span className="font-normal">{vehicle.stallSize}</span>
+                <p className="flex items-center text-sm text-gray-700 font-medium gap-1">
+                  <span>Size:</span>
+                  <span className="font-normal">{vehicle.stallSize}</span>
                 </p>
               </div>
 
-              {/* ---------- Image Gallery (small images) ---------- */}
+              {/* Images */}
               <div className="flex flex-wrap gap-2 px-2">
                 {vehicle.images?.length > 0 ? (
                   vehicle.images.map((img, i) => (
@@ -178,28 +183,28 @@ const VehiclePage = () => {
                       key={i}
                       src={img.url}
                       alt={`Vehicle ${index + 1} - ${i}`}
-                      className="w-20 h-20 object-cover rounded-xl border border-gray-200"
+                      className="w-[80px] h-[80px] object-cover rounded-[16px] border border-gray-300 p-[2px]"
                     />
                   ))
                 ) : (
                   <img
                     src="https://via.placeholder.com/80"
                     alt="No image"
-                    className="w-20 h-20 object-cover rounded-xl border border-gray-200"
+                    className="w-[80px] h-[80px] object-cover rounded-[16px] border border-gray-200"
                   />
                 )}
               </div>
 
-              {/* ---------- Notes Section ---------- */}
+              {/* Notes */}
               <div className="px-2">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 leading-snug">
                   <span className="font-medium">Notes:</span>{" "}
                   {vehicle.notes || "N/A"}
                 </p>
               </div>
 
-              {/* ---------- Delete Button ---------- */}
-              <div className="flex justify-end">
+              {/* Delete */}
+              <div className="flex justify-end mt-auto px-2">
                 <button
                   onClick={() => handleDelete(vehicle._id)}
                   className="flex items-center gap-1 text-sm border border-red-500 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
@@ -212,10 +217,9 @@ const VehiclePage = () => {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Form Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-white overflow-y-auto p-2 sm:p-6 md:p-8">
-          {/* Close Button */}
           <button
             onClick={closeModal}
             className="absolute top-4 right-4 text-gray-600 hover:text-[#007bff] transition"
@@ -236,7 +240,7 @@ const VehiclePage = () => {
             >
               {({ values, setFieldValue, isSubmitting }) => (
                 <Form className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  {/* Transport Type */}
+                  {/* Form fields */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Transport Type
@@ -249,7 +253,6 @@ const VehiclePage = () => {
                     />
                   </div>
 
-                  {/* Vehicle Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Vehicle Type
@@ -271,7 +274,6 @@ const VehiclePage = () => {
                     />
                   </div>
 
-                  {/* Number of Stalls */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Number of Stalls
@@ -289,7 +291,6 @@ const VehiclePage = () => {
                     />
                   </div>
 
-                  {/* Stall Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Stall Type
@@ -316,8 +317,7 @@ const VehiclePage = () => {
                     />
                   </div>
 
-                  {/* Stall Size */}
-                  <div className="col-span-2 w-full">
+                  <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Stall Size
                     </label>
@@ -342,17 +342,15 @@ const VehiclePage = () => {
                     />
                   </div>
 
-                  {/* Upload Images */}
-                  <div className="col-span-2 w-full">
+                  <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Upload Vehicle Images
                     </label>
-
                     <div className="flex flex-wrap gap-3 mb-4 p-3 border border-gray-200 rounded-xl bg-white">
                       {[...Array(5)].map((_, i) => (
                         <div
                           key={i}
-                          className="relative w-20 h-20 sm:w-24 sm:h-24 border border-gray-300 border-dashed flex items-center justify-center hover:border-[#BF9B53] cursor-pointer overflow-hidden rounded-[16px] p-2 transition-all duration-200"
+                          className="relative w-20 h-20 sm:w-24 sm:h-24 border border-gray-300 border-dashed flex items-center justify-center hover:border-[#BF9B53] cursor-pointer overflow-hidden rounded-[16px] p-2 transition-all"
                         >
                           <input
                             type="file"
@@ -386,8 +384,7 @@ const VehiclePage = () => {
                     </div>
                   </div>
 
-                  {/* Notes */}
-                  <div className="col-span-2 w-full">
+                  <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Notes
                     </label>
@@ -400,19 +397,18 @@ const VehiclePage = () => {
                     />
                   </div>
 
-                  {/* Buttons */}
-                  <div className="col-span-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 mt-6">
+                  <div className="col-span-2 flex flex-col sm:flex-row justify-end gap-3 mt-6">
                     <button
                       type="button"
                       onClick={closeModal}
-                      className="w-full sm:w-auto px-5 py-2 border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-200 bg-gray-100 transition text-sm sm:text-base"
+                      className="w-full sm:w-auto px-5 py-2 border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-200 bg-gray-100 transition"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full sm:w-auto px-6 py-2 bg-[#007bff] text-white rounded-lg hover:bg-[#005fcc] transition disabled:opacity-50 text-sm sm:text-base"
+                      className="w-full sm:w-auto px-6 py-2 bg-[#007bff] text-white rounded-lg hover:bg-[#005fcc] transition disabled:opacity-50"
                     >
                       {editingVehicle ? "Update" : "Save"}
                     </button>
