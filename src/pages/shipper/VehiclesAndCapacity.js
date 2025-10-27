@@ -159,7 +159,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Transport:
                   </span>
-                  <span className=" font-normal text-systemText ">
+                  <span className=" font-montserrat text-normal ">
                     {vehicle.transportType || "N/A"}
                   </span>
                 </div>
@@ -169,7 +169,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Vehicle:
                   </span>
-                  <span className=" font-normal text-systemText">
+                  <span className=" font-normal  font-montserrat text-normal">
                     {vehicle.vehicleType || "N/A"}
                   </span>
                 </div>
@@ -182,7 +182,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Stalls:
                   </span>
-                  <span className="font-normal text-systemText ">
+                  <span className="font-normal  font-montserrat text-normal  ">
                     {vehicle.numberOfStalls || "N/A"}
                   </span>
                 </div>
@@ -192,7 +192,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Size:
                   </span>
-                  <span className=" font-normal text-systemText">
+                  <span className=" font-normal  font-montserrat text-normal ">
                     {vehicle.stallSize || "N/A"}
                   </span>
                 </div>
@@ -232,7 +232,7 @@ const VehiclePage = () => {
                   <span className="text-[16px] font-medium text-systemText leading-[24px]">
                     Notes:
                   </span>
-                  <span className="font-normal text-systemText">
+                  <span className="font-normal  font-montserrat text-normal ">
                     {vehicle.notes || "N/A"}
                   </span>
                 </div>
