@@ -56,9 +56,7 @@ const ShipperSettings = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="w-full bg-white p-4 sm:p-6 rounded-lg shadow-sm min-h-[200px]">
-          {renderTabContent()}
-        </div>
+        <div className="w-full">{renderTabContent()}</div>
       </div>
     </>
   );
