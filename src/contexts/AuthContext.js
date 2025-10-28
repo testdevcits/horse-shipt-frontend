@@ -10,6 +10,7 @@ const API_BASE_URL =
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,9 +19,12 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const storedUser = localStorage.getItem("horseShiptUser");
     const storedToken = localStorage.getItem("token");
-    if (storedUser && storedToken) {
+    const storedRole = localStorage.getItem("role");
+
+    if (storedUser && storedToken && storedRole) {
       setUser(JSON.parse(storedUser));
       setToken(storedToken);
+      setRole(storedRole);
     }
     setLoading(false);
   }, []);
@@ -37,8 +41,10 @@ export const AuthProvider = ({ children }) => {
       );
 
       const userData = res.data.data;
+
       setUser(userData);
       setToken(userData.token);
+      setRole(userData.role);
 
       localStorage.setItem("horseShiptUser", JSON.stringify(userData));
       localStorage.setItem("token", userData.token);
@@ -70,6 +76,7 @@ export const AuthProvider = ({ children }) => {
       const newUser = res.data.data;
       setUser(newUser);
       setToken(newUser.token);
+      setRole(newUser.role);
 
       localStorage.setItem("horseShiptUser", JSON.stringify(newUser));
       localStorage.setItem("token", newUser.token);
@@ -101,6 +108,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setUser(null);
       setToken(null);
+      setRole(null);
       localStorage.removeItem("horseShiptUser");
       localStorage.removeItem("token");
       localStorage.removeItem("role");
@@ -122,7 +130,7 @@ export const AuthProvider = ({ children }) => {
     if (!token || !role) return;
 
     const oauthUser = {
-      _id: id || "", // <-- now frontend will get actual _id
+      _id: id || "",
       token,
       role,
       provider,
@@ -135,6 +143,7 @@ export const AuthProvider = ({ children }) => {
 
     setUser(oauthUser);
     setToken(token);
+    setRole(role);
 
     localStorage.setItem("horseShiptUser", JSON.stringify(oauthUser));
     localStorage.setItem("token", token);
@@ -163,10 +172,14 @@ export const AuthProvider = ({ children }) => {
         provider: "google",
         providerId,
       });
-      // Remove query params from URL after login
+
       navigate(location.pathname, { replace: true });
     }
-  }, [location.search]); // run only on mount
+  }, [location.search]);
+
+  // ----------------- Role Helpers -----------------
+  const isCustomer = role === "customer";
+  const isShipper = role === "shipper";
 
   return (
     <AuthContext.Provider
@@ -174,6 +187,9 @@ export const AuthProvider = ({ children }) => {
         user,
         setUser,
         token,
+        role,
+        isCustomer,
+        isShipper,
         loading,
         login,
         signup,

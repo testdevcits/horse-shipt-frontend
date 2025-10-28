@@ -7,8 +7,10 @@ const API_BASE_URL =
 
 const CustomerPaymentContext = createContext();
 
+// ---------------- Custom Hook ----------------
 export const useCustomerPayment = () => useContext(CustomerPaymentContext);
 
+// ---------------- Provider ----------------
 export const CustomerPaymentProvider = ({ children }) => {
   const { user } = useAuth();
 
@@ -17,25 +19,36 @@ export const CustomerPaymentProvider = ({ children }) => {
   const [otpSent, setOtpSent] = useState(false);
   const [otpCooldown, setOtpCooldown] = useState(0);
 
-  // ---------------- Fetch payment for logged-in user ----------------
+  // ---------------- Fetch payment for logged-in customer ----------------
   const fetchPayment = async () => {
-    if (!user?.token) return;
+    if (!user?.token || user?.role !== "customer") return;
 
     try {
+      setLoading(true);
       const res = await axios.get(`${API_BASE_URL}/customer/payment`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
 
-      if (res.data?.data) setPaymentData(res.data.data);
-      else setPaymentData(null);
+      if (res.data?.data) {
+        setPaymentData(res.data.data);
+      } else {
+        setPaymentData(null);
+      }
     } catch (err) {
       console.error("[Fetch Payment] Error:", err.response || err.message);
       setPaymentData(null);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // ---------------- Auto fetch when customer logs in ----------------
   useEffect(() => {
-    fetchPayment();
+    if (user && user.role === "customer") {
+      fetchPayment();
+    } else {
+      setPaymentData(null); // clear data if logged-out or different role
+    }
   }, [user]);
 
   // ---------------- OTP cooldown timer ----------------
@@ -56,9 +69,10 @@ export const CustomerPaymentProvider = ({ children }) => {
       setLoading(true);
       await axios.post(
         `${API_BASE_URL}/customer/payment/request-otp`,
-        { pkLive, skLive, paymentId }, // frontend sends paymentId, backend uses userId from token
+        { pkLive, skLive, paymentId },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
+
       setOtpSent(true);
       setOtpCooldown(30);
       return { success: true };
@@ -82,9 +96,10 @@ export const CustomerPaymentProvider = ({ children }) => {
       setLoading(true);
       const res = await axios.post(
         `${API_BASE_URL}/customer/payment/verify-otp`,
-        { otp, pkLive, skLive, paymentId }, // backend will validate userId from token
+        { otp, pkLive, skLive, paymentId },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
+
       setPaymentData(res.data.data);
       setOtpSent(false);
       return { success: true, message: res.data.message };
@@ -99,6 +114,7 @@ export const CustomerPaymentProvider = ({ children }) => {
     }
   };
 
+  // ---------------- Provider Value ----------------
   return (
     <CustomerPaymentContext.Provider
       value={{

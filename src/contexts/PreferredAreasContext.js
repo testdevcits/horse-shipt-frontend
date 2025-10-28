@@ -11,10 +11,12 @@ import Toast from "../components/common/Toast";
 
 const PreferredAreasContext = createContext();
 
-const API_BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL ||
+  "https://horse-shipt.vercel.app/api/shipper";
 
 export const PreferredAreasProvider = ({ children }) => {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const [preferredAreas, setPreferredAreas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
@@ -35,7 +37,8 @@ export const PreferredAreasProvider = ({ children }) => {
 
   // ---------------- FETCH PREFERRED AREAS ----------------
   const fetchPreferredAreas = useCallback(async () => {
-    if (!token || fetched) return;
+    // Only fetch for logged-in shipper users
+    if (!token || !user || user.role !== "shipper" || fetched) return;
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/preferred-areas`, {
@@ -55,12 +58,12 @@ export const PreferredAreasProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [token, fetched]);
+  }, [token, user, fetched]);
 
   // ---------------- ADD PREFERRED AREA ----------------
   const addPreferredArea = async (formData) => {
-    if (!token) {
-      showToast("Unauthorized. Please log in again.", "error");
+    if (!token || user?.role !== "shipper") {
+      showToast("Unauthorized. Please log in as a shipper.", "error");
       return { success: false };
     }
     setLoading(true);
@@ -91,8 +94,8 @@ export const PreferredAreasProvider = ({ children }) => {
 
   // ---------------- UPDATE PREFERRED AREA ----------------
   const updatePreferredArea = async (id, formData) => {
-    if (!token) {
-      showToast("Unauthorized. Please log in again.", "error");
+    if (!token || user?.role !== "shipper") {
+      showToast("Unauthorized. Please log in as a shipper.", "error");
       return { success: false };
     }
     setLoading(true);
@@ -123,8 +126,8 @@ export const PreferredAreasProvider = ({ children }) => {
 
   // ---------------- DELETE PREFERRED AREA ----------------
   const deletePreferredArea = async (id) => {
-    if (!token) {
-      showToast("Unauthorized. Please log in again.", "error");
+    if (!token || user?.role !== "shipper") {
+      showToast("Unauthorized. Please log in as a shipper.", "error");
       return { success: false };
     }
     setLoading(true);
@@ -152,8 +155,13 @@ export const PreferredAreasProvider = ({ children }) => {
 
   // ---------------- INITIAL FETCH ----------------
   useEffect(() => {
-    fetchPreferredAreas();
-  }, [fetchPreferredAreas]);
+    if (user && user.role === "shipper") {
+      fetchPreferredAreas();
+    } else {
+      setPreferredAreas([]);
+      setFetched(false);
+    }
+  }, [user, fetchPreferredAreas]);
 
   return (
     <PreferredAreasContext.Provider

@@ -7,18 +7,19 @@ import React, {
 } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
-import Toast from "../components/common/Toast"; // make sure this path is correct
+import Toast from "../components/common/Toast";
 
 const VehicleContext = createContext();
 
 const API_BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
 
 export const VehicleProvider = ({ children }) => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetched, setFetched] = useState(false);
 
-  // ---------------- TOAST STATES ----------------
+  // ---------------- TOAST STATE ----------------
   const [toast, setToast] = useState({
     message: "",
     type: "",
@@ -34,13 +35,14 @@ export const VehicleProvider = ({ children }) => {
 
   // ---------------- FETCH VEHICLES ----------------
   const fetchVehicles = useCallback(async () => {
-    if (!token) return;
+    if (!token || fetched) return;
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/vehicles`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setVehicles(res.data.vehicles || []);
+      setFetched(true);
     } catch (err) {
       console.error("Fetch Vehicles Error:", err.response?.data || err.message);
       showToast(
@@ -50,7 +52,7 @@ export const VehicleProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, fetched]);
 
   // ---------------- ADD VEHICLE ----------------
   const addVehicle = async (formData) => {
@@ -67,6 +69,7 @@ export const VehicleProvider = ({ children }) => {
           "Content-Type": "multipart/form-data",
         },
       });
+      setFetched(false); // re-fetch after add
       await fetchVehicles();
       showToast("Vehicle added successfully", "success");
       return { success: true };
@@ -97,6 +100,7 @@ export const VehicleProvider = ({ children }) => {
           "Content-Type": "multipart/form-data",
         },
       });
+      setFetched(false);
       await fetchVehicles();
       showToast("Vehicle updated successfully", "success");
       return { success: true };
@@ -124,6 +128,7 @@ export const VehicleProvider = ({ children }) => {
       await axios.delete(`${API_BASE_URL}/vehicles/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      setFetched(false);
       await fetchVehicles();
       showToast("Vehicle deleted successfully", "success");
       return { success: true };
@@ -139,10 +144,15 @@ export const VehicleProvider = ({ children }) => {
     }
   };
 
-  // ---------------- INITIAL FETCH ----------------
+  // ---------------- FETCH ONLY WHEN LOGGED IN ----------------
   useEffect(() => {
-    fetchVehicles();
-  }, [fetchVehicles]);
+    if (token && user?.role === "shipper") {
+      fetchVehicles();
+    } else {
+      setVehicles([]);
+      setFetched(false);
+    }
+  }, [token, user, fetchVehicles]);
 
   return (
     <VehicleContext.Provider
@@ -162,13 +172,7 @@ export const VehicleProvider = ({ children }) => {
         <Toast
           message={toast.message}
           type={toast.type}
-          onClose={() =>
-            setToast({
-              message: "",
-              type: "",
-              visible: false,
-            })
-          }
+          onClose={() => setToast({ message: "", type: "", visible: false })}
         />
       )}
     </VehicleContext.Provider>

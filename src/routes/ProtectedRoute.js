@@ -54,7 +54,7 @@ const ProtectedRoute = ({ children, role, redirectPath = "/login" }) => {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Toast
-          message="🚫 You do not have access to this page. Logging out..."
+          message="You do not have access to this page. Logging out..."
           type="error"
         />
       </div>

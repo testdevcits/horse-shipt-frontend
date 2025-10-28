@@ -1,43 +1,47 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useAuth } from "./AuthContext";
 import axios from "axios";
+import { useAuth } from "./AuthContext";
 
 // ---------------- Utility: Convert VAPID key ----------------
 const urlBase64ToUint8Array = (base64String) => {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/\-/g, "+")
-    .replace(/_/g, "/");
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const rawData = window.atob(base64);
   return new Uint8Array([...rawData].map((char) => char.charCodeAt(0)));
 };
 
 // ---------------- Context Setup ----------------
 const CustomerNotificationContext = createContext();
+
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+
+const VAPID_KEY = process.env.REACT_APP_VAPID_PUBLIC_KEY;
 
 // ---------------- Provider ----------------
 export const CustomerNotificationProvider = ({ children }) => {
   const { token, user } = useAuth();
+
   const [notifications, setNotifications] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [notificationCount, setNotificationCount] = useState(0); // NEW: count of notifications
+  const [notificationCount, setNotificationCount] = useState(0);
 
-  // ---------------- Fetch notification settings ----------------
+  // ---------------- Fetch Notifications ----------------
   const fetchNotifications = async () => {
     if (!user || !token) return;
     setLoading(true);
+    setError(null);
+
     try {
       const res = await axios.get(`${API_BASE_URL}/customer/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       if (res.data.success) {
-        setNotifications(res.data.data);
-        // Count notifications that are enabled (true)
-        const count = Object.values(res.data.data).filter(Boolean).length;
-        setNotificationCount(count);
+        const data = res.data.data || {};
+        setNotifications(data);
+        setNotificationCount(Object.values(data).filter(Boolean).length);
       } else {
         setError(res.data.message || "Failed to fetch notifications");
       }
@@ -58,10 +62,11 @@ export const CustomerNotificationProvider = ({ children }) => {
         { value },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       if (res.data.success) {
-        setNotifications(res.data.data);
-        const count = Object.values(res.data.data).filter(Boolean).length;
-        setNotificationCount(count);
+        const data = res.data.data || {};
+        setNotifications(data);
+        setNotificationCount(Object.values(data).filter(Boolean).length);
       } else {
         setError(res.data.message || "Failed to update notification");
       }
@@ -79,33 +84,30 @@ export const CustomerNotificationProvider = ({ children }) => {
       const registration = await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
 
-      // Subscribe only if no existing subscription
       if (!subscription) {
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(
-            process.env.REACT_APP_VAPID_PUBLIC_KEY
-          ),
+          applicationServerKey: urlBase64ToUint8Array(VAPID_KEY),
         });
       }
 
-      // Send subscription to backend
       await axios.post(
         `${API_BASE_URL}/customer/notifications/subscribe`,
         { subscription },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Subscribed to push notifications successfully!");
+      console.log(" Customer subscribed to push notifications!");
     } catch (err) {
       console.error("Push subscription failed:", err);
       setError("Push subscription failed. Please allow notifications.");
     }
   };
 
-  // ---------------- Effect: fetch notifications + subscribe ----------------
+  // ---------------- Effect: only for logged-in customers ----------------
   useEffect(() => {
-    if (user && token) {
+    // Only call if user exists, token exists, and user type is "customer"
+    if (user && token && user.role === "customer") {
       fetchNotifications();
       subscribeToPush();
     }
@@ -118,7 +120,7 @@ export const CustomerNotificationProvider = ({ children }) => {
         notifications,
         loading,
         error,
-        notificationCount, // NEW
+        notificationCount,
         fetchNotifications,
         updateNotification,
       }}
