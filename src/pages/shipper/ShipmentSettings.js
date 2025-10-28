@@ -5,6 +5,7 @@ import { MdPlace } from "react-icons/md";
 import { FiX } from "react-icons/fi";
 import VehiclesAndCapacity from "./VehiclesAndCapacity";
 import PreferredAreas from "./PreferredAreasPage";
+import { MdOutlineNavigateNext } from "react-icons/md";
 
 const ShipmentSettings = () => {
   const subTabs = [
@@ -30,7 +31,7 @@ const ShipmentSettings = () => {
   ];
 
   const [activeSubTab, setActiveSubTab] = useState(null);
-  const [gpsTrackingEnabled, setGpsTrackingEnabled] = useState(false);
+  const [gpsTrackingEnabled, setGpsTrackingEnabled] = useState(true);
   const [showCredentialsModal, setShowCredentialsModal] = useState(false);
 
   const handleOpenTab = (id) => setActiveSubTab(id);
@@ -64,7 +65,13 @@ const ShipmentSettings = () => {
           Shipment Settings
         </span>
 
-        {activeSubTab && <GrNext />}
+        {/* Updated breadcrumb arrow */}
+        {activeSubTab && (
+          <MdOutlineNavigateNext
+            size={20}
+            className="text-[#333333] mx-[2px]"
+          />
+        )}
 
         <span className="text-system-primary">
           {activeSubTab

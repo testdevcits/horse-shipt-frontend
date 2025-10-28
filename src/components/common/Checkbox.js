@@ -1,15 +1,50 @@
 import React from "react";
 
-const Checkbox = ({ label, checked, onChange, className = "" }) => {
+/**
+ * Common Checkbox Component
+ * Props:
+ * - checked: boolean → current checkbox state
+ * - onChange: function → called when toggled
+ * - label: string (optional)
+ * - disabled: boolean (optional)
+ */
+const Checkbox = ({ checked, onChange, label, disabled = false }) => {
   return (
-    <label className={`flex items-center space-x-2 mb-4 ${className}`}>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-      />
-      <span className="text-gray-700">{label}</span>
+    <label
+      className={`flex items-center gap-2 cursor-pointer ${
+        disabled ? "opacity-60 cursor-not-allowed" : ""
+      }`}
+    >
+      <div
+        className={`w-[20px] h-[20px] rounded-[5px] border border-[#F2EBDD] flex items-center justify-center
+          ${checked ? "bg-[#997C42]" : "bg-transparent"} 
+          transition-all duration-200 cursor-pointer
+        `}
+        onClick={() => !disabled && onChange({ target: { checked: !checked } })}
+      >
+        {checked && (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-[14px] h-[14px] text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={3}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        )}
+      </div>
+
+      {label && (
+        <span className="text-[14px] sm:text-[15px] text-gray-700 font-[Montserrat]">
+          {label}
+        </span>
+      )}
     </label>
   );
 };
