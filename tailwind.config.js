@@ -62,7 +62,6 @@ module.exports = {
         xl: "1rem",
         "2xl": "1.5rem",
         custom: "12px",
-        14: "14px",
         full: "9999px",
       },
       screens: {
@@ -77,17 +76,6 @@ module.exports = {
         128: "32rem",
         144: "36rem",
         160: "40rem",
-        8: "8px",
-        10: "10px",
-        100: "100px",
-        1304: "1304px",
-      },
-      borderWidth: {
-        DEFAULT: "1px",
-        1: "1px",
-      },
-      opacity: {
-        1: "1",
       },
       keyframes: {
         "slide-fade-in": {
