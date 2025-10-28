@@ -242,7 +242,7 @@ const VehiclePage = () => {
 
       {/* Form Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-white overflow-y-auto p-2 sm:p-6 md:p-8">
+        <div className="fixed min-h-screen inset-0 z-50 bg-white overflow-y-auto p-2 sm:p-6 md:p-8">
           <button
             onClick={closeModal}
             className="absolute top-4 right-4 text-gray-600 hover:text-[#007bff] transition"
