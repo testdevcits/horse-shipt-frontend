@@ -6,6 +6,7 @@ import { CustomerNotificationProvider } from "./contexts/CustomerNotificationCon
 import AppRoutes from "./routes/AppRoutes";
 import { VehicleProvider } from "./contexts/VehicleContext";
 import { PreferredAreasProvider } from "./contexts/PreferredAreasContext";
+import { ShipperSettingsProvider } from "./contexts/ShipperSettingsContext";
 
 function App() {
   return (
@@ -15,7 +16,9 @@ function App() {
           <CustomerNotificationProvider>
             <VehicleProvider>
               <PreferredAreasProvider>
-                <AppRoutes />
+                <ShipperSettingsProvider>
+                  <AppRoutes />
+                </ShipperSettingsProvider>
               </PreferredAreasProvider>
             </VehicleProvider>
           </CustomerNotificationProvider>

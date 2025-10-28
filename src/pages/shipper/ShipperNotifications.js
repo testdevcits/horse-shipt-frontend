@@ -1,36 +1,32 @@
-import React, { useState } from "react";
+import React from "react";
 import Checkbox from "../../components/common/Checkbox";
-import axios from "axios";
+import { useShipperSettings } from "../../contexts/ShipperSettingsContext";
 
 const ShipperNotifications = () => {
-  const [notifications, setNotifications] = useState({
+  const { settings, updateSettings, loading } = useShipperSettings();
+
+  if (loading) {
+    return <p className="text-center text-gray-600">Loading settings...</p>;
+  }
+
+  const notifications = settings?.notifications || {
     quote: { email: false, sms: false },
     opportunity: { email: false, sms: false },
     message: { email: false, sms: false },
     review: { email: false, sms: false },
     shipment: { email: false, sms: false },
-  });
+  };
 
-  const toggleNotification = async (key, type) => {
+  const toggleNotification = (key, type) => {
     const updated = {
       ...notifications,
       [key]: { ...notifications[key], [type]: !notifications[key][type] },
     };
-
-    setNotifications(updated);
-
-    try {
-      await axios.post("/api/shipper/settings/update-notifications", {
-        notifications: updated,
-      });
-      console.log("Notification settings updated successfully");
-    } catch (err) {
-      console.error("Failed to update notifications:", err);
-    }
+    updateSettings({ notifications: updated });
   };
 
   return (
-    <div className="w-full mx-auto  font-[Montserrat]">
+    <div className="w-full mx-auto font-[Montserrat]">
       {/* ---------- Page Header ---------- */}
       <div className="text-left space-y-2 mb-6">
         <h2 className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium leading-[24px] sm:leading-[28px] text-gray-800">
@@ -50,7 +46,6 @@ const ShipperNotifications = () => {
             Shipment Notifications
           </h3>
 
-          {/* Align Email / SMS headers center with checkboxes */}
           <div className="flex items-center justify-center gap-12 text-[13px] sm:text-[14px] lg:text-[15px] text-gray-700 font-medium">
             <span className="w-[20px] text-center">Email</span>
             <span className="w-[20px] text-center">SMS</span>
@@ -73,13 +68,11 @@ const ShipperNotifications = () => {
               key={item.id}
               className="flex items-center justify-between border-b border-gray-200 pb-3 last:border-none"
             >
-              {/* Label */}
               <p className="flex-1 text-[14px] sm:text-[15px] lg:text-[16px] font-normal text-gray-800 leading-[22px] sm:leading-[24px]">
                 {item.label}
               </p>
 
-              {/* Centered Checkboxes */}
-              <div className="flex items-center justify-center gap-8">
+              <div className="flex items-center justify-start gap-8">
                 <div className="flex justify-center w-[20px]">
                   <Checkbox
                     checked={notifications[item.id].email}
