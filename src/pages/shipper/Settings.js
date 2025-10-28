@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import CommentBanner from "../../components/common/CommentBanner";
 import Profile from "./Profile";
 import ShipmentSettings from "./ShipmentSettings";
@@ -14,6 +14,8 @@ const ShipperSettings = () => {
   ];
 
   const [activeTab, setActiveTab] = useState("profile");
+  const tabRefs = useRef({});
+  const containerRef = useRef(null);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -30,18 +32,34 @@ const ShipperSettings = () => {
     }
   };
 
+  // 🔹 Auto-scroll active tab to START (left side)
+  useEffect(() => {
+    const activeTabElement = tabRefs.current[activeTab];
+    const container = containerRef.current;
+
+    if (activeTabElement && container) {
+      const offsetLeft = activeTabElement.offsetLeft;
+
+      container.scrollTo({
+        left: offsetLeft - 16, // small padding offset
+        behavior: "smooth",
+      });
+    }
+  }, [activeTab]);
+
   return (
     <>
       <CommentBanner />
       <div className="flex flex-col items-center w-full px-2">
         {/* Tabs */}
         <div
+          ref={containerRef}
           className="
-            w-full max-w-[650px]
+            w-full 
             flex flex-nowrap sm:flex-wrap
             overflow-x-auto sm:overflow-visible
-            justify-between sm:justify-center
-            items-center border-b border-gray-300 mb-6 mt-6
+            justify-start
+            items-start border-b border-gray-300 mb-6 mt-6
             scrollbar-hide
           "
           style={{ WebkitOverflowScrolling: "touch" }}
@@ -49,6 +67,7 @@ const ShipperSettings = () => {
           {tabs.map((tab) => (
             <button
               key={tab.id}
+              ref={(el) => (tabRefs.current[tab.id] = el)}
               onClick={() => setActiveTab(tab.id)}
               className={`
                 flex-shrink-0

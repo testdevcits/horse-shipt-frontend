@@ -2,21 +2,20 @@ import React from "react";
 import comingSoonImg from "../../assets/images/defultlogo.png";
 const PaymentsComingSoon = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
-      {/* Heading */}
-      <h2 className="text-[24px] sm:text-[28px] font-semibold text-gray-800 mb-4">
-        Coming Soon
-      </h2>
-
+    <div className="w-full flex flex-col items-center justify-center text-center px-4 animate-slide-fade-in">
       {/* Image */}
       <img
         src={comingSoonImg}
         alt="Coming Soon"
-        className="w-[220px] sm:w-[300px] mb-6 object-contain"
+        className="w-[52px] sm:w-[52px] mb-6 object-contain"
       />
+      {/* Heading */}
+      <h2 className="w-full text-[24px] sm:text-[28px] font-semibold text-[#4B5563] mb-4">
+        Coming Soon
+      </h2>
 
       {/* Description */}
-      <p className="text-gray-600 text-[15px] sm:text-[16px] max-w-[420px] leading-relaxed">
+      <p className="text-gray-600 text-[15px] sm:text-[16px]  leading-relaxed">
         Stay tuned for the latest enhancements coming soon to the Payments page.
       </p>
     </div>
