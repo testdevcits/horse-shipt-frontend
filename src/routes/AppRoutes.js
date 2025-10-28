@@ -93,10 +93,10 @@ const AppRoutes = () => {
             path="/"
             element={
               <RedirectIfAuth>
-                {/* <Home /> */}
+                <Home />
                 {/* <ShipmentSettings /> */}
                 {/* <ShipperNotifications /> */}
-                <ShipperSettings />
+                {/* <ShipperSettings /> */}
               </RedirectIfAuth>
             }
           />

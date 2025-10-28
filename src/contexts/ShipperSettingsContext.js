@@ -44,7 +44,7 @@ export const ShipperSettingsProvider = ({ children }) => {
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   };
 
-  // ---------------- FETCH SETTINGS ----------------
+  // ---------------- FETCH SETTINGS (Logged-in Shipper) ----------------
   const fetchSettings = useCallback(async () => {
     if (!token || fetched) return;
 
@@ -54,13 +54,10 @@ export const ShipperSettingsProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setSettings(res.data.settings || {});
+      setSettings(res.data.data || {});
       setFetched(true);
     } catch (err) {
-      console.error(
-        "❌ Fetch Settings Error:",
-        err.response?.data || err.message
-      );
+      console.error("Fetch Settings Error:", err.response?.data || err.message);
       showToast(
         err.response?.data?.message || "Failed to fetch settings",
         "error"
@@ -69,6 +66,34 @@ export const ShipperSettingsProvider = ({ children }) => {
       setLoading(false);
     }
   }, [token, fetched]);
+
+  // ---------------- FETCH SETTINGS BY ID (Admin Access) ----------------
+  const fetchSettingsById = async (shipperId) => {
+    if (!token || !shipperId) return;
+
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/settings/${shipperId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setSettings(res.data.data || {});
+      showToast("Settings fetched successfully", "success");
+      return { success: true, data: res.data.data };
+    } catch (err) {
+      console.error(
+        "Fetch Settings by ID Error:",
+        err.response?.data || err.message
+      );
+      showToast(
+        err.response?.data?.message || "Failed to fetch shipper settings by ID",
+        "error"
+      );
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ---------------- UPDATE SETTINGS ----------------
   const updateSettings = async (updatedData) => {
@@ -87,12 +112,12 @@ export const ShipperSettingsProvider = ({ children }) => {
         }
       );
 
-      setSettings(res.data.settings || updatedData);
+      setSettings(res.data.data || updatedData);
       showToast("Settings updated successfully", "success");
       return { success: true };
     } catch (err) {
       console.error(
-        "❌ Update Settings Error:",
+        "Update Settings Error:",
         err.response?.data || err.message
       );
       showToast(
@@ -122,6 +147,7 @@ export const ShipperSettingsProvider = ({ children }) => {
         settings,
         loading,
         fetchSettings,
+        fetchSettingsById,
         updateSettings,
       }}
     >
