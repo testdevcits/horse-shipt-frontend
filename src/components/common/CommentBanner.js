@@ -1,33 +1,35 @@
 import React, { useRef } from "react";
 import { HiPencil } from "react-icons/hi";
 import { useAuth } from "../../contexts/AuthContext";
-import { useShipperSettings } from "../../contexts/ShipperSettingsContext";
+import { useShipperProfile } from "../../contexts/ShipperProfileContext";
 
 const CommentBanner = () => {
   const { user } = useAuth();
-  const { settings, updateProfileImage, updateBannerImage } =
-    useShipperSettings();
+  const { profile, uploadProfileImage, uploadBannerImage, loading } =
+    useShipperProfile();
 
   const bannerInputRef = useRef(null);
   const profileInputRef = useRef(null);
 
-  const bannerImage = settings?.bannerImage;
-  const profileImage = settings?.profileImage;
+  const bannerImage = profile?.bannerImage;
+  const profileImage = profile?.profileImage;
 
   // ============================================================
   // HANDLE BANNER UPLOAD
   // ============================================================
-  const handleBannerChange = (e) => {
+  const handleBannerChange = async (e) => {
     const file = e.target.files[0];
-    if (file) updateBannerImage(file);
+    if (!file) return;
+    await uploadBannerImage(file);
   };
 
   // ============================================================
   // HANDLE PROFILE UPLOAD
   // ============================================================
-  const handleProfileChange = (e) => {
+  const handleProfileChange = async (e) => {
     const file = e.target.files[0];
-    if (file) updateProfileImage(file);
+    if (!file) return;
+    await uploadProfileImage(file);
   };
 
   return (
@@ -35,7 +37,10 @@ const CommentBanner = () => {
       {/* Banner Background */}
       <div
         className="absolute inset-0 bg-cover bg-center rounded-[12px]"
-        style={{ backgroundImage: `url(${bannerImage})` }}
+        style={{
+          backgroundImage: `url(${bannerImage})`,
+          opacity: loading ? 0.5 : 1,
+        }}
       ></div>
 
       <div className="absolute inset-0 bg-black/20 rounded-[12px]"></div>
@@ -43,10 +48,13 @@ const CommentBanner = () => {
       {/* New Banner Button */}
       <div className="absolute top-4 right-4 z-10">
         <button
+          disabled={loading}
           onClick={() => bannerInputRef.current.click()}
-          className="px-4 py-2 bg-gray-200 text-[#333333] border rounded-lg text-sm font-medium hover:bg-opacity-50 transition"
+          className={`px-4 py-2 bg-gray-200 text-[#333333] border rounded-lg text-sm font-medium transition ${
+            loading ? "opacity-50 cursor-not-allowed" : "hover:bg-opacity-50"
+          }`}
         >
-          New Banner
+          {loading ? "Uploading..." : "New Banner"}
         </button>
         <input
           type="file"
@@ -64,9 +72,12 @@ const CommentBanner = () => {
             <img
               src={profileImage}
               alt="Profile"
-              className="w-16 h-16 object-cover rounded-full"
+              className={`w-16 h-16 object-cover rounded-full ${
+                loading ? "opacity-50" : ""
+              }`}
             />
             <button
+              disabled={loading}
               onClick={() => profileInputRef.current.click()}
               className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-md hover:bg-gray-100 transition flex items-center justify-center"
             >

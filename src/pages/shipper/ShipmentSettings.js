@@ -1,13 +1,85 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { GrNext } from "react-icons/gr";
 import { FaTruck } from "react-icons/fa";
-import { MdPlace } from "react-icons/md";
-import { FiX } from "react-icons/fi";
+import { MdPlace, MdOutlineNavigateNext } from "react-icons/md";
 import VehiclesAndCapacity from "./VehiclesAndCapacity";
 import PreferredAreas from "./PreferredAreasPage";
-import { MdOutlineNavigateNext } from "react-icons/md";
+import { useAuth } from "../../contexts/AuthContext";
+import { useShipperLocation } from "../../contexts/ShipperLocationContext";
 
 const ShipmentSettings = () => {
+  const { user } = useAuth();
+  const { updateLocation } = useShipperLocation();
+  const [activeSubTab, setActiveSubTab] = useState(null);
+  const [gpsTrackingEnabled, setGpsTrackingEnabled] = useState(false);
+  const [showCredentialsModal, setShowCredentialsModal] = useState(false);
+
+  const locationIntervalRef = useRef(null);
+
+  // ============================================================
+  // 📍 START GPS TRACKING
+  // ============================================================
+  const startTracking = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        updateLocation({ latitude, longitude });
+
+        // call every 5 seconds
+        locationIntervalRef.current = setInterval(() => {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              updateLocation({ latitude, longitude });
+            },
+            (err) => console.error("Error updating location:", err),
+            { enableHighAccuracy: true }
+          );
+        }, 5000);
+      },
+      (error) => {
+        console.error("Location access denied or error:", error);
+        alert("Please allow location access for GPS tracking.");
+        setGpsTrackingEnabled(false);
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
+  // ============================================================
+  // 📍 STOP GPS TRACKING
+  // ============================================================
+  const stopTracking = () => {
+    if (locationIntervalRef.current) {
+      clearInterval(locationIntervalRef.current);
+      locationIntervalRef.current = null;
+    }
+  };
+
+  // ============================================================
+  // 📍 HANDLE TOGGLE SWITCH
+  // ============================================================
+  const handleToggleGPS = () => {
+    const newState = !gpsTrackingEnabled;
+    setGpsTrackingEnabled(newState);
+
+    if (newState) {
+      startTracking();
+    } else {
+      stopTracking();
+    }
+  };
+
+  // cleanup on unmount
+  useEffect(() => {
+    return () => stopTracking();
+  }, []);
+
   const subTabs = [
     {
       id: "vehicles",
@@ -30,14 +102,8 @@ const ShipmentSettings = () => {
     },
   ];
 
-  const [activeSubTab, setActiveSubTab] = useState(null);
-  const [gpsTrackingEnabled, setGpsTrackingEnabled] = useState(true);
-  const [showCredentialsModal, setShowCredentialsModal] = useState(false);
-
   const handleOpenTab = (id) => setActiveSubTab(id);
   const handleBack = () => setActiveSubTab(null);
-  const handleOpenModal = () => setShowCredentialsModal(true);
-  const handleCloseModal = () => setShowCredentialsModal(false);
 
   const renderSubTabContent = () => {
     switch (activeSubTab) {
@@ -65,7 +131,6 @@ const ShipmentSettings = () => {
           Shipment Settings
         </span>
 
-        {/* Updated breadcrumb arrow */}
         {activeSubTab && (
           <MdOutlineNavigateNext
             size={20}
@@ -87,7 +152,6 @@ const ShipmentSettings = () => {
         <div className="flex flex-col gap-6 w-full">
           {/* ---- GPS Tracking Card ---- */}
           <div className="w-full flex items-center justify-between px-4 sm:px-6 py-4 border border-gray-300 rounded-[14px] bg-white transition-all duration-200">
-            {/* Left Side Content */}
             <div className="flex flex-col gap-1">
               <h3 className="font-[Montserrat] font-medium text-[16px] sm:text-[17px] text-gray-800 leading-[24px]">
                 GPS Tracking
@@ -101,7 +165,7 @@ const ShipmentSettings = () => {
             {/* Toggle Switch */}
             <div className="flex items-center">
               <button
-                onClick={() => setGpsTrackingEnabled(!gpsTrackingEnabled)}
+                onClick={handleToggleGPS}
                 className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
                   gpsTrackingEnabled ? "bg-system-primary" : "bg-gray-300"
                 }`}
@@ -117,7 +181,6 @@ const ShipmentSettings = () => {
 
           {/* ---- Credentials Card ---- */}
           <div className="w-full flex items-center justify-between px-4 sm:px-6 py-4 border border-gray-300 rounded-[14px] bg-white transition-all duration-200">
-            {/* Left Side Content */}
             <div className="flex flex-col gap-1">
               <h3 className="font-[Montserrat] font-medium text-[16px] sm:text-[17px] text-gray-800 leading-[24px]">
                 Credentials
@@ -127,9 +190,8 @@ const ShipmentSettings = () => {
               </p>
             </div>
 
-            {/* Right Side Button */}
             <button
-              onClick={handleOpenModal}
+              onClick={() => setShowCredentialsModal(true)}
               className="px-4 py-2 bg-gray-200 text-[#333333] border rounded-lg text-sm font-medium hover:bg-opacity-50 transition"
             >
               See Credentials
@@ -162,27 +224,11 @@ const ShipmentSettings = () => {
       {/* ---------- Credentials Modal ---------- */}
       {showCredentialsModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div
-            className="
-        bg-white 
-        rounded-[12px] 
-        shadow-lg 
-        w-[480px] 
-        h-[364px] 
-        p-[24px] 
-        flex 
-        flex-col 
-        gap-[24px] 
-        border border-gray-200 
-        relative
-      "
-          >
-            {/* ---------- Header Row ---------- */}
+          <div className="bg-white rounded-[12px] shadow-lg w-[480px] h-[364px] p-[24px] flex flex-col gap-[24px] border border-gray-200 relative">
             <div className="flex items-center justify-between">
               <h2 className="text-[18px] font-semibold text-gray-800">
                 Credentials
               </h2>
-
               <button
                 onClick={() => setShowCredentialsModal(false)}
                 className="text-gray-500 hover:text-system-primary transition"
@@ -191,13 +237,11 @@ const ShipmentSettings = () => {
               </button>
             </div>
 
-            {/* ---------- Modal Description ---------- */}
             <p className="text-gray-600 text-[14px] leading-[20px]">
               Lorem ipsum dolor sit amet consectetur. Nulla varius risus est
               congue sit aliquet.
             </p>
 
-            {/* ---------- Example Credential Cards ---------- */}
             <div className="flex flex-col gap-[12px]">
               <div className="border-b border-gray-300 pb-2">
                 <h3 className="font-medium text-gray-800 text-[15px]">
@@ -205,8 +249,7 @@ const ShipmentSettings = () => {
                 </h3>
                 <p className="text-gray-600 text-[13px]">123456789</p>
               </div>
-
-              <div className="">
+              <div>
                 <h3 className="font-medium text-gray-800 text-[15px]">
                   MC Number
                 </h3>
@@ -214,19 +257,7 @@ const ShipmentSettings = () => {
               </div>
             </div>
 
-            {/* ---------- Upload Button ---------- */}
-            <button
-              className="
-          mt-auto 
-          bg-system-primary 
-          text-white 
-          font-medium 
-          py-2 
-          rounded-lg 
-          hover:opacity-90 
-          transition
-        "
-            >
+            <button className="mt-auto bg-system-primary text-white font-medium py-2 rounded-lg hover:opacity-90 transition">
               Upload New Credential
             </button>
           </div>
