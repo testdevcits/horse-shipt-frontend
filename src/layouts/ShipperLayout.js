@@ -5,14 +5,12 @@ import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
 import logo from "../assets/images/logo.png";
+import defaultProfile from "../assets/images/profile.png"; // default profile image
 import {
   HiOutlineBell,
   HiOutlineChatBubbleLeft,
   HiOutlineShare,
 } from "react-icons/hi2";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
@@ -21,13 +19,8 @@ const ShipperLayout = () => {
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-  const profileImage =
-    user?.photo ||
-    (user?.profilePicture
-      ? user.profilePicture.startsWith("http")
-        ? user.profilePicture
-        : `${API_BASE_URL}/${user.profilePicture.replace(/^\/?/, "")}`
-      : "https://via.placeholder.com/40");
+  // Use uploaded image if available, else show default
+  const profileImage = user?.profileImage || defaultProfile;
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
@@ -41,15 +34,14 @@ const ShipperLayout = () => {
       <header className="sticky top-0 z-50 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
         {/* Left: Mobile menu / close + logo */}
         <div className="flex items-center gap-4">
-          {!mobileOpen && (
+          {!mobileOpen ? (
             <button
               className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
               onClick={() => setMobileOpen(true)}
             >
               <CgMenu size={24} />
             </button>
-          )}
-          {mobileOpen && (
+          ) : (
             <button
               className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
               onClick={() => setMobileOpen(false)}
@@ -100,7 +92,7 @@ const ShipperLayout = () => {
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           mobileOpen={mobileOpen}
-          setMobileOpen={setMobileOpen} // <-- Pass setter
+          setMobileOpen={setMobileOpen}
         />
 
         {/* Main content */}
