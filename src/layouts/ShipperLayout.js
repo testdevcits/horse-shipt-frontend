@@ -2,11 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
-import { useShipperProfile } from "../contexts/ShipperProfileContext"; // ✅ Import Context
+import { useShipperProfile } from "../contexts/ShipperProfileContext";
 import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
 import logo from "../assets/images/logo.png";
-import defaultProfile from "../assets/images/profile.png";
 import {
   HiOutlineBell,
   HiOutlineChatBubbleLeft,
@@ -15,16 +14,20 @@ import {
 
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
-  const { profile, loading } = useShipperProfile(); // ✅ Access profile context
+  const { profile, loading } = useShipperProfile();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-  // ✅ Use profile image from context first, fallback to user data or default
+  // Determine which image to show (no default)
   const profileImage =
-    profile?.profileImage || user?.profileImage || defaultProfile;
+    profile?.profileImage ||
+    user?.profileImage ||
+    profile?.profilePicture ||
+    user?.profilePicture ||
+    null;
 
   // Responsive window check
   useEffect(() => {
@@ -71,31 +74,36 @@ const ShipperLayout = () => {
           />
 
           {/* Profile Picture */}
-          <div className="relative">
-            <img
-              src={profileImage}
-              alt="Profile"
-              className={`w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300 ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              onClick={() => !loading && setProfilePopup(!profilePopup)}
-            />
+          {profileImage ? (
+            <div className="relative">
+              <img
+                src={profileImage}
+                alt="Profile"
+                className={`w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300 ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                onClick={() => !loading && setProfilePopup(!profilePopup)}
+              />
 
-            {/* Profile Dropdown */}
-            {profilePopup && (
-              <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50">
-                <div className="px-4 py-2 border-b text-gray-700 font-medium">
-                  {user?.name || "User"}
+              {/* Profile Dropdown */}
+              {profilePopup && (
+                <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50">
+                  <div className="px-4 py-2 border-b text-gray-700 font-medium">
+                    {user?.name || "User"}
+                  </div>
+                  <div
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={logout}
+                  >
+                    <span>Logout</span>
+                  </div>
                 </div>
-                <div
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={logout}
-                >
-                  <span>Logout</span>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : (
+            // 🟡 No default image — just show a placeholder circle or nothing
+            <div className="w-10 h-10 rounded-full bg-gray-200 border border-gray-300" />
+          )}
         </div>
       </header>
 

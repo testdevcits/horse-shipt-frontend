@@ -29,7 +29,6 @@ export const ShipperProfileProvider = ({ children }) => {
 
   // ---------------- TOAST HANDLER ----------------
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
-
   const showToast = useCallback((message, type = "info") => {
     setToast({ message, type, visible: true });
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
@@ -74,7 +73,7 @@ export const ShipperProfileProvider = ({ children }) => {
         }
       );
 
-      // ✅ Update state with new profile data immediately
+      // Merge the updated data instantly
       setProfile((prev) => ({ ...prev, ...res.data.data }));
       showToast("Profile updated successfully", "success");
       return { success: true };
@@ -110,7 +109,7 @@ export const ShipperProfileProvider = ({ children }) => {
         }
       );
 
-      // ✅ Instantly update profile image without reload
+      // ✅ Instantly update profile image with cache-busting
       const imageUrl =
         res.data?.data?.imageUrl ||
         res.data?.data?.profileImage ||
@@ -118,7 +117,7 @@ export const ShipperProfileProvider = ({ children }) => {
 
       setProfile((prev) => ({
         ...prev,
-        profileImage: imageUrl,
+        profileImage: `${imageUrl}?t=${Date.now()}`, // 👈 force refresh
       }));
 
       showToast("Profile image updated successfully", "success");
@@ -152,7 +151,7 @@ export const ShipperProfileProvider = ({ children }) => {
         }
       );
 
-      // ✅ Instantly update banner image without reload
+      // ✅ Instantly update banner image with cache-busting
       const imageUrl =
         res.data?.data?.imageUrl ||
         res.data?.data?.bannerImage ||
@@ -160,7 +159,7 @@ export const ShipperProfileProvider = ({ children }) => {
 
       setProfile((prev) => ({
         ...prev,
-        bannerImage: imageUrl,
+        bannerImage: `${imageUrl}?t=${Date.now()}`, // 👈 instant reflection
       }));
 
       showToast("Banner image updated successfully", "success");
