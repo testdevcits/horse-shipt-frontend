@@ -10,6 +10,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import RedirectIfAuth from "../pages/auth/RedirectIfAuth";
 import { useAuth } from "../contexts/AuthContext";
 import MainLayout from "../layouts/MainLayout";
+import PreferredAreas from "../pages/shipper/PreferredAreasPage";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -93,7 +94,8 @@ const AppRoutes = () => {
             path="/"
             element={
               <RedirectIfAuth>
-                <Home />
+                <PreferredAreas />
+                {/* <Home /> */}
                 {/* <ShipmentSettings /> */}
                 {/* <ShipperNotifications /> */}
                 {/* <ShipperSettings /> */}

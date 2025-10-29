@@ -108,7 +108,19 @@ const ShipmentSettings = () => {
       case "vehicles":
         return <VehiclesAndCapacity handleBack={handleBack} />;
       case "preferredAreas":
-        return <PreferredAreas handleBack={handleBack} />;
+        return (
+          <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+              Coming Soon 🚀
+            </h2>
+            <p className="text-gray-600 max-w-md">
+              Stay tuned for the latest enhancements coming soon to the
+              Preferred Areas page.
+            </p>
+          </div>
+        );
+
+      // <PreferredAreas handleBack={handleBack} />;
       default:
         return null;
     }

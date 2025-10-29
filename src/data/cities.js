@@ -1,0 +1,44 @@
+const citiesData = [
+  {
+    city: "Toronto",
+    province_id: "ON",
+    province_name: "Ontario",
+    lat: 43.7417,
+    lng: -79.3733,
+    population: 5647656,
+    density: 4427.8,
+    timezone: "America/Toronto",
+    postal: "M5T M5V M5P ...",
+    id: 1124279679,
+    country: "Canada",
+  },
+  {
+    city: "Vancouver",
+    province_id: "BC",
+    province_name: "British Columbia",
+    lat: 49.2827,
+    lng: -123.1207,
+    population: 2630000,
+    density: 5490,
+    timezone: "America/Vancouver",
+    postal: "V5K V5L ...",
+    id: 1124567890,
+    country: "Canada",
+  },
+  {
+    city: "New York",
+    province_id: "NY",
+    province_name: "New York",
+    lat: 40.7128,
+    lng: -74.006,
+    population: 8419600,
+    density: 10933,
+    timezone: "America/New_York",
+    postal: "10001 10002 10003 ...",
+    id: 2124279679,
+    country: "USA",
+  },
+  // ... add as many as needed
+];
+
+export default citiesData;

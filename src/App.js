@@ -9,6 +9,7 @@ import { ShipperSettingsProvider } from "./contexts/ShipperSettingsContext";
 import { ShipperProfileProvider } from "./contexts/ShipperProfileContext";
 import { ShipperLocationProvider } from "./contexts/ShipperLocationContext";
 import AppRoutes from "./routes/AppRoutes";
+import { ShipperPreferredAreaProvider } from "./contexts/ShipperPreferredAreaContext";
 
 function App() {
   return (
@@ -21,7 +22,9 @@ function App() {
                 <ShipperSettingsProvider>
                   <ShipperProfileProvider>
                     <ShipperLocationProvider>
-                      <AppRoutes />
+                      <ShipperPreferredAreaProvider>
+                        <AppRoutes />
+                      </ShipperPreferredAreaProvider>
                     </ShipperLocationProvider>
                   </ShipperProfileProvider>
                 </ShipperSettingsProvider>
