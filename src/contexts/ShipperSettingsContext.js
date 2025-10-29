@@ -1,6 +1,3 @@
-// ---------------------------------------------
-// src/contexts/ShipperSettingsContext.js
-// ---------------------------------------------
 import React, {
   createContext,
   useContext,
@@ -12,9 +9,9 @@ import axios from "axios";
 import { useAuth } from "./AuthContext";
 import Toast from "../components/common/Toast";
 
-// ---------------------------------------------
-// Context + Constants
-// ---------------------------------------------
+// --------------------------------------------------
+// CONSTANTS
+// --------------------------------------------------
 const ShipperSettingsContext = createContext();
 const API_BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
 
@@ -24,28 +21,23 @@ const DEFAULT_PROFILE_IMAGE =
 const DEFAULT_BANNER_IMAGE =
   "https://via.placeholder.com/800x300?text=Banner+Image";
 
-// ---------------------------------------------
-// Provider Component
-// ---------------------------------------------
+// --------------------------------------------------
+// PROVIDER
+// --------------------------------------------------
 export const ShipperSettingsProvider = ({ children }) => {
   const { token, user } = useAuth();
 
   const [settings, setSettings] = useState({
-    notifications: {
-      quote: { email: false, sms: false },
-      opportunity: { email: false, sms: false },
-      message: { email: false, sms: false },
-      review: { email: false, sms: false },
-      shipment: { email: false, sms: false },
-    },
+    notifications: {},
     profileImage: DEFAULT_PROFILE_IMAGE,
     bannerImage: DEFAULT_BANNER_IMAGE,
+    currentLocation: null,
   });
 
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
 
-  // ---------------- TOAST HANDLER ----------------
+  // Toast handler
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const showToast = (message, type = "info") => {
     setToast({ message, type, visible: true });
@@ -60,7 +52,7 @@ export const ShipperSettingsProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/settings`, {
+      const res = await axios.get(`${API_BASE_URL}/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -68,8 +60,9 @@ export const ShipperSettingsProvider = ({ children }) => {
 
       setSettings({
         ...data,
-        profileImage: data.profileImage || DEFAULT_PROFILE_IMAGE,
-        bannerImage: data.bannerImage || DEFAULT_BANNER_IMAGE,
+        profileImage: data?.profileImage?.url || DEFAULT_PROFILE_IMAGE,
+        bannerImage: data?.bannerImage?.url || DEFAULT_BANNER_IMAGE,
+        currentLocation: data?.currentLocation || null,
       });
 
       setFetched(true);
@@ -85,7 +78,7 @@ export const ShipperSettingsProvider = ({ children }) => {
   }, [token, fetched]);
 
   // ============================================================
-  // UPDATE NOTIFICATIONS
+  // UPDATE NOTIFICATION SETTINGS
   // ============================================================
   const updateSettings = async (updatedData) => {
     if (!token) {
@@ -132,11 +125,11 @@ export const ShipperSettingsProvider = ({ children }) => {
     }
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("image", file);
 
     setLoading(true);
     try {
-      const res = await axios.post(
+      const res = await axios.put(
         `${API_BASE_URL}/update-profile-image`,
         formData,
         {
@@ -149,7 +142,7 @@ export const ShipperSettingsProvider = ({ children }) => {
 
       setSettings((prev) => ({
         ...prev,
-        profileImage: res.data.photo || DEFAULT_PROFILE_IMAGE,
+        profileImage: res.data.data?.profileImage?.url || DEFAULT_PROFILE_IMAGE,
       }));
 
       showToast("Profile image updated successfully", "success");
@@ -176,12 +169,12 @@ export const ShipperSettingsProvider = ({ children }) => {
     }
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("image", file);
 
     setLoading(true);
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/upload-banner-image`,
+      const res = await axios.put(
+        `${API_BASE_URL}/update-banner-image`,
         formData,
         {
           headers: {
@@ -193,7 +186,7 @@ export const ShipperSettingsProvider = ({ children }) => {
 
       setSettings((prev) => ({
         ...prev,
-        bannerImage: res.data.bannerImage || DEFAULT_BANNER_IMAGE,
+        bannerImage: res.data.data?.bannerImage?.url || DEFAULT_BANNER_IMAGE,
       }));
 
       showToast("Banner image updated successfully", "success");
@@ -211,20 +204,83 @@ export const ShipperSettingsProvider = ({ children }) => {
   };
 
   // ============================================================
+  // GET CURRENT LOCATION
+  // ============================================================
+  const fetchCurrentLocation = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      const res = await axios.get(`${API_BASE_URL}/current-location`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = res.data?.data;
+      if (data) {
+        setSettings((prev) => ({
+          ...prev,
+          currentLocation: data,
+        }));
+      }
+    } catch (err) {
+      console.error("Fetch Current Location Error:", err.response?.data || err);
+    }
+  }, [token]);
+
+  // ============================================================
+  // UPDATE CURRENT LOCATION
+  // ============================================================
+  const updateCurrentLocation = async (latitude, longitude) => {
+    if (!token) {
+      showToast("Unauthorized. Please log in again.", "error");
+      return { success: false };
+    }
+
+    setLoading(true);
+    try {
+      const res = await axios.put(
+        `${API_BASE_URL}/update-location`,
+        { latitude, longitude },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setSettings((prev) => ({
+        ...prev,
+        currentLocation: res.data?.data || null,
+      }));
+
+      showToast("Location updated successfully", "success");
+      return { success: true };
+    } catch (err) {
+      console.error("Update Location Error:", err.response?.data || err);
+      showToast(
+        err.response?.data?.message || "Failed to update location",
+        "error"
+      );
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ============================================================
   // AUTO FETCH ON LOAD
   // ============================================================
   useEffect(() => {
     if (token && user?.role === "shipper") {
       fetchSettings();
+      fetchCurrentLocation();
     } else {
       setSettings({
         notifications: {},
         profileImage: DEFAULT_PROFILE_IMAGE,
         bannerImage: DEFAULT_BANNER_IMAGE,
+        currentLocation: null,
       });
       setFetched(false);
     }
-  }, [token, user, fetchSettings]);
+  }, [token, user, fetchSettings, fetchCurrentLocation]);
 
   // ============================================================
   // CONTEXT VALUE
@@ -238,6 +294,8 @@ export const ShipperSettingsProvider = ({ children }) => {
         updateSettings,
         uploadProfileImage,
         uploadBannerImage,
+        fetchCurrentLocation,
+        updateCurrentLocation,
       }}
     >
       {children}
@@ -252,7 +310,7 @@ export const ShipperSettingsProvider = ({ children }) => {
   );
 };
 
-// ---------------------------------------------
-// Custom Hook
-// ---------------------------------------------
+// --------------------------------------------------
+// CUSTOM HOOK
+// --------------------------------------------------
 export const useShipperSettings = () => useContext(ShipperSettingsContext);
