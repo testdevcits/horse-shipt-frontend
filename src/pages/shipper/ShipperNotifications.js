@@ -29,7 +29,7 @@ const ShipperNotifications = () => {
   };
 
   return (
-    <div className="w-full mx-auto font-[Montserrat]">
+    <div className="w-full mx-auto font-[Montserrat] animate-slide-fade-in">
       {/* ---------- Page Header ---------- */}
       <div className="text-left space-y-2 mb-6">
         <h2 className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium text-gray-800">
