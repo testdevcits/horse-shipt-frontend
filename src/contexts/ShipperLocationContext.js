@@ -22,6 +22,7 @@ export const ShipperLocationProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
 
+  // ---------------- TOAST HANDLER ----------------
   const showToast = useCallback((message, type = "info") => {
     setToast({ message, type, visible: true });
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
@@ -58,8 +59,10 @@ export const ShipperLocationProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       setLocation(res.data.data || locationData);
-      showToast("Location updated successfully", "success");
+      showToast("Location updated successfully ✅", "success");
+
       return { success: true };
     } catch (err) {
       console.error("Update Location Error:", err);
@@ -79,6 +82,7 @@ export const ShipperLocationProvider = ({ children }) => {
     }
   }, [token, user, fetchCurrentLocation]);
 
+  // ---------------- CONTEXT PROVIDER ----------------
   return (
     <ShipperLocationContext.Provider
       value={{

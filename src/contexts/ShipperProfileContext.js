@@ -29,6 +29,7 @@ export const ShipperProfileProvider = ({ children }) => {
 
   // ---------------- TOAST HANDLER ----------------
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
+
   const showToast = useCallback((message, type = "info") => {
     setToast({ message, type, visible: true });
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
@@ -43,6 +44,7 @@ export const ShipperProfileProvider = ({ children }) => {
       const res = await axios.get(`${API_BASE_URL}/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setProfile(res.data.data || {});
     } catch (err) {
       console.error("Fetch Profile Error:", err.response?.data || err.message);
@@ -72,7 +74,8 @@ export const ShipperProfileProvider = ({ children }) => {
         }
       );
 
-      setProfile(res.data.data || updatedData);
+      // ✅ Update state with new profile data immediately
+      setProfile((prev) => ({ ...prev, ...res.data.data }));
       showToast("Profile updated successfully", "success");
       return { success: true };
     } catch (err) {
@@ -106,7 +109,18 @@ export const ShipperProfileProvider = ({ children }) => {
           },
         }
       );
-      setProfile((prev) => ({ ...prev, profileImage: res.data.data.imageUrl }));
+
+      // ✅ Instantly update profile image without reload
+      const imageUrl =
+        res.data?.data?.imageUrl ||
+        res.data?.data?.profileImage ||
+        res.data?.profileImage;
+
+      setProfile((prev) => ({
+        ...prev,
+        profileImage: imageUrl,
+      }));
+
       showToast("Profile image updated successfully", "success");
       return { success: true };
     } catch (err) {
@@ -137,7 +151,18 @@ export const ShipperProfileProvider = ({ children }) => {
           },
         }
       );
-      setProfile((prev) => ({ ...prev, bannerImage: res.data.data.imageUrl }));
+
+      // ✅ Instantly update banner image without reload
+      const imageUrl =
+        res.data?.data?.imageUrl ||
+        res.data?.data?.bannerImage ||
+        res.data?.bannerImage;
+
+      setProfile((prev) => ({
+        ...prev,
+        bannerImage: imageUrl,
+      }));
+
       showToast("Banner image updated successfully", "success");
       return { success: true };
     } catch (err) {

@@ -1,8 +1,10 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React, { useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import axios from "axios";
 import { LuArrowLeftFromLine, LuArrowRightFromLine } from "react-icons/lu";
 import { CiCircleQuestion } from "react-icons/ci";
 import { FaTachometerAlt, FaBoxOpen, FaUser, FaCog } from "react-icons/fa";
+import { useAuth } from "../../contexts/AuthContext"; // ✅ import your auth context
 
 const navItems = [
   { name: "Dashboard", path: "/shipper/dashboard", icon: <FaTachometerAlt /> },
@@ -25,6 +27,28 @@ const Sidebar = ({
   mobileOpen,
   setMobileOpen,
 }) => {
+  const { token, logout } = useAuth();
+  const navigate = useNavigate();
+
+  // ✅ Automatically logout if token is invalid or expired
+  useEffect(() => {
+    if (!token) return; // no token = no check
+
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        if (error.response?.status === 401) {
+          console.warn("Session expired or invalid token. Logging out...");
+          await logout(); // clear session + redirect to login
+          navigate("/login", { replace: true });
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => axios.interceptors.response.eject(interceptor);
+  }, [token, logout, navigate]);
+
   const isActivePath = (path, subPaths) => {
     if (window.location.pathname === path) return true;
     if (subPaths)
@@ -65,7 +89,7 @@ const Sidebar = ({
               <li key={item.path}>
                 <NavLink
                   to={item.path}
-                  onClick={() => mobileOpen && setMobileOpen(false)} // <-- Close sidebar on mobile
+                  onClick={() => mobileOpen && setMobileOpen(false)}
                   className={`flex items-center gap-3 px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
                     active
                       ? "bg-gray-100 font-semibold text-system-primary"
@@ -84,7 +108,7 @@ const Sidebar = ({
                         <li key={sub.path}>
                           <NavLink
                             to={sub.path}
-                            onClick={() => mobileOpen && setMobileOpen(false)} // <-- Close sidebar on mobile
+                            onClick={() => mobileOpen && setMobileOpen(false)}
                             className={`block px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
                               subActive
                                 ? "bg-gray-100 font-semibold text-system-primary"

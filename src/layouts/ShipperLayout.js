@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
+import { useShipperProfile } from "../contexts/ShipperProfileContext"; // ✅ Import Context
 import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
 import logo from "../assets/images/logo.png";
-import defaultProfile from "../assets/images/profile.png"; // default profile image
+import defaultProfile from "../assets/images/profile.png";
 import {
   HiOutlineBell,
   HiOutlineChatBubbleLeft,
@@ -14,14 +15,18 @@ import {
 
 const ShipperLayout = () => {
   const { user, logout } = useAuth();
+  const { profile, loading } = useShipperProfile(); // ✅ Access profile context
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-  // Use uploaded image if available, else show default
-  const profileImage = user?.profileImage || defaultProfile;
+  // ✅ Use profile image from context first, fallback to user data or default
+  const profileImage =
+    profile?.profileImage || user?.profileImage || defaultProfile;
 
+  // Responsive window check
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
     window.addEventListener("resize", handleResize);
@@ -32,7 +37,7 @@ const ShipperLayout = () => {
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
       <header className="sticky top-0 z-50 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
-        {/* Left: Mobile menu / close + logo */}
+        {/* Left: Mobile menu + logo */}
         <div className="flex items-center gap-4">
           {!mobileOpen ? (
             <button
@@ -64,15 +69,24 @@ const ShipperLayout = () => {
             size={20}
             className="text-gray-500 cursor-pointer"
           />
+
+          {/* Profile Picture */}
           <div className="relative">
             <img
               src={profileImage}
               alt="Profile"
-              className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
-              onClick={() => setProfilePopup(!profilePopup)}
+              className={`w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300 ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              onClick={() => !loading && setProfilePopup(!profilePopup)}
             />
+
+            {/* Profile Dropdown */}
             {profilePopup && (
-              <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg">
+              <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50">
+                <div className="px-4 py-2 border-b text-gray-700 font-medium">
+                  {user?.name || "User"}
+                </div>
                 <div
                   className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   onClick={logout}
@@ -85,7 +99,7 @@ const ShipperLayout = () => {
         </div>
       </header>
 
-      {/* Layout Body */}
+      {/* Body Layout */}
       <div className="flex flex-1 relative">
         {/* Sidebar */}
         <Sidebar
@@ -95,7 +109,7 @@ const ShipperLayout = () => {
           setMobileOpen={setMobileOpen}
         />
 
-        {/* Main content */}
+        {/* Main Content */}
         <main
           className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300"
           style={{

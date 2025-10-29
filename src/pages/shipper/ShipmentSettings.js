@@ -4,11 +4,9 @@ import { FaTruck } from "react-icons/fa";
 import { MdPlace, MdOutlineNavigateNext } from "react-icons/md";
 import VehiclesAndCapacity from "./VehiclesAndCapacity";
 import PreferredAreas from "./PreferredAreasPage";
-import { useAuth } from "../../contexts/AuthContext";
 import { useShipperLocation } from "../../contexts/ShipperLocationContext";
 
 const ShipmentSettings = () => {
-  const { user } = useAuth();
   const { updateLocation } = useShipperLocation();
   const [activeSubTab, setActiveSubTab] = useState(null);
   const [gpsTrackingEnabled, setGpsTrackingEnabled] = useState(false);
@@ -17,7 +15,7 @@ const ShipmentSettings = () => {
   const locationIntervalRef = useRef(null);
 
   // ============================================================
-  // 📍 START GPS TRACKING
+  // START GPS TRACKING
   // ============================================================
   const startTracking = () => {
     if (!navigator.geolocation) {
@@ -52,7 +50,7 @@ const ShipmentSettings = () => {
   };
 
   // ============================================================
-  // 📍 STOP GPS TRACKING
+  // STOP GPS TRACKING
   // ============================================================
   const stopTracking = () => {
     if (locationIntervalRef.current) {
@@ -62,7 +60,7 @@ const ShipmentSettings = () => {
   };
 
   // ============================================================
-  // 📍 HANDLE TOGGLE SWITCH
+  // HANDLE TOGGLE SWITCH
   // ============================================================
   const handleToggleGPS = () => {
     const newState = !gpsTrackingEnabled;
