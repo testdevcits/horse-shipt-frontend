@@ -34,8 +34,8 @@ export const ShipperSettingsProvider = ({ children }) => {
       review: { email: false, sms: false },
       shipment: { email: false, sms: false },
     },
-    profileImage: DEFAULT_PROFILE_IMAGE, // ✅ Default on load
-    bannerImage: DEFAULT_BANNER_IMAGE, // ✅ Default on load
+    profileImage: DEFAULT_PROFILE_IMAGE, // Default on load
+    bannerImage: DEFAULT_BANNER_IMAGE, // Default on load
   });
 
   const [loading, setLoading] = useState(false);
@@ -129,7 +129,7 @@ export const ShipperSettingsProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await axios.post(
-        `${API_BASE_URL}/upload-profile-image`,
+        `${API_BASE_URL}/update-profile-image`,
         formData,
         {
           headers: {
