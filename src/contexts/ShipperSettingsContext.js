@@ -13,15 +13,19 @@ import { useAuth } from "./AuthContext";
 import Toast from "../components/common/Toast";
 
 // ---------------------------------------------
+// Context + Constants
+// ---------------------------------------------
 const ShipperSettingsContext = createContext();
 const API_BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
 
-// Default images (used when no upload yet)
+// Default fallback images
 const DEFAULT_PROFILE_IMAGE =
   "https://via.placeholder.com/150x150?text=Profile+Image";
 const DEFAULT_BANNER_IMAGE =
   "https://via.placeholder.com/800x300?text=Banner+Image";
 
+// ---------------------------------------------
+// Provider Component
 // ---------------------------------------------
 export const ShipperSettingsProvider = ({ children }) => {
   const { token, user } = useAuth();
@@ -34,8 +38,8 @@ export const ShipperSettingsProvider = ({ children }) => {
       review: { email: false, sms: false },
       shipment: { email: false, sms: false },
     },
-    profileImage: DEFAULT_PROFILE_IMAGE, // Default on load
-    bannerImage: DEFAULT_BANNER_IMAGE, // Default on load
+    profileImage: DEFAULT_PROFILE_IMAGE,
+    bannerImage: DEFAULT_BANNER_IMAGE,
   });
 
   const [loading, setLoading] = useState(false);
@@ -48,7 +52,9 @@ export const ShipperSettingsProvider = ({ children }) => {
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   };
 
-  // ---------------- FETCH SETTINGS ----------------
+  // ============================================================
+  // FETCH SETTINGS
+  // ============================================================
   const fetchSettings = useCallback(async () => {
     if (!token || fetched) return;
 
@@ -58,9 +64,8 @@ export const ShipperSettingsProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const data = res.data.data || {};
+      const data = res.data?.data || {};
 
-      // ✅ Ensure fallback images if not set
       setSettings({
         ...data,
         profileImage: data.profileImage || DEFAULT_PROFILE_IMAGE,
@@ -79,7 +84,9 @@ export const ShipperSettingsProvider = ({ children }) => {
     }
   }, [token, fetched]);
 
-  // ---------------- UPDATE SETTINGS ----------------
+  // ============================================================
+  // UPDATE NOTIFICATIONS
+  // ============================================================
   const updateSettings = async (updatedData) => {
     if (!token) {
       showToast("Unauthorized. Please log in again.", "error");
@@ -100,13 +107,11 @@ export const ShipperSettingsProvider = ({ children }) => {
         ...prev,
         ...res.data.data,
       }));
+
       showToast("Settings updated successfully", "success");
       return { success: true };
     } catch (err) {
-      console.error(
-        "Update Settings Error:",
-        err.response?.data || err.message
-      );
+      console.error("Update Settings Error:", err.response?.data || err);
       showToast(
         err.response?.data?.message || "Failed to update settings",
         "error"
@@ -121,7 +126,10 @@ export const ShipperSettingsProvider = ({ children }) => {
   // UPLOAD PROFILE IMAGE
   // ============================================================
   const uploadProfileImage = async (file) => {
-    if (!token) return showToast("Unauthorized. Please log in again.", "error");
+    if (!token) {
+      showToast("Unauthorized. Please log in again.", "error");
+      return { success: false };
+    }
 
     const formData = new FormData();
     formData.append("file", file);
@@ -141,7 +149,7 @@ export const ShipperSettingsProvider = ({ children }) => {
 
       setSettings((prev) => ({
         ...prev,
-        profileImage: res.data.photo || DEFAULT_PROFILE_IMAGE, // ✅ fallback
+        profileImage: res.data.photo || DEFAULT_PROFILE_IMAGE,
       }));
 
       showToast("Profile image updated successfully", "success");
@@ -162,7 +170,10 @@ export const ShipperSettingsProvider = ({ children }) => {
   // UPLOAD BANNER IMAGE
   // ============================================================
   const uploadBannerImage = async (file) => {
-    if (!token) return showToast("Unauthorized. Please log in again.", "error");
+    if (!token) {
+      showToast("Unauthorized. Please log in again.", "error");
+      return { success: false };
+    }
 
     const formData = new FormData();
     formData.append("file", file);
@@ -182,7 +193,7 @@ export const ShipperSettingsProvider = ({ children }) => {
 
       setSettings((prev) => ({
         ...prev,
-        bannerImage: res.data.bannerImage || DEFAULT_BANNER_IMAGE, // ✅ fallback
+        bannerImage: res.data.bannerImage || DEFAULT_BANNER_IMAGE,
       }));
 
       showToast("Banner image updated successfully", "success");
@@ -199,7 +210,9 @@ export const ShipperSettingsProvider = ({ children }) => {
     }
   };
 
-  // ---------------- AUTO FETCH ----------------
+  // ============================================================
+  // AUTO FETCH ON LOAD
+  // ============================================================
   useEffect(() => {
     if (token && user?.role === "shipper") {
       fetchSettings();
@@ -213,7 +226,9 @@ export const ShipperSettingsProvider = ({ children }) => {
     }
   }, [token, user, fetchSettings]);
 
-  // ---------------- CONTEXT VALUE ----------------
+  // ============================================================
+  // CONTEXT VALUE
+  // ============================================================
   return (
     <ShipperSettingsContext.Provider
       value={{

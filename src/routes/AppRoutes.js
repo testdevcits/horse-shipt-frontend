@@ -22,9 +22,9 @@ const ShipperDashboard = lazy(() => import("../pages/shipper/Dashboard"));
 const ShipperOrders = lazy(() => import("../pages/shipper/Orders"));
 const ShipperProfile = lazy(() => import("../pages/shipper/Profile"));
 const ShipperSettings = lazy(() => import("../pages/shipper/Settings"));
-const ShipperNotifications = lazy(() =>
-  import("../pages/shipper/ShipperNotifications")
-);
+// const ShipperNotifications = lazy(() =>
+//   import("../pages/shipper/ShipperNotifications")
+// );
 
 // ---------------- Customer Pages ----------------
 const CustomerLayout = lazy(() => import("../layouts/CustomerLayout"));
