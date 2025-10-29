@@ -58,7 +58,7 @@ export const ShipperLocationProvider = ({ children }) => {
       );
 
       setLocation(res.data.data || locationData);
-      showToast("Location updated successfully", "success");
+      //   showToast("Location updated successfully", "success");e
 
       return { success: true };
     } catch (err) {
