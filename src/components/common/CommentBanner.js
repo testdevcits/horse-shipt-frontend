@@ -5,14 +5,15 @@ import { useShipperProfile } from "../../contexts/ShipperProfileContext";
 
 const CommentBanner = () => {
   const { user } = useAuth();
-  const { profile, uploadProfileImage, uploadBannerImage, loading } =
+  const { profile, updateProfileImage, updateBannerImage, loading } =
     useShipperProfile();
 
   const bannerInputRef = useRef(null);
   const profileInputRef = useRef(null);
 
-  const bannerImage = profile?.bannerImage;
-  const profileImage = profile?.profileImage;
+  // Use fallback images if no profile/banner exists
+  const bannerImage = profile?.bannerImage || "/default-banner.jpg";
+  const profileImage = profile?.profileImage || "/default-profile.png";
 
   // ============================================================
   // HANDLE BANNER UPLOAD
@@ -20,7 +21,7 @@ const CommentBanner = () => {
   const handleBannerChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    await uploadBannerImage(file);
+    await updateBannerImage(file);
   };
 
   // ============================================================
@@ -29,7 +30,7 @@ const CommentBanner = () => {
   const handleProfileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    await uploadProfileImage(file);
+    await updateProfileImage(file);
   };
 
   return (
@@ -43,9 +44,10 @@ const CommentBanner = () => {
         }}
       ></div>
 
+      {/* Overlay */}
       <div className="absolute inset-0 bg-black/20 rounded-[12px]"></div>
 
-      {/* New Banner Button */}
+      {/* Upload New Banner Button */}
       <div className="absolute top-4 right-4 z-10">
         <button
           disabled={loading}
@@ -67,12 +69,13 @@ const CommentBanner = () => {
 
       {/* Profile Card */}
       <div className="relative flex items-center h-full px-6">
-        <div className="relative flex items-center gap-4 bg-white rounded-[14px] p-4 w-[326px] h-[152px]">
+        <div className="relative flex items-center gap-4 bg-white rounded-[14px] p-4 w-[326px] h-[152px] shadow-lg">
+          {/* Profile Image */}
           <div className="relative w-16 h-16 rounded-full flex-shrink-0">
             <img
               src={profileImage}
               alt="Profile"
-              className={`w-16 h-16 object-cover rounded-full ${
+              className={`w-16 h-16 object-cover rounded-full border ${
                 loading ? "opacity-50" : ""
               }`}
             />
@@ -99,14 +102,16 @@ const CommentBanner = () => {
               style={{
                 fontFamily: "Montserrat, sans-serif",
                 fontWeight: 600,
-                fontStyle: "normal",
                 fontSize: "30px",
                 lineHeight: "38px",
               }}
             >
               {user?.name || "User Name"}
             </h2>
-            <span className="px-3 py-1 text-sm font-medium w-max">
+            <span
+              className="px-3 py-1 text-sm font-medium rounded-md bg-gray-100 text-gray-700 w-max"
+              style={{ fontFamily: "Inter, sans-serif" }}
+            >
               {user?.role || "Role"}
             </span>
           </div>
