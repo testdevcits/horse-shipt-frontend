@@ -1,4 +1,3 @@
-// src/contexts/ShipperProfileContext.js
 import React, {
   createContext,
   useContext,
@@ -15,6 +14,7 @@ const API_BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
 
 export const ShipperProfileProvider = ({ children }) => {
   const { token, user } = useAuth();
+
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
@@ -24,7 +24,6 @@ export const ShipperProfileProvider = ({ children }) => {
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   }, []);
 
-  // ---------------- FETCH PROFILE ----------------
   const fetchProfile = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -44,7 +43,35 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   }, [token, showToast]);
 
-  // ---------------- UPDATE PROFILE IMAGE ----------------
+  const updateProfile = async (updatedData) => {
+    if (!token) {
+      showToast("Unauthorized. Please log in again.", "error");
+      return { success: false };
+    }
+    setLoading(true);
+    try {
+      const res = await axios.put(
+        `${API_BASE_URL}/update-profile`,
+        updatedData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setProfile((prev) => ({ ...prev, ...res.data.data }));
+      showToast("Profile updated successfully", "success");
+      return { success: true };
+    } catch (err) {
+      console.error("Update Profile Error:", err.response?.data || err.message);
+      showToast(
+        err.response?.data?.message || "Failed to update profile",
+        "error"
+      );
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateProfileImage = async (file) => {
     if (!token || !file) return { success: false };
     const formData = new FormData();
@@ -63,13 +90,12 @@ export const ShipperProfileProvider = ({ children }) => {
         }
       );
 
-      const imageUrl =
-        res.data?.data?.imageUrl ||
-        res.data?.data?.profileImage ||
-        res.data?.profileImage;
+      const profileData =
+        res.data?.profileImage || res.data?.data?.profileImage;
+      const imageUrl = profileData?.url || profileData;
       const newUrl = `${imageUrl}?t=${Date.now()}`;
-      setProfile((prev) => ({ ...prev, profileImage: newUrl }));
 
+      setProfile((prev) => ({ ...prev, profileImage: newUrl }));
       showToast("Profile image updated successfully", "success");
       return { success: true, imageUrl: newUrl };
     } catch (err) {
@@ -81,7 +107,6 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   };
 
-  // ---------------- UPDATE BANNER IMAGE ----------------
   const updateBannerImage = async (file) => {
     if (!token || !file) return { success: false };
     const formData = new FormData();
@@ -100,13 +125,11 @@ export const ShipperProfileProvider = ({ children }) => {
         }
       );
 
-      const imageUrl =
-        res.data?.data?.imageUrl ||
-        res.data?.data?.bannerImage ||
-        res.data?.bannerImage;
+      const bannerData = res.data?.bannerImage || res.data?.data?.bannerImage;
+      const imageUrl = bannerData?.url || bannerData;
       const newUrl = `${imageUrl}?t=${Date.now()}`;
-      setProfile((prev) => ({ ...prev, bannerImage: newUrl }));
 
+      setProfile((prev) => ({ ...prev, bannerImage: newUrl }));
       showToast("Banner image updated successfully", "success");
       return { success: true, imageUrl: newUrl };
     } catch (err) {
@@ -119,11 +142,8 @@ export const ShipperProfileProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (token && user?.role === "shipper") {
-      fetchProfile();
-    } else {
-      setProfile(null);
-    }
+    if (token && user?.role === "shipper") fetchProfile();
+    else setProfile(null);
   }, [token, user, fetchProfile]);
 
   return (
@@ -132,6 +152,7 @@ export const ShipperProfileProvider = ({ children }) => {
         profile,
         loading,
         fetchProfile,
+        updateProfile,
         updateProfileImage,
         updateBannerImage,
       }}
