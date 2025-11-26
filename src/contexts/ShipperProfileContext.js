@@ -1,6 +1,3 @@
-// ---------------------------------------------
-// src/contexts/ShipperProfileContext.js
-// ---------------------------------------------
 import React, {
   createContext,
   useContext,
@@ -12,29 +9,21 @@ import axios from "axios";
 import { useAuth } from "./AuthContext";
 import Toast from "../components/common/Toast";
 
-// ---------------------------------------------
-// Context setup
-// ---------------------------------------------
 const ShipperProfileContext = createContext();
 const API_BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
 
-// ---------------------------------------------
-// Provider Component
-// ---------------------------------------------
 export const ShipperProfileProvider = ({ children }) => {
   const { token, user } = useAuth();
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ---------------- TOAST HANDLER ----------------
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const showToast = useCallback((message, type = "info") => {
     setToast({ message, type, visible: true });
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   }, []);
 
-  // ---------------- FETCH SHIPPER PROFILE ----------------
   const fetchProfile = useCallback(async () => {
     if (!token) return;
 
@@ -43,7 +32,6 @@ export const ShipperProfileProvider = ({ children }) => {
       const res = await axios.get(`${API_BASE_URL}/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       setProfile(res.data.data || {});
     } catch (err) {
       console.error("Fetch Profile Error:", err.response?.data || err.message);
@@ -56,7 +44,6 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   }, [token, showToast]);
 
-  // ---------------- UPDATE PROFILE ----------------
   const updateProfile = async (updatedData) => {
     if (!token) {
       showToast("Unauthorized. Please log in again.", "error");
@@ -68,12 +55,9 @@ export const ShipperProfileProvider = ({ children }) => {
       const res = await axios.put(
         `${API_BASE_URL}/update-profile`,
         updatedData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Merge the updated data instantly
       setProfile((prev) => ({ ...prev, ...res.data.data }));
       showToast("Profile updated successfully", "success");
       return { success: true };
@@ -89,7 +73,6 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   };
 
-  // ---------------- UPDATE PROFILE IMAGE ----------------
   const updateProfileImage = async (file) => {
     if (!token || !file) return { success: false };
 
@@ -109,19 +92,16 @@ export const ShipperProfileProvider = ({ children }) => {
         }
       );
 
-      // ✅ Instantly update profile image with cache-busting
       const imageUrl =
         res.data?.data?.imageUrl ||
         res.data?.data?.profileImage ||
         res.data?.profileImage;
 
-      setProfile((prev) => ({
-        ...prev,
-        profileImage: `${imageUrl}?t=${Date.now()}`, // 👈 force refresh
-      }));
+      const newUrl = `${imageUrl}?t=${Date.now()}`;
+      setProfile((prev) => ({ ...prev, profileImage: newUrl }));
 
       showToast("Profile image updated successfully", "success");
-      return { success: true };
+      return { success: true, imageUrl: newUrl };
     } catch (err) {
       console.error("Profile Image Update Error:", err);
       showToast("Failed to update profile image", "error");
@@ -131,7 +111,6 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   };
 
-  // ---------------- UPDATE BANNER IMAGE ----------------
   const updateBannerImage = async (file) => {
     if (!token || !file) return { success: false };
 
@@ -151,19 +130,16 @@ export const ShipperProfileProvider = ({ children }) => {
         }
       );
 
-      // ✅ Instantly update banner image with cache-busting
       const imageUrl =
         res.data?.data?.imageUrl ||
         res.data?.data?.bannerImage ||
         res.data?.bannerImage;
 
-      setProfile((prev) => ({
-        ...prev,
-        bannerImage: `${imageUrl}?t=${Date.now()}`, // 👈 instant reflection
-      }));
+      const newUrl = `${imageUrl}?t=${Date.now()}`;
+      setProfile((prev) => ({ ...prev, bannerImage: newUrl }));
 
       showToast("Banner image updated successfully", "success");
-      return { success: true };
+      return { success: true, imageUrl: newUrl };
     } catch (err) {
       console.error("Banner Image Update Error:", err);
       showToast("Failed to update banner image", "error");
@@ -173,7 +149,6 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   };
 
-  // ---------------- AUTO FETCH ----------------
   useEffect(() => {
     if (token && user?.role === "shipper") {
       fetchProfile();
@@ -182,7 +157,6 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   }, [token, user, fetchProfile]);
 
-  // ---------------- CONTEXT VALUE ----------------
   return (
     <ShipperProfileContext.Provider
       value={{
@@ -206,7 +180,4 @@ export const ShipperProfileProvider = ({ children }) => {
   );
 };
 
-// ---------------------------------------------
-// Custom Hook
-// ---------------------------------------------
 export const useShipperProfile = () => useContext(ShipperProfileContext);
