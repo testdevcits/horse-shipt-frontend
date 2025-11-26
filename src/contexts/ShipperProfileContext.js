@@ -1,3 +1,4 @@
+// src/contexts/ShipperProfileContext.js
 import React, {
   createContext,
   useContext,
@@ -14,19 +15,18 @@ const API_BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
 
 export const ShipperProfileProvider = ({ children }) => {
   const { token, user } = useAuth();
-
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
-
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
+
   const showToast = useCallback((message, type = "info") => {
     setToast({ message, type, visible: true });
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   }, []);
 
+  // ---------------- FETCH PROFILE ----------------
   const fetchProfile = useCallback(async () => {
     if (!token) return;
-
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/profile`, {
@@ -44,38 +44,9 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   }, [token, showToast]);
 
-  const updateProfile = async (updatedData) => {
-    if (!token) {
-      showToast("Unauthorized. Please log in again.", "error");
-      return { success: false };
-    }
-
-    setLoading(true);
-    try {
-      const res = await axios.put(
-        `${API_BASE_URL}/update-profile`,
-        updatedData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setProfile((prev) => ({ ...prev, ...res.data.data }));
-      showToast("Profile updated successfully", "success");
-      return { success: true };
-    } catch (err) {
-      console.error("Update Profile Error:", err.response?.data || err.message);
-      showToast(
-        err.response?.data?.message || "Failed to update profile",
-        "error"
-      );
-      return { success: false };
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // ---------------- UPDATE PROFILE IMAGE ----------------
   const updateProfileImage = async (file) => {
     if (!token || !file) return { success: false };
-
     const formData = new FormData();
     formData.append("image", file);
 
@@ -96,7 +67,6 @@ export const ShipperProfileProvider = ({ children }) => {
         res.data?.data?.imageUrl ||
         res.data?.data?.profileImage ||
         res.data?.profileImage;
-
       const newUrl = `${imageUrl}?t=${Date.now()}`;
       setProfile((prev) => ({ ...prev, profileImage: newUrl }));
 
@@ -111,9 +81,9 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   };
 
+  // ---------------- UPDATE BANNER IMAGE ----------------
   const updateBannerImage = async (file) => {
     if (!token || !file) return { success: false };
-
     const formData = new FormData();
     formData.append("image", file);
 
@@ -134,7 +104,6 @@ export const ShipperProfileProvider = ({ children }) => {
         res.data?.data?.imageUrl ||
         res.data?.data?.bannerImage ||
         res.data?.bannerImage;
-
       const newUrl = `${imageUrl}?t=${Date.now()}`;
       setProfile((prev) => ({ ...prev, bannerImage: newUrl }));
 
@@ -163,7 +132,6 @@ export const ShipperProfileProvider = ({ children }) => {
         profile,
         loading,
         fetchProfile,
-        updateProfile,
         updateProfileImage,
         updateBannerImage,
       }}

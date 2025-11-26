@@ -1,3 +1,4 @@
+// src/components/common/CommentBanner.js
 import React, { useRef, useState, useEffect } from "react";
 import { HiPencil } from "react-icons/hi";
 import { useAuth } from "../../contexts/AuthContext";
@@ -8,22 +9,25 @@ const CommentBanner = () => {
   const { profile, updateProfileImage, updateBannerImage, loading } =
     useShipperProfile();
 
-  const [bannerUrl, setBannerUrl] = useState(profile?.bannerImage);
-  const [profileUrl, setProfileUrl] = useState(profile?.profileImage);
+  const [bannerUrl, setBannerUrl] = useState(
+    profile?.bannerImage || "/default-banner.jpg"
+  );
+  const [profileUrl, setProfileUrl] = useState(
+    profile?.profileImage || "/default-profile.png"
+  );
 
   const bannerInputRef = useRef(null);
   const profileInputRef = useRef(null);
 
   // Update local URLs whenever context profile changes
   useEffect(() => {
-    setBannerUrl(profile?.bannerImage);
-    setProfileUrl(profile?.profileImage);
+    setBannerUrl(profile?.bannerImage || "/default-banner.jpg");
+    setProfileUrl(profile?.profileImage || "/default-profile.png");
   }, [profile?.bannerImage, profile?.profileImage]);
 
   const handleBannerChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const result = await updateBannerImage(file);
     if (result?.imageUrl) setBannerUrl(result.imageUrl);
   };
@@ -31,7 +35,6 @@ const CommentBanner = () => {
   const handleProfileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const result = await updateProfileImage(file);
     if (result?.imageUrl) setProfileUrl(result.imageUrl);
   };
@@ -42,7 +45,7 @@ const CommentBanner = () => {
       <div
         className="absolute inset-0 bg-cover bg-center rounded-[12px]"
         style={{
-          backgroundImage: `url(${bannerUrl || "/default-banner.jpg"})`,
+          backgroundImage: `url(${bannerUrl})`,
           opacity: loading ? 0.5 : 1,
         }}
       ></div>
@@ -50,7 +53,7 @@ const CommentBanner = () => {
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/20 rounded-[12px]"></div>
 
-      {/* Upload New Banner Button */}
+      {/* Upload Banner */}
       <div className="absolute top-4 right-4 z-10">
         <button
           disabled={loading}
@@ -76,7 +79,7 @@ const CommentBanner = () => {
           {/* Profile Image */}
           <div className="relative w-16 h-16 rounded-full flex-shrink-0">
             <img
-              src={profileUrl || "/default-profile.png"}
+              src={profileUrl}
               alt="Profile"
               className={`w-16 h-16 object-cover rounded-full border ${
                 loading ? "opacity-50" : ""
