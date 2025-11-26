@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { HiPencil } from "react-icons/hi";
 import { useAuth } from "../../contexts/AuthContext";
 import { useShipperProfile } from "../../contexts/ShipperProfileContext";
@@ -8,22 +8,32 @@ const CommentBanner = () => {
   const { profile, updateProfileImage, updateBannerImage, loading } =
     useShipperProfile();
 
+  const [bannerUrl, setBannerUrl] = useState(profile?.bannerImage);
+  const [profileUrl, setProfileUrl] = useState(profile?.profileImage);
+
   const bannerInputRef = useRef(null);
   const profileInputRef = useRef(null);
 
-  const bannerImage = profile?.bannerImage || "/default-banner.jpg";
-  const profileImage = profile?.profileImage || "/default-profile.png";
+  // Update local URLs whenever context profile changes
+  useEffect(() => {
+    setBannerUrl(profile?.bannerImage);
+    setProfileUrl(profile?.profileImage);
+  }, [profile?.bannerImage, profile?.profileImage]);
 
   const handleBannerChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    await updateBannerImage(file);
+
+    const result = await updateBannerImage(file);
+    if (result?.imageUrl) setBannerUrl(result.imageUrl);
   };
 
   const handleProfileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    await updateProfileImage(file);
+
+    const result = await updateProfileImage(file);
+    if (result?.imageUrl) setProfileUrl(result.imageUrl);
   };
 
   return (
@@ -32,7 +42,7 @@ const CommentBanner = () => {
       <div
         className="absolute inset-0 bg-cover bg-center rounded-[12px]"
         style={{
-          backgroundImage: `url(${bannerImage})`,
+          backgroundImage: `url(${bannerUrl || "/default-banner.jpg"})`,
           opacity: loading ? 0.5 : 1,
         }}
       ></div>
@@ -66,7 +76,7 @@ const CommentBanner = () => {
           {/* Profile Image */}
           <div className="relative w-16 h-16 rounded-full flex-shrink-0">
             <img
-              src={profileImage}
+              src={profileUrl || "/default-profile.png"}
               alt="Profile"
               className={`w-16 h-16 object-cover rounded-full border ${
                 loading ? "opacity-50" : ""
