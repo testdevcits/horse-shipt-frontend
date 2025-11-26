@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef } from "react";
 import { HiPencil } from "react-icons/hi";
 import { useAuth } from "../../contexts/AuthContext";
 import { useShipperProfile } from "../../contexts/ShipperProfileContext";
@@ -11,46 +11,19 @@ const CommentBanner = () => {
   const bannerInputRef = useRef(null);
   const profileInputRef = useRef(null);
 
-  // Local state for immediate re-render
-  const [localBanner, setLocalBanner] = useState(
-    profile?.bannerImage || "/default-banner.jpg"
-  );
-  const [localProfile, setLocalProfile] = useState(
-    profile?.profileImage || "/default-profile.png"
-  );
+  const bannerImage = profile?.bannerImage || "/default-banner.jpg";
+  const profileImage = profile?.profileImage || "/default-profile.png";
 
-  // Update local state when profile changes
-  useEffect(() => {
-    if (profile?.bannerImage)
-      setLocalBanner(`${profile.bannerImage}?t=${Date.now()}`);
-    if (profile?.profileImage)
-      setLocalProfile(`${profile.profileImage}?t=${Date.now()}`);
-  }, [profile?.bannerImage, profile?.profileImage]);
-
-  // ============================================================
-  // HANDLE BANNER UPLOAD
-  // ============================================================
   const handleBannerChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    const result = await updateBannerImage(file);
-    if (result.success && profile?.bannerImage) {
-      setLocalBanner(`${profile.bannerImage}?t=${Date.now()}`); // instant refresh
-    }
+    await updateBannerImage(file);
   };
 
-  // ============================================================
-  // HANDLE PROFILE UPLOAD
-  // ============================================================
   const handleProfileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    const result = await updateProfileImage(file);
-    if (result.success && profile?.profileImage) {
-      setLocalProfile(`${profile.profileImage}?t=${Date.now()}`); // instant refresh
-    }
+    await updateProfileImage(file);
   };
 
   return (
@@ -59,7 +32,7 @@ const CommentBanner = () => {
       <div
         className="absolute inset-0 bg-cover bg-center rounded-[12px]"
         style={{
-          backgroundImage: `url(${localBanner})`,
+          backgroundImage: `url(${bannerImage})`,
           opacity: loading ? 0.5 : 1,
         }}
       ></div>
@@ -93,7 +66,7 @@ const CommentBanner = () => {
           {/* Profile Image */}
           <div className="relative w-16 h-16 rounded-full flex-shrink-0">
             <img
-              src={localProfile}
+              src={profileImage}
               alt="Profile"
               className={`w-16 h-16 object-cover rounded-full border ${
                 loading ? "opacity-50" : ""
