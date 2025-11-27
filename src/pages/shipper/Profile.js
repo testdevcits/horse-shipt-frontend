@@ -55,7 +55,7 @@ const Profile = () => {
         {/* Profile Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Profile Picture */}
-          <div className="relative w-24 h-24 rounded-full overflow-hidden">
+          <div className="relative w-24 h-24 rounded-full">
             <img
               src={preview}
               alt="Profile"
@@ -65,7 +65,7 @@ const Profile = () => {
             <button
               type="button"
               onClick={() => profileInputRef.current.click()}
-              className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-md hover:bg-gray-100"
+              className="absolute bottom-0 right-0 bg-white p-1.5 rounded-full shadow-lg hover:bg-gray-100 border"
             >
               <HiPencil className="w-4 h-4 text-black" />
             </button>
