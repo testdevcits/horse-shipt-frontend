@@ -31,12 +31,18 @@ const Profile = () => {
     );
   }, [profile]);
 
-  // Handle PROFILE image upload
+  // ---------------------------------------------
+  // Handle PROFILE image upload ONLY if image changed
+  // ---------------------------------------------
   const handleProfileChange = async (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) return; // ❗No new file → do nothing
 
-    setPreview(URL.createObjectURL(file)); // instant
+    // Show instant preview of selected image
+    const newPreview = URL.createObjectURL(file);
+    setPreview(newPreview);
+
+    // Upload the new image
     await updateProfileImage(file);
   };
 
