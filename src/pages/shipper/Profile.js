@@ -9,7 +9,6 @@ const API_BASE_URL =
 
 const Profile = () => {
   const { user, token, setUser } = useAuth();
-
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
   const [locale, setLocale] = useState(user?.locale || "");
