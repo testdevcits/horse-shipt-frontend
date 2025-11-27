@@ -110,9 +110,10 @@ const Profile = () => {
         <Button
           type="submit"
           disabled={loading}
-          variant="custom"
+          variant="primary"
           borderColor="transparent"
           rounded={false}
+          className="rounded-md px-6 py-2 font-montserrat"
         >
           {loading ? "Updating..." : "Update Profile"}
         </Button>
