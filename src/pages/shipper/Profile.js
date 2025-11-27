@@ -4,100 +4,60 @@ import Button from "../../components/common/Button";
 import { HiPencil } from "react-icons/hi";
 
 const Profile = () => {
-  const {
-    profile,
-    loading,
-    updateProfile,
-    updateProfileImage,
-    updateBannerImage,
-  } = useShipperProfile();
+  const { profile, loading, updateProfile, updateProfileImage } =
+    useShipperProfile();
 
-  const [firstName, setFirstName] = useState(profile?.firstName || "");
-  const [lastName, setLastName] = useState(profile?.lastName || "");
-  const [locale, setLocale] = useState(profile?.locale || "");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [locale, setLocale] = useState("");
 
-  const [preview, setPreview] = useState(profile?.profileImage || "");
-  const [bannerPreview, setBannerPreview] = useState(
-    profile?.bannerImage || ""
-  );
+  const [preview, setPreview] = useState("");
 
   const profileInputRef = useRef(null);
-  const bannerInputRef = useRef(null);
 
-  // When profile loads from context
+  // Sync UI with Context Profile
   useEffect(() => {
-    if (profile) {
-      setFirstName(profile.firstName || "");
-      setLastName(profile.lastName || "");
-      setLocale(profile.locale || "");
-      setPreview(profile.profileImage || "");
-      setBannerPreview(profile.bannerImage || "");
-    }
+    if (!profile) return;
+
+    setFirstName(profile.firstName || "");
+    setLastName(profile.lastName || "");
+    setLocale(profile.locale || "");
+
+    // FULL URL FIX
+    setPreview(
+      profile.profileImage
+        ? `${profile.profileImage}?t=${Date.now()}`
+        : "/default-profile.png"
+    );
   }, [profile]);
 
-  // 🔵 Handle profile image selection
+  // Handle PROFILE image upload
   const handleProfileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setPreview(URL.createObjectURL(file)); // instant preview
+    setPreview(URL.createObjectURL(file)); // instant
     await updateProfileImage(file);
   };
 
-  // 🔵 Handle banner image selection
-  const handleBannerChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setBannerPreview(URL.createObjectURL(file));
-    await updateBannerImage(file);
-  };
-
-  // 🔵 Update text fields
+  // Update text fields
   const handleSubmit = async (e) => {
     e.preventDefault();
     await updateProfile({ firstName, lastName, locale });
   };
 
   return (
-    <div className="max-w-full mx-auto mt-10 p-2 border rounded shadow">
+    <div className="max-w-full mx-auto p-3 border rounded shadow bg-white">
       <h2 className="text-2xl font-bold mb-4">Update Profile</h2>
 
-      {/* Banner Image */}
-      <div className="relative w-full h-40 rounded-lg overflow-hidden bg-gray-200 mb-6">
-        {bannerPreview && (
-          <img
-            src={bannerPreview}
-            className="w-full h-full object-cover"
-            alt="Banner"
-          />
-        )}
-
-        <button
-          type="button"
-          onClick={() => bannerInputRef.current.click()}
-          className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-lg hover:bg-gray-100"
-        >
-          <HiPencil className="w-5 h-5 text-gray-700" />
-        </button>
-
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          ref={bannerInputRef}
-          onChange={handleBannerChange}
-        />
-      </div>
-
-      {/* PROFILE SECTION */}
+      {/* Profile Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* Profile Picture */}
         <div className="relative w-24 h-24 rounded-full overflow-hidden">
           <img
-            src={preview || "/default-profile.png"}
-            className="w-24 h-24 rounded-full object-cover border"
+            src={preview}
             alt="Profile"
+            className="w-24 h-24 object-cover rounded-full border"
           />
 
           <button
@@ -111,13 +71,13 @@ const Profile = () => {
           <input
             type="file"
             accept="image/*"
-            className="hidden"
             ref={profileInputRef}
+            className="hidden"
             onChange={handleProfileChange}
           />
         </div>
 
-        {/* FIRST NAME */}
+        {/* First Name */}
         <div>
           <label className="block mb-1 font-medium">First Name</label>
           <input
@@ -128,7 +88,7 @@ const Profile = () => {
           />
         </div>
 
-        {/* LAST NAME */}
+        {/* Last Name */}
         <div>
           <label className="block mb-1 font-medium">Last Name</label>
           <input
@@ -139,7 +99,7 @@ const Profile = () => {
           />
         </div>
 
-        {/* LOCALE */}
+        {/* Locale */}
         <div>
           <label className="block mb-1 font-medium">Locale</label>
           <input
@@ -150,7 +110,7 @@ const Profile = () => {
           />
         </div>
 
-        {/* SUBMIT */}
+        {/* Submit */}
         <Button
           type="submit"
           disabled={loading}
