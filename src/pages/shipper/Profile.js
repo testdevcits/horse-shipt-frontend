@@ -67,7 +67,7 @@ const Profile = () => {
               onClick={() => profileInputRef.current.click()}
               className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-md hover:bg-gray-100"
             >
-              <HiPencil className="w-4 h-4 text-gray-700" />
+              <HiPencil className="w-4 h-4 text-black" />
             </button>
 
             <input
