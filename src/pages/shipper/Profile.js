@@ -47,7 +47,7 @@ const Profile = () => {
   };
 
   return (
-    <div>
+    <div className="w-full mx-auto font-[Montserrat] animate-slide-fade-in">
       <h2 className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium text-gray-800">
         Update Profile
       </h2>
