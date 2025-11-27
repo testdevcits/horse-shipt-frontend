@@ -51,7 +51,7 @@ const Profile = () => {
       <h2 className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium text-gray-800">
         Update Profile
       </h2>
-      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border rounded shadow bg-white">
+      <div className="max-w-full mx-auto  border mt-4 rounded shadow bg-white">
         {/* Profile Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Profile Picture */}
