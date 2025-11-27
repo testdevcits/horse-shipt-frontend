@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
+import Button from "../../components/common/Button";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
@@ -106,13 +107,15 @@ const Profile = () => {
             className="w-full border p-2 rounded"
           />
         </div>
-        <button
+        <Button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+          variant="custom"
+          borderColor="transparent"
+          rounded={false}
         >
           {loading ? "Updating..." : "Update Profile"}
-        </button>
+        </Button>
       </form>
     </div>
   );
