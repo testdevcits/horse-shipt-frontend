@@ -47,81 +47,84 @@ const Profile = () => {
   };
 
   return (
-    <div className="max-w-full mx-auto p-3 border rounded shadow bg-white">
-      <h2 className="text-2xl font-bold mb-4">Update Profile</h2>
+    <div>
+      <h2 className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium text-gray-800">
+        Update Profile
+      </h2>
+      <div className="max-w-full mx-auto p-3 border rounded shadow bg-white">
+        {/* Profile Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Profile Picture */}
+          <div className="relative w-24 h-24 rounded-full overflow-hidden">
+            <img
+              src={preview}
+              alt="Profile"
+              className="w-24 h-24 object-cover rounded-full border"
+            />
 
-      {/* Profile Form */}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {/* Profile Picture */}
-        <div className="relative w-24 h-24 rounded-full overflow-hidden">
-          <img
-            src={preview}
-            alt="Profile"
-            className="w-24 h-24 object-cover rounded-full border"
-          />
+            <button
+              type="button"
+              onClick={() => profileInputRef.current.click()}
+              className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-md hover:bg-gray-100"
+            >
+              <HiPencil className="w-4 h-4 text-gray-700" />
+            </button>
 
-          <button
-            type="button"
-            onClick={() => profileInputRef.current.click()}
-            className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-md hover:bg-gray-100"
+            <input
+              type="file"
+              accept="image/*"
+              ref={profileInputRef}
+              className="hidden"
+              onChange={handleProfileChange}
+            />
+          </div>
+
+          {/* First Name */}
+          <div>
+            <label className="block mb-1 font-medium">First Name</label>
+            <input
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
+          {/* Last Name */}
+          <div>
+            <label className="block mb-1 font-medium">Last Name</label>
+            <input
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
+          {/* Locale */}
+          <div>
+            <label className="block mb-1 font-medium">Locale</label>
+            <input
+              type="text"
+              value={locale}
+              onChange={(e) => setLocale(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
+          {/* Submit */}
+          <Button
+            type="submit"
+            disabled={loading}
+            variant="primary"
+            borderColor="transparent"
+            rounded={false}
+            className="rounded-md px-6 py-2 font-montserrat"
           >
-            <HiPencil className="w-4 h-4 text-gray-700" />
-          </button>
-
-          <input
-            type="file"
-            accept="image/*"
-            ref={profileInputRef}
-            className="hidden"
-            onChange={handleProfileChange}
-          />
-        </div>
-
-        {/* First Name */}
-        <div>
-          <label className="block mb-1 font-medium">First Name</label>
-          <input
-            type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-
-        {/* Last Name */}
-        <div>
-          <label className="block mb-1 font-medium">Last Name</label>
-          <input
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-
-        {/* Locale */}
-        <div>
-          <label className="block mb-1 font-medium">Locale</label>
-          <input
-            type="text"
-            value={locale}
-            onChange={(e) => setLocale(e.target.value)}
-            className="w-full border p-2 rounded"
-          />
-        </div>
-
-        {/* Submit */}
-        <Button
-          type="submit"
-          disabled={loading}
-          variant="primary"
-          borderColor="transparent"
-          rounded={false}
-          className="rounded-md px-6 py-2 font-montserrat"
-        >
-          {loading ? "Updating..." : "Update Profile"}
-        </Button>
-      </form>
+            {loading ? "Updating..." : "Update Profile"}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 };
