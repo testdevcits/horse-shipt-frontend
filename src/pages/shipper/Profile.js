@@ -11,7 +11,8 @@ const Profile = () => {
   const [lastName, setLastName] = useState("");
   const [locale, setLocale] = useState("");
 
-  const [preview, setPreview] = useState("");
+  const [preview, setPreview] = useState(""); // UI preview
+  const [selectedFile, setSelectedFile] = useState(null); // NEW: Track chosen file
 
   const profileInputRef = useRef(null);
 
@@ -23,7 +24,7 @@ const Profile = () => {
     setLastName(profile.lastName || "");
     setLocale(profile.locale || "");
 
-    // FULL URL FIX
+    // full URL for updated images (cache busting)
     setPreview(
       profile.profileImage
         ? `${profile.profileImage}?t=${Date.now()}`
@@ -34,21 +35,25 @@ const Profile = () => {
   // ---------------------------------------------
   // Handle PROFILE image upload ONLY if image changed
   // ---------------------------------------------
-  const handleProfileChange = async (e) => {
+  const handleProfileChange = (e) => {
     const file = e.target.files[0];
-    if (!file) return; // ❗No new file → do nothing
+    if (!file) return;
 
-    // Show instant preview of selected image
-    const newPreview = URL.createObjectURL(file);
-    setPreview(newPreview);
-
-    // Upload the new image
-    await updateProfileImage(file);
+    setSelectedFile(file); // ← New file stored (will upload later)
+    setPreview(URL.createObjectURL(file)); // instant preview
   };
 
-  // Update text fields
+  // Update text fields + upload image only if changed
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Upload image only when user selected new one
+    if (selectedFile) {
+      await updateProfileImage(selectedFile);
+      setSelectedFile(null); // reset
+    }
+
+    // Update text fields always
     await updateProfile({ firstName, lastName, locale });
   };
 

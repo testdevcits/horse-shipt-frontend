@@ -24,6 +24,13 @@ export const ShipperProfileProvider = ({ children }) => {
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   }, []);
 
+  // 👉 Convert backend profile to frontend-safe profile
+  const normalizeProfile = (data) => ({
+    ...data,
+    profileImage: data?.profileImage?.url || data?.profileImage || "",
+    bannerImage: data?.bannerImage?.url || data?.bannerImage || "",
+  });
+
   const fetchProfile = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -31,7 +38,8 @@ export const ShipperProfileProvider = ({ children }) => {
       const res = await axios.get(`${API_BASE_URL}/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setProfile(res.data.data || {});
+
+      setProfile(normalizeProfile(res.data.data || {}));
     } catch (err) {
       console.error("Fetch Profile Error:", err.response?.data || err.message);
       showToast(
@@ -57,7 +65,12 @@ export const ShipperProfileProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setProfile((prev) => ({ ...prev, ...res.data.data }));
+
+      setProfile((prev) => ({
+        ...prev,
+        ...normalizeProfile(res.data.data),
+      }));
+
       showToast("Profile updated successfully", "success");
       return { success: true };
     } catch (err) {
@@ -90,14 +103,15 @@ export const ShipperProfileProvider = ({ children }) => {
         }
       );
 
-      const profileData =
-        res.data?.profileImage || res.data?.data?.profileImage;
-      const imageUrl = profileData?.url || profileData;
-      const newUrl = `${imageUrl}?t=${Date.now()}`;
+      const image = res.data?.profileImage || res.data?.data?.profileImage;
+      const url = image?.url || image;
 
-      setProfile((prev) => ({ ...prev, profileImage: newUrl }));
+      const finalUrl = `${url}?t=${Date.now()}`;
+
+      setProfile((prev) => ({ ...prev, profileImage: finalUrl }));
+
       showToast("Profile image updated successfully", "success");
-      return { success: true, imageUrl: newUrl };
+      return { success: true, imageUrl: finalUrl };
     } catch (err) {
       console.error("Profile Image Update Error:", err);
       showToast("Failed to update profile image", "error");
@@ -125,13 +139,15 @@ export const ShipperProfileProvider = ({ children }) => {
         }
       );
 
-      const bannerData = res.data?.bannerImage || res.data?.data?.bannerImage;
-      const imageUrl = bannerData?.url || bannerData;
-      const newUrl = `${imageUrl}?t=${Date.now()}`;
+      const image = res.data?.bannerImage || res.data?.data?.bannerImage;
+      const url = image?.url || image;
 
-      setProfile((prev) => ({ ...prev, bannerImage: newUrl }));
+      const finalUrl = `${url}?t=${Date.now()}`;
+
+      setProfile((prev) => ({ ...prev, bannerImage: finalUrl }));
+
       showToast("Banner image updated successfully", "success");
-      return { success: true, imageUrl: newUrl };
+      return { success: true, imageUrl: finalUrl };
     } catch (err) {
       console.error("Banner Image Update Error:", err);
       showToast("Failed to update banner image", "error");
