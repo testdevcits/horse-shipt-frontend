@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom"; // 👈 import useLocation
 import CommentBanner from "../../components/common/CommentBanner";
 import Profile from "./Profile";
 import ShipmentSettings from "./ShipmentSettings";
@@ -6,6 +7,8 @@ import PaymentsComingSoon from "./PaymentsComingSoon";
 import ShipperNotifications from "./ShipperNotifications";
 
 const ShipperSettings = () => {
+  const location = useLocation(); // 👈 get location state
+
   const tabs = [
     { id: "profile", label: "Profile Settings" },
     { id: "shipment", label: "Shipment Settings" },
@@ -13,7 +16,11 @@ const ShipperSettings = () => {
     { id: "notification", label: "Notification Settings" },
   ];
 
-  const [activeTab, setActiveTab] = useState("profile");
+  // Set initial tab based on state or default to 'profile'
+  const [activeTab, setActiveTab] = useState(
+    location.state?.activeTab || "profile"
+  );
+
   const tabRefs = useRef({});
   const containerRef = useRef(null);
 
@@ -32,7 +39,6 @@ const ShipperSettings = () => {
     }
   };
 
-  // 🔹 Auto-scroll active tab to START (left side)
   useEffect(() => {
     const activeTabElement = tabRefs.current[activeTab];
     const container = containerRef.current;
@@ -41,7 +47,7 @@ const ShipperSettings = () => {
       const offsetLeft = activeTabElement.offsetLeft;
 
       container.scrollTo({
-        left: offsetLeft - 16, // small padding offset
+        left: offsetLeft - 16,
         behavior: "smooth",
       });
     }

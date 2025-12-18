@@ -38,7 +38,11 @@ const NotificationsPage = () => {
         </h1>
         <div
           className="cursor-pointer"
-          onClick={() => navigate("/shipper/settings")}
+          onClick={() =>
+            navigate("/shipper/settings", {
+              state: { activeTab: "notification" },
+            })
+          }
         >
           <SettingsIcon size="text-2xl" />
         </div>
