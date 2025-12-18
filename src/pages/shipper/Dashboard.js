@@ -18,7 +18,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex flex-col font-[Montserrat]">
-      <h1 className="text-2xl font-semibold text-gray-800">
+      <h1 className="text-4xl font-semibold text-gray-800">
         Hello {profile?.name || user?.name || "Shipper"},
       </h1>
 
