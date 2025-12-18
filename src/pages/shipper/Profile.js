@@ -79,7 +79,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="w-full mx-auto font-[Montserrat]">
+    <div className="w-full mx-auto font-[Montserrat] animate-slide-fade-in">
       <div className="mx-auto bg-white rounded-lg border-2 border-gray-300 p-6 relative mb-4">
         {/* Edit Button */}
         {!isEditing && (

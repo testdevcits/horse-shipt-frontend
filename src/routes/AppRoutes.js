@@ -11,7 +11,7 @@ import RedirectIfAuth from "../pages/auth/RedirectIfAuth";
 import { useAuth } from "../contexts/AuthContext";
 import MainLayout from "../layouts/MainLayout";
 import NotificationsPage from "../pages/shipper/NotificationsPage";
-import UpcomingShipments from "../pages/shipper/UpcomingShipments";
+// import UpcomingShipments from "../pages/shipper/UpcomingShipments";
 // import Profile from "../pages/shipper/Profile";
 
 // import PreferredAreas from "../pages/shipper/PreferredAreasPage";
