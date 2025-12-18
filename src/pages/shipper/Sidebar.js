@@ -1,24 +1,51 @@
 import React, { useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
+
 import { LuArrowLeftFromLine, LuArrowRightFromLine } from "react-icons/lu";
 import { CiCircleQuestion } from "react-icons/ci";
-import { FaTachometerAlt, FaBoxOpen, FaUser, FaCog } from "react-icons/fa";
-import { useAuth } from "../../contexts/AuthContext"; // ✅ import your auth context
+
+import { useAuth } from "../../contexts/AuthContext";
+
+// COMMON ICONS
+import {
+  DashboardIcon,
+  OrdersIcon,
+  ProfileIcon,
+  ChatIcon,
+  SettingsIcon,
+} from "../../components/common/ColoredIcons";
 
 const navItems = [
-  { name: "Dashboard", path: "/shipper/dashboard", icon: <FaTachometerAlt /> },
+  {
+    name: "Dashboard",
+    path: "/shipper/dashboard",
+    icon: <DashboardIcon />,
+  },
   {
     name: "Orders",
     path: "/shipper/orders",
-    icon: <FaBoxOpen />,
+    icon: <OrdersIcon />,
     subPaths: [
       { name: "Pending", path: "/shipper/orders/pending" },
       { name: "Completed", path: "/shipper/orders/completed" },
     ],
   },
-  { name: "Profile", path: "/shipper/profile", icon: <FaUser /> },
-  { name: "Settings", path: "/shipper/settings", icon: <FaCog /> },
+  {
+    name: "Profile",
+    path: "/shipper/profile",
+    icon: <ProfileIcon />,
+  },
+  {
+    name: "Chat",
+    path: "/shipper/messages",
+    icon: <ChatIcon />,
+  },
+  {
+    name: "Settings",
+    path: "/shipper/settings",
+    icon: <SettingsIcon />,
+  },
 ];
 
 const Sidebar = ({
@@ -30,16 +57,15 @@ const Sidebar = ({
   const { token, logout } = useAuth();
   const navigate = useNavigate();
 
-  // ✅ Automatically logout if token is invalid or expired
+  // Auto logout on token expiry
   useEffect(() => {
-    if (!token) return; // no token = no check
+    if (!token) return;
 
     const interceptor = axios.interceptors.response.use(
       (response) => response,
       async (error) => {
         if (error.response?.status === 401) {
-          console.warn("Session expired or invalid token. Logging out...");
-          await logout(); // clear session + redirect to login
+          await logout();
           navigate("/login", { replace: true });
         }
         return Promise.reject(error);
@@ -51,8 +77,9 @@ const Sidebar = ({
 
   const isActivePath = (path, subPaths) => {
     if (window.location.pathname === path) return true;
-    if (subPaths)
+    if (subPaths) {
       return subPaths.some((sub) => sub.path === window.location.pathname);
+    }
     return false;
   };
 
@@ -69,13 +96,13 @@ const Sidebar = ({
       `}
       style={{ width: sidebarWidth }}
     >
-      {/* Desktop toggle */}
+      {/* Desktop Toggle */}
       <div className="flex justify-end p-4 hidden lg:flex">
         <button onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? (
-            <LuArrowLeftFromLine size={24} />
+            <LuArrowLeftFromLine size={20} />
           ) : (
-            <LuArrowRightFromLine size={24} />
+            <LuArrowRightFromLine size={20} />
           )}
         </button>
       </div>
@@ -85,35 +112,47 @@ const Sidebar = ({
         <ul className="space-y-2 px-2">
           {navItems.map((item) => {
             const active = isActivePath(item.path, item.subPaths);
+
             return (
               <li key={item.path}>
                 <NavLink
                   to={item.path}
                   onClick={() => mobileOpen && setMobileOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
-                    active
-                      ? "bg-gray-100 font-semibold text-system-primary"
-                      : ""
-                  }`}
+                  className={`flex items-center px-4 py-4 rounded transition-colors duration-300 hover:bg-gray-100
+                    ${
+                      sidebarOpen || mobileOpen
+                        ? "gap-6 justify-start"
+                        : "justify-center"
+                    }
+                    ${
+                      active
+                        ? "bg-gray-100 font-semibold text-system-primary"
+                        : ""
+                    }
+                  `}
                 >
-                  <span className="text-lg">{item.icon}</span>
-                  {sidebarOpen || mobileOpen ? <span>{item.name}</span> : null}
+                  {item.icon}
+                  {(sidebarOpen || mobileOpen) && <span>{item.name}</span>}
                 </NavLink>
 
+                {/* Sub Menu */}
                 {item.subPaths && (sidebarOpen || mobileOpen) && (
                   <ul className="ml-8 mt-1 space-y-1">
                     {item.subPaths.map((sub) => {
                       const subActive = window.location.pathname === sub.path;
+
                       return (
                         <li key={sub.path}>
                           <NavLink
                             to={sub.path}
                             onClick={() => mobileOpen && setMobileOpen(false)}
-                            className={`block px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100 ${
-                              subActive
-                                ? "bg-gray-100 font-semibold text-system-primary"
-                                : ""
-                            }`}
+                            className={`block px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100
+                              ${
+                                subActive
+                                  ? "bg-gray-100 font-semibold text-system-primary"
+                                  : ""
+                              }
+                            `}
                           >
                             {sub.name}
                           </NavLink>
@@ -128,7 +167,7 @@ const Sidebar = ({
         </ul>
       </nav>
 
-      {/* Bottom Question Icon */}
+      {/* Bottom Help Icon */}
       <div className="absolute bottom-4 w-full px-4">
         <button className="flex items-center justify-center w-full py-2 bg-gray-100 hover:bg-gray-200 text-system-primary rounded transition-all duration-300">
           <CiCircleQuestion size={20} />
