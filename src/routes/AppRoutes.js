@@ -10,6 +10,8 @@ import ProtectedRoute from "./ProtectedRoute";
 import RedirectIfAuth from "../pages/auth/RedirectIfAuth";
 import { useAuth } from "../contexts/AuthContext";
 import MainLayout from "../layouts/MainLayout";
+import NotificationsPage from "../pages/shipper/NotificationsPage";
+
 // import PreferredAreas from "../pages/shipper/PreferredAreasPage";
 
 // ---------------- Auth Pages ----------------
@@ -99,6 +101,7 @@ const AppRoutes = () => {
                 {/* <ShipmentSettings /> */}
                 {/* <ShipperNotifications /> */}
                 {/* <ShipperSettings /> */}
+                {/* <NotificationsPage /> */}
               </RedirectIfAuth>
             }
           />
@@ -138,8 +141,10 @@ const AppRoutes = () => {
           <Route path="profile" element={<ShipperProfile />} />
           <Route path="vehicles" element={<VehiclesAndCapacity />} />
           <Route path="shipment-settings" element={<ShipmentSettings />} />
-          <Route path="settings" element={<ShipperSettings />} />{" "}
-          {/* ✅ tab-based page */}
+          <Route path="settings" element={<ShipperSettings />} />
+
+          {/*  NEW NOTIFICATIONS ROUTE */}
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 
         {/* ---------- Customer Routes ---------- */}

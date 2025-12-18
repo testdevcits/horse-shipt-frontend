@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom"; // added useNavigate
 import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { useShipperProfile } from "../contexts/ShipperProfileContext";
 import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
 import logo from "../assets/images/logo.png";
-import {
-  HiOutlineBell,
-  HiOutlineChatBubbleLeft,
-  HiOutlineShare,
-} from "react-icons/hi2";
+import { MdOutlineNotificationsActive } from "react-icons/md";
+import { IoShareSocial } from "react-icons/io5";
 
 const ShipperLayout = () => {
+  const navigate = useNavigate(); // initialize navigate
   const { user, logout } = useAuth();
   const { profile, loading } = useShipperProfile();
 
@@ -21,7 +19,6 @@ const ShipperLayout = () => {
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-  // Determine which image to show (no default)
   const profileImage =
     profile?.profileImage ||
     user?.profileImage ||
@@ -29,7 +26,6 @@ const ShipperLayout = () => {
     user?.profilePicture ||
     null;
 
-  // Responsive window check
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
     window.addEventListener("resize", handleResize);
@@ -40,7 +36,7 @@ const ShipperLayout = () => {
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Header */}
       <header className="sticky top-0 z-50 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
-        {/* Left: Mobile menu + logo */}
+        {/* Left */}
         <div className="flex items-center gap-4">
           {!mobileOpen ? (
             <button
@@ -64,16 +60,28 @@ const ShipperLayout = () => {
           />
         </div>
 
-        {/* Right: Icons + Profile */}
+        {/* Right */}
         <div className="flex items-center gap-4 relative">
-          <HiOutlineShare size={20} className="text-gray-500 cursor-pointer" />
-          <HiOutlineBell size={20} className="text-gray-500 cursor-pointer" />
-          <HiOutlineChatBubbleLeft
+          {/* Share Icon */}
+          <IoShareSocial size={20} className="text-gray-500 cursor-pointer" />
+
+          {/* Notification Icon → Navigate */}
+          <MdOutlineNotificationsActive
             size={20}
-            className="text-gray-500 cursor-pointer"
+            className="text-gray-500 cursor-pointer hover:text-system-primary transition"
+            onClick={() => navigate("/shipper/notifications")}
           />
 
-          {/* Profile Picture */}
+          {/* Chat Status */}
+          <div
+            className="flex items-center gap-2 px-3 py-1 rounded-full 
+    bg-success-700 border border-success-600"
+          >
+            <span className="w-2 h-2 bg-success-400 rounded-full"></span>
+            <span className="text-white text-xs font-medium">Available</span>
+          </div>
+
+          {/* Profile */}
           {profileImage ? (
             <div className="relative">
               <img
@@ -101,15 +109,13 @@ const ShipperLayout = () => {
               )}
             </div>
           ) : (
-            // 🟡 No default image — just show a placeholder circle or nothing
             <div className="w-10 h-10 rounded-full bg-gray-200 border border-gray-300" />
           )}
         </div>
       </header>
 
-      {/* Body Layout */}
+      {/* Body */}
       <div className="flex flex-1 relative">
-        {/* Sidebar */}
         <Sidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
@@ -117,7 +123,6 @@ const ShipperLayout = () => {
           setMobileOpen={setMobileOpen}
         />
 
-        {/* Main Content */}
         <main
           className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300"
           style={{
