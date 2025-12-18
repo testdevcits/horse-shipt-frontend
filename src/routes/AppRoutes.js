@@ -11,6 +11,7 @@ import RedirectIfAuth from "../pages/auth/RedirectIfAuth";
 import { useAuth } from "../contexts/AuthContext";
 import MainLayout from "../layouts/MainLayout";
 import NotificationsPage from "../pages/shipper/NotificationsPage";
+// import Profile from "../pages/shipper/Profile";
 
 // import PreferredAreas from "../pages/shipper/PreferredAreasPage";
 
@@ -102,6 +103,7 @@ const AppRoutes = () => {
                 {/* <ShipperNotifications /> */}
                 {/* <ShipperSettings /> */}
                 {/* <NotificationsPage /> */}
+                {/* <Profile/> */}
               </RedirectIfAuth>
             }
           />

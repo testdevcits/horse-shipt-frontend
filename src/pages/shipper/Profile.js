@@ -1,140 +1,249 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useShipperProfile } from "../../contexts/ShipperProfileContext";
+import React, { useState } from "react";
 import Button from "../../components/common/Button";
-import { HiPencil } from "react-icons/hi";
+import InputField from "../../components/common/InputField";
+import { FiEdit3 } from "react-icons/fi";
+import { FaStar } from "react-icons/fa";
+
+const mockProfile = {
+  locale: "New York, USA",
+  email: "john.doe@example.com",
+  mobile: "+1 234 567 890",
+  accountType: "Shipper",
+  description:
+    "Lorem ipsum dolor sit amet consectetur. Nulla varius risus est congue sit aliquet. Habitasse aliquam senectus commodo enim praesent porta ullamcorper cursus. Amet nulla sed urna neque aliquam. Pellentesque congue libero felis malesuada porttitor viverra. Lorem ipsum dolor sit amet consectetur.",
+};
+
+const mockReviews = [
+  {
+    id: 1,
+    reviewerName: "Alice Smith",
+    reviewerPhoto: "https://via.placeholder.com/32",
+    rating: 5,
+    comment: "Great experience working with this shipper!",
+    createdAt: "2025-10-20T10:30:00Z",
+  },
+  {
+    id: 2,
+    reviewerName: "Bob Johnson",
+    reviewerPhoto: "https://via.placeholder.com/32",
+    rating: 4,
+    comment: "Very reliable and timely service.",
+    createdAt: "2025-10-18T12:45:00Z",
+  },
+  {
+    id: 3,
+    reviewerName: "Charlie Brown",
+    reviewerPhoto: "https://via.placeholder.com/32",
+    rating: 3,
+    comment: "Good communication, but delivery was slightly delayed.",
+    createdAt: "2025-10-15T08:20:00Z",
+  },
+];
 
 const Profile = () => {
-  const { profile, loading, updateProfile, updateProfileImage } =
-    useShipperProfile();
+  const [isEditing, setIsEditing] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false); // New state
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [locale, setLocale] = useState("");
+  // Displayed profile data
+  const [profileData, setProfileData] = useState(mockProfile);
 
-  const [preview, setPreview] = useState(""); // UI preview
-  const [selectedFile, setSelectedFile] = useState(null); // NEW: Track chosen file
+  // Form state
+  const [description, setDescription] = useState(profileData.description);
+  const [locale, setLocale] = useState(profileData.locale);
+  const [email, setEmail] = useState(profileData.email);
+  const [mobile, setMobile] = useState(profileData.mobile);
+  const [accountType, setAccountType] = useState(profileData.accountType);
 
-  const profileInputRef = useRef(null);
-
-  // Sync UI with Context Profile
-  useEffect(() => {
-    if (!profile) return;
-
-    setFirstName(profile.firstName || "");
-    setLastName(profile.lastName || "");
-    setLocale(profile.locale || "");
-
-    // full URL for updated images (cache busting)
-    setPreview(
-      profile.profileImage
-        ? `${profile.profileImage}?t=${Date.now()}`
-        : "/default-profile.png"
-    );
-  }, [profile]);
-
-  // ---------------------------------------------
-  // Handle PROFILE image upload ONLY if image changed
-  // ---------------------------------------------
-  const handleProfileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setSelectedFile(file); // ← New file stored (will upload later)
-    setPreview(URL.createObjectURL(file)); // instant preview
+  const handleEdit = () => {
+    setDescription(profileData.description);
+    setLocale(profileData.locale);
+    setEmail(profileData.email);
+    setMobile(profileData.mobile);
+    setAccountType(profileData.accountType);
+    setIsEditing(true);
   };
 
-  // Update text fields + upload image only if changed
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSave = () => {
+    setProfileData({
+      description,
+      locale,
+      email,
+      mobile,
+      accountType,
+    });
+    setIsEditing(false);
+  };
 
-    // Upload image only when user selected new one
-    if (selectedFile) {
-      await updateProfileImage(selectedFile);
-      setSelectedFile(null); // reset
-    }
-
-    // Update text fields always
-    await updateProfile({ firstName, lastName, locale });
+  const handleCancel = () => {
+    setIsEditing(false);
   };
 
   return (
-    <div className="w-full mx-auto font-[Montserrat] animate-slide-fade-in">
-      <h2 className="text-[16px] sm:text-[18px] lg:text-[20px] font-medium text-gray-800">
-        Update Profile
-      </h2>
-      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border mt-4 rounded shadow bg-white">
-        {/* Profile Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Profile Picture */}
-          <div className="relative w-24 h-24 rounded-full">
-            <img
-              src={preview}
-              alt="Profile"
-              className="w-24 h-24 object-cover rounded-full border"
-            />
-
-            <button
-              type="button"
-              onClick={() => profileInputRef.current.click()}
-              className="absolute bottom-0 right-0 bg-white p-1.5 rounded-full shadow-lg hover:bg-gray-100 border"
+    <div className="w-full mx-auto font-[Montserrat]">
+      <div className="mx-auto bg-white rounded-lg border-2 border-gray-300 p-6 relative mb-4">
+        {/* Edit Button */}
+        {!isEditing && (
+          <div className="flex justify-end mb-6">
+            <Button
+              onClick={handleEdit}
+              variant="secondary"
+              className="font-[Montserrat]"
+              icon={<FiEdit3 />}
             >
-              <HiPencil className="w-4 h-4 text-black" />
-            </button>
-
-            <input
-              type="file"
-              accept="image/*"
-              ref={profileInputRef}
-              className="hidden"
-              onChange={handleProfileChange}
-            />
+              Edit Information
+            </Button>
           </div>
+        )}
 
-          {/* First Name */}
-          <div>
-            <label className="block mb-1 font-medium">First Name</label>
-            <input
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              className="w-full border p-2 rounded"
-            />
+        {/* Profile Display */}
+        {!isEditing && (
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Left Column: Description */}
+            <div className="lg:w-1/2">
+              <h2 className="text-xl font-[Montserrat] text-gray-700 mb-4">
+                Description
+              </h2>
+              <p className="leading-6 text-gray-700 text-md">
+                {profileData.description}
+              </p>
+            </div>
+
+            {/* Right Column: Profile Info */}
+            <div className="lg:w-1/2 flex flex-col gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-gray-700 font-[Montserrat] text-md">
+                    Location
+                  </label>
+                  <p className="text-gray-700 text-sm">{profileData.locale}</p>
+                </div>
+
+                <div>
+                  <label className="text-gray-700 font-[Montserrat] text-md">
+                    Email
+                  </label>
+                  <p className="text-gray-700 text-md">{profileData.email}</p>
+                </div>
+
+                <div>
+                  <label className="text-gray-700 font-[Montserrat] text-md">
+                    Phone
+                  </label>
+                  <p className="text-gray-700 text-md">{profileData.mobile}</p>
+                </div>
+
+                <div>
+                  <label className="text-gray-700 font-[Montserrat] text-md">
+                    Account Type
+                  </label>
+                  <p className="text-gray-700 text-md">
+                    {profileData.accountType}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
+        )}
 
-          {/* Last Name */}
-          <div>
-            <label className="block mb-1 font-medium">Last Name</label>
-            <input
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              className="w-full border p-2 rounded"
-            />
+        {/* Edit Form */}
+        {isEditing && (
+          <div className="mt-4 border-t border-gray-300 pt-4">
+            <h2 className="text-lg text-gray-700 font-[Montserrat] mb-4">
+              Edit Profile
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-[Montserrat]">
+              <InputField
+                label="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              <InputField
+                label="Location"
+                value={locale}
+                onChange={(e) => setLocale(e.target.value)}
+              />
+              <InputField
+                label="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <InputField
+                label="Phone"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+              />
+              <InputField
+                label="Account Type"
+                value={accountType}
+                onChange={(e) => setAccountType(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-4 mt-4 justify-end">
+              <Button onClick={handleSave} variant="primary">
+                Save
+              </Button>
+              <Button onClick={handleCancel} variant="secondary">
+                Cancel
+              </Button>
+            </div>
           </div>
+        )}
+      </div>
 
-          {/* Locale */}
-          <div>
-            <label className="block mb-1 font-medium">Locale</label>
-            <input
-              type="text"
-              value={locale}
-              onChange={(e) => setLocale(e.target.value)}
-              className="w-full border p-2 rounded"
-            />
+      {/* Reviews Section */}
+      <div className="mx-auto bg-white rounded-lg border-2 border-gray-300 p-6 relative mb-4">
+        {/* Header Row */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl text-gray-700 font-[Montserrat]">
+            My Reviews
+          </h2>
+
+          <div className="flex gap-3">
+            {!showAllReviews && mockReviews.length > 1 && (
+              <Button
+                onClick={() => setShowAllReviews(true)}
+                variant="secondary"
+                className="font-[Montserrat]"
+              >
+                Show Reviews
+              </Button>
+            )}
+
+            {showAllReviews && (
+              <Button
+                onClick={() => setShowAllReviews(false)}
+                variant="secondary"
+                className="font-[Montserrat]"
+              >
+                Close
+              </Button>
+            )}
           </div>
+        </div>
 
-          {/* Submit */}
-          <Button
-            type="submit"
-            disabled={loading}
-            variant="primary"
-            borderColor="transparent"
-            rounded={false}
-            className="rounded-md px-6 py-2 font-montserrat"
-          >
-            {loading ? "Updating..." : "Update Profile"}
-          </Button>
-        </form>
+        {/* Reviews List */}
+        <div className="mx-auto bg-white rounded-lg flex flex-col gap-2">
+          {(showAllReviews ? mockReviews : [mockReviews[0]]).map((review) => (
+            <div key={review.id} className="w-full bg-white p-4">
+              {/* Review Comment */}
+              <p className="text-gray-700 text-sm mb-2">{review.comment}</p>
+
+              {/* Reviewer Info */}
+              <div className="flex items-center gap-1 mt-2">
+                {Array.from({ length: review.rating }).map((_, i) => (
+                  <FaStar key={i} className="text-yellow-500" />
+                ))}
+                {Array.from({ length: 5 - review.rating }).map((_, i) => (
+                  <FaStar key={i} className="text-gray-300" />
+                ))}
+
+                <span className="font-medium text-sm text-gray-700 ml-2">
+                  {review.reviewerName}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

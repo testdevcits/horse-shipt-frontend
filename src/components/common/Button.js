@@ -23,7 +23,8 @@ const Button = ({
 
   const variantStyles = {
     primary: "bg-[#BF9B53] hover:bg-[#a6813f] text-white border-none",
-    secondary: "bg-gray-300 hover:bg-gray-400 text-gray-700 border-none",
+    secondary:
+      "bg-gray-100 hover:bg-gray-200 text-gray-700 border-2 border-gray-500",
     google: "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
     custom: "", // empty, will use bgColor/borderColor/textColor
   };
