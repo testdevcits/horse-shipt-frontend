@@ -83,21 +83,22 @@ const Sidebar = ({
     return false;
   };
 
+  const sidebarWidth = mobileOpen
+    ? "100%"
+    : sidebarOpen && window.innerWidth >= 1024
+    ? 256
+    : 64;
+
   return (
     <div
-      className={`fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50
-        font-montserrat overflow-hidden
-        transition-all duration-300 ease-in-out
+      className={`fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300 font-montserrat
         ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        ${sidebarOpen ? "lg:w-64" : "lg:w-16"}
       `}
+      style={{ width: sidebarWidth }}
     >
       {/* Desktop Toggle */}
       <div className="flex justify-end p-2 hidden lg:flex">
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="transition-transform duration-300"
-        >
+        <button onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? (
             <LuArrowLeftFromLine size={20} />
           ) : (
@@ -131,24 +132,12 @@ const Sidebar = ({
                   `}
                 >
                   {item.icon}
-
-                  {/* Text (smooth show/hide, UI unchanged) */}
-                  <span
-                    className={`whitespace-nowrap transition-all duration-300
-                      ${
-                        sidebarOpen || mobileOpen
-                          ? "opacity-100 translate-x-0"
-                          : "opacity-0 -translate-x-2 pointer-events-none"
-                      }
-                    `}
-                  >
-                    {item.name}
-                  </span>
+                  {(sidebarOpen || mobileOpen) && <span>{item.name}</span>}
                 </NavLink>
 
                 {/* Sub Menu */}
                 {item.subPaths && (sidebarOpen || mobileOpen) && (
-                  <ul className="ml-8 mt-1 space-y-1 animate-slide-fade-in">
+                  <ul className="ml-8 mt-1 space-y-1">
                     {item.subPaths.map((sub) => {
                       const subActive = window.location.pathname === sub.path;
 
