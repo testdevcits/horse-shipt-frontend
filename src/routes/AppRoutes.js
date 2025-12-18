@@ -103,7 +103,7 @@ const AppRoutes = () => {
                 {/* <ShipperNotifications /> */}
                 {/* <ShipperSettings /> */}
                 {/* <NotificationsPage /> */}
-                {/* <Profile/> */}
+                {/* <Profile /> */}
               </RedirectIfAuth>
             }
           />

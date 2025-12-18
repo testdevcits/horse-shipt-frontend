@@ -103,7 +103,7 @@ const Profile = () => {
               <h2 className="text-xl font-[Montserrat] text-gray-700 mb-4">
                 Description
               </h2>
-              <p className="leading-6 text-gray-700 text-md">
+              <p className="leading-6 text-gray-700 text-sm">
                 {profileData.description}
               </p>
             </div>
@@ -147,7 +147,7 @@ const Profile = () => {
 
         {/* Edit Form */}
         {isEditing && (
-          <div className="mt-4 border-t border-gray-300 pt-4">
+          <div className="mt-4  border-gray-300">
             <h2 className="text-lg text-gray-700 font-[Montserrat] mb-4">
               Edit Profile
             </h2>
