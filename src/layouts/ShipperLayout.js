@@ -75,10 +75,12 @@ const ShipperLayout = () => {
           {/* Chat Status */}
           <div
             className="flex items-center gap-2 px-3 py-1 rounded-full 
-    bg-success-100 text-success-700 border border-success-600"
+    bg-success-100  border border-success-600"
           >
             <span className="w-2 h-2 bg-success-400 rounded-full"></span>
-            <span className="text-white text-xs font-medium">Available</span>
+            <span className="text-success-700 text-xs font-medium">
+              Available
+            </span>
           </div>
 
           {/* Profile */}
