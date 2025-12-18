@@ -8,6 +8,7 @@ import { IoMdClose } from "react-icons/io";
 import logo from "../assets/images/logo.png";
 import { MdOutlineNotificationsActive } from "react-icons/md";
 import { IoShareSocial } from "react-icons/io5";
+import StatusBadge from "../components/common/StatusBadge";
 
 const ShipperLayout = () => {
   const navigate = useNavigate(); // initialize navigate
@@ -73,15 +74,8 @@ const ShipperLayout = () => {
           />
 
           {/* Chat Status */}
-          <div
-            className="flex items-center gap-2 px-3 py-1 rounded-full 
-    bg-success-100  border border-success-600"
-          >
-            <span className="w-2 h-2 bg-success-400 rounded-full"></span>
-            <span className="text-success-700 text-xs font-medium">
-              Available
-            </span>
-          </div>
+          {/* Instead of hardcoded div */}
+          <StatusBadge text="Available" />
 
           {/* Profile */}
           {profileImage ? (
