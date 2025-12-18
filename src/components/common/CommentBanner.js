@@ -62,7 +62,7 @@ const CommentBanner = () => {
 
       {/* Profile Card */}
       <div className="relative flex items-center h-full px-6">
-        <div className="relative flex items-center gap-4 bg-white rounded-[14px] p-4 w-[326px] h-[152px] shadow-lg">
+        <div className="relative flex items-center gap-4 bg-white rounded-[14px] p-4 w-[326px] h-[142px] shadow-lg">
           {/* Profile Image */}
           <div className="relative w-16 h-16 rounded-full flex-shrink-0">
             <img

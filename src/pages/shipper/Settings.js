@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useLocation } from "react-router-dom"; // 👈 import useLocation
+import { useLocation } from "react-router-dom"; // import useLocation
 import CommentBanner from "../../components/common/CommentBanner";
 import Profile from "./Profile";
 import ShipmentSettings from "./ShipmentSettings";
@@ -7,7 +7,7 @@ import PaymentsComingSoon from "./PaymentsComingSoon";
 import ShipperNotifications from "./ShipperNotifications";
 
 const ShipperSettings = () => {
-  const location = useLocation(); // 👈 get location state
+  const location = useLocation(); // get location state
 
   const tabs = [
     { id: "profile", label: "Profile Settings" },
