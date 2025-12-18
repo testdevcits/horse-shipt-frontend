@@ -109,7 +109,7 @@ const Sidebar = ({
 
       {/* Navigation */}
       <nav className="flex flex-col mt-2 h-full overflow-y-auto">
-        <ul className="space-y-2 px-2">
+        <ul className="space-y-2">
           {navItems.map((item) => {
             const active = isActivePath(item.path, item.subPaths);
 
@@ -118,7 +118,7 @@ const Sidebar = ({
                 <NavLink
                   to={item.path}
                   onClick={() => mobileOpen && setMobileOpen(false)}
-                  className={`flex items-center py-4 rounded transition-colors duration-300 hover:bg-gray-100
+                  className={`flex items-center px-2 py-4 rounded transition-colors duration-300 hover:bg-gray-100
                     ${
                       sidebarOpen || mobileOpen
                         ? "gap-6 justify-start"
