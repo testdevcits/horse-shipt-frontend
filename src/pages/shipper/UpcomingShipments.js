@@ -1,6 +1,5 @@
 // src/pages/shipper/UpcomingShipments.js
 import React, { useState } from "react";
-import InputField from "../../components/common/InputField";
 import Button from "../../components/common/Button";
 import { FiSearch } from "react-icons/fi";
 
@@ -63,13 +62,19 @@ const UpcomingShipments = () => {
         </h1>
 
         <div className="w-full sm:w-72 relative">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          {/* Fake Placeholder */}
+          {!search && (
+            <div className="absolute inset-y-0 left-3 flex items-center gap-2 text-gray-400 pointer-events-none">
+              <FiSearch className="text-gray-400" />
+              <span className="text-sm">Search upcoming shipments</span>
+            </div>
+          )}
 
-          <InputField
-            placeholder="Search shipment..."
+          <input
+            type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
