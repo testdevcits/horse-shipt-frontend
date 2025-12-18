@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import InputField from "../../components/common/InputField";
 import Button from "../../components/common/Button";
+import { FiSearch } from "react-icons/fi";
 
 const mockShipments = [
   {
@@ -54,31 +55,34 @@ const UpcomingShipments = () => {
     : filteredShipments.slice(0, 2);
 
   return (
-    <div className="flex flex-col gap-6 font-[Montserrat]">
+    <div className="flex flex-col gap-6 font-[Montserrat] mt-4">
       {/* Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-semibold text-gray-800">
           Upcoming Shipments
         </h1>
 
-        <div className="w-full sm:w-72">
+        <div className="w-full sm:w-72 relative">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+
           <InputField
             placeholder="Search shipment..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
           />
         </div>
       </div>
 
       {/* Shipments List */}
-      <div className="bg-white border-2 border-gray-300 rounded-lg p-4 flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
         {displayedShipments.length === 0 ? (
           <p className="text-gray-500 text-center py-6">No shipments found</p>
         ) : (
           displayedShipments.map((shipment) => (
             <div
               key={shipment.id}
-              className="border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3"
+              className="border border-gray-200 rounded p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3"
             >
               <div>
                 <p className="font-medium text-gray-800">
