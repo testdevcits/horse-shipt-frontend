@@ -118,7 +118,7 @@ const Sidebar = ({
                 <NavLink
                   to={item.path}
                   onClick={() => mobileOpen && setMobileOpen(false)}
-                  className={`flex items-center px-2 py-4 rounded transition-colors duration-300 hover:bg-gray-100
+                  className={`flex items-center px-2 py-2 rounded transition-colors duration-300 hover:bg-gray-100
                     ${
                       sidebarOpen || mobileOpen
                         ? "gap-6 justify-start"
