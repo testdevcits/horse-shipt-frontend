@@ -97,7 +97,7 @@ const Sidebar = ({
       style={{ width: sidebarWidth }}
     >
       {/* Desktop Toggle */}
-      <div className="flex justify-end p-2 hidden lg:flex">
+      <div className="flex justify-end p-4 hidden lg:flex">
         <button onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? (
             <LuArrowLeftFromLine size={20} />
@@ -118,7 +118,7 @@ const Sidebar = ({
                 <NavLink
                   to={item.path}
                   onClick={() => mobileOpen && setMobileOpen(false)}
-                  className={`flex items-center px-4 py-2 rounded transition-colors duration-300 hover:bg-gray-100
+                  className={`flex items-center px-2 py-4 rounded transition-colors duration-300 hover:bg-gray-100
                     ${
                       sidebarOpen || mobileOpen
                         ? "gap-6 justify-start"
