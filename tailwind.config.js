@@ -10,25 +10,21 @@ module.exports = {
         danger: "#EF4444",
         light: "#F3F4F6",
         dark: "#111827",
-
         system: {
           primary: "#BF9B53",
           background: "var(--System-Background, #FEFEFE)",
         },
-
         toast: {
           info: "#BF9B53",
           success: "#10B981",
           warning: "#F59E0B",
           error: "#EF4444",
         },
-
         header: "#F2EBDD",
         tabActive: "#997C42",
         scrollbarTrack: "#E5E7EB",
         scrollbarThumb: "#BF9B53",
         systemText: "#333333",
-
         success: {
           DEFAULT: "#10B981",
           50: "#E6F9F1",
@@ -42,7 +38,6 @@ module.exports = {
           800: "#0B7B53",
           900: "#075B3A",
         },
-
         yellow: {
           DEFAULT: "#F59E0B",
           50: "#FFF7E6",
@@ -57,31 +52,18 @@ module.exports = {
           900: "#6B4603",
         },
       },
-
-      /* ===============================
-         FONT FAMILY
-      =============================== */
       fontFamily: {
         montserrat: ["Montserrat", "sans-serif"],
       },
-
-      /* ===============================
-         FONT SIZES
-      =============================== */
       fontSize: {
         paragraph: ["18px", "28px"],
-
-        // 👉 Sidebar / Menu Text (YOUR REQUIREMENT)
-        sidebar: ["30px", { lineHeight: "38px", letterSpacing: "0%" }],
       },
-
       borderRadius: {
         xl: "1rem",
         "2xl": "1.5rem",
         custom: "12px",
         full: "9999px",
       },
-
       screens: {
         xs: "320px",
         sm: "480px",
@@ -90,13 +72,11 @@ module.exports = {
         xl: "1280px",
         "2xl": "1536px",
       },
-
       spacing: {
         128: "32rem",
         144: "36rem",
         160: "40rem",
       },
-
       keyframes: {
         "slide-fade-in": {
           "0%": { transform: "translateY(-20px)", opacity: "0" },
@@ -115,7 +95,6 @@ module.exports = {
           "100%": { transform: "translateY(-100%)", opacity: "0" },
         },
       },
-
       animation: {
         "slide-fade-in": "slide-fade-in 0.3s ease-out forwards",
         "slide-fade-out": "slide-fade-out 0.3s ease-in forwards",
@@ -124,7 +103,6 @@ module.exports = {
       },
     },
   },
-
   plugins: [
     function ({ addUtilities }) {
       addUtilities({

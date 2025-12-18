@@ -91,9 +91,9 @@ const Sidebar = ({
 
   return (
     <div
-      className={`fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 
-      transform transition-transform duration-300 font-montserrat
-      ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+      className={`fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300 font-montserrat
+        ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+      `}
       style={{ width: sidebarWidth }}
     >
       {/* Desktop Toggle */}
@@ -124,16 +124,15 @@ const Sidebar = ({
                         ? "gap-6 justify-start"
                         : "justify-center"
                     }
-                    ${active ? "bg-gray-100 text-system-primary" : ""}
+                    ${
+                      active
+                        ? "bg-gray-100 font-semibold text-system-primary"
+                        : ""
+                    }
                   `}
                 >
                   {item.icon}
-
-                  {(sidebarOpen || mobileOpen) && (
-                    <span className="font-montserrat text-sidebar font-semibold">
-                      {item.name}
-                    </span>
-                  )}
+                  {(sidebarOpen || mobileOpen) && <span>{item.name}</span>}
                 </NavLink>
 
                 {/* Sub Menu */}
@@ -150,14 +149,12 @@ const Sidebar = ({
                             className={`block px-2 py-2 rounded transition-colors duration-300 hover:bg-gray-100
                               ${
                                 subActive
-                                  ? "bg-gray-100 text-system-primary"
+                                  ? "bg-gray-100 font-semibold text-system-primary"
                                   : ""
                               }
                             `}
                           >
-                            <span className="font-montserrat font-semibold text-[18px] leading-[24px]">
-                              {sub.name}
-                            </span>
+                            {sub.name}
                           </NavLink>
                         </li>
                       );
