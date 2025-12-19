@@ -1,30 +1,38 @@
-import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import React, { useEffect, useState, useCallback } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import Toast from "../components/common/Toast";
 
 const ProtectedRoute = ({ children, role, redirectPath = "/login" }) => {
   const { user, token, logout } = useAuth();
+  const navigate = useNavigate();
+
   const [accessDenied, setAccessDenied] = useState(false);
   const [checking, setChecking] = useState(true);
 
+  // Check token on user activity
+  const checkTokenValidity = useCallback(async () => {
+    if (!token || !user) {
+      await logout();
+      navigate(redirectPath, { replace: true });
+    }
+  }, [token, user, logout, navigate, redirectPath]);
+
+  // 🔹 Initial auth & role check
   useEffect(() => {
-    // Small delay to ensure context is updated (especially for OAuth)
     const timer = setTimeout(() => {
       if (!user || !token) {
-        // Not logged in → redirect immediately
         setChecking(false);
         return;
       }
 
       if (role && user.role !== role) {
-        // Role mismatch → show access denied
         setAccessDenied(true);
 
-        // Auto logout & redirect after 3 seconds
         const logoutTimer = setTimeout(async () => {
           await logout();
           setAccessDenied(false);
+          navigate(redirectPath, { replace: true });
         }, 3000);
 
         return () => clearTimeout(logoutTimer);
@@ -34,22 +42,39 @@ const ProtectedRoute = ({ children, role, redirectPath = "/login" }) => {
     }, 50);
 
     return () => clearTimeout(timer);
-  }, [user, token, role, logout]);
+  }, [user, token, role, logout, navigate, redirectPath]);
 
-  // Loading indicator while checking auth
+  // Add event listeners (mouse, keyboard, click)
+  useEffect(() => {
+    const events = ["mousemove", "keydown", "click"];
+
+    events.forEach((event) =>
+      window.addEventListener(event, checkTokenValidity)
+    );
+
+    return () => {
+      events.forEach((event) =>
+        window.removeEventListener(event, checkTokenValidity)
+      );
+    };
+  }, [checkTokenValidity]);
+
+  // Loader
   if (checking) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-gray-600">
+      <div className="flex flex-col justify-center items-center min-h-screen text-gray-600">
         <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
         <p className="mt-3 text-sm">Checking access...</p>
       </div>
     );
   }
 
-  // Redirect to login if not authenticated
-  if (!user || !token) return <Navigate to={redirectPath} replace />;
+  // Not authenticated
+  if (!user || !token) {
+    return <Navigate to={redirectPath} replace />;
+  }
 
-  // Show access denied toast if role doesn't match
+  // Role denied
   if (accessDenied) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -61,7 +86,7 @@ const ProtectedRoute = ({ children, role, redirectPath = "/login" }) => {
     );
   }
 
-  // User has access → render children
+  // Authorized
   return children;
 };
 
