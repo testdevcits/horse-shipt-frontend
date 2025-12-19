@@ -3,26 +3,49 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import Toast from "../components/common/Toast";
 
+/**
+ * Decode JWT and check expiry
+ */
+const isTokenExpired = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    return payload.exp < currentTime;
+  } catch (error) {
+    return true; // invalid token
+  }
+};
+
 const ProtectedRoute = ({ children, role, redirectPath = "/login" }) => {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [accessDenied, setAccessDenied] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
 
-  // Check token on user activity
+  /**
+   *  Check token on user activity
+   */
   const checkTokenValidity = useCallback(async () => {
-    if (!token || !user) {
+    if (!token || !user || isTokenExpired(token)) {
       await logout();
       navigate(redirectPath, { replace: true });
     }
   }, [token, user, logout, navigate, redirectPath]);
 
-  // 🔹 Initial auth & role check
+  /**
+   * 🔹 Initial auth & role check
+   */
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!user || !token) {
         setChecking(false);
+        return;
+      }
+
+      if (isTokenExpired(token)) {
+        logout();
+        navigate(redirectPath, { replace: true });
         return;
       }
 
@@ -31,7 +54,6 @@ const ProtectedRoute = ({ children, role, redirectPath = "/login" }) => {
 
         const logoutTimer = setTimeout(async () => {
           await logout();
-          setAccessDenied(false);
           navigate(redirectPath, { replace: true });
         }, 3000);
 
@@ -44,7 +66,9 @@ const ProtectedRoute = ({ children, role, redirectPath = "/login" }) => {
     return () => clearTimeout(timer);
   }, [user, token, role, logout, navigate, redirectPath]);
 
-  // Add event listeners (mouse, keyboard, click)
+  /**
+   *  Event listeners (mouse, keyboard, click)
+   */
   useEffect(() => {
     const events = ["mousemove", "keydown", "click"];
 
@@ -59,7 +83,9 @@ const ProtectedRoute = ({ children, role, redirectPath = "/login" }) => {
     };
   }, [checkTokenValidity]);
 
-  // Loader
+  /**
+   *  Loader
+   */
   if (checking) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen text-gray-600">
@@ -69,12 +95,16 @@ const ProtectedRoute = ({ children, role, redirectPath = "/login" }) => {
     );
   }
 
-  // Not authenticated
+  /**
+   *  Not authenticated
+   */
   if (!user || !token) {
     return <Navigate to={redirectPath} replace />;
   }
 
-  // Role denied
+  /**
+   *  Role access denied
+   */
   if (accessDenied) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -86,7 +116,9 @@ const ProtectedRoute = ({ children, role, redirectPath = "/login" }) => {
     );
   }
 
-  // Authorized
+  /**
+   *  Authorized
+   */
   return children;
 };
 
