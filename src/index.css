@@ -41,3 +41,21 @@ body::-webkit-scrollbar-track {
 .App-link {
   @apply text-blue-800 hover:text-blue-600 underline;
 }
+
+
+/* Selected option */
+select option:checked {
+  background-color: var(--system-primary);
+  color: #fff;
+}
+
+/* TRY hover (works in some browsers, not all) */
+select option:hover {
+  background-color: var(--system-primary);
+  color: #fff;
+}
+
+/* Firefox fix */
+select option:checked {
+  box-shadow: 0 0 0 100px var(--system-primary) inset;
+}

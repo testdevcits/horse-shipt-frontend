@@ -100,6 +100,7 @@ const AppRoutes = () => {
             element={
               <RedirectIfAuth>
                 <Home />
+                {/* <ChatOverview /> */}
               </RedirectIfAuth>
             }
           />
