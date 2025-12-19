@@ -28,6 +28,9 @@ const ShipperOrders = lazy(() => import("../pages/shipper/Orders"));
 const ShipperProfile = lazy(() => import("../pages/shipper/Profile"));
 const ShipperSettings = lazy(() => import("../pages/shipper/Settings"));
 const ShipmentDetails = lazy(() => import("../pages/shipper/ShipmentDetails"));
+const AllUpcomingShipments = lazy(() =>
+  import("../pages/shipper/AllUpcomingShipments")
+);
 
 // const ShipperNotifications = lazy(() =>
 //   import("../pages/shipper/ShipperNotifications")
@@ -152,6 +155,14 @@ const AppRoutes = () => {
 
           {/* ADD THIS LINE */}
           <Route path="shipments/:id" element={<ShipmentDetails />} />
+          <Route
+            path="shipments"
+            element={
+              <Suspense fallback={<div>Loading shipments...</div>}>
+                <AllUpcomingShipments />
+              </Suspense>
+            }
+          />
         </Route>
 
         {/* ---------- Customer Routes ---------- */}
