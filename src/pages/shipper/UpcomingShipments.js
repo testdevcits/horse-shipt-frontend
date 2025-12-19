@@ -24,6 +24,27 @@ const shipments = [
       },
     ],
   },
+  {
+    _id: "68fa3354c3e032b612c53475",
+    status: "pending",
+    pickupLocation: "Pickup Adress Name",
+    pickupDate: "2025-10-02",
+    deliveryLocation: "Delivery Adress Name",
+    deliveryDate: "2025-10-04",
+    numberOfHorses: 1,
+    createdAt: "2025-10-23",
+    horses: [
+      {
+        registeredName: "Thunder",
+        breed: "Warmblood",
+        colour: "Black",
+        age: "10",
+        photo: {
+          url: "https://res.cloudinary.com/dra3iqxvf/image/upload/v1761742336/shipper_vehicles/gorv0dbmkfha73v3zubm.png",
+        },
+      },
+    ],
+  },
 ];
 
 const UpcomingShipments = () => {

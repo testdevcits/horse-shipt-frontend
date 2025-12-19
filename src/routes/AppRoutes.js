@@ -27,6 +27,8 @@ const ShipperDashboard = lazy(() => import("../pages/shipper/Dashboard"));
 const ShipperOrders = lazy(() => import("../pages/shipper/Orders"));
 const ShipperProfile = lazy(() => import("../pages/shipper/Profile"));
 const ShipperSettings = lazy(() => import("../pages/shipper/Settings"));
+const ShipmentDetails = lazy(() => import("../pages/shipper/ShipmentDetails"));
+
 // const ShipperNotifications = lazy(() =>
 //   import("../pages/shipper/ShipperNotifications")
 // );
@@ -146,9 +148,10 @@ const AppRoutes = () => {
           <Route path="vehicles" element={<VehiclesAndCapacity />} />
           <Route path="shipment-settings" element={<ShipmentSettings />} />
           <Route path="settings" element={<ShipperSettings />} />
-
-          {/*  NEW NOTIFICATIONS ROUTE */}
           <Route path="notifications" element={<NotificationsPage />} />
+
+          {/* ADD THIS LINE */}
+          <Route path="shipments/:id" element={<ShipmentDetails />} />
         </Route>
 
         {/* ---------- Customer Routes ---------- */}
