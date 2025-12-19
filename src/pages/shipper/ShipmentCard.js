@@ -12,7 +12,7 @@ const ShipmentCard = ({ shipment }) => {
   const horse = shipment.horses[0];
 
   const handleNavigate = () => {
-    navigate(`/shipper/chat/${shipment._id}`);
+    navigate(`/shipper/chat`);
   };
 
   return (

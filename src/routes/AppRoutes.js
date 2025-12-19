@@ -27,9 +27,9 @@ const ShipmentDetails = lazy(() => import("../pages/shipper/ShipmentDetails"));
 const AllUpcomingShipments = lazy(() =>
   import("../pages/shipper/AllUpcomingShipments")
 );
-const ChatPage = lazy(() => import("../pages/shipper/ChatPage"));
+// const ChatPage = lazy(() => import("../pages/shipper/ChatPage"));
 const ChatOverview = lazy(
-  () => import("../pages/shipper/ChatOverview") // 👈 make sure this path is correct
+  () => import("../pages/shipper/ChatOverview") //  make sure this path is correct
 );
 
 const ShipmentSettings = lazy(() =>
@@ -146,7 +146,6 @@ const AppRoutes = () => {
           <Route path="shipments/:id" element={<ShipmentDetails />} />
           {/* CHAT ROUTES */}
           <Route path="chat" element={<ChatOverview />} />
-          <Route path="chat/:shipmentId" element={<ChatPage />} />
         </Route>
 
         {/* ---------- Customer Routes ---------- */}

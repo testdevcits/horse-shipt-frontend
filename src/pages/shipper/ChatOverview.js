@@ -99,7 +99,7 @@ const ChatOverview = () => {
   return (
     <>
       {/* ================= TOP HEADER ================= */}
-      <div className="bg-white border-gray-300   flex flex-col gap-6">
+      <div className="flex flex-col gap-6">
         {/* Heading on Top */}
         <h1 className="text-3xl font-montserrat text-gray-800">Chats</h1>
 
@@ -139,7 +139,7 @@ const ChatOverview = () => {
 
       {/* ================= MAIN CHAT CONTAINER ================= */}
       <div
-        className="flex flex-col lg:flex-row font-montserrat bg-gray-50"
+        className="flex flex-col lg:flex-row font-montserrat bg-gray-50 shadow-lg"
         style={{
           height: "741px",
           borderWidth: "1px",
