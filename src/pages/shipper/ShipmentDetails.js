@@ -104,7 +104,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 variant="secondary"
                 fullWidth
                 icon={<ChatIcon color="gray-500" />}
-                onClick={() => navigate(`/chat/${shipment._id}`)}
+                onClick={() => navigate(`/shipper/chat/${shipment._id}`)}
               >
                 Send Buyer a Message
               </Button>
