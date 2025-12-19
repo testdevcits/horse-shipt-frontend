@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Search } from "lucide-react";
 import Toast from "../../components/common/Toast";
 import { useShipperPreferredAreas } from "../../contexts/ShipperPreferredAreaContext";
-import citiesData from "../../data/cities"; // 👈 import your dataset
+import citiesData from "../../data/cities"; //  import your dataset
 
 const PreferredAreas = () => {
   const { addPreferredArea, loading } = useShipperPreferredAreas();

@@ -31,6 +31,7 @@ const ShipmentDetails = lazy(() => import("../pages/shipper/ShipmentDetails"));
 const AllUpcomingShipments = lazy(() =>
   import("../pages/shipper/AllUpcomingShipments")
 );
+const ChatPage = lazy(() => import("../pages/shipper/ChatPage"));
 
 // const ShipperNotifications = lazy(() =>
 //   import("../pages/shipper/ShipperNotifications")
@@ -111,6 +112,7 @@ const AppRoutes = () => {
                 {/* <NotificationsPage /> */}
                 {/* <Profile /> */}
                 {/* <UpcomingShipments /> */}
+                {/* <ShipmentDetails shipmentId="68fa3354c3e032b612c53475" /> */}
               </RedirectIfAuth>
             }
           />
@@ -153,16 +155,11 @@ const AppRoutes = () => {
           <Route path="settings" element={<ShipperSettings />} />
           <Route path="notifications" element={<NotificationsPage />} />
 
-          {/* ADD THIS LINE */}
+          <Route path="shipments" element={<AllUpcomingShipments />} />
           <Route path="shipments/:id" element={<ShipmentDetails />} />
-          <Route
-            path="shipments"
-            element={
-              <Suspense fallback={<div>Loading shipments...</div>}>
-                <AllUpcomingShipments />
-              </Suspense>
-            }
-          />
+
+          {/*  CHAT ROUTE (FIXED) */}
+          <Route path="chat/:shipmentId" element={<ChatPage />} />
         </Route>
 
         {/* ---------- Customer Routes ---------- */}
