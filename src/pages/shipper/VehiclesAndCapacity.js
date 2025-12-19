@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FiPlus, FiTrash2, FiX } from "react-icons/fi";
+import { FiPlus, FiX } from "react-icons/fi";
 import { RiImageAddLine, RiEdit2Line } from "react-icons/ri";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -39,9 +39,7 @@ const VehiclePage = () => {
   };
 
   // ---------- Delete ----------
-  const handleDelete = (id) => {
-    setConfirmData({ show: true, id });
-  };
+
   const confirmDelete = async () => {
     await deleteVehicle(confirmData.id);
     setConfirmData({ show: false, id: null });
@@ -202,14 +200,14 @@ const VehiclePage = () => {
                       <img
                         key={i}
                         src={img.url}
-                        alt={`Vehicle ${index + 1} - ${i}`}
+                        alt={`Vehicle ${index + 1} preview ${i + 1}`}
                         className="w-[80px] h-[80px] object-cover rounded-[16px] border border-dashed border-gray-300 p-[2px]"
                       />
                     ))
                   ) : (
                     <img
                       src="https://via.placeholder.com/80"
-                      alt="No image"
+                      alt="Vehicle placeholder"
                       className="w-[80px] h-[80px] object-cover rounded-[16px] border border-dashed border-gray-300 p-[2px]"
                     />
                   )}

@@ -32,8 +32,8 @@ const navItems = [
     ],
   },
   {
-    name: "Profile",
-    path: "/shipper/profile",
+    name: "Vehicles",
+    path: "/shipper/vehicles",
     icon: <ProfileIcon />,
   },
   {
