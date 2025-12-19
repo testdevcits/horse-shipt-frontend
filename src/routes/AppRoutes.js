@@ -11,10 +11,6 @@ import RedirectIfAuth from "../pages/auth/RedirectIfAuth";
 import { useAuth } from "../contexts/AuthContext";
 import MainLayout from "../layouts/MainLayout";
 import NotificationsPage from "../pages/shipper/NotificationsPage";
-// import UpcomingShipments from "../pages/shipper/UpcomingShipments";
-// import Profile from "../pages/shipper/Profile";
-
-// import PreferredAreas from "../pages/shipper/PreferredAreasPage";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -32,10 +28,16 @@ const AllUpcomingShipments = lazy(() =>
   import("../pages/shipper/AllUpcomingShipments")
 );
 const ChatPage = lazy(() => import("../pages/shipper/ChatPage"));
+const ChatOverview = lazy(
+  () => import("../pages/shipper/ChatOverview") // 👈 make sure this path is correct
+);
 
-// const ShipperNotifications = lazy(() =>
-//   import("../pages/shipper/ShipperNotifications")
-// );
+const ShipmentSettings = lazy(() =>
+  import("../pages/shipper/ShipmentSettings")
+);
+const VehiclesAndCapacity = lazy(() =>
+  import("../pages/shipper/VehiclesAndCapacity")
+);
 
 // ---------------- Customer Pages ----------------
 const CustomerLayout = lazy(() => import("../layouts/CustomerLayout"));
@@ -48,13 +50,6 @@ const EditProfile = lazy(() => import("../pages/customer/EditProfile"));
 
 // ---------------- Common Pages ----------------
 const Home = lazy(() => import("../pages/Home"));
-// const SignaturePad = lazy(() => import("../pages/customer/SignaturePad"));
-const ShipmentSettings = lazy(() =>
-  import("../pages/shipper/ShipmentSettings")
-);
-const VehiclesAndCapacity = lazy(() =>
-  import("../pages/shipper/VehiclesAndCapacity")
-);
 const NotFoundPage = lazy(() => import("../pages/NotFound"));
 
 const AppRoutes = () => {
@@ -104,15 +99,7 @@ const AppRoutes = () => {
             path="/"
             element={
               <RedirectIfAuth>
-                {/* <PreferredAreas /> */}
                 <Home />
-                {/* <ShipmentSettings /> */}
-                {/* <ShipperNotifications /> */}
-                {/* <ShipperSettings /> */}
-                {/* <NotificationsPage /> */}
-                {/* <Profile /> */}
-                {/* <UpcomingShipments /> */}
-                {/* <ShipmentDetails shipmentId="68fa3354c3e032b612c53475" /> */}
               </RedirectIfAuth>
             }
           />
@@ -154,11 +141,10 @@ const AppRoutes = () => {
           <Route path="shipment-settings" element={<ShipmentSettings />} />
           <Route path="settings" element={<ShipperSettings />} />
           <Route path="notifications" element={<NotificationsPage />} />
-
           <Route path="shipments" element={<AllUpcomingShipments />} />
           <Route path="shipments/:id" element={<ShipmentDetails />} />
-
-          {/*  CHAT ROUTE (FIXED) */}
+          {/* CHAT ROUTES */}
+          <Route path="chat" element={<ChatOverview />} />
           <Route path="chat/:shipmentId" element={<ChatPage />} />
         </Route>
 

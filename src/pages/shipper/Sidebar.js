@@ -38,7 +38,7 @@ const navItems = [
   },
   {
     name: "Chat",
-    path: "/shipper/messages",
+    path: "/shipper/chat", // no hardcoded shipment ID
     icon: <ChatIcon />,
   },
   {
