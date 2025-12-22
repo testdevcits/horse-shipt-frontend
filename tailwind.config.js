@@ -11,7 +11,7 @@ module.exports = {
         light: "#F3F4F6",
         dark: "#111827",
         system: {
-          primary: "#BF9B53",
+          primary: "#735D32",
           background: "var(--System-Background, #FEFEFE)",
         },
         toast: {
