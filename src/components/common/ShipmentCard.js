@@ -12,9 +12,9 @@ const ShipmentCard = ({ shipment }) => {
     navigate(`/customer/my-shipments?shipmentId=${shipment._id}`);
   };
 
-  // Determine delivery badge colors based on date
-  const getDeliveryStatusColors = () => {
-    if (!shipment.deliveryDate)
+  // Determine pickup badge colors based on pickup date
+  const getPickupStatusColors = () => {
+    if (!shipment.pickupDate)
       return {
         bgColor: "bg-gray-200",
         borderColor: "border-gray-400",
@@ -23,10 +23,10 @@ const ShipmentCard = ({ shipment }) => {
       };
 
     const today = new Date();
-    const delivery = new Date(shipment.deliveryDate);
-    const diffMs = delivery.getTime() - today.getTime();
+    const pickup = new Date(shipment.pickupDate);
+    const diffMs = pickup.getTime() - today.getTime();
 
-    if (delivery.toDateString() === today.toDateString()) {
+    if (pickup.toDateString() === today.toDateString()) {
       return {
         bgColor: "bg-success-100",
         borderColor: "border-success-700",
@@ -50,8 +50,7 @@ const ShipmentCard = ({ shipment }) => {
     }
   };
 
-  const { bgColor, borderColor, dotColor, textColor } =
-    getDeliveryStatusColors();
+  const { bgColor, borderColor, dotColor, textColor } = getPickupStatusColors();
 
   return (
     <div
@@ -71,7 +70,7 @@ const ShipmentCard = ({ shipment }) => {
       <div className="flex flex-col justify-between flex-1 gap-2 min-w-0">
         {/* Shipment Name / Horses Info */}
         <div className="flex items-center gap-2 text-gray-700 text-sm md:text-[14px] font-SemiBold">
-          <h3 className="text-md text-gray-800 mb-0">
+          <h3 className="text-lg md:text-xl font-semibold mb-0">
             {shipment.numberOfHorses} Horse
             {shipment.numberOfHorses > 1 ? "s" : ""} Shipping from{" "}
             <span className="font-medium">{shipment.pickupLocation}</span> to{" "}
@@ -79,13 +78,13 @@ const ShipmentCard = ({ shipment }) => {
           </h3>
         </div>
 
-        {/* Delivery Status */}
+        {/* Pickup Status */}
         <div className="flex items-center gap-2 md:gap-4">
-          <span className="text-sm font-montserrat">Delivery</span>
+          <span className="text-sm font-montserrat">Pickup</span>
           <StatusBadge
             text={
-              shipment.deliveryDate
-                ? new Date(shipment.deliveryDate).toLocaleDateString()
+              shipment.pickupDate
+                ? new Date(shipment.pickupDate).toLocaleDateString()
                 : "Pending"
             }
             bgColor={bgColor}

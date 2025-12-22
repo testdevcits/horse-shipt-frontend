@@ -14,6 +14,13 @@ const MyShipmentDetails = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
+  // Document modal
+  const [docModal, setDocModal] = useState({
+    visible: false,
+    url: "",
+    title: "",
+  });
+
   useEffect(() => {
     if (shipmentId) {
       fetchShipmentById(shipmentId);
@@ -42,12 +49,31 @@ const MyShipmentDetails = () => {
   const shipment = currentShipment;
 
   return (
-    <div className="w-full p-4 md:p-8 lg:p-12">
+    <div className="w-full">
       <h2 className="font-montserrat font-semibold text-2xl md:text-3xl mb-6 text-center md:text-left">
         Shipment Details
       </h2>
 
-      <div className="border p-4 md:p-6 lg:p-8 rounded-xl shadow-md flex flex-col gap-6 bg-white">
+      <div className="relative border p-4 md:p-6 lg:p-8 rounded-xl shadow-md flex flex-col gap-6 bg-white">
+        {/* Publish Button Top Right */}
+        {!shipment.publish && (
+          <div className="absolute top-4 right-4">
+            <Button
+              onClick={() => setShowConfirm(true)}
+              variant="primary"
+              rounded
+              disabled={publishing}
+            >
+              {publishing ? "Publishing..." : "Publish Shipment"}
+            </Button>
+          </div>
+        )}
+        {shipment.publish && (
+          <div className="absolute top-4 right-4 text-green-600 font-semibold">
+            Shipment Published
+          </div>
+        )}
+
         {/* Top Section */}
         <div className="flex flex-col md:flex-row gap-6">
           <img
@@ -61,7 +87,7 @@ const MyShipmentDetails = () => {
               {shipment.horses[0]?.registeredName || "N/A"}
             </p>
             <p className="text-gray-700 text-sm md:text-base">
-              <strong>Delivery Status:</strong>{" "}
+              <strong>Status:</strong>{" "}
               {shipment.status.charAt(0).toUpperCase() +
                 shipment.status.slice(1)}
             </p>
@@ -83,25 +109,6 @@ const MyShipmentDetails = () => {
               <strong>Additional Info:</strong>{" "}
               {shipment.additionalInfo || "N/A"}
             </p>
-
-            {/* Publish Button */}
-            {!shipment.publish && (
-              <Button
-                onClick={() => setShowConfirm(true)}
-                variant="primary"
-                rounded
-                className="mt-4 self-start"
-                fullWidth={false}
-                disabled={publishing}
-              >
-                {publishing ? "Publishing..." : "Publish Shipment"}
-              </Button>
-            )}
-            {shipment.publish && (
-              <span className="mt-4 text-green-600 font-semibold text-sm md:text-base">
-                Shipment is Published
-              </span>
-            )}
           </div>
         </div>
 
@@ -142,27 +149,35 @@ const MyShipmentDetails = () => {
                       <strong>Sex:</strong> {horse.sex}
                     </p>
 
-                    {/* Documents Links */}
+                    {/* Documents Links - Open in modal */}
                     <div className="flex flex-wrap gap-2 mt-2">
                       {horse.cogins && (
-                        <a
-                          href={horse.cogins.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() =>
+                            setDocModal({
+                              visible: true,
+                              url: horse.cogins.url,
+                              title: "Cogins PDF",
+                            })
+                          }
                           className="text-blue-600 hover:underline text-sm md:text-base"
                         >
                           Cogins PDF
-                        </a>
+                        </button>
                       )}
                       {horse.healthCertificate && (
-                        <a
-                          href={horse.healthCertificate.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() =>
+                            setDocModal({
+                              visible: true,
+                              url: horse.healthCertificate.url,
+                              title: "Health Certificate",
+                            })
+                          }
                           className="text-blue-600 hover:underline text-sm md:text-base"
                         >
                           Health Certificate
-                        </a>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -183,7 +198,7 @@ const MyShipmentDetails = () => {
             <p className="text-sm md:text-base text-center">
               Are you sure you want to publish this shipment?
             </p>
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="flex justify-between gap-2 mt-4">
               <Button
                 onClick={() => setShowConfirm(false)}
                 variant="secondary"
@@ -200,6 +215,30 @@ const MyShipmentDetails = () => {
                 {publishing ? "Publishing..." : "Yes, Publish"}
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Viewer Modal */}
+      {docModal.visible && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white w-11/12 md:w-4/5 lg:w-3/5 h-4/5 rounded-lg shadow-lg flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="font-semibold text-lg">{docModal.title}</h3>
+              <button
+                onClick={() =>
+                  setDocModal({ visible: false, url: "", title: "" })
+                }
+                className="text-gray-500 hover:text-gray-700 font-bold text-xl"
+              >
+                ×
+              </button>
+            </div>
+            <iframe
+              src={docModal.url}
+              title={docModal.title}
+              className="w-full h-full"
+            />
           </div>
         </div>
       )}
