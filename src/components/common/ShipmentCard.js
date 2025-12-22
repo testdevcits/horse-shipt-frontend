@@ -10,6 +10,16 @@ const ShipmentCard = ({ shipment }) => {
     navigate(`/customer/my-shipments?shipmentId=${shipment._id}`);
   };
 
+  // Calculate delivery status
+  const today = new Date();
+  const deliveryDate = new Date(shipment.deliveryDate);
+  let deliveryStatus = "Upcoming";
+  const diffTime = deliveryDate - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) deliveryStatus = "Today";
+  else if (diffDays === 1) deliveryStatus = "Tomorrow";
+
   return (
     <div
       onClick={handleClick}
@@ -18,8 +28,8 @@ const ShipmentCard = ({ shipment }) => {
       {/* Left Image */}
       <div className="flex-shrink-0">
         <img
-          src={shipment.image}
-          alt={shipment.name}
+          src={shipment.horses[0]?.photo?.url}
+          alt={shipment.horses[0]?.registeredName || "Shipment Image"}
           className="w-[80px] h-[124px] sm:w-[100px] sm:h-[140px] md:w-[140px] md:h-[160px] lg:h-[180px] rounded-[16px] object-cover"
         />
       </div>
@@ -28,7 +38,7 @@ const ShipmentCard = ({ shipment }) => {
       <div className="flex flex-col justify-between flex-1 gap-2 min-w-0">
         {/* Shipment Name */}
         <div className="font-montserrat font-semibold text-[14px] md:text-[16px] leading-[20px] text-[#333333] ">
-          {shipment.name}
+          {shipment.horses[0]?.registeredName || "Unnamed Horse"}
         </div>
 
         {/* Delivery Status */}
@@ -36,27 +46,29 @@ const ShipmentCard = ({ shipment }) => {
           <span className="text-sm font-montserrat">Delivery</span>
           <p
             className={`w-[90px] h-[24px] text-sm flex items-center justify-center rounded-full border font-medium ${
-              shipment.deliveryStatus === "Today"
+              deliveryStatus === "Today"
                 ? "text-success-700 border-success-700 bg-success-100"
-                : shipment.deliveryStatus === "Tomorrow"
+                : deliveryStatus === "Tomorrow"
                 ? "text-yellow-700 border-yellow-700 bg-yellow-100"
                 : "text-gray-500 border-gray-300"
             }`}
           >
-            {shipment.deliveryStatus}
+            {deliveryStatus}
           </p>
         </div>
 
         {/* Address */}
         <div className="flex items-center gap-2 text-gray-700 text-sm md:text-[14px] font-montserrat">
           <IoLocationOutline size={18} />
-          <span>{shipment.address}</span>
+          <span>
+            {shipment.pickupLocation} → {shipment.deliveryLocation}
+          </span>
         </div>
 
         {/* Date */}
         <div className="flex items-center gap-2 text-gray-700 text-sm md:text-[14px] font-montserrat">
           <LuCalendarDays size={18} />
-          <span>{shipment.date}</span>
+          <span>{new Date(shipment.deliveryDate).toLocaleDateString()}</span>
         </div>
       </div>
     </div>
