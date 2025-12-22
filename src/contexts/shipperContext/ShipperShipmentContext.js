@@ -33,11 +33,14 @@ export const ShipperShipmentProvider = ({ children }) => {
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/shipments/available`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       setAvailableShipments(res.data.shipments || []);
     } catch (err) {
+      console.error(err);
       showToast("Failed to fetch available shipments", "error");
     } finally {
       setLoading(false);
