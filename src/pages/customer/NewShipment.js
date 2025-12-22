@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
 import ModalOfferPublished from "./ModalOfferPublished";
 import DateInput from "../../components/common/DateInput";
 import logoMobile from "../../assets/images/mobileLogo.png";
 import { IoLocationOutline } from "react-icons/io5";
 import { LuCalendarDays } from "react-icons/lu";
 import { FiEdit3 } from "react-icons/fi";
-import axios from "axios";
 import Toast from "../../components/common/Toast";
+
+import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 
 const steps = [
   { id: 1, title: "Pickup" },
@@ -24,7 +24,6 @@ const sexes = ["Male", "Female"];
 
 const NewShipment = () => {
   const navigate = useNavigate();
-  const { token } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
 
   // Step 1: Pickup
@@ -57,14 +56,18 @@ const NewShipment = () => {
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [errors, setErrors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { createShipment } = useCustomerShipments();
 
   // Update horses array when numberOfHorses changes
   useEffect(() => {
-    const diff = numberOfHorses - horses.length;
-    if (diff > 0) {
+    const count = Number(numberOfHorses) || 0;
+
+    if (count > horses.length) {
+      const diff = count - horses.length;
+
       setHorses((prev) => [
         ...prev,
-        ...Array(diff).fill({
+        ...Array.from({ length: diff }, () => ({
           registeredName: "",
           barnName: "",
           breed: "",
@@ -75,12 +78,14 @@ const NewShipment = () => {
           cogins: null,
           healthCertificate: null,
           generalInfo: "",
-        }),
+        })),
       ]);
-    } else if (diff < 0) {
-      setHorses((prev) => prev.slice(0, numberOfHorses));
     }
-  }, [numberOfHorses]);
+
+    if (count < horses.length) {
+      setHorses((prev) => prev.slice(0, count));
+    }
+  }, [numberOfHorses, horses.length]); // FIXED
 
   const handleCancel = () => {
     setPickupLocation("");
@@ -167,37 +172,9 @@ const NewShipment = () => {
     if (!validateStep()) return;
 
     try {
-      // Ensure horses count is a valid number
       const horsesCount = Number(numberOfHorses) || 0;
       const horseList = Array.isArray(horses) ? horses : [];
 
-      // Prepare payload for debugging/logging
-      const payload = {
-        pickupLocation,
-        pickupTimeOption,
-        pickupDate,
-        deliveryLocation,
-        deliveryTimeOption,
-        deliveryDate,
-        numberOfHorses: horsesCount,
-        additionalInfo: additionalInfo || "",
-        horses: horseList.map((h) => ({
-          registeredName: h.registeredName || "",
-          barnName: h.barnName || "",
-          breed: h.breed || "",
-          colour: h.colour || "",
-          age: h.age || "",
-          sex: h.sex || "",
-          photo: h.photo?.name || null,
-          cogins: h.cogins?.name || null,
-          healthCertificate: h.healthCertificate?.name || null,
-          generalInfo: h.generalInfo || "",
-        })),
-      };
-
-      console.log("Final shipment values before API call:", payload);
-
-      // Prepare FormData for backend submission
       const formData = new FormData();
       formData.append("pickupLocation", pickupLocation || "");
       formData.append("pickupTimeOption", pickupTimeOption || "");
@@ -208,7 +185,6 @@ const NewShipment = () => {
       formData.append("numberOfHorses", horsesCount);
       formData.append("additionalInfo", additionalInfo || "");
 
-      // Append horse fields and files
       horseList.forEach((h, idx) => {
         formData.append(
           `horses[${idx}][registeredName]`,
@@ -223,8 +199,10 @@ const NewShipment = () => {
 
         if (h.photo instanceof File)
           formData.append(`horses[${idx}][photo]`, h.photo);
+
         if (h.cogins instanceof File)
           formData.append(`horses[${idx}][cogins]`, h.cogins);
+
         if (h.healthCertificate instanceof File)
           formData.append(
             `horses[${idx}][healthCertificate]`,
@@ -232,30 +210,9 @@ const NewShipment = () => {
           );
       });
 
-      // API call
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/customer/shipments`,
-        formData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // Use context (NOT axios)
+      await createShipment(formData);
 
-      console.log("Shipment created:", response.data);
-
-      // Optional push notification
-      // if (response.data.success) {
-      //   try {
-      //     const notifResponse = await axios.post(
-      //       `${process.env.REACT_APP_API_BASE_URL}/customer/test-notification`,
-      //       {},
-      //       { headers: { Authorization: `Bearer ${token}` } }
-      //     );
-      //     console.log("Test notification sent:", notifResponse.data);
-      //   } catch (notifErr) {
-      //     console.warn("Failed to send notification:", notifErr);
-      //   }
-      // }
-
-      // Open confirmation modal
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error creating shipment:", error);
