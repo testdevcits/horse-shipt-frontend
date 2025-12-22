@@ -116,7 +116,7 @@ export const CustomerShipmentProvider = ({ children }) => {
 
   // ================= PUBLISH SHIPMENT =================
   const publishShipment = async (shipmentId) => {
-    if (!token) return;
+    if (!token) throw new Error("No authorization token");
 
     setLoading(true);
     setError(null);
@@ -131,16 +131,30 @@ export const CustomerShipmentProvider = ({ children }) => {
       );
 
       if (res.data.success) {
+        // Update shipments list
         setShipments((prev) =>
           prev.map((s) => (s._id === shipmentId ? res.data.shipment : s))
         );
+
+        // Update current shipment if it matches
+        if (currentShipment && currentShipment._id === shipmentId) {
+          setCurrentShipment(res.data.shipment);
+        }
+
+        console.log("Shipment published successfully:", res.data.shipment._id);
         return res.data.shipment;
       } else {
         setError(res.data.message || "Failed to publish shipment");
+        throw new Error(res.data.message || "Failed to publish shipment");
       }
     } catch (err) {
       console.error("Publish shipment error:", err);
-      setError(err.response?.data?.message || err.message);
+      const message =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to publish shipment";
+      setError(message);
+      throw new Error(message); // Throw so component can handle
     } finally {
       setLoading(false);
     }

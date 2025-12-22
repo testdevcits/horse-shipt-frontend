@@ -27,6 +27,7 @@ const MyShipmentDetails = () => {
     }
   }, [shipmentId, fetchShipmentById]);
 
+  // ---------------- Handle Publish ----------------
   const handlePublish = async () => {
     if (!currentShipment) return;
     setPublishing(true);
@@ -35,7 +36,7 @@ const MyShipmentDetails = () => {
       Toast.success("Shipment published successfully!");
       setShowConfirm(false);
     } catch (err) {
-      Toast.error("Failed to publish shipment.");
+      Toast.error(err.message || "Failed to publish shipment.");
     } finally {
       setPublishing(false);
     }
