@@ -1,3 +1,4 @@
+// src/pages/customer/MyShipmentDetails.js
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
@@ -14,7 +15,7 @@ const MyShipmentDetails = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
-  // Document modal
+  // Document modal state
   const [docModal, setDocModal] = useState({
     visible: false,
     url: "",
@@ -56,7 +57,7 @@ const MyShipmentDetails = () => {
 
       <div className="relative border p-4 md:p-6 lg:p-8 rounded-xl shadow-md flex flex-col gap-6 bg-white">
         {/* Publish Button Top Right */}
-        {!shipment.publish && (
+        {!shipment.publish ? (
           <div className="absolute top-4 right-4">
             <Button
               onClick={() => setShowConfirm(true)}
@@ -67,14 +68,13 @@ const MyShipmentDetails = () => {
               {publishing ? "Publishing..." : "Publish Shipment"}
             </Button>
           </div>
-        )}
-        {shipment.publish && (
+        ) : (
           <div className="absolute top-4 right-4 text-green-600 font-semibold">
             Shipment Published
           </div>
         )}
 
-        {/* Top Section */}
+        {/* Top Section - Shipment Info */}
         <div className="flex flex-col md:flex-row gap-6">
           <img
             src={shipment.horses[0]?.photo?.url}
@@ -82,10 +82,16 @@ const MyShipmentDetails = () => {
             className="w-full md:w-[250px] lg:w-[300px] h-[250px] md:h-[280px] lg:h-[320px] rounded-lg object-cover shadow-sm"
           />
           <div className="flex-1 flex flex-col gap-3">
+            {/* Customer Info */}
             <p className="text-lg md:text-xl font-semibold">
-              <strong>Name:</strong>{" "}
-              {shipment.horses[0]?.registeredName || "N/A"}
+              <strong>Customer Name:</strong> {shipment.customer?.name || "N/A"}
             </p>
+            <p className="text-lg md:text-xl font-semibold">
+              <strong>Customer Email:</strong>{" "}
+              {shipment.customer?.email || "N/A"}
+            </p>
+
+            {/* Shipment Info */}
             <p className="text-gray-700 text-sm md:text-base">
               <strong>Status:</strong>{" "}
               {shipment.status.charAt(0).toUpperCase() +
@@ -149,7 +155,7 @@ const MyShipmentDetails = () => {
                       <strong>Sex:</strong> {horse.sex}
                     </p>
 
-                    {/* Documents Links - Open in modal */}
+                    {/* Documents Links - Modal Viewer */}
                     <div className="flex flex-wrap gap-2 mt-2">
                       {horse.cogins && (
                         <button
@@ -219,7 +225,7 @@ const MyShipmentDetails = () => {
         </div>
       )}
 
-      {/* Document Viewer Modal */}
+      {/* Document Modal */}
       {docModal.visible && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white w-11/12 md:w-4/5 lg:w-3/5 h-4/5 rounded-lg shadow-lg flex flex-col">
@@ -234,6 +240,7 @@ const MyShipmentDetails = () => {
                 ×
               </button>
             </div>
+            {/* Use iframe for PDF preview */}
             <iframe
               src={docModal.url}
               title={docModal.title}

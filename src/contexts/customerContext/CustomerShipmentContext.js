@@ -1,3 +1,4 @@
+// src/contexts/customerContext/CustomerShipmentContext.js
 import React, {
   createContext,
   useContext,
@@ -174,11 +175,12 @@ export const CustomerShipmentProvider = ({ children }) => {
   };
 
   // ================= AUTO FETCH =================
+  // Only fetch if shipments array is empty to prevent re-fetching on navigation
   useEffect(() => {
-    if (user && token && user.role === "customer") {
+    if (user && token && user.role === "customer" && shipments.length === 0) {
       fetchShipments();
     }
-  }, [user, token, fetchShipments]);
+  }, [user, token, fetchShipments, shipments.length]);
 
   // ================= PROVIDER =================
   return (
