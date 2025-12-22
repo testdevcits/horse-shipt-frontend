@@ -3,12 +3,10 @@ import { useSearchParams } from "react-router-dom";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import Toast from "../../components/common/Toast";
 import Button from "../../components/common/Button";
-import { useAuth } from "../../contexts/AuthContext";
 
 const MyShipmentDetails = () => {
   const [searchParams] = useSearchParams();
   const shipmentId = searchParams.get("shipmentId");
-  const { token } = useAuth();
 
   const { fetchShipmentById, currentShipment, loading, publishShipment } =
     useCustomerShipments();
@@ -16,7 +14,7 @@ const MyShipmentDetails = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
-  // Document modal
+  // Document modal state
   const [docModal, setDocModal] = useState({
     visible: false,
     url: "",
@@ -40,24 +38,6 @@ const MyShipmentDetails = () => {
       Toast.error("Failed to publish shipment.");
     } finally {
       setPublishing(false);
-    }
-  };
-
-  // Open PDF modal using blob fetch for authentication
-  const openPDFModal = async (url, title) => {
-    try {
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error("Failed to fetch PDF");
-      const blob = await response.blob();
-      const objectURL = URL.createObjectURL(blob);
-      setDocModal({ visible: true, url: objectURL, title });
-    } catch (err) {
-      console.error(err);
-      Toast.error("Failed to load PDF document.");
     }
   };
 
@@ -169,12 +149,16 @@ const MyShipmentDetails = () => {
                       <strong>Sex:</strong> {horse.sex}
                     </p>
 
-                    {/* Documents Links */}
+                    {/* Documents Links - open in modal */}
                     <div className="flex flex-wrap gap-2 mt-2">
                       {horse.cogins && (
                         <button
                           onClick={() =>
-                            openPDFModal(horse.cogins.url, "Cogins PDF")
+                            setDocModal({
+                              visible: true,
+                              url: horse.cogins.url,
+                              title: "Cogins PDF",
+                            })
                           }
                           className="text-blue-600 hover:underline text-sm md:text-base"
                         >
@@ -184,10 +168,11 @@ const MyShipmentDetails = () => {
                       {horse.healthCertificate && (
                         <button
                           onClick={() =>
-                            openPDFModal(
-                              horse.healthCertificate.url,
-                              "Health Certificate"
-                            )
+                            setDocModal({
+                              visible: true,
+                              url: horse.healthCertificate.url,
+                              title: "Health Certificate",
+                            })
                           }
                           className="text-blue-600 hover:underline text-sm md:text-base"
                         >
@@ -241,18 +226,17 @@ const MyShipmentDetails = () => {
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="font-semibold text-lg">{docModal.title}</h3>
               <button
-                onClick={() => {
-                  URL.revokeObjectURL(docModal.url);
-                  setDocModal({ visible: false, url: "", title: "" });
-                }}
+                onClick={() =>
+                  setDocModal({ visible: false, url: "", title: "" })
+                }
                 className="text-gray-500 hover:text-gray-700 font-bold text-xl"
               >
                 ×
               </button>
             </div>
-            <iframe
+            <embed
               src={docModal.url}
-              title={docModal.title}
+              type="application/pdf"
               className="w-full h-full"
             />
           </div>
