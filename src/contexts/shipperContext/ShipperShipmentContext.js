@@ -16,7 +16,6 @@ export const ShipperShipmentProvider = ({ children }) => {
   const { token, user } = useAuth();
 
   const [availableShipments, setAvailableShipments] = useState([]);
-  const [assignedShipments, setAssignedShipments] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // ---------------- TOAST ----------------
@@ -39,7 +38,6 @@ export const ShipperShipmentProvider = ({ children }) => {
       });
 
       if (res.data.success) {
-        // Set shipments; you could also sort by pickupDate if needed
         setAvailableShipments(res.data.shipments || []);
       } else {
         showToast(
@@ -49,7 +47,6 @@ export const ShipperShipmentProvider = ({ children }) => {
       }
     } catch (err) {
       console.error(err);
-      // Show backend message if exists
       showToast(
         err.response?.data?.message || "Failed to fetch available shipments",
         "error"
@@ -59,40 +56,19 @@ export const ShipperShipmentProvider = ({ children }) => {
     }
   }, [token]);
 
-  // ---------------- GET ASSIGNED SHIPMENTS ----------------
-  const getAssignedShipments = useCallback(async () => {
-    if (!token) return;
-
-    setLoading(true);
-    try {
-      const res = await axios.get(`${API_BASE_URL}/shipments/assigned`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setAssignedShipments(res.data.shipments || []);
-    } catch (err) {
-      showToast("Failed to fetch assigned shipments", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
-
   // ---------------- AUTO LOAD ----------------
   useEffect(() => {
     if (token && user?.role === "shipper") {
       getAvailableShipments();
-      getAssignedShipments();
     }
-  }, [token, user, getAvailableShipments, getAssignedShipments]);
+  }, [token, user, getAvailableShipments]);
 
   return (
     <ShipperShipmentContext.Provider
       value={{
         availableShipments,
-        assignedShipments,
         loading,
         getAvailableShipments,
-        getAssignedShipments,
       }}
     >
       {children}

@@ -49,7 +49,7 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [token, showToast]);
+  }, []);
 
   // =====================================================
   // Add New Preferred Area
@@ -151,13 +151,13 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
   // =====================================================
   // Auto Fetch When Logged In
   // =====================================================
-  useEffect(() => {
-    if (token && user?.role === "shipper") {
-      fetchPreferredAreas();
-    } else {
-      setPreferredAreas([]);
-    }
-  }, [token, user, fetchPreferredAreas]);
+  // useEffect(() => {
+  //   if (token && user?.role === "shipper") {
+  //     fetchPreferredAreas();
+  //   } else {
+  //     setPreferredAreas([]);
+  //   }
+  // }, [token, user, fetchPreferredAreas]);
 
   // =====================================================
   // Context Provider

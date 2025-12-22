@@ -58,7 +58,7 @@ export const PreferredAreasProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [token, user, fetched]);
+  }, []);
 
   // ---------------- ADD PREFERRED AREA ----------------
   const addPreferredArea = async (formData) => {
@@ -154,14 +154,14 @@ export const PreferredAreasProvider = ({ children }) => {
   };
 
   // ---------------- INITIAL FETCH ----------------
-  useEffect(() => {
-    if (user && user.role === "shipper") {
-      fetchPreferredAreas();
-    } else {
-      setPreferredAreas([]);
-      setFetched(false);
-    }
-  }, [user, fetchPreferredAreas]);
+  // useEffect(() => {
+  //   if (user && user.role === "shipper") {
+  //     fetchPreferredAreas();
+  //   } else {
+  //     setPreferredAreas([]);
+  //     setFetched(false);
+  //   }
+  // }, [user, fetchPreferredAreas]);
 
   return (
     <PreferredAreasContext.Provider
