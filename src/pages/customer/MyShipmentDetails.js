@@ -1,13 +1,14 @@
-// src/pages/customer/MyShipmentDetails.js
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import Toast from "../../components/common/Toast";
 import Button from "../../components/common/Button";
+import { useAuth } from "../../contexts/AuthContext";
 
 const MyShipmentDetails = () => {
   const [searchParams] = useSearchParams();
   const shipmentId = searchParams.get("shipmentId");
+  const { token } = useAuth();
 
   const { fetchShipmentById, currentShipment, loading, publishShipment } =
     useCustomerShipments();
@@ -15,7 +16,7 @@ const MyShipmentDetails = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
-  // Document modal state
+  // Document modal
   const [docModal, setDocModal] = useState({
     visible: false,
     url: "",
@@ -42,6 +43,24 @@ const MyShipmentDetails = () => {
     }
   };
 
+  // Open PDF modal using blob fetch for authentication
+  const openPDFModal = async (url, title) => {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error("Failed to fetch PDF");
+      const blob = await response.blob();
+      const objectURL = URL.createObjectURL(blob);
+      setDocModal({ visible: true, url: objectURL, title });
+    } catch (err) {
+      console.error(err);
+      Toast.error("Failed to load PDF document.");
+    }
+  };
+
   if (loading)
     return <p className="text-center mt-8">Loading shipment details...</p>;
   if (!currentShipment)
@@ -57,7 +76,7 @@ const MyShipmentDetails = () => {
 
       <div className="relative border p-4 md:p-6 lg:p-8 rounded-xl shadow-md flex flex-col gap-6 bg-white">
         {/* Publish Button Top Right */}
-        {!shipment.publish ? (
+        {!shipment.publish && (
           <div className="absolute top-4 right-4">
             <Button
               onClick={() => setShowConfirm(true)}
@@ -68,13 +87,14 @@ const MyShipmentDetails = () => {
               {publishing ? "Publishing..." : "Publish Shipment"}
             </Button>
           </div>
-        ) : (
+        )}
+        {shipment.publish && (
           <div className="absolute top-4 right-4 text-green-600 font-semibold">
             Shipment Published
           </div>
         )}
 
-        {/* Top Section - Shipment Info */}
+        {/* Top Section */}
         <div className="flex flex-col md:flex-row gap-6">
           <img
             src={shipment.horses[0]?.photo?.url}
@@ -82,16 +102,10 @@ const MyShipmentDetails = () => {
             className="w-full md:w-[250px] lg:w-[300px] h-[250px] md:h-[280px] lg:h-[320px] rounded-lg object-cover shadow-sm"
           />
           <div className="flex-1 flex flex-col gap-3">
-            {/* Customer Info */}
             <p className="text-lg md:text-xl font-semibold">
-              <strong>Customer Name:</strong> {shipment.customer?.name || "N/A"}
+              <strong>Name:</strong>{" "}
+              {shipment.horses[0]?.registeredName || "N/A"}
             </p>
-            <p className="text-lg md:text-xl font-semibold">
-              <strong>Customer Email:</strong>{" "}
-              {shipment.customer?.email || "N/A"}
-            </p>
-
-            {/* Shipment Info */}
             <p className="text-gray-700 text-sm md:text-base">
               <strong>Status:</strong>{" "}
               {shipment.status.charAt(0).toUpperCase() +
@@ -155,16 +169,12 @@ const MyShipmentDetails = () => {
                       <strong>Sex:</strong> {horse.sex}
                     </p>
 
-                    {/* Documents Links - Modal Viewer */}
+                    {/* Documents Links */}
                     <div className="flex flex-wrap gap-2 mt-2">
                       {horse.cogins && (
                         <button
                           onClick={() =>
-                            setDocModal({
-                              visible: true,
-                              url: horse.cogins.url,
-                              title: "Cogins PDF",
-                            })
+                            openPDFModal(horse.cogins.url, "Cogins PDF")
                           }
                           className="text-blue-600 hover:underline text-sm md:text-base"
                         >
@@ -174,11 +184,10 @@ const MyShipmentDetails = () => {
                       {horse.healthCertificate && (
                         <button
                           onClick={() =>
-                            setDocModal({
-                              visible: true,
-                              url: horse.healthCertificate.url,
-                              title: "Health Certificate",
-                            })
+                            openPDFModal(
+                              horse.healthCertificate.url,
+                              "Health Certificate"
+                            )
                           }
                           className="text-blue-600 hover:underline text-sm md:text-base"
                         >
@@ -225,22 +234,22 @@ const MyShipmentDetails = () => {
         </div>
       )}
 
-      {/* Document Modal */}
+      {/* Document Viewer Modal */}
       {docModal.visible && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white w-11/12 md:w-4/5 lg:w-3/5 h-4/5 rounded-lg shadow-lg flex flex-col">
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="font-semibold text-lg">{docModal.title}</h3>
               <button
-                onClick={() =>
-                  setDocModal({ visible: false, url: "", title: "" })
-                }
+                onClick={() => {
+                  URL.revokeObjectURL(docModal.url);
+                  setDocModal({ visible: false, url: "", title: "" });
+                }}
                 className="text-gray-500 hover:text-gray-700 font-bold text-xl"
               >
                 ×
               </button>
             </div>
-            {/* Use iframe for PDF preview */}
             <iframe
               src={docModal.url}
               title={docModal.title}
