@@ -38,10 +38,22 @@ export const ShipperShipmentProvider = ({ children }) => {
         },
       });
 
-      setAvailableShipments(res.data.shipments || []);
+      if (res.data.success) {
+        // Set shipments; you could also sort by pickupDate if needed
+        setAvailableShipments(res.data.shipments || []);
+      } else {
+        showToast(
+          res.data.message || "Failed to fetch available shipments",
+          "error"
+        );
+      }
     } catch (err) {
       console.error(err);
-      showToast("Failed to fetch available shipments", "error");
+      // Show backend message if exists
+      showToast(
+        err.response?.data?.message || "Failed to fetch available shipments",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
