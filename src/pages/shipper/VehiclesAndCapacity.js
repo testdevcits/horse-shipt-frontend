@@ -240,7 +240,8 @@ const VehiclePage = () => {
 
       {/* Form Modal */}
       {showModal && (
-        <div className="fixed min-h-screen inset-0 z-50 bg-white overflow-y-auto p-2 sm:p-6 md:p-8">
+        <div className="absolute inset-0 z-50 bg-white overflow-y-auto p-2 sm:p-6 md:p-8 min-h-screen ">
+          {/* Close Button */}
           <button
             onClick={closeModal}
             className="absolute top-4 right-4 text-gray-600 hover:text-[#007bff] transition"
@@ -248,7 +249,8 @@ const VehiclePage = () => {
             <FiX size={28} />
           </button>
 
-          <div className="max-w-full">
+          {/* FORM CONTAINER – FULL WIDTH */}
+          <div className="w-full max-w-none">
             <h2 className="font-semibold text-[22px] sm:text-[24px] text-[#333333] mb-6 text-center sm:text-left">
               {editingVehicle ? "Edit Vehicle" : "Add a New Vehicle"}
             </h2>
@@ -261,7 +263,7 @@ const VehiclePage = () => {
             >
               {({ values, setFieldValue, isSubmitting }) => (
                 <Form className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  {/* Form Fields */}
+                  {/* Transport Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Transport Type
@@ -270,10 +272,11 @@ const VehiclePage = () => {
                       type="text"
                       name="transportType"
                       readOnly
-                      className="w-full border border-gray-300 rounded-lg p-2 bg-gray-100 cursor-not-allowed text-gray-700 text-sm sm:text-base"
+                      className="w-full border border-gray-300 rounded-lg p-2 bg-gray-100 cursor-not-allowed"
                     />
                   </div>
 
+                  {/* Vehicle Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Vehicle Type
@@ -281,7 +284,7 @@ const VehiclePage = () => {
                     <Field
                       as="select"
                       name="vehicleType"
-                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none text-sm sm:text-base"
+                      className="w-full border border-gray-300 rounded-lg p-2"
                     >
                       <option value="">Select Vehicle Type</option>
                       <option value="Truck">Truck</option>
@@ -295,6 +298,7 @@ const VehiclePage = () => {
                     />
                   </div>
 
+                  {/* Number of Stalls */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Number of Stalls
@@ -302,16 +306,11 @@ const VehiclePage = () => {
                     <Field
                       type="number"
                       name="numberOfStalls"
-                      placeholder="Enter number"
-                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none text-sm sm:text-base"
-                    />
-                    <ErrorMessage
-                      name="numberOfStalls"
-                      component="p"
-                      className="text-red-500 text-sm mt-1"
+                      className="w-full border border-gray-300 rounded-lg p-2"
                     />
                   </div>
 
+                  {/* Trailer Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Stall Type
@@ -319,7 +318,7 @@ const VehiclePage = () => {
                     <Field
                       as="select"
                       name="trailerType"
-                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none text-sm sm:text-base"
+                      className="w-full border border-gray-300 rounded-lg p-2"
                     >
                       {[
                         "Stock Trailer",
@@ -331,13 +330,9 @@ const VehiclePage = () => {
                         <option key={opt}>{opt}</option>
                       ))}
                     </Field>
-                    <ErrorMessage
-                      name="trailerType"
-                      component="p"
-                      className="text-red-500 text-sm mt-1"
-                    />
                   </div>
 
+                  {/* Stall Size */}
                   <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Stall Size
@@ -345,7 +340,7 @@ const VehiclePage = () => {
                     <Field
                       as="select"
                       name="stallSize"
-                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none text-sm sm:text-base"
+                      className="w-full border border-gray-300 rounded-lg p-2"
                     >
                       {[
                         "Single Stall",
@@ -356,27 +351,23 @@ const VehiclePage = () => {
                         <option key={opt}>{opt}</option>
                       ))}
                     </Field>
-                    <ErrorMessage
-                      name="stallSize"
-                      component="p"
-                      className="text-red-500 text-sm mt-1"
-                    />
                   </div>
 
-                  {/* Upload Images */}
+                  {/* Images */}
                   <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Upload Vehicle Images
                     </label>
-                    <div className="flex flex-wrap gap-3 mb-4 p-3 border border-gray-200 rounded-xl bg-white">
+                    <div className="flex flex-wrap gap-3 p-3 border border-gray-200 rounded-xl">
                       {[...Array(5)].map((_, i) => (
                         <div
                           key={i}
-                          className="relative w-20 h-20 sm:w-24 sm:h-24 border border-gray-300 border-dashed flex items-center justify-center hover:border-[#BF9B53] cursor-pointer overflow-hidden rounded-[16px] p-2 transition-all"
+                          className="relative w-24 h-24 border border-dashed rounded-[16px] flex items-center justify-center"
                         >
                           <input
                             type="file"
                             accept="image/*"
+                            className="absolute inset-0 opacity-0 cursor-pointer"
                             onChange={(e) => {
                               const file = e.target.files[0];
                               if (file) {
@@ -385,7 +376,6 @@ const VehiclePage = () => {
                                 setFieldValue("images", updated);
                               }
                             }}
-                            className="absolute inset-0 opacity-0 cursor-pointer"
                           />
                           {values.images[i] ? (
                             <img
@@ -397,9 +387,7 @@ const VehiclePage = () => {
                               className="w-full h-full object-cover rounded-[16px]"
                             />
                           ) : (
-                            <span className="text-gray-400 text-2xl select-none">
-                              <RiImageAddLine />
-                            </span>
+                            <RiImageAddLine className="text-2xl text-gray-400" />
                           )}
                         </div>
                       ))}
@@ -415,24 +403,23 @@ const VehiclePage = () => {
                       as="textarea"
                       name="notes"
                       rows="3"
-                      placeholder="Enter notes (optional)"
-                      className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#007bff] outline-none resize-none text-sm sm:text-base"
+                      className="w-full border border-gray-300 rounded-lg p-2"
                     />
                   </div>
 
                   {/* Buttons */}
-                  <div className="col-span-2 flex flex-col sm:flex-row justify-end gap-3 mt-6">
+                  <div className="col-span-2 flex justify-end gap-3 mt-6">
                     <button
                       type="button"
                       onClick={closeModal}
-                      className="w-full sm:w-auto px-5 py-2 border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-200 bg-gray-100 transition"
+                      className="px-5 py-2 border border-gray-400 rounded-lg"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="flex items-center justify-center gap-2 bg-[#bf9b53] text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition w-full sm:w-auto"
+                      className="px-5 py-2 bg-[#bf9b53] text-white rounded-lg"
                     >
                       {editingVehicle ? "Update" : "Save"}
                     </button>

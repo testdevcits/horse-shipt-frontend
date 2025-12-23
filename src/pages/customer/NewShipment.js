@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { LoadScript, Autocomplete } from "@react-google-maps/api";
 import ModalOfferPublished from "./ModalOfferPublished";
 import DateInput from "../../components/common/DateInput";
 import logoMobile from "../../assets/images/mobileLogo.png";
-import { IoLocationOutline } from "react-icons/io5";
-import { LuCalendarDays } from "react-icons/lu";
-import { FiEdit3 } from "react-icons/fi";
+// import { IoLocationOutline } from "react-icons/io5";
+// import { LuCalendarDays } from "react-icons/lu";
+// import { FiEdit3 } from "react-icons/fi";
 import Toast from "../../components/common/Toast";
 
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
@@ -22,6 +23,8 @@ const registeredNames = ["Starfire", "Lightning", "Thunder", "Blaze"];
 const breeds = ["Arabian", "Thoroughbred", "Quarter Horse", "Warmblood"];
 const sexes = ["Male", "Female"];
 
+const libraries = ["places"]; // Required for Google Places Autocomplete
+
 const NewShipment = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
@@ -30,11 +33,13 @@ const NewShipment = () => {
   const [pickupLocation, setPickupLocation] = useState("");
   const [pickupTimeOption, setPickupTimeOption] = useState("on");
   const [pickupDate, setPickupDate] = useState("");
+  const [pickupAutocomplete, setPickupAutocomplete] = useState(null);
 
   // Step 2: Delivery
   const [deliveryLocation, setDeliveryLocation] = useState("");
   const [deliveryTimeOption, setDeliveryTimeOption] = useState("on");
   const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliveryAutocomplete, setDeliveryAutocomplete] = useState(null);
 
   // Step 3 & 4: Horses
   const [numberOfHorses, setNumberOfHorses] = useState(1);
@@ -58,13 +63,31 @@ const NewShipment = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { createShipment } = useCustomerShipments();
 
+  // Handle autocomplete load
+  const onPickupLoad = (autocomplete) => setPickupAutocomplete(autocomplete);
+  const onDeliveryLoad = (autocomplete) =>
+    setDeliveryAutocomplete(autocomplete);
+
+  const onPickupPlaceChanged = () => {
+    if (pickupAutocomplete) {
+      const place = pickupAutocomplete.getPlace();
+      setPickupLocation(place.formatted_address || "");
+    }
+  };
+
+  const onDeliveryPlaceChanged = () => {
+    if (deliveryAutocomplete) {
+      const place = deliveryAutocomplete.getPlace();
+      setDeliveryLocation(place.formatted_address || "");
+    }
+  };
+
   // Update horses array when numberOfHorses changes
   useEffect(() => {
     const count = Number(numberOfHorses) || 0;
 
     if (count > horses.length) {
       const diff = count - horses.length;
-
       setHorses((prev) => [
         ...prev,
         ...Array.from({ length: diff }, () => ({
@@ -85,7 +108,7 @@ const NewShipment = () => {
     if (count < horses.length) {
       setHorses((prev) => prev.slice(0, count));
     }
-  }, [numberOfHorses, horses.length]); // FIXED
+  }, [numberOfHorses, horses.length]);
 
   const handleCancel = () => {
     setPickupLocation("");
@@ -167,7 +190,6 @@ const NewShipment = () => {
     });
   };
 
-  // ---------------------- New: handleFinish ----------------------
   const handleFinish = async () => {
     if (!validateStep()) return;
 
@@ -199,10 +221,8 @@ const NewShipment = () => {
 
         if (h.photo instanceof File)
           formData.append(`horses[${idx}][photo]`, h.photo);
-
         if (h.cogins instanceof File)
           formData.append(`horses[${idx}][cogins]`, h.cogins);
-
         if (h.healthCertificate instanceof File)
           formData.append(
             `horses[${idx}][healthCertificate]`,
@@ -210,9 +230,7 @@ const NewShipment = () => {
           );
       });
 
-      // Use context (NOT axios)
       await createShipment(formData);
-
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error creating shipment:", error);
@@ -220,29 +238,31 @@ const NewShipment = () => {
     }
   };
 
-  // ------------------------------------------------------------
+  // --------------------- Render Step Content ---------------------
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
           <div className="flex flex-col w-full gap-4">
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-500">
-                Pickup Location
-              </label>
-              <input
-                type="text"
-                value={pickupLocation}
-                onChange={(e) => setPickupLocation(e.target.value)}
-                placeholder="Address"
-                className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
-              />
-              {errors.pickupLocation && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.pickupLocation}
-                </p>
-              )}
-            </div>
+            <LoadScript
+              googleMapsApiKey="AIzaSyBSZaXYR38yPQbCk_3uwEJtbkElumVkWw4"
+              libraries={libraries}
+            >
+              <Autocomplete
+                onLoad={onPickupLoad}
+                onPlaceChanged={onPickupPlaceChanged}
+              >
+                <input
+                  type="text"
+                  value={pickupLocation}
+                  placeholder="Pickup Address"
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </Autocomplete>
+            </LoadScript>
+            {errors.pickupLocation && (
+              <p className="text-red-500 text-sm">{errors.pickupLocation}</p>
+            )}
             <div>
               <label className="block text-sm font-semibold mb-1 text-gray-500">
                 When can your horse(s) be picked up?
@@ -250,24 +270,13 @@ const NewShipment = () => {
               <select
                 value={pickupTimeOption}
                 onChange={(e) => setPickupTimeOption(e.target.value)}
-                className="text-gray-500 w-full border border-gray-300 rounded hover:bg-gray-300"
-                style={{
-                  height: "38px",
-                  borderRadius: "6px",
-                  padding: "9px 10px",
-                  background: "#F3F4F6",
-                }}
+                className="w-full border border-gray-300 rounded px-2 py-2 bg-gray-100"
               >
                 <option value="on">On</option>
                 <option value="before">Before</option>
                 <option value="after">After</option>
                 <option value="between">Between</option>
               </select>
-              {errors.pickupTimeOption && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.pickupTimeOption}
-                </p>
-              )}
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1 text-gray-500">
@@ -285,23 +294,25 @@ const NewShipment = () => {
       case 2:
         return (
           <div className="flex flex-col w-full gap-4">
-            <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-500">
-                Delivery Location
-              </label>
-              <input
-                type="text"
-                value={deliveryLocation}
-                onChange={(e) => setDeliveryLocation(e.target.value)}
-                placeholder="Address"
-                className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
-              />
-              {errors.deliveryLocation && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.deliveryLocation}
-                </p>
-              )}
-            </div>
+            <LoadScript
+              googleMapsApiKey="AIzaSyBSZaXYR38yPQbCk_3uwEJtbkElumVkWw4"
+              libraries={libraries}
+            >
+              <Autocomplete
+                onLoad={onDeliveryLoad}
+                onPlaceChanged={onDeliveryPlaceChanged}
+              >
+                <input
+                  type="text"
+                  value={deliveryLocation}
+                  placeholder="Delivery Address"
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </Autocomplete>
+            </LoadScript>
+            {errors.deliveryLocation && (
+              <p className="text-red-500 text-sm">{errors.deliveryLocation}</p>
+            )}
             <div>
               <label className="block text-sm font-semibold mb-1 text-gray-500">
                 When should your horse(s) be delivered?
@@ -309,13 +320,7 @@ const NewShipment = () => {
               <select
                 value={deliveryTimeOption}
                 onChange={(e) => setDeliveryTimeOption(e.target.value)}
-                className="text-gray-500 w-full border border-gray-300 rounded hover:bg-gray-300"
-                style={{
-                  height: "38px",
-                  borderRadius: "6px",
-                  padding: "9px 10px",
-                  background: "#F3F4F6",
-                }}
+                className="w-full border border-gray-300 rounded px-2 py-2 bg-gray-100"
               >
                 <option value="on">On</option>
                 <option value="before">Before</option>
@@ -357,7 +362,7 @@ const NewShipment = () => {
             </div>
 
             {horses.map((horse, idx) => (
-              <div key={idx} className="bg-gray-50">
+              <div key={idx} className="bg-gray-50 p-4 rounded-md">
                 <p className="font-semibold mb-2">
                   Horse {idx + 1}: {horse.registeredName || "Unnamed"}
                 </p>
@@ -502,160 +507,97 @@ const NewShipment = () => {
         return (
           <div className="flex flex-col w-full gap-6">
             {horses.map((horse, idx) => (
-              <div key={idx} className="">
-                {/* Horse Name Heading */}
-                <h2
-                  className="text-gray-800 font-semibold mb-3 rounded-[15px] bg-[#F2EBDD] "
-                  style={{
-                    fontSize: "16px",
-                    lineHeight: "24px",
-                    padding: "14px",
-                    borderRadius: "15px",
-                  }}
-                >
-                  Horse {idx + 1} - {horse.registeredName || "Unnamed"}
+              <div key={idx}>
+                <h2 className="text-gray-800 font-semibold mb-3 rounded-[15px] bg-[#F2EBDD] p-4">
+                  Uploads for Horse {idx + 1}
                 </h2>
-
-                {/* Upload a Photo Section */}
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
-                    Upload a photo of the horse
-                  </h3>
-                  <p className="text-xs text-gray-500 mb-2">
-                    A picture enhances your listing, making it more appealing
-                    and increasing the likelihood of attracting attention from
-                    potential carriers.
-                  </p>
+                <div className="flex flex-col gap-2">
+                  <label>Photo</label>
                   <input
                     type="file"
                     onChange={(e) =>
                       handleHorseFileChange(idx, "photo", e.target.files[0])
                     }
-                    className="w-full border border-gray-300 rounded px-3 py-2"
                   />
-                </div>
 
-                {/* Documents Section */}
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
-                    Documents
-                  </h3>
-                  <p className="text-xs text-gray-500 mb-2">
-                    Provide the required paperwork to facilitate a smooth and
-                    safe delivery process.
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    <input
-                      type="file"
-                      onChange={(e) =>
-                        handleHorseFileChange(idx, "cogins", e.target.files[0])
-                      }
-                      className="w-full border border-gray-300 rounded px-3 py-2"
-                      placeholder="Coggins"
-                    />
-                    <input
-                      type="file"
-                      onChange={(e) =>
-                        handleHorseFileChange(
-                          idx,
-                          "healthCertificate",
-                          e.target.files[0]
-                        )
-                      }
-                      className="w-full border border-gray-300 rounded px-3 py-2"
-                      placeholder="Health Certificate"
-                    />
-                  </div>
-                </div>
+                  <label>Cogins</label>
+                  <input
+                    type="file"
+                    onChange={(e) =>
+                      handleHorseFileChange(idx, "cogins", e.target.files[0])
+                    }
+                  />
 
-                {/* General Information Section */}
-                <div className="mb-2">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
-                    General Information
-                  </h3>
-                  <p className="text-xs text-gray-500 mb-2">
-                    Describe any specific preferences or restrictions you may
-                    have for the shipment, such as preferred vehicle types and
-                    other relevant details.
-                  </p>
+                  <label>Health Certificate</label>
+                  <input
+                    type="file"
+                    onChange={(e) =>
+                      handleHorseFileChange(
+                        idx,
+                        "healthCertificate",
+                        e.target.files[0]
+                      )
+                    }
+                  />
+
+                  <label>Additional Information</label>
                   <textarea
                     value={horse.generalInfo}
                     onChange={(e) =>
                       handleHorseChange(idx, "generalInfo", e.target.value)
                     }
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-gray-500"
-                    rows={3}
-                    placeholder="Enter additional details"
+                    className="border border-gray-300 rounded px-3 py-2 w-full"
                   />
                 </div>
               </div>
             ))}
+
+            <div className="mt-4">
+              <label className="block font-semibold mb-2 text-gray-500">
+                Overall Additional Info
+              </label>
+              <textarea
+                value={additionalInfo}
+                onChange={(e) => setAdditionalInfo(e.target.value)}
+                className="border border-gray-300 rounded px-3 py-2 w-full"
+              />
+            </div>
           </div>
         );
 
       case 5:
         return (
-          <div className="flex flex-col w-full gap-4">
-            {/* Shipment Details */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Pickup:</span>{" "}
-                <IoLocationOutline className="text-gray-500 text-lg" />
-                <p>{pickupLocation}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <LuCalendarDays className="text-gray-500 text-lg" />
+          <div className="flex flex-col gap-4">
+            <h2 className="text-xl font-semibold mb-3">Review Shipment</h2>
+            <p>
+              <strong>Pickup:</strong> {pickupLocation} on {pickupDate} (
+              {pickupTimeOption})
+            </p>
+            <p>
+              <strong>Delivery:</strong> {deliveryLocation} on {deliveryDate} (
+              {deliveryTimeOption})
+            </p>
+            <p>
+              <strong>Number of Horses:</strong> {numberOfHorses}
+            </p>
+            {horses.map((h, idx) => (
+              <div key={idx} className="bg-gray-50 p-3 rounded-md mt-2">
                 <p>
-                  {pickupDate} ({pickupTimeOption})
+                  <strong>Horse {idx + 1}:</strong> {h.registeredName} (
+                  {h.barnName})
                 </p>
+                <p>Breed: {h.breed}</p>
+                <p>Colour: {h.colour}</p>
+                <p>Age: {h.age}</p>
+                <p>Sex: {h.sex}</p>
+                {h.generalInfo && <p>Info: {h.generalInfo}</p>}
               </div>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="font-semibold">Delivery:</span>{" "}
-                <IoLocationOutline className="text-gray-500 text-lg" />
-                <p>{deliveryLocation}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <LuCalendarDays className="text-gray-500 text-lg" />
-                <p>
-                  ({deliveryTimeOption}) {deliveryDate}
-                </p>
-              </div>
-
-              <button
-                className="flex items-center gap-2 text-gray-300  mt-2"
-                onClick={() => setCurrentStep(1)} // Move to Step 1
-              >
-                <FiEdit3 /> Edit details
-              </button>
-            </div>
-
-            {/* Horses & Additional Info */}
-            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm mt-4 space-y-2">
-              <p className="font-semibold">
-                Number of horses: {numberOfHorses}
+            ))}
+            {additionalInfo && (
+              <p className="mt-2">
+                <strong>Overall Info:</strong> {additionalInfo}
               </p>
-              {horses.map((h, idx) => (
-                <div key={idx} className="rounded-md">
-                  <p className="font-semibold mb-1">
-                    Horse {idx + 1}: {h.registeredName || "Unnamed"}
-                  </p>
-                  <p>
-                    Breed: {h.breed || "N/A"}, Colour: {h.colour || "N/A"}, Age:{" "}
-                    {h.age || "N/A"}, Sex: {h.sex || "N/A"}
-                  </p>
-                  <div>Photo: {h.photo?.name || "N/A"}</div>
-                  <div>Cog-ins: {h.cogins?.name || "N/A"}</div>
-                  <div>
-                    Health Certificate: {h.healthCertificate?.name || "N/A"}
-                  </div>
-                  <div>General Info: {h.generalInfo || "N/A"}</div>
-                </div>
-              ))}
-              <div className="mt-2">
-                <p className="font-semibold">Additional Info:</p>
-                <p>{additionalInfo || "N/A"}</p>
-              </div>
-            </div>
+            )}
           </div>
         );
 
@@ -735,11 +677,8 @@ const NewShipment = () => {
         </button>
         <button
           onClick={() => {
-            if (currentStep === steps.length) {
-              handleFinish(); // Call finish function
-            } else {
-              handleNext(); // Go to next step
-            }
+            if (currentStep === steps.length) handleFinish();
+            else handleNext();
           }}
           className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e]"
         >

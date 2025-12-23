@@ -3,29 +3,14 @@ import { useNavigate } from "react-router-dom";
 import ShipmentCard from "./ShipmentCard";
 import Button from "../../components/common/Button";
 import { MdNavigateNext } from "react-icons/md";
-import { useShipperShipment } from "../../contexts/shipperContext/ShipperShipmentContext";
+import { shipments } from "../../data/shipments"; // <-- import
 
 const UpcomingShipments = () => {
   const navigate = useNavigate();
 
-  const { availableShipments, loading } = useShipperShipment();
-
-  if (loading) {
-    return (
-      <div className="mt-4 text-gray-500 text-sm">Loading shipments...</div>
-    );
-  }
-
-  if (!availableShipments.length) {
-    return (
-      <div className="mt-4 text-gray-500 text-sm">No available shipments</div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-4 mt-4">
-      {/* Show ONLY 1 shipment like before */}
-      {availableShipments.slice(0, 1).map((shipment) => (
+      {shipments.slice(0, 1).map((shipment) => (
         <ShipmentCard key={shipment._id} shipment={shipment} />
       ))}
 
