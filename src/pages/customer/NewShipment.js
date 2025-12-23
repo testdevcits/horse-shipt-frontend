@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LoadScript, Autocomplete } from "@react-google-maps/api";
 import ModalOfferPublished from "./ModalOfferPublished";
 import DateInput from "../../components/common/DateInput";
 import logoMobile from "../../assets/images/mobileLogo.png";
-// import { IoLocationOutline } from "react-icons/io5";
-// import { LuCalendarDays } from "react-icons/lu";
-// import { FiEdit3 } from "react-icons/fi";
 import Toast from "../../components/common/Toast";
-
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 
 const steps = [
@@ -23,23 +18,23 @@ const registeredNames = ["Starfire", "Lightning", "Thunder", "Blaze"];
 const breeds = ["Arabian", "Thoroughbred", "Quarter Horse", "Warmblood"];
 const sexes = ["Male", "Female"];
 
-const libraries = ["places"]; // Required for Google Places Autocomplete
-
 const NewShipment = () => {
   const navigate = useNavigate();
+  const { createShipment } = useCustomerShipments();
+
   const [currentStep, setCurrentStep] = useState(1);
 
   // Step 1: Pickup
   const [pickupLocation, setPickupLocation] = useState("");
+  const [pickupSuggestions, setPickupSuggestions] = useState([]);
   const [pickupTimeOption, setPickupTimeOption] = useState("on");
   const [pickupDate, setPickupDate] = useState("");
-  const [pickupAutocomplete, setPickupAutocomplete] = useState(null);
 
   // Step 2: Delivery
   const [deliveryLocation, setDeliveryLocation] = useState("");
+  const [deliverySuggestions, setDeliverySuggestions] = useState([]);
   const [deliveryTimeOption, setDeliveryTimeOption] = useState("on");
   const [deliveryDate, setDeliveryDate] = useState("");
-  const [deliveryAutocomplete, setDeliveryAutocomplete] = useState(null);
 
   // Step 3 & 4: Horses
   const [numberOfHorses, setNumberOfHorses] = useState(1);
@@ -61,31 +56,46 @@ const NewShipment = () => {
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [errors, setErrors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { createShipment } = useCustomerShipments();
 
-  // Handle autocomplete load
-  const onPickupLoad = (autocomplete) => setPickupAutocomplete(autocomplete);
-  const onDeliveryLoad = (autocomplete) =>
-    setDeliveryAutocomplete(autocomplete);
-
-  const onPickupPlaceChanged = () => {
-    if (pickupAutocomplete) {
-      const place = pickupAutocomplete.getPlace();
-      setPickupLocation(place.formatted_address || "");
+  // ------------------ Autocomplete Handlers ------------------
+  const fetchSuggestions = async (query, setSuggestions) => {
+    if (!query) {
+      setSuggestions([]);
+      return;
+    }
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+          query
+        )}&format=json&addressdetails=1&limit=5`
+      );
+      const data = await response.json();
+      setSuggestions(data);
+    } catch (error) {
+      console.error("Error fetching location suggestions:", error);
     }
   };
 
-  const onDeliveryPlaceChanged = () => {
-    if (deliveryAutocomplete) {
-      const place = deliveryAutocomplete.getPlace();
-      setDeliveryLocation(place.formatted_address || "");
-    }
+  const handlePickupChange = (e) => {
+    const value = e.target.value;
+    setPickupLocation(value);
+    fetchSuggestions(value, setPickupSuggestions);
   };
 
-  // Update horses array when numberOfHorses changes
+  const handleDeliveryChange = (e) => {
+    const value = e.target.value;
+    setDeliveryLocation(value);
+    fetchSuggestions(value, setDeliverySuggestions);
+  };
+
+  const handleSelectSuggestion = (suggestion, setLocation, setSuggestions) => {
+    setLocation(suggestion.display_name);
+    setSuggestions([]);
+  };
+
+  // ------------------ Horses Logic ------------------
   useEffect(() => {
     const count = Number(numberOfHorses) || 0;
-
     if (count > horses.length) {
       const diff = count - horses.length;
       setHorses((prev) => [
@@ -104,40 +114,28 @@ const NewShipment = () => {
         })),
       ]);
     }
-
     if (count < horses.length) {
       setHorses((prev) => prev.slice(0, count));
     }
   }, [numberOfHorses, horses.length]);
 
-  const handleCancel = () => {
-    setPickupLocation("");
-    setPickupTimeOption("on");
-    setPickupDate("");
-    setDeliveryLocation("");
-    setDeliveryTimeOption("on");
-    setDeliveryDate("");
-    setNumberOfHorses(1);
-    setHorses([
-      {
-        registeredName: "",
-        barnName: "",
-        breed: "",
-        colour: "",
-        age: "",
-        sex: "",
-        photo: null,
-        cogins: null,
-        healthCertificate: null,
-        generalInfo: "",
-      },
-    ]);
-    setAdditionalInfo("");
-    setCurrentStep(1);
-    setErrors({});
-    navigate("/customer/dashboard");
+  const handleHorseChange = (index, field, value) => {
+    setHorses((prev) => {
+      const updated = [...prev];
+      updated[index][field] = value;
+      return updated;
+    });
   };
 
+  const handleHorseFileChange = (index, field, file) => {
+    setHorses((prev) => {
+      const updated = [...prev];
+      updated[index][field] = file;
+      return updated;
+    });
+  };
+
+  // ------------------ Validation ------------------
   const validateStep = () => {
     const stepErrors = {};
     if (currentStep === 1) {
@@ -174,22 +172,35 @@ const NewShipment = () => {
     if (currentStep > 1) setCurrentStep((prev) => prev - 1);
   };
 
-  const handleHorseChange = (index, field, value) => {
-    setHorses((prev) => {
-      const updated = [...prev];
-      updated[index][field] = value;
-      return updated;
-    });
+  const handleCancel = () => {
+    setPickupLocation("");
+    setPickupTimeOption("on");
+    setPickupDate("");
+    setDeliveryLocation("");
+    setDeliveryTimeOption("on");
+    setDeliveryDate("");
+    setNumberOfHorses(1);
+    setHorses([
+      {
+        registeredName: "",
+        barnName: "",
+        breed: "",
+        colour: "",
+        age: "",
+        sex: "",
+        photo: null,
+        cogins: null,
+        healthCertificate: null,
+        generalInfo: "",
+      },
+    ]);
+    setAdditionalInfo("");
+    setCurrentStep(1);
+    setErrors({});
+    navigate("/customer/dashboard");
   };
 
-  const handleHorseFileChange = (index, field, file) => {
-    setHorses((prev) => {
-      const updated = [...prev];
-      updated[index][field] = file;
-      return updated;
-    });
-  };
-
+  // ------------------ Finish Submission ------------------
   const handleFinish = async () => {
     if (!validateStep()) return;
 
@@ -238,28 +249,40 @@ const NewShipment = () => {
     }
   };
 
-  // --------------------- Render Step Content ---------------------
+  // ------------------ Render Step Content ------------------
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
           <div className="flex flex-col w-full gap-4">
-            <LoadScript
-              googleMapsApiKey="AIzaSyBSZaXYR38yPQbCk_3uwEJtbkElumVkWw4"
-              libraries={libraries}
-            >
-              <Autocomplete
-                onLoad={onPickupLoad}
-                onPlaceChanged={onPickupPlaceChanged}
-              >
-                <input
-                  type="text"
-                  value={pickupLocation}
-                  placeholder="Pickup Address"
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                />
-              </Autocomplete>
-            </LoadScript>
+            <div className="relative">
+              <input
+                type="text"
+                value={pickupLocation}
+                onChange={handlePickupChange}
+                placeholder="Pickup Address"
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              />
+              {pickupSuggestions.length > 0 && (
+                <ul className="absolute w-full bg-white border rounded mt-1 max-h-48 overflow-auto z-10">
+                  {pickupSuggestions.map((s, idx) => (
+                    <li
+                      key={idx}
+                      className="p-2 hover:bg-gray-200 cursor-pointer"
+                      onClick={() =>
+                        handleSelectSuggestion(
+                          s,
+                          setPickupLocation,
+                          setPickupSuggestions
+                        )
+                      }
+                    >
+                      {s.display_name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             {errors.pickupLocation && (
               <p className="text-red-500 text-sm">{errors.pickupLocation}</p>
             )}
@@ -294,22 +317,34 @@ const NewShipment = () => {
       case 2:
         return (
           <div className="flex flex-col w-full gap-4">
-            <LoadScript
-              googleMapsApiKey="AIzaSyBSZaXYR38yPQbCk_3uwEJtbkElumVkWw4"
-              libraries={libraries}
-            >
-              <Autocomplete
-                onLoad={onDeliveryLoad}
-                onPlaceChanged={onDeliveryPlaceChanged}
-              >
-                <input
-                  type="text"
-                  value={deliveryLocation}
-                  placeholder="Delivery Address"
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                />
-              </Autocomplete>
-            </LoadScript>
+            <div className="relative">
+              <input
+                type="text"
+                value={deliveryLocation}
+                onChange={handleDeliveryChange}
+                placeholder="Delivery Address"
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              />
+              {deliverySuggestions.length > 0 && (
+                <ul className="absolute w-full bg-white border rounded mt-1 max-h-48 overflow-auto z-10">
+                  {deliverySuggestions.map((s, idx) => (
+                    <li
+                      key={idx}
+                      className="p-2 hover:bg-gray-200 cursor-pointer"
+                      onClick={() =>
+                        handleSelectSuggestion(
+                          s,
+                          setDeliveryLocation,
+                          setDeliverySuggestions
+                        )
+                      }
+                    >
+                      {s.display_name}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             {errors.deliveryLocation && (
               <p className="text-red-500 text-sm">{errors.deliveryLocation}</p>
             )}
@@ -498,39 +533,40 @@ const NewShipment = () => {
                     </p>
                   )}
                 </div>
-              </div>
-            ))}
-          </div>
-        );
 
-      case 4:
-        return (
-          <div className="flex flex-col w-full gap-6">
-            {horses.map((horse, idx) => (
-              <div key={idx}>
-                <h2 className="text-gray-800 font-semibold mb-3 rounded-[15px] bg-[#F2EBDD] p-4">
-                  Uploads for Horse {idx + 1}
-                </h2>
-                <div className="flex flex-col gap-2">
-                  <label>Photo</label>
+                <div className="mb-2">
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    Photo
+                  </label>
                   <input
                     type="file"
+                    accept="image/*"
                     onChange={(e) =>
                       handleHorseFileChange(idx, "photo", e.target.files[0])
                     }
                   />
+                </div>
 
-                  <label>Cogins</label>
+                <div className="mb-2">
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    Coggins
+                  </label>
                   <input
                     type="file"
+                    accept="application/pdf"
                     onChange={(e) =>
                       handleHorseFileChange(idx, "cogins", e.target.files[0])
                     }
                   />
+                </div>
 
-                  <label>Health Certificate</label>
+                <div className="mb-2">
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    Health Certificate
+                  </label>
                   <input
                     type="file"
+                    accept="application/pdf"
                     onChange={(e) =>
                       handleHorseFileChange(
                         idx,
@@ -539,75 +575,77 @@ const NewShipment = () => {
                       )
                     }
                   />
+                </div>
 
-                  <label>Additional Information</label>
+                <div className="mb-2">
+                  <label className="block font-semibold text-sm mb-1 text-gray-500">
+                    General Info
+                  </label>
                   <textarea
                     value={horse.generalInfo}
                     onChange={(e) =>
                       handleHorseChange(idx, "generalInfo", e.target.value)
                     }
-                    className="border border-gray-300 rounded px-3 py-2 w-full"
+                    className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
                   />
                 </div>
               </div>
             ))}
+          </div>
+        );
 
-            <div className="mt-4">
-              <label className="block font-semibold mb-2 text-gray-500">
-                Overall Additional Info
-              </label>
-              <textarea
-                value={additionalInfo}
-                onChange={(e) => setAdditionalInfo(e.target.value)}
-                className="border border-gray-300 rounded px-3 py-2 w-full"
-              />
-            </div>
+      case 4:
+        return (
+          <div className="flex flex-col gap-4">
+            <label className="font-semibold text-gray-500">
+              Additional Information
+            </label>
+            <textarea
+              value={additionalInfo}
+              onChange={(e) => setAdditionalInfo(e.target.value)}
+              className="w-full border border-gray-300 rounded px-3 py-2"
+            />
           </div>
         );
 
       case 5:
         return (
           <div className="flex flex-col gap-4">
-            <h2 className="text-xl font-semibold mb-3">Review Shipment</h2>
             <p>
-              <strong>Pickup:</strong> {pickupLocation} on {pickupDate} (
-              {pickupTimeOption})
+              <strong>Pickup:</strong> {pickupLocation} on {pickupDate}
             </p>
             <p>
-              <strong>Delivery:</strong> {deliveryLocation} on {deliveryDate} (
-              {deliveryTimeOption})
+              <strong>Delivery:</strong> {deliveryLocation} on {deliveryDate}
             </p>
             <p>
               <strong>Number of Horses:</strong> {numberOfHorses}
             </p>
             {horses.map((h, idx) => (
-              <div key={idx} className="bg-gray-50 p-3 rounded-md mt-2">
+              <div key={idx} className="p-2 border rounded-md mb-2">
                 <p>
-                  <strong>Horse {idx + 1}:</strong> {h.registeredName} (
-                  {h.barnName})
+                  <strong>Horse {idx + 1}:</strong> {h.registeredName || "-"}
                 </p>
-                <p>Breed: {h.breed}</p>
-                <p>Colour: {h.colour}</p>
-                <p>Age: {h.age}</p>
-                <p>Sex: {h.sex}</p>
-                {h.generalInfo && <p>Info: {h.generalInfo}</p>}
+                <p>Barn Name: {h.barnName || "-"}</p>
+                <p>Breed: {h.breed || "-"}</p>
+                <p>Colour: {h.colour || "-"}</p>
+                <p>Age: {h.age || "-"}</p>
+                <p>Sex: {h.sex || "-"}</p>
+                <p>Additional Info: {h.generalInfo || "-"}</p>
               </div>
             ))}
-            {additionalInfo && (
-              <p className="mt-2">
-                <strong>Overall Info:</strong> {additionalInfo}
-              </p>
-            )}
+            <p>
+              <strong>Additional Info:</strong> {additionalInfo || "-"}
+            </p>
           </div>
         );
 
       default:
-        return null;
+        return <p>Step content not found</p>;
     }
   };
 
   return (
-    <div className="w-full flex flex-col items-center relative py-10 ">
+    <div className="w-full flex flex-col items-center relative py-10">
       {/* Stepper */}
       <div className="w-full max-w-4xl flex gap-2 relative mb-10 px-4 items-center">
         {steps.map((step, index) => {
