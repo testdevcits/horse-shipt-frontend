@@ -1,22 +1,37 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { HiSearch } from "react-icons/hi";
 import { CiMap } from "react-icons/ci";
 import { IoList } from "react-icons/io5";
 
+import { useShipperShipment } from "../../contexts/shipperContext/ShipperShipmentContext";
+import ShipmentCard from "./ShipmentCard";
+
 const NewOpportunities = () => {
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("map");
+  const [activeTab, setActiveTab] = useState("list");
+
+  const { shipments, getAvailableShipments, loading } = useShipperShipment();
+
+  // 🔹 Fetch once
+  useEffect(() => {
+    getAvailableShipments();
+  }, []);
+
+  // 🔹 Filter
+  const filteredShipments = shipments.filter((shipment) =>
+    `${shipment.pickupLocation} ${shipment.deliveryLocation}`
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
 
   return (
-    <div className="flex flex-col w-full ">
-      {/* Header + Search + Tabs */}
+    <div className="flex flex-col w-full">
+      {/* ================= HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
-        {/* Heading */}
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-800 flex-shrink-0">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-800">
           New Opportunities for you
         </h1>
 
-        {/* Search + Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
           {/* Search */}
           <div className="relative w-full sm:w-72">
@@ -25,60 +40,69 @@ const NewOpportunities = () => {
               size={18}
             />
             <input
-              type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search opportunities"
               className="w-full border border-gray-400 rounded-md pl-10 pr-3 py-2
-                   focus:outline-none focus:ring-1 focus:ring-system-primary font-montserrat"
+              focus:outline-none focus:ring-1 focus:ring-system-primary"
             />
           </div>
 
-          {/* Tabs - Button Group */}
-          <div className="flex border border-gray-400 rounded-lg overflow-hidden w-full sm:w-auto">
+          {/* Tabs */}
+          <div className="flex border border-gray-400 rounded-lg overflow-hidden">
             <button
               onClick={() => setActiveTab("map")}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold text-sm sm:text-base ${
+              className={`flex items-center gap-2 px-4 py-2 font-semibold ${
                 activeTab === "map"
                   ? "bg-system-primary text-white"
                   : "bg-white text-gray-700"
               }`}
-              style={{ borderRight: "1px solid #D1D5DB" }}
             >
-              <CiMap size={20} />
-              Map
+              <CiMap size={20} /> Map
             </button>
 
             <button
               onClick={() => setActiveTab("list")}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold text-sm sm:text-base ${
+              className={`flex items-center gap-2 px-4 py-2 font-semibold ${
                 activeTab === "list"
                   ? "bg-system-primary text-white"
                   : "bg-white text-gray-700"
               }`}
             >
-              <IoList size={20} />
-              List
+              <IoList size={20} /> List
             </button>
           </div>
         </div>
       </div>
 
-      {/* Tab Content */}
+      {/* ================= CONTENT ================= */}
       <div className="mt-4 border rounded-md p-4 w-full flex-1 min-h-[400px] bg-white overflow-auto">
+        {/* MAP */}
         {activeTab === "map" && (
           <div className="w-full h-full flex items-center justify-center">
-            <p className="text-gray-600 text-lg">
-              Map view content goes here...
-            </p>
+            <p className="text-gray-500 text-lg">Map view coming soon...</p>
           </div>
         )}
+
+        {/* LIST */}
         {activeTab === "list" && (
-          <div className="w-full h-full flex items-center justify-center">
-            <p className="text-gray-600 text-lg">
-              List view content goes here...
-            </p>
-          </div>
+          <>
+            {loading && (
+              <p className="text-gray-600 text-center">Loading shipments...</p>
+            )}
+
+            {!loading && filteredShipments.length === 0 && (
+              <p className="text-gray-500 text-center">
+                No available shipments found
+              </p>
+            )}
+
+            <div className="space-y-4">
+              {filteredShipments.map((shipment) => (
+                <ShipmentCard key={shipment._id} shipment={shipment} />
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

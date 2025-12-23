@@ -25,7 +25,7 @@ export const ShipperQuoteProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      const res = await axios.post(`${API_BASE_URL}/shipper/quotes`, data, {
+      const res = await axios.post(`${API_BASE_URL}/shipper/quotes/add`, data, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

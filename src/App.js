@@ -11,6 +11,8 @@ import { ShipperLocationProvider } from "./contexts/ShipperLocationContext";
 import AppRoutes from "./routes/AppRoutes";
 import { ShipperPreferredAreaProvider } from "./contexts/ShipperPreferredAreaContext";
 import { CustomerShipmentProvider } from "./contexts/customerContext/CustomerShipmentContext";
+import { ShipperQuoteProvider } from "./contexts/shipperContext/ShipperQuoteContext";
+import { ShipperShipmentProvider } from "./contexts/shipperContext/ShipperShipmentContext";
 
 function App() {
   return (
@@ -19,13 +21,20 @@ function App() {
         <CustomerPaymentProvider>
           <CustomerNotificationProvider>
             <VehicleProvider>
+              {" "}
+              {/* VehicleProvider wraps the shipment-related components */}
               <PreferredAreasProvider>
                 <ShipperSettingsProvider>
                   <ShipperProfileProvider>
                     <ShipperLocationProvider>
                       <ShipperPreferredAreaProvider>
                         <CustomerShipmentProvider>
-                          <AppRoutes />
+                          <ShipperQuoteProvider>
+                            <ShipperShipmentProvider>
+                              <AppRoutes />{" "}
+                              {/* ShipmentDetails should be rendered inside AppRoutes */}
+                            </ShipperShipmentProvider>
+                          </ShipperQuoteProvider>
                         </CustomerShipmentProvider>
                       </ShipperPreferredAreaProvider>
                     </ShipperLocationProvider>
