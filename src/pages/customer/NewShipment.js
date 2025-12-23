@@ -67,7 +67,7 @@ const NewShipment = () => {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
           query
-        )}&format=json&addressdetails=1&limit=5`
+        )}&format=json&addressdetails=1&limit=10`
       );
       const data = await response.json();
       setSuggestions(data);
