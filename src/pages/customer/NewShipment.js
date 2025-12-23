@@ -7,20 +7,8 @@ import { IoLocationOutline } from "react-icons/io5";
 import { LuCalendarDays } from "react-icons/lu";
 import { FiEdit3 } from "react-icons/fi";
 import Toast from "../../components/common/Toast";
+
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
-
-// Leaflet imports
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-
-// Fix default marker icon
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
-  iconUrl: require("leaflet/dist/images/marker-icon.png"),
-  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
-});
 
 const steps = [
   { id: 1, title: "Pickup" },
@@ -42,13 +30,11 @@ const NewShipment = () => {
   const [pickupLocation, setPickupLocation] = useState("");
   const [pickupTimeOption, setPickupTimeOption] = useState("on");
   const [pickupDate, setPickupDate] = useState("");
-  const [pickupCoords, setPickupCoords] = useState([20.5937, 78.9629]); // default India coords
 
   // Step 2: Delivery
   const [deliveryLocation, setDeliveryLocation] = useState("");
   const [deliveryTimeOption, setDeliveryTimeOption] = useState("on");
   const [deliveryDate, setDeliveryDate] = useState("");
-  const [deliveryCoords, setDeliveryCoords] = useState([20.5937, 78.9629]);
 
   // Step 3 & 4: Horses
   const [numberOfHorses, setNumberOfHorses] = useState(1);
@@ -75,8 +61,10 @@ const NewShipment = () => {
   // Update horses array when numberOfHorses changes
   useEffect(() => {
     const count = Number(numberOfHorses) || 0;
+
     if (count > horses.length) {
       const diff = count - horses.length;
+
       setHorses((prev) => [
         ...prev,
         ...Array.from({ length: diff }, () => ({
@@ -93,10 +81,11 @@ const NewShipment = () => {
         })),
       ]);
     }
+
     if (count < horses.length) {
       setHorses((prev) => prev.slice(0, count));
     }
-  }, [numberOfHorses, horses.length]);
+  }, [numberOfHorses, horses.length]); // FIXED
 
   const handleCancel = () => {
     setPickupLocation("");
@@ -155,6 +144,7 @@ const NewShipment = () => {
   const handleNext = () => {
     if (!validateStep()) return;
     if (currentStep < steps.length) setCurrentStep((prev) => prev + 1);
+    else setIsModalOpen(true);
   };
 
   const handlePrevious = () => {
@@ -177,33 +167,42 @@ const NewShipment = () => {
     });
   };
 
+  // ---------------------- New: handleFinish ----------------------
   const handleFinish = async () => {
     if (!validateStep()) return;
-    try {
-      const formData = new FormData();
-      formData.append("pickupLocation", pickupLocation);
-      formData.append("pickupCoords", JSON.stringify(pickupCoords));
-      formData.append("pickupTimeOption", pickupTimeOption);
-      formData.append("pickupDate", pickupDate);
-      formData.append("deliveryLocation", deliveryLocation);
-      formData.append("deliveryCoords", JSON.stringify(deliveryCoords));
-      formData.append("deliveryTimeOption", deliveryTimeOption);
-      formData.append("deliveryDate", deliveryDate);
-      formData.append("numberOfHorses", numberOfHorses);
-      formData.append("additionalInfo", additionalInfo);
 
-      horses.forEach((h, idx) => {
-        formData.append(`horses[${idx}][registeredName]`, h.registeredName);
-        formData.append(`horses[${idx}][barnName]`, h.barnName);
-        formData.append(`horses[${idx}][breed]`, h.breed);
-        formData.append(`horses[${idx}][colour]`, h.colour);
-        formData.append(`horses[${idx}][age]`, h.age);
-        formData.append(`horses[${idx}][sex]`, h.sex);
-        formData.append(`horses[${idx}][generalInfo]`, h.generalInfo);
+    try {
+      const horsesCount = Number(numberOfHorses) || 0;
+      const horseList = Array.isArray(horses) ? horses : [];
+
+      const formData = new FormData();
+      formData.append("pickupLocation", pickupLocation || "");
+      formData.append("pickupTimeOption", pickupTimeOption || "");
+      formData.append("pickupDate", pickupDate || "");
+      formData.append("deliveryLocation", deliveryLocation || "");
+      formData.append("deliveryTimeOption", deliveryTimeOption || "");
+      formData.append("deliveryDate", deliveryDate || "");
+      formData.append("numberOfHorses", horsesCount);
+      formData.append("additionalInfo", additionalInfo || "");
+
+      horseList.forEach((h, idx) => {
+        formData.append(
+          `horses[${idx}][registeredName]`,
+          h.registeredName || ""
+        );
+        formData.append(`horses[${idx}][barnName]`, h.barnName || "");
+        formData.append(`horses[${idx}][breed]`, h.breed || "");
+        formData.append(`horses[${idx}][colour]`, h.colour || "");
+        formData.append(`horses[${idx}][age]`, h.age || "");
+        formData.append(`horses[${idx}][sex]`, h.sex || "");
+        formData.append(`horses[${idx}][generalInfo]`, h.generalInfo || "");
+
         if (h.photo instanceof File)
           formData.append(`horses[${idx}][photo]`, h.photo);
+
         if (h.cogins instanceof File)
           formData.append(`horses[${idx}][cogins]`, h.cogins);
+
         if (h.healthCertificate instanceof File)
           formData.append(
             `horses[${idx}][healthCertificate]`,
@@ -211,14 +210,17 @@ const NewShipment = () => {
           );
       });
 
+      // Use context (NOT axios)
       await createShipment(formData);
+
       setIsModalOpen(true);
     } catch (error) {
-      console.error(error);
+      console.error("Error creating shipment:", error);
       Toast.error("Failed to create shipment. Please try again.");
     }
   };
 
+  // ------------------------------------------------------------
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -233,36 +235,14 @@ const NewShipment = () => {
                 value={pickupLocation}
                 onChange={(e) => setPickupLocation(e.target.value)}
                 placeholder="Address"
-                className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2 mb-2"
+                className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
               />
               {errors.pickupLocation && (
-                <p className="text-red-500 text-sm">{errors.pickupLocation}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.pickupLocation}
+                </p>
               )}
-              <MapContainer
-                center={pickupCoords}
-                zoom={5}
-                style={{ height: "300px", width: "100%" }}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-                />
-                <Marker
-                  position={pickupCoords}
-                  draggable={true}
-                  eventHandlers={{
-                    dragend: (e) =>
-                      setPickupCoords([
-                        e.target.getLatLng().lat,
-                        e.target.getLatLng().lng,
-                      ]),
-                  }}
-                >
-                  <Popup>Pickup Location</Popup>
-                </Marker>
-              </MapContainer>
             </div>
-
             <div>
               <label className="block text-sm font-semibold mb-1 text-gray-500">
                 When can your horse(s) be picked up?
@@ -289,7 +269,6 @@ const NewShipment = () => {
                 </p>
               )}
             </div>
-
             <div>
               <label className="block text-sm font-semibold mb-1 text-gray-500">
                 Pickup Date
@@ -302,6 +281,7 @@ const NewShipment = () => {
             </div>
           </div>
         );
+
       case 2:
         return (
           <div className="flex flex-col w-full gap-4">
@@ -314,38 +294,14 @@ const NewShipment = () => {
                 value={deliveryLocation}
                 onChange={(e) => setDeliveryLocation(e.target.value)}
                 placeholder="Address"
-                className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2 mb-2"
+                className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
               />
               {errors.deliveryLocation && (
-                <p className="text-red-500 text-sm">
+                <p className="text-red-500 text-sm mt-1">
                   {errors.deliveryLocation}
                 </p>
               )}
-              <MapContainer
-                center={deliveryCoords}
-                zoom={5}
-                style={{ height: "300px", width: "100%" }}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution="&copy; OpenStreetMap contributors"
-                />
-                <Marker
-                  position={deliveryCoords}
-                  draggable={true}
-                  eventHandlers={{
-                    dragend: (e) =>
-                      setDeliveryCoords([
-                        e.target.getLatLng().lat,
-                        e.target.getLatLng().lng,
-                      ]),
-                  }}
-                >
-                  <Popup>Delivery Location</Popup>
-                </Marker>
-              </MapContainer>
             </div>
-
             <div>
               <label className="block text-sm font-semibold mb-1 text-gray-500">
                 When should your horse(s) be delivered?
@@ -367,7 +323,6 @@ const NewShipment = () => {
                 <option value="between">Between</option>
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-semibold mb-1 text-gray-500">
                 Delivery Date
@@ -402,7 +357,7 @@ const NewShipment = () => {
             </div>
 
             {horses.map((horse, idx) => (
-              <div key={idx} className="bg-gray-50 p-4 rounded-md">
+              <div key={idx} className="bg-gray-50">
                 <p className="font-semibold mb-2">
                   Horse {idx + 1}: {horse.registeredName || "Unnamed"}
                 </p>
@@ -538,183 +493,271 @@ const NewShipment = () => {
                     </p>
                   )}
                 </div>
+              </div>
+            ))}
+          </div>
+        );
 
-                <div className="mb-2">
-                  <label className="block font-semibold text-sm mb-1 text-gray-500">
-                    Photo
-                  </label>
+      case 4:
+        return (
+          <div className="flex flex-col w-full gap-6">
+            {horses.map((horse, idx) => (
+              <div key={idx} className="">
+                {/* Horse Name Heading */}
+                <h2
+                  className="text-gray-800 font-semibold mb-3 rounded-[15px] bg-[#F2EBDD] "
+                  style={{
+                    fontSize: "16px",
+                    lineHeight: "24px",
+                    padding: "14px",
+                    borderRadius: "15px",
+                  }}
+                >
+                  Horse {idx + 1} - {horse.registeredName || "Unnamed"}
+                </h2>
+
+                {/* Upload a Photo Section */}
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                    Upload a photo of the horse
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-2">
+                    A picture enhances your listing, making it more appealing
+                    and increasing the likelihood of attracting attention from
+                    potential carriers.
+                  </p>
                   <input
                     type="file"
                     onChange={(e) =>
                       handleHorseFileChange(idx, "photo", e.target.files[0])
                     }
+                    className="w-full border border-gray-300 rounded px-3 py-2"
                   />
                 </div>
 
-                <div className="mb-2">
-                  <label className="block font-semibold text-sm mb-1 text-gray-500">
-                    Coggins
-                  </label>
-                  <input
-                    type="file"
-                    onChange={(e) =>
-                      handleHorseFileChange(idx, "cogins", e.target.files[0])
-                    }
-                  />
+                {/* Documents Section */}
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                    Documents
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Provide the required paperwork to facilitate a smooth and
+                    safe delivery process.
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="file"
+                      onChange={(e) =>
+                        handleHorseFileChange(idx, "cogins", e.target.files[0])
+                      }
+                      className="w-full border border-gray-300 rounded px-3 py-2"
+                      placeholder="Coggins"
+                    />
+                    <input
+                      type="file"
+                      onChange={(e) =>
+                        handleHorseFileChange(
+                          idx,
+                          "healthCertificate",
+                          e.target.files[0]
+                        )
+                      }
+                      className="w-full border border-gray-300 rounded px-3 py-2"
+                      placeholder="Health Certificate"
+                    />
+                  </div>
                 </div>
 
+                {/* General Information Section */}
                 <div className="mb-2">
-                  <label className="block font-semibold text-sm mb-1 text-gray-500">
-                    Health Certificate
-                  </label>
-                  <input
-                    type="file"
-                    onChange={(e) =>
-                      handleHorseFileChange(
-                        idx,
-                        "healthCertificate",
-                        e.target.files[0]
-                      )
-                    }
-                  />
-                </div>
-
-                <div className="mb-2">
-                  <label className="block font-semibold text-sm mb-1 text-gray-500">
-                    Additional Info
-                  </label>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                    General Information
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Describe any specific preferences or restrictions you may
+                    have for the shipment, such as preferred vehicle types and
+                    other relevant details.
+                  </p>
                   <textarea
                     value={horse.generalInfo}
                     onChange={(e) =>
                       handleHorseChange(idx, "generalInfo", e.target.value)
                     }
-                    className="w-full border border-gray-300 text-gray-500 rounded px-3 py-2"
-                  ></textarea>
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-gray-500"
+                    rows={3}
+                    placeholder="Enter additional details"
+                  />
                 </div>
               </div>
             ))}
           </div>
         );
-      case 4:
-        return (
-          <div className="flex flex-col gap-4 w-full">
-            <label className="block font-semibold text-sm mb-1 text-gray-500">
-              Additional Information
-            </label>
-            <textarea
-              value={additionalInfo}
-              onChange={(e) => setAdditionalInfo(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
-              placeholder="Any special instructions..."
-            />
-          </div>
-        );
+
       case 5:
         return (
-          <div className="flex flex-col gap-4 w-full">
-            <h3 className="font-semibold text-lg">Review your shipment</h3>
-            <div>
-              <p>
-                <strong>Pickup Location:</strong> {pickupLocation}
-              </p>
-              <p>
-                <strong>Delivery Location:</strong> {deliveryLocation}
-              </p>
-              <p>
-                <strong>Pickup Date:</strong> {pickupDate}
-              </p>
-              <p>
-                <strong>Delivery Date:</strong> {deliveryDate}
-              </p>
-              <p>
-                <strong>Number of Horses:</strong> {numberOfHorses}
+          <div className="flex flex-col w-full gap-4">
+            {/* Shipment Details */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">Pickup:</span>{" "}
+                <IoLocationOutline className="text-gray-500 text-lg" />
+                <p>{pickupLocation}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <LuCalendarDays className="text-gray-500 text-lg" />
+                <p>
+                  {pickupDate} ({pickupTimeOption})
+                </p>
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="font-semibold">Delivery:</span>{" "}
+                <IoLocationOutline className="text-gray-500 text-lg" />
+                <p>{deliveryLocation}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <LuCalendarDays className="text-gray-500 text-lg" />
+                <p>
+                  ({deliveryTimeOption}) {deliveryDate}
+                </p>
+              </div>
+
+              <button
+                className="flex items-center gap-2 text-gray-300  mt-2"
+                onClick={() => setCurrentStep(1)} // Move to Step 1
+              >
+                <FiEdit3 /> Edit details
+              </button>
+            </div>
+
+            {/* Horses & Additional Info */}
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm mt-4 space-y-2">
+              <p className="font-semibold">
+                Number of horses: {numberOfHorses}
               </p>
               {horses.map((h, idx) => (
-                <div key={idx} className="border p-2 my-1 rounded">
-                  <p>
-                    <strong>Horse {idx + 1}:</strong> {h.registeredName} (
-                    {h.barnName})
+                <div key={idx} className="rounded-md">
+                  <p className="font-semibold mb-1">
+                    Horse {idx + 1}: {h.registeredName || "Unnamed"}
                   </p>
                   <p>
-                    Breed: {h.breed}, Colour: {h.colour}, Age: {h.age}, Sex:{" "}
-                    {h.sex}
+                    Breed: {h.breed || "N/A"}, Colour: {h.colour || "N/A"}, Age:{" "}
+                    {h.age || "N/A"}, Sex: {h.sex || "N/A"}
                   </p>
-                  <p>Additional Info: {h.generalInfo}</p>
+                  <div>Photo: {h.photo?.name || "N/A"}</div>
+                  <div>Cog-ins: {h.cogins?.name || "N/A"}</div>
+                  <div>
+                    Health Certificate: {h.healthCertificate?.name || "N/A"}
+                  </div>
+                  <div>General Info: {h.generalInfo || "N/A"}</div>
                 </div>
               ))}
-              <p>
-                <strong>Additional Info:</strong> {additionalInfo}
-              </p>
+              <div className="mt-2">
+                <p className="font-semibold">Additional Info:</p>
+                <p>{additionalInfo || "N/A"}</p>
+              </div>
             </div>
           </div>
         );
+
       default:
         return null;
     }
   };
 
   return (
-    <div className="w-full flex flex-col items-center relative py-10 px-4">
-      <div className="max-w-4xl w-full flex flex-col gap-6">
-        <h2 className="text-2xl font-semibold text-gray-700">New Shipment</h2>
-
-        {/* Stepper */}
-        <div className="flex gap-2 mb-4">
-          {steps.map((s) => (
-            <div
-              key={s.id}
-              className={`flex-1 text-center py-1 rounded ${
-                currentStep === s.id
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              {s.title}
+    <div className="w-full flex flex-col items-center relative py-10 ">
+      {/* Stepper */}
+      <div className="w-full max-w-4xl flex gap-2 relative mb-10 px-4 items-center">
+        {steps.map((step, index) => {
+          const isCompleted = currentStep > step.id;
+          const isCurrent = currentStep === step.id;
+          return (
+            <div key={step.id} className="flex-1 flex justify-center relative">
+              {isCurrent && (
+                <img
+                  src={logoMobile}
+                  alt="Step Logo"
+                  className="absolute -top-10 w-12 h-12 object-contain z-10"
+                />
+              )}
+              {index <= steps.length - 1 && (
+                <div
+                  className={`absolute top-5 left-0 w-full h-2 rounded-full ${
+                    isCompleted
+                      ? "bg-[#BF9B53]"
+                      : isCurrent
+                      ? "bg-[#4C3E21]"
+                      : "bg-gray-300"
+                  }`}
+                  style={{ zIndex: 0 }}
+                />
+              )}
             </div>
-          ))}
-        </div>
+          );
+        })}
+      </div>
 
-        {/* Step Content */}
-        {renderStepContent()}
-
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-4 w-full">
-          {currentStep > 1 && (
-            <button
-              onClick={handlePrevious}
-              className="px-4 py-2 bg-gray-300 rounded"
-            >
-              Previous
-            </button>
-          )}
-          {currentStep < steps.length && (
-            <button
-              onClick={handleNext}
-              className="px-4 py-2 bg-blue-500 text-white rounded"
-            >
-              Next
-            </button>
-          )}
-          {currentStep === steps.length && (
-            <button
-              onClick={handleFinish}
-              className="px-4 py-2 bg-green-500 text-white rounded"
-            >
-              Finish
-            </button>
-          )}
-          <button
-            onClick={handleCancel}
-            className="px-4 py-2 bg-red-500 text-white rounded"
-          >
-            Cancel
-          </button>
+      {/* Header */}
+      <div className="flex flex-row justify-between w-full max-w-5xl gap-2 relative mt-4 items-center px-4">
+        <div className="font-montserrat font-semibold text-[20px] leading-[30px] tracking-[0%]">
+          New Shipment
         </div>
+        <div
+          className="font-montserrat cursor-pointer text-gray-500"
+          onClick={handleCancel}
+        >
+          Cancel
+        </div>
+      </div>
+
+      {/* Step Title */}
+      <div className="w-full max-w-5xl px-4 mb-4 mt-4">
+        <p className="font-montserrat text-xl font-semibold text-gray-700">
+          {steps[currentStep - 1].title}
+        </p>
+      </div>
+
+      {/* Step Content */}
+      <div className="w-full max-w-5xl px-4">{renderStepContent()}</div>
+
+      {/* Navigation Buttons */}
+      <div className="flex w-full max-w-5xl justify-between md:justify-end gap-4 mt-6 px-4">
+        <button
+          onClick={handlePrevious}
+          disabled={currentStep === 1}
+          className={`px-6 py-2 rounded-lg font-montserrat border ${
+            currentStep === 1
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-white text-gray-500 border-gray-300 hover:bg-[#BF9B53] hover:text-white"
+          }`}
+        >
+          Previous
+        </button>
+        <button
+          onClick={() => {
+            if (currentStep === steps.length) {
+              handleFinish(); // Call finish function
+            } else {
+              handleNext(); // Go to next step
+            }
+          }}
+          className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e]"
+        >
+          {currentStep === steps.length ? "Finish" : "Next"}
+        </button>
       </div>
 
       {/* Modal */}
       {isModalOpen && (
-        <ModalOfferPublished onClose={() => setIsModalOpen(false)} />
+        <ModalOfferPublished
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onViewShipments={() => {
+            setIsModalOpen(false);
+            navigate("/customer/my-shipments");
+          }}
+          onAnotherAction={() => setIsModalOpen(false)}
+        />
       )}
     </div>
   );
