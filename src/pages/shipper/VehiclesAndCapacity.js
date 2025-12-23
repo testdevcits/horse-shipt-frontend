@@ -93,7 +93,7 @@ const VehiclePage = () => {
 
   // ---------- Render ----------
   return (
-    <div className="relative">
+    <div className="relative vehicle-scroll  h-screen">
       {/* Delete Confirmation Modal */}
       <ConfirmModal
         show={confirmData.show}
@@ -240,7 +240,7 @@ const VehiclePage = () => {
 
       {/* Form Modal */}
       {showModal && (
-        <div className="absolute inset-0 z-50 bg-white overflow-y-auto p-2 sm:p-6 md:p-8 min-h-screen ">
+        <div className="absolute inset-0 z-30 bg-white overflow-y-auto p-2 sm:p-6 md:p-8 min-h-screen vehicle-scroll">
           {/* Close Button */}
           <button
             onClick={closeModal}
