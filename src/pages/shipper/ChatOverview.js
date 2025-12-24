@@ -58,12 +58,6 @@ const ChatOverview = () => {
 
   const chatEndRef = useRef(null);
 
-  const filterOptions = [
-    { label: "All Shipments", value: "all" },
-    { label: "Active", value: "active" },
-    { label: "Completed", value: "completed" },
-  ];
-
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [selectedUser?.messages]);
@@ -71,7 +65,7 @@ const ChatOverview = () => {
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedUser) return;
 
-    const updatedUser = {
+    setSelectedUser({
       ...selectedUser,
       messages: [
         ...selectedUser.messages,
@@ -84,192 +78,161 @@ const ChatOverview = () => {
           }),
         },
       ],
-    };
-    setSelectedUser(updatedUser);
+    });
     setNewMessage("");
   };
 
   const filteredUsers = mockUsers.filter(
-    (user) =>
-      user.userName.toLowerCase().includes(search.toLowerCase()) ||
-      user.pickupLocation.toLowerCase().includes(search.toLowerCase()) ||
-      user.deliveryLocation.toLowerCase().includes(search.toLowerCase())
+    (u) =>
+      u.userName.toLowerCase().includes(search.toLowerCase()) ||
+      u.pickupLocation.toLowerCase().includes(search.toLowerCase()) ||
+      u.deliveryLocation.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <>
-      {/* ================= TOP HEADER ================= */}
-      <div className="flex flex-col gap-6">
-        {/* Heading on Top */}
+      {/* HEADER */}
+      <div className="flex flex-col gap-6 font-[Montserrat]">
         <h1 className="text-3xl font-montserrat text-gray-800">Chats</h1>
 
-        {/* Search + Filter Row */}
         <div className="flex items-center justify-between gap-3 mb-6">
-          {/* Search - Left */}
-          <div className="w-full max-w-md relative ">
-            {/* Search Icon */}
+          <div className="w-full max-w-md relative">
             <HiSearch
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600"
               size={18}
             />
-
-            {/* Input */}
             <input
-              type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search"
-              className="w-full border border-2 border-gray-400 rounded-md pl-10 pr-3 py-2
-               focus:outline-none focus:ring-1 focus:ring-system-primary font-montserrat"
+              className="w-full border-2 border-gray-400 rounded-md pl-10 py-2"
             />
           </div>
 
-          {/* Filter - Right */}
           <div className="min-w-[160px]">
             <Select
-              label="Filter"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              options={filterOptions}
-              className="mb-0"
+              options={[
+                { label: "All Shipments", value: "all" },
+                { label: "Active", value: "active" },
+                { label: "Completed", value: "completed" },
+              ]}
             />
           </div>
         </div>
       </div>
 
-      {/* ================= MAIN CHAT CONTAINER ================= */}
-      <div
-        className="flex flex-col lg:flex-row font-montserrat bg-gray-50 shadow-lg"
-        style={{
-          height: "741px",
-          borderWidth: "1px",
-          borderTopLeftRadius: "6px",
-          borderTopRightRadius: "6px",
-          overflow: "hidden",
-        }}
-      >
-        {/* ---------------- LEFT: USERS LIST ---------------- */}
+      {/* MAIN CONTAINER */}
+      <div className="flex flex-col lg:flex-row bg-gray-50 shadow-lg h-[741px] border overflow-hidden font-[Montserrat]">
+        {/* LEFT LIST */}
         <div
-          className={`lg:w-1/4 border-r border-gray-300 bg-white overflow-y-auto transition-all duration-300 scrollbar-thin scrollbar-thumb-[#BF9B53] scrollbar-track-gray-200 ${
+          className={`lg:w-1/4 bg-white border-r overflow-y-auto ${
             selectedUser && "hidden lg:block"
           }`}
         >
-          <div className="p-4 border-b border-gray-300">
-            <h2 className="text-xl font-semibold">Shipments</h2>
-          </div>
-
-          <ul className="space-y-2">
-            {filteredUsers.map((user) => (
-              <li
-                key={user._id}
-                onClick={() => setSelectedUser(user)}
-                className={`p-3 cursor-pointer transition ${
-                  selectedUser?._id === user._id
-                    ? "bg-[#F2EBDD] font-semibold"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <p>{user.userName}</p>
-                <p className="text-sm text-gray-600">
-                  {user.numberOfHorses} Horses: {user.pickupLocation} →{" "}
-                  {user.deliveryLocation}
-                </p>
-              </li>
-            ))}
-          </ul>
+          <div className="p-4 border-b font-semibold">Shipments</div>
+          {filteredUsers.map((u) => (
+            <div
+              key={u._id}
+              onClick={() => {
+                setSelectedUser(u);
+                setShowDetailsMobile(false);
+              }}
+              className={`p-3 cursor-pointer ${
+                selectedUser?._id === u._id
+                  ? "bg-[#F2EBDD]"
+                  : "hover:bg-gray-100"
+              }`}
+            >
+              <p>{u.userName}</p>
+              <p className="text-sm text-gray-600">
+                {u.pickupLocation} → {u.deliveryLocation}
+              </p>
+            </div>
+          ))}
         </div>
 
-        {/* ---------------- CENTER: CHAT (UNCHANGED UI) ---------------- */}
-        <div className="flex-1 flex flex-col bg-white border-r border-gray-300">
-          {/* Mobile Top Bar */}
-          <div className="lg:hidden p-2 border-b border-gray-300 flex items-center justify-between">
-            {selectedUser && (
-              <>
-                <button
-                  onClick={() => setSelectedUser(null)}
-                  className="flex items-center gap-2"
-                >
-                  <HiArrowLeft size={20} /> Back
-                </button>
-                <button
-                  onClick={() => setShowDetailsMobile((prev) => !prev)}
-                  className="text-system-primary font-semibold"
-                >
-                  {showDetailsMobile ? "Close Profile" : "See Profile"}
-                </button>
-              </>
-            )}
-          </div>
-
+        {/* CHAT */}
+        <div className="flex-1 flex flex-col min-h-0 bg-white ">
+          {/* MOBILE HEADER */}
           {selectedUser && (
-            <div className="hidden lg:flex justify-between items-center p-4 border-b border-gray-300 font-semibold">
-              <span className="text-xl font-semibold">
-                Conversation with {selectedUser.userName}
-              </span>
+            <div className="lg:hidden p-3 border-b flex justify-between items-center">
               <button
-                onClick={() => setShowDetailsDesktop((prev) => !prev)}
+                onClick={() => setSelectedUser(null)}
+                className="flex gap-1 items-center"
+              >
+                <HiArrowLeft /> Back
+              </button>
+              <button
+                onClick={() => setShowDetailsMobile(true)}
                 className="text-system-primary font-semibold"
+              >
+                See Profile
+              </button>
+            </div>
+          )}
+
+          {/* DESKTOP HEADER */}
+          {selectedUser && (
+            <div className="hidden lg:flex justify-between p-4 border-b font-semibold ">
+              Conversation with {selectedUser.userName}
+              <button
+                onClick={() => setShowDetailsDesktop(!showDetailsDesktop)}
+                className="
+    text-system-primary
+    font-semibold
+    transition-all
+    duration-200
+    hover:text-system-primary/80
+   
+  "
               >
                 {showDetailsDesktop ? "Hide Profile" : "See Profile"}
               </button>
             </div>
           )}
 
-          {/* Messages */}
-          <div className="flex-1 flex flex-col p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-[#BF9B53] scrollbar-track-gray-200">
-            <div className="flex-1 space-y-4">
-              {selectedUser ? (
-                <>
-                  {selectedUser.messages.length === 0 && (
-                    <p className="text-gray-500 text-center mt-4">
-                      No messages yet.
-                    </p>
-                  )}
-                  {selectedUser.messages.map((msg, index) => (
-                    <div
-                      key={index}
-                      className={`flex ${
-                        msg.from === "shipper" ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      <div
-                        className={`p-2 rounded-lg max-w-[70%] ${
-                          msg.from === "shipper"
-                            ? "bg-system-primary text-white"
-                            : "bg-gray-200 text-gray-800"
-                        }`}
-                      >
-                        <p>{msg.text}</p>
-                        <span className="text-xs text-gray-500">
-                          {msg.time}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                  <div ref={chatEndRef} />
-                </>
-              ) : (
-                <p className="text-gray-500 text-center mt-4">
-                  Select a shipment to start chat
-                </p>
-              )}
-            </div>
+          {/* MESSAGES (SCROLL FIXED) */}
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
+            {!selectedUser && (
+              <p className="text-center text-gray-500">Select a shipment</p>
+            )}
+            {selectedUser?.messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${
+                  msg.from === "shipper" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`p-2 rounded-lg max-w-[70%] ${
+                    msg.from === "shipper"
+                      ? "bg-system-primary text-white"
+                      : "bg-gray-200"
+                  }`}
+                >
+                  <p>{msg.text}</p>
+                  <span className="text-xs">{msg.time}</span>
+                </div>
+              </div>
+            ))}
+            <div ref={chatEndRef} />
           </div>
 
-          {/* Input Box */}
+          {/* INPUT */}
           {selectedUser && (
-            <div className="p-4 border-t border-gray-300 flex gap-2 flex-shrink-0">
+            <div className="p-3 border-t flex gap-2">
               <input
-                type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-system-primary"
                 onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                className="flex-1 border rounded px-3 py-2"
+                placeholder="Type a message..."
               />
               <button
                 onClick={handleSendMessage}
-                className="bg-system-primary text-white px-4 py-2 rounded hover:bg-system-primary/80 transition"
+                className="bg-system-primary text-white px-4 rounded"
               >
                 Send
               </button>
@@ -277,39 +240,57 @@ const ChatOverview = () => {
           )}
         </div>
 
-        {/* ---------------- RIGHT: DETAILS ---------------- */}
+        {/* DESKTOP PROFILE */}
         {selectedUser && showDetailsDesktop && (
-          <div className="lg:w-1/4 bg-white overflow-y-auto hidden lg:flex flex-col scrollbar-thin scrollbar-thumb-[#BF9B53] scrollbar-track-gray-200">
-            <div className="flex justify-between items-center p-4 border-b border-gray-300">
-              <h2 className="text-lg font-semibold">Details</h2>
-              <button onClick={() => setShowDetailsDesktop(false)}>
-                <HiX size={22} />
-              </button>
-            </div>
-
-            <div className="space-y-2 p-4">
-              <p>
-                <strong>Name:</strong> {selectedUser.userName}
-              </p>
-              <p>
-                <strong>Horses:</strong> {selectedUser.numberOfHorses}
-              </p>
-              <p>
-                <strong>Pickup:</strong> {selectedUser.pickupLocation}
-              </p>
-              <p>
-                <strong>Delivery:</strong> {selectedUser.deliveryLocation}
-              </p>
-              <p>
-                <strong>Email:</strong> {selectedUser.contact}
-              </p>
-              <p>
-                <strong>Phone:</strong> {selectedUser.phone}
-              </p>
-            </div>
+          <div className="hidden lg:block lg:w-1/4 bg-white border-l p-4 overflow-y-auto">
+            <h2 className="font-semibold mb-2">Details</h2>
+            <p>
+              <b>Name:</b> {selectedUser.userName}
+            </p>
+            <p>
+              <b>Horses:</b> {selectedUser.numberOfHorses}
+            </p>
+            <p>
+              <b>Email:</b> {selectedUser.contact}
+            </p>
+            <p>
+              <b>Phone:</b> {selectedUser.phone}
+            </p>
           </div>
         )}
       </div>
+
+      {/* MOBILE PROFILE PANEL */}
+      {selectedUser && showDetailsMobile && (
+        <div className="fixed inset-0 bg-white z-50 lg:hidden overflow-y-auto">
+          <div className="p-4 border-b flex justify-between items-center">
+            <h2 className="font-semibold">Profile</h2>
+            <button onClick={() => setShowDetailsMobile(false)}>
+              <HiX size={22} />
+            </button>
+          </div>
+          <div className="p-4 space-y-2">
+            <p>
+              <b>Name:</b> {selectedUser.userName}
+            </p>
+            <p>
+              <b>Horses:</b> {selectedUser.numberOfHorses}
+            </p>
+            <p>
+              <b>Pickup:</b> {selectedUser.pickupLocation}
+            </p>
+            <p>
+              <b>Delivery:</b> {selectedUser.deliveryLocation}
+            </p>
+            <p>
+              <b>Email:</b> {selectedUser.contact}
+            </p>
+            <p>
+              <b>Phone:</b> {selectedUser.phone}
+            </p>
+          </div>
+        </div>
+      )}
     </>
   );
 };

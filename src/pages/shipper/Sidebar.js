@@ -14,8 +14,10 @@ import {
   ProfileIcon,
   ChatIcon,
   SettingsIcon,
+  TruckDriverIcon, // new icon
 } from "../../components/common/ColoredIcons";
 
+// ---------------- NAV ITEMS ----------------
 const navItems = [
   {
     name: "Dashboard",
@@ -37,9 +39,18 @@ const navItems = [
     icon: <ProfileIcon />,
   },
   {
+    name: "Truck Driver",
+    path: "/shipper/truck-driver",
+    icon: <TruckDriverIcon />,
+  },
+  {
     name: "Chat",
-    path: "/shipper/chat", // no hardcoded shipment ID
+    path: "/shipper/chat",
     icon: <ChatIcon />,
+    subPaths: [
+      { name: "Customer Chat", path: "/shipper/chat/customer" },
+      { name: "Driver Chat", path: "/shipper/chat/driver" },
+    ],
   },
   {
     name: "Settings",
@@ -115,6 +126,7 @@ const Sidebar = ({
 
             return (
               <li key={item.path}>
+                {/* Main Menu */}
                 <NavLink
                   to={item.path}
                   onClick={() => mobileOpen && setMobileOpen(false)}
@@ -135,31 +147,29 @@ const Sidebar = ({
                   {(sidebarOpen || mobileOpen) && <span>{item.name}</span>}
                 </NavLink>
 
-                {/* Sub Menu */}
+                {/* Submenu with better UI */}
                 {item.subPaths && (sidebarOpen || mobileOpen) && (
-                  <ul className="ml-8 mt-1 space-y-1">
+                  <div className="ml-6 mt-1 border-l border-gray-200 pl-4 flex flex-col gap-1">
                     {item.subPaths.map((sub) => {
                       const subActive = window.location.pathname === sub.path;
-
                       return (
-                        <li key={sub.path}>
-                          <NavLink
-                            to={sub.path}
-                            onClick={() => mobileOpen && setMobileOpen(false)}
-                            className={`block px-2 py-2 rounded transition-colors duration-300 hover:bg-gray-100
-                              ${
-                                subActive
-                                  ? "bg-gray-100 font-semibold text-system-primary"
-                                  : ""
-                              }
-                            `}
-                          >
-                            {sub.name}
-                          </NavLink>
-                        </li>
+                        <NavLink
+                          key={sub.path}
+                          to={sub.path}
+                          onClick={() => mobileOpen && setMobileOpen(false)}
+                          className={`block px-2 py-1 rounded transition-colors duration-300 text-sm
+                            ${
+                              subActive
+                                ? "bg-gray-100 font-medium text-system-primary"
+                                : "text-gray-600 hover:bg-gray-50"
+                            }
+                          `}
+                        >
+                          {sub.name}
+                        </NavLink>
                       );
                     })}
-                  </ul>
+                  </div>
                 )}
               </li>
             );

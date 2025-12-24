@@ -3,32 +3,36 @@ import { FiPlus, FiX } from "react-icons/fi";
 import { RiImageAddLine, RiEdit2Line } from "react-icons/ri";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { useVehicle } from "../../contexts/VehicleContext";
+import { useVehicle } from "../../contexts/shipperContext/VehicleContext";
 import ConfirmModal from "../../components/common/ConfirmModal";
+import PageLoader from "../../components/common/PageLoader";
 
 const VehiclePage = () => {
+  // --------- Vehicle Context ---------
   const {
-    vehicles,
+    vehicles = [],
     addVehicle,
     updateVehicle,
     deleteVehicle,
     fetchVehicles,
-    loading,
-  } = useVehicle();
+    loading = false,
+  } = useVehicle() || {};
 
+  // --------- State ---------
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [confirmData, setConfirmData] = useState({ show: false, id: null });
   const [fetched, setFetched] = useState(false);
 
+  // --------- Fetch vehicles on mount ---------
   useEffect(() => {
-    if (!fetched) {
+    if (!fetched && fetchVehicles) {
       fetchVehicles();
       setFetched(true);
     }
   }, [fetched, fetchVehicles]);
 
-  // ---------- Modal ----------
+  // --------- Modal handlers ---------
   const openModal = (vehicle = null) => {
     setEditingVehicle(vehicle);
     setShowModal(true);
@@ -38,15 +42,16 @@ const VehiclePage = () => {
     setEditingVehicle(null);
   };
 
-  // ---------- Delete ----------
-
+  // --------- Delete handlers ---------
   const confirmDelete = async () => {
-    await deleteVehicle(confirmData.id);
-    setConfirmData({ show: false, id: null });
+    if (confirmData.id && deleteVehicle) {
+      await deleteVehicle(confirmData.id);
+      setConfirmData({ show: false, id: null });
+    }
   };
   const cancelDelete = () => setConfirmData({ show: false, id: null });
 
-  // ---------- Validation ----------
+  // --------- Form validation schema ---------
   const validationSchema = Yup.object({
     vehicleType: Yup.string().required("Vehicle type is required"),
     trailerType: Yup.string().required("Trailer type is required"),
@@ -67,7 +72,7 @@ const VehiclePage = () => {
     images: vehicle?.images || [],
   });
 
-  // ---------- Submit ----------
+  // --------- Form submit handler ---------
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     const formData = new FormData();
     Object.keys(values).forEach((key) => {
@@ -80,9 +85,9 @@ const VehiclePage = () => {
       }
     });
 
-    if (editingVehicle) {
+    if (editingVehicle && updateVehicle) {
       await updateVehicle(editingVehicle._id, formData);
-    } else {
+    } else if (addVehicle) {
       await addVehicle(formData);
     }
 
@@ -91,9 +96,9 @@ const VehiclePage = () => {
     setSubmitting(false);
   };
 
-  // ---------- Render ----------
+  // --------- Render ---------
   return (
-    <div className="relative vehicle-scroll  h-screen">
+    <div className="relative vehicle-scroll h-screen font-montserrat">
       {/* Delete Confirmation Modal */}
       <ConfirmModal
         show={confirmData.show}
@@ -111,7 +116,6 @@ const VehiclePage = () => {
         <h2 className="text-[16px] font-semibold text-systemText leading-[24px]">
           My Registered Vehicles
         </h2>
-
         <button
           onClick={() => openModal()}
           className="flex items-center justify-center gap-2 bg-[#bf9b53] text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition w-full sm:w-auto"
@@ -122,21 +126,25 @@ const VehiclePage = () => {
 
       {/* Vehicle List */}
       {loading ? (
-        <p className="text-gray-500 text-center mt-10">Loading...</p>
+        <PageLoader
+          text="Loading vehicles..."
+          fullScreen={false}
+          color="#BF9B53"
+        />
       ) : vehicles.length === 0 ? (
         <p className="text-gray-500 text-center mt-10">
           No vehicles found. Add one to get started!
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 font-montserrat">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {vehicles.map((vehicle, index) => (
             <div
               key={vehicle._id}
-              className="bg-white border border-gray-200 rounded-[14px] p-[10px] shadow-sm hover:shadow-md transition-all flex flex-col gap-4 w-full sm:max-w-[464px] h-auto min-h-[400px] mx-auto"
+              className="bg-white border border-gray-200 rounded-[14px] p-4 shadow-sm hover:shadow-md transition-all flex flex-col gap-4 w-full sm:max-w-[464px] h-auto min-h-[400px] mx-auto"
             >
               {/* Header */}
               <div className="flex justify-between items-center w-full h-9 px-3">
-                <h2 className="text-[16px] font-semibold text-systemText leading-[24px]">
+                <h2 className="text-[16px] font-semibold text-systemText">
                   Vehicle {index + 1}
                 </h2>
                 <button
@@ -157,7 +165,6 @@ const VehiclePage = () => {
                     {vehicle.transportType || "N/A"}
                   </span>
                 </div>
-
                 <div className="flex flex-col">
                   <span className="text-[16px] font-medium text-systemText">
                     Vehicle:
@@ -168,7 +175,7 @@ const VehiclePage = () => {
                 </div>
               </div>
 
-              {/* Number of Stalls & Stall Size */}
+              {/* Stalls & Size */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
                 <div className="flex flex-col">
                   <span className="text-[16px] font-medium text-systemText">
@@ -178,7 +185,6 @@ const VehiclePage = () => {
                     {vehicle.numberOfStalls || "N/A"}
                   </span>
                 </div>
-
                 <div className="flex flex-col">
                   <span className="text-[16px] font-medium text-systemText">
                     Size:
@@ -189,7 +195,7 @@ const VehiclePage = () => {
                 </div>
               </div>
 
-              {/* Image Gallery */}
+              {/* Images */}
               <div className="px-2">
                 <p className="text-[16px] font-medium text-systemText mb-2">
                   Images:
@@ -223,16 +229,6 @@ const VehiclePage = () => {
                   {vehicle.notes || "N/A"}
                 </span>
               </div>
-
-              {/* Delete Button */}
-              {/* <div className="flex justify-end mt-auto px-2">
-                <button
-                  onClick={() => handleDelete(vehicle._id)}
-                  className="flex items-center gap-1 text-[14px] border border-red-500 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
-                >
-                  <FiTrash2 /> Delete
-                </button>
-              </div> */}
             </div>
           ))}
         </div>
@@ -241,7 +237,6 @@ const VehiclePage = () => {
       {/* Form Modal */}
       {showModal && (
         <div className="absolute inset-0 z-30 bg-white overflow-y-auto p-2 sm:p-6 md:p-8 min-h-screen vehicle-scroll">
-          {/* Close Button */}
           <button
             onClick={closeModal}
             className="absolute top-4 right-4 text-gray-600 hover:text-[#007bff] transition"
@@ -249,7 +244,6 @@ const VehiclePage = () => {
             <FiX size={28} />
           </button>
 
-          {/* FORM CONTAINER – FULL WIDTH */}
           <div className="w-full max-w-none">
             <h2 className="font-semibold text-[22px] sm:text-[24px] text-[#333333] mb-6 text-center sm:text-left">
               {editingVehicle ? "Edit Vehicle" : "Add a New Vehicle"}

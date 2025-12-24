@@ -1,4 +1,4 @@
-import { FiHome, FiMessageSquare, FiTruck } from "react-icons/fi";
+import { FiHome, FiMessageSquare, FiTruck, FiUserCheck } from "react-icons/fi";
 import { LuFilePenLine } from "react-icons/lu";
 import { IoSettingsOutline } from "react-icons/io5";
 
@@ -35,3 +35,10 @@ export const SettingsIcon = ({
   color = DEFAULT_COLOR,
   size = DEFAULT_SIZE,
 }) => <IoSettingsOutline className={`${color} ${size} ${className}`} />;
+
+// ------------------ NEW ICON ------------------
+export const TruckDriverIcon = ({
+  className = "",
+  color = DEFAULT_COLOR,
+  size = DEFAULT_SIZE,
+}) => <FiUserCheck className={`${color} ${size} ${className}`} />;

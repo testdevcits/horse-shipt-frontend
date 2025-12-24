@@ -8,67 +8,102 @@ const ShipmentCard = ({ shipment }) => {
   const navigate = useNavigate();
 
   if (!shipment || !shipment.horses?.length) return null;
-
   const horse = shipment.horses[0];
 
-  const handleNavigate = () => {
-    navigate(`/shipper/shipments/${shipment._id}`);
-  };
-
   return (
-    <div className="bg-white border-2 border-gray-300 rounded p-4 font-[Montserrat]">
+    <div className="relative bg-white border border-gray-200 rounded-md p-4 font-montserrat">
+      {/* MOBILE TOP RIGHT ARROW */}
+      <div
+        onClick={() => navigate(`/shipper/shipments/${shipment._id}`)}
+        className="absolute top-4 right-4 md:hidden cursor-pointer"
+      >
+        <LuCircleChevronRight size={22} className="text-system-primary" />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-6">
-        {/* LEFT COLUMN – HORSE DETAILS */}
+        {/* LEFT SECTION */}
         <div>
-          <h3 className="text-md text-gray-800 mb-3">
+          <h3
+            className="
+              mb-3
+              text-gray-800
+              font-montserrat font-normal
+              text-[16px] leading-[24px] tracking-normal
+            "
+          >
             {shipment.numberOfHorses} Horse Shipping from{" "}
             <span className="font-medium">{shipment.pickupLocation}</span> to{" "}
             <span className="font-medium">{shipment.deliveryLocation}</span>
           </h3>
 
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Horse Image */}
             <img
               src={horse?.photo?.url}
               alt={horse?.registeredName}
-              className="w-[100px] h-[100px] object-cover rounded-md"
+              className="
+                w-full h-[180px] rounded-md object-cover
+                sm:w-[100px] sm:h-[100px]
+              "
             />
 
-            <div className="flex flex-col md:flex-row gap-6 mt-2 md:mt-0">
+            {/* Pickup & Delivery */}
+            <div
+              className="
+                flex flex-col sm:flex-row gap-6 w-full
+                font-montserrat font-normal
+                text-[16px] leading-[24px] tracking-normal
+              "
+            >
               {/* Pickup */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-semibold text-gray-800">
-                    Pickup
-                  </span>
+              <div className="flex flex-col gap-2 w-full">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-800 font-medium">Pickup</span>
                   <StatusBadge
                     text="Today"
                     bgColor="bg-[#FEF9C3]"
                     borderColor="border-[#A16207]"
-                    dotColor="bg-[#A16207]"
                     textColor="text-[#A16207]"
                     paddingX="px-2"
                     paddingY="py-0.5"
+                    showDot={false}
                   />
                 </div>
-                <p className="flex items-center text-sm text-gray-700 gap-2">
-                  <SlLocationPin size={18} /> {shipment.pickupLocation}
+
+                <p
+                  className="
+                    flex items-center gap-2 text-gray-600
+                    truncate max-w-full
+                  "
+                  title={shipment.pickupLocation}
+                >
+                  <SlLocationPin size={18} className="shrink-0" />
+                  <span className="truncate">{shipment.pickupLocation}</span>
                 </p>
-                <p className="flex items-center text-sm text-gray-700 gap-2">
-                  <LuCalendarDays size={18} />{" "}
+
+                <p className="flex items-center gap-2 text-gray-600">
+                  <LuCalendarDays size={18} />
                   {new Date(shipment.pickupDate).toLocaleDateString()}
                 </p>
               </div>
 
               {/* Delivery */}
-              <div className="flex flex-col gap-2">
-                <span className="text-sm font-semibold text-gray-800">
-                  Delivery
-                </span>
-                <p className="flex items-center text-sm text-gray-700 gap-2">
-                  <SlLocationPin size={18} /> {shipment.deliveryLocation}
+              <div className="flex flex-col gap-2 w-full">
+                <span className="text-gray-800 font-medium">Delivery</span>
+
+                <p
+                  className="
+                    flex items-center gap-2 text-gray-600
+                    truncate max-w-full
+                  "
+                  title={shipment.deliveryLocation}
+                >
+                  <SlLocationPin size={18} className="shrink-0" />
+                  <span className="truncate">{shipment.deliveryLocation}</span>
                 </p>
-                <p className="flex items-center text-sm text-gray-700 gap-2">
-                  <LuCalendarDays size={18} />{" "}
+
+                <p className="flex items-center gap-2 text-gray-600">
+                  <LuCalendarDays size={18} />
                   {new Date(shipment.deliveryDate).toLocaleDateString()}
                 </p>
               </div>
@@ -77,51 +112,69 @@ const ShipmentCard = ({ shipment }) => {
         </div>
 
         {/* DIVIDER */}
-        <div className="hidden md:block w-[1px] bg-gray-200" />
+        <div className="hidden md:block w-px bg-gray-200" />
 
-        {/* RIGHT COLUMN */}
-        <div className="flex flex-col relative">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
-            General Details
-          </h3>
+        {/* RIGHT SECTION */}
+        <div
+          className="
+            relative flex flex-col
+            font-montserrat font-normal
+            text-[16px] leading-[24px] tracking-normal
+          "
+        >
+          <h4 className="mb-3 text-gray-800 font-medium">General Details</h4>
 
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-semibold text-gray-800">
-                Pickup
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
+            <div className="flex gap-1">
+              <span className="text-gray-500">Estimated Distance:</span>
+              <span className="font-medium">
+                {shipment.estimatedDistance || 200} miles
               </span>
-              <p className="flex items-center text-sm text-gray-700 gap-2">
-                <SlLocationPin size={18} /> {shipment.pickupLocation}
-              </p>
-              <p className="flex items-center text-sm text-gray-700 gap-2">
-                <LuCalendarDays size={18} />{" "}
-                {new Date(shipment.pickupDate).toLocaleDateString()}
-              </p>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-semibold text-gray-800">
-                Delivery
+            <div className="flex gap-1">
+              <span className="text-gray-500">Transport Type:</span>
+              <span className="font-medium">
+                {shipment.transportType || "Trucking"}
               </span>
-              <p className="flex items-center text-sm text-gray-700 gap-2">
-                <SlLocationPin size={18} /> {shipment.deliveryLocation}
-              </p>
-              <p className="flex items-center text-sm text-gray-700 gap-2">
-                <LuCalendarDays size={18} />{" "}
-                {new Date(shipment.deliveryDate).toLocaleDateString()}
-              </p>
             </div>
 
-            {/* CLICKABLE ARROW */}
-            <div
-              onClick={handleNavigate}
-              className="mt-4 md:mt-0 md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 cursor-pointer"
-            >
-              <LuCircleChevronRight
-                size={24}
-                className="text-system-primary hover:scale-110 transition"
-              />
+            <div className="flex gap-1">
+              <span className="text-gray-500">Total Horses:</span>
+              <span className="font-medium">{shipment.numberOfHorses}</span>
             </div>
+
+            <div className="flex gap-1">
+              <span className="text-gray-500">Buyer:</span>
+              <span className="font-medium">
+                {shipment.customer?.name || "Buyer Name"}
+              </span>
+            </div>
+
+            <div className="flex gap-1">
+              <span className="text-gray-500">Stalls:</span>
+              <span className="font-medium">
+                {shipment.stallsRequired || 1}
+              </span>
+            </div>
+
+            <div className="flex gap-1">
+              <span className="text-gray-500">Total Price:</span>
+              <span className="font-medium text-system-primary">
+                ${shipment.totalPrice || "1,200"} USD
+              </span>
+            </div>
+          </div>
+
+          {/* DESKTOP ARROW */}
+          <div
+            onClick={() => navigate(`/shipper/shipments/${shipment._id}`)}
+            className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 cursor-pointer"
+          >
+            <LuCircleChevronRight
+              size={22}
+              className="text-system-primary hover:scale-110 transition"
+            />
           </div>
         </div>
       </div>

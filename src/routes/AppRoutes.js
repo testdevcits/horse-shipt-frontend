@@ -11,6 +11,11 @@ import RedirectIfAuth from "../pages/auth/RedirectIfAuth";
 import { useAuth } from "../contexts/AuthContext";
 import MainLayout from "../layouts/MainLayout";
 import NotificationsPage from "../pages/shipper/NotificationsPage";
+import TruckDriverPage from "../pages/shipper/TruckDriverPage";
+
+// ---------------- Driver Auth ----------------
+import { DriverAuthProvider } from "../contexts/DriverAuthContext";
+import ProtectedDriverRoute from "./ProtectedDriverRoute";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -27,11 +32,7 @@ const ShipmentDetails = lazy(() => import("../pages/shipper/ShipmentDetails"));
 const AllUpcomingShipments = lazy(() =>
   import("../pages/shipper/AllUpcomingShipments")
 );
-// const ChatPage = lazy(() => import("../pages/shipper/ChatPage"));
-const ChatOverview = lazy(
-  () => import("../pages/shipper/ChatOverview") //  make sure this path is correct
-);
-
+const ChatOverview = lazy(() => import("../pages/shipper/ChatOverview"));
 const ShipmentSettings = lazy(() =>
   import("../pages/shipper/ShipmentSettings")
 );
@@ -50,6 +51,10 @@ const EditProfile = lazy(() => import("../pages/customer/EditProfile"));
 const MyShipmentDetails = lazy(() =>
   import("../pages/customer/MyShipmentDetails")
 );
+
+// ---------------- Driver Pages ----------------
+const DriverLoginPage = lazy(() => import("../pages/Driver/DriverLoginPage"));
+const DriverDashboard = lazy(() => import("../pages/Driver/DriverDashboard"));
 
 // ---------------- Common Pages ----------------
 const Home = lazy(() => import("../pages/Home"));
@@ -72,15 +77,7 @@ const AppRoutes = () => {
       const providerId = params.get("providerId");
 
       if (token && role) {
-        oauthLogin({
-          token,
-          role,
-          provider,
-          providerId,
-          email,
-          name,
-          photo,
-        });
+        oauthLogin({ token, role, provider, providerId, email, name, photo });
         navigate(`/${role}/dashboard`, { replace: true });
       }
     }
@@ -103,7 +100,6 @@ const AppRoutes = () => {
             element={
               <RedirectIfAuth>
                 <Home />
-                {/* <ChatOverview /> */}
               </RedirectIfAuth>
             }
           />
@@ -128,6 +124,26 @@ const AppRoutes = () => {
         />
         <Route path="/oauth-success" element={<OAuthSuccessPage />} />
 
+        {/* ---------- Driver Routes ---------- */}
+        <Route
+          path="/driver/*"
+          element={
+            <DriverAuthProvider>
+              <Routes>
+                <Route path="login" element={<DriverLoginPage />} />
+                <Route
+                  path="dashboard"
+                  element={
+                    <ProtectedDriverRoute>
+                      <DriverDashboard />
+                    </ProtectedDriverRoute>
+                  }
+                />
+              </Routes>
+            </DriverAuthProvider>
+          }
+        />
+
         {/* ---------- Shipper Routes ---------- */}
         <Route
           path="/shipper/*"
@@ -147,7 +163,7 @@ const AppRoutes = () => {
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="shipments" element={<AllUpcomingShipments />} />
           <Route path="shipments/:id" element={<ShipmentDetails />} />
-          {/* CHAT ROUTES */}
+          <Route path="truck-driver" element={<TruckDriverPage />} />
           <Route path="chat" element={<ChatOverview />} />
         </Route>
 

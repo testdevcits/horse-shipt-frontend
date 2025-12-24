@@ -1,0 +1,60 @@
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+  
+  .cube-loader-root {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+  }
+  
+  .cube-grid {
+    display: grid;
+    grid-template-columns: repeat(3, var(--cube-size));
+    grid-template-rows: repeat(3, var(--cube-size));
+    gap: 0;
+  }
+  
+  .cube {
+    width: var(--cube-size);
+    height: var(--cube-size);
+    background-color: var(--cube-color);
+    opacity: 0.2;
+    transform: scale(0.9);
+    animation: cubePulse 0.9s ease-in-out infinite;
+    will-change: transform, opacity;
+    animation-fill-mode: both;
+  }
+  
+  @keyframes cubePulse {
+    0% {
+      opacity: 0.2;
+      transform: scale(0.9);
+    }
+    40% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0.2;
+      transform: scale(0.9);
+    }
+  }
+  
+  .cube-loader-fullscreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff; /* You can customize */
+  }
+  
