@@ -15,42 +15,41 @@ const API_BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
 
 export const DriverProvider = ({ children }) => {
   const { token, user } = useAuth();
+
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [fetched, setFetched] = useState(false);
 
-  const [toast, setToast] = useState({ message: "", type: "", visible: false });
+  const [toast, setToast] = useState({
+    message: "",
+    type: "",
+    visible: false,
+  });
+
   const showToast = (message, type = "info") => {
     setToast({ message, type, visible: true });
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   };
 
-  // ---------------- FETCH DRIVERS ----------------
+  // ====================================================
+  // FETCH DRIVERS
+  // ====================================================
   const fetchDrivers = useCallback(async () => {
     if (!token) {
       setDrivers([]);
-      console.warn("No token, skipping fetchDrivers");
       return;
     }
 
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/drivers`, {
+      const response = await axios.get(`${API_BASE_URL}/drivers`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Fetch Drivers Response:", res.data); // debug log
 
-      const data = res.data || {};
-      if (Array.isArray(data.drivers)) {
-        setDrivers(data.drivers);
-      } else if (data.success && data.driver) {
-        // fallback if backend returns single driver
-        setDrivers([data.driver]);
+      if (Array.isArray(response.data?.drivers)) {
+        setDrivers(response.data.drivers);
       } else {
         setDrivers([]);
       }
-
-      setFetched(true);
     } catch (err) {
       console.error("Fetch Drivers Error:", err.response?.data || err.message);
       setDrivers([]);
@@ -63,17 +62,18 @@ export const DriverProvider = ({ children }) => {
     }
   }, [token]);
 
-  // ---------------- ADD DRIVER ----------------
+  // ====================================================
+  // ADD DRIVER
+  // ====================================================
   const addDriver = async (driverData) => {
     if (!token) return { success: false };
+
     setLoading(true);
     try {
-      const res = await axios.post(`${API_BASE_URL}/drivers`, driverData, {
+      await axios.post(`${API_BASE_URL}/drivers`, driverData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Add Driver Response:", res.data);
 
-      setFetched(false);
       await fetchDrivers();
       showToast("Driver added successfully", "success");
       return { success: true };
@@ -86,17 +86,18 @@ export const DriverProvider = ({ children }) => {
     }
   };
 
-  // ---------------- UPDATE DRIVER ----------------
+  // ====================================================
+  // UPDATE DRIVER
+  // ====================================================
   const updateDriver = async (id, driverData) => {
     if (!token) return { success: false };
+
     setLoading(true);
     try {
-      const res = await axios.put(`${API_BASE_URL}/drivers/${id}`, driverData, {
+      await axios.put(`${API_BASE_URL}/drivers/${id}`, driverData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Update Driver Response:", res.data);
 
-      setFetched(false);
       await fetchDrivers();
       showToast("Driver updated successfully", "success");
       return { success: true };
@@ -112,17 +113,18 @@ export const DriverProvider = ({ children }) => {
     }
   };
 
-  // ---------------- DELETE DRIVER ----------------
+  // ====================================================
+  // DELETE DRIVER
+  // ====================================================
   const deleteDriver = async (id) => {
     if (!token) return { success: false };
+
     setLoading(true);
     try {
-      const res = await axios.delete(`${API_BASE_URL}/drivers/${id}`, {
+      await axios.delete(`${API_BASE_URL}/drivers/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Delete Driver Response:", res.data);
 
-      setFetched(false);
       await fetchDrivers();
       showToast("Driver deleted successfully", "success");
       return { success: true };
@@ -138,19 +140,20 @@ export const DriverProvider = ({ children }) => {
     }
   };
 
-  // ---------------- ASSIGN VEHICLES ----------------
+  // ====================================================
+  // ASSIGN VEHICLES
+  // ====================================================
   const assignVehicles = async (driverId, vehicleIds) => {
     if (!token) return { success: false };
+
     setLoading(true);
     try {
-      const res = await axios.post(
+      await axios.post(
         `${API_BASE_URL}/drivers/assign-vehicles`,
         { driverId, vehicleIds },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log("Assign Vehicles Response:", res.data);
 
-      setFetched(false);
       await fetchDrivers();
       showToast("Vehicles assigned successfully", "success");
       return { success: true };
@@ -169,10 +172,50 @@ export const DriverProvider = ({ children }) => {
     }
   };
 
-  // ---------------- EFFECT ----------------
+  // ====================================================
+  // TOGGLE DRIVER ACTIVE / DEACTIVE
+  // ====================================================
+  const toggleDriverStatus = async (driverId, isActive) => {
+    if (!token) return { success: false };
+
+    setLoading(true);
+    try {
+      await axios.patch(
+        `${API_BASE_URL}/drivers/${driverId}/status`,
+        { isActive },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      await fetchDrivers();
+      showToast(
+        `Driver ${isActive ? "activated" : "deactivated"} successfully`,
+        "success"
+      );
+      return { success: true };
+    } catch (err) {
+      console.error(
+        "Toggle Driver Status Error:",
+        err.response?.data || err.message
+      );
+      showToast(
+        err.response?.data?.message || "Failed to update driver status",
+        "error"
+      );
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ====================================================
+  // AUTO FETCH
+  // ====================================================
   useEffect(() => {
-    if (token && user?.role === "shipper") fetchDrivers();
-    else setDrivers([]);
+    if (token && user?.role === "shipper") {
+      fetchDrivers();
+    } else {
+      setDrivers([]);
+    }
   }, [token, user, fetchDrivers]);
 
   return (
@@ -185,9 +228,11 @@ export const DriverProvider = ({ children }) => {
         updateDriver,
         deleteDriver,
         assignVehicles,
+        toggleDriverStatus,
       }}
     >
       {children}
+
       {toast.visible && (
         <Toast
           message={toast.message}

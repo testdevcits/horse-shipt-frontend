@@ -17,6 +17,7 @@ const TruckDriverPage = () => {
     updateDriver,
     deleteDriver,
     assignVehicles,
+    toggleDriverStatus, // ✅ added
     loading,
   } = useDriver() || {};
 
@@ -76,6 +77,11 @@ const TruckDriverPage = () => {
     setSelectedVehicles([]);
   };
 
+  // ✅ Toggle handler
+  const handleToggleStatus = async (driver) => {
+    await toggleDriverStatus(driver._id, !driver.isActive);
+  };
+
   return (
     <div className="w-full font-montserrat">
       {/* ---------------- Header ---------------- */}
@@ -125,18 +131,12 @@ const TruckDriverPage = () => {
                 value={values.name}
                 onChange={handleChange("name")}
               />
-              {touched.name && errors.name && (
-                <p className="text-red-500 text-xs">{errors.name}</p>
-              )}
 
               <InputField
                 label="Email"
                 value={values.email}
                 onChange={handleChange("email")}
               />
-              {touched.email && errors.email && (
-                <p className="text-red-500 text-xs">{errors.email}</p>
-              )}
 
               <InputField
                 label="Phone"
@@ -197,6 +197,17 @@ const TruckDriverPage = () => {
                 <h3 className="font-semibold">{driver.name}</h3>
                 <p className="text-sm">{driver.email}</p>
                 <p className="text-sm">{driver.phone}</p>
+
+                {/* ✅ Status badge */}
+                <span
+                  className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${
+                    driver.isActive
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {driver.isActive ? "Active" : "Inactive"}
+                </span>
               </div>
 
               <div className="flex gap-2 mt-4 flex-wrap">
@@ -222,6 +233,15 @@ const TruckDriverPage = () => {
 
                 <Button size="sm" onClick={() => setSelectedDriver(driver)}>
                   Assign
+                </Button>
+
+                {/* ✅ Toggle button */}
+                <Button
+                  size="sm"
+                  variant={driver.isActive ? "secondary" : "primary"}
+                  onClick={() => handleToggleStatus(driver)}
+                >
+                  {driver.isActive ? "Deactivate" : "Activate"}
                 </Button>
               </div>
             </div>

@@ -1,6 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import axios from "axios";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const DriverAuthContext = createContext();
 
@@ -8,14 +14,17 @@ const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 export const DriverAuthProvider = ({ children }) => {
+  const navigate = useNavigate();
+
   const [driver, setDriver] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("driverToken") || "");
+  const [token, setToken] = useState(
+    () => localStorage.getItem("driverToken") || ""
+  );
   const [loading, setLoading] = useState(true);
 
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // ----------------- Auto-login on mount -----------------
+  // ====================================================
+  // AUTO LOGIN (ON APP LOAD)
+  // ====================================================
   useEffect(() => {
     const storedToken = localStorage.getItem("driverToken");
     const storedDriver = localStorage.getItem("driverData");
@@ -24,10 +33,13 @@ export const DriverAuthProvider = ({ children }) => {
       setToken(storedToken);
       setDriver(JSON.parse(storedDriver));
     }
+
     setLoading(false);
   }, []);
 
-  // ----------------- Driver Login -----------------
+  // ====================================================
+  // DRIVER LOGIN
+  // ====================================================
   const login = async (email, password) => {
     setLoading(true);
     try {
@@ -35,6 +47,7 @@ export const DriverAuthProvider = ({ children }) => {
         email,
         password,
       });
+
       if (res.data.success) {
         const { token, driver } = res.data;
 
@@ -46,35 +59,77 @@ export const DriverAuthProvider = ({ children }) => {
 
         navigate("/driver/dashboard", { replace: true });
       }
-      setLoading(false);
+
       return res.data;
     } catch (err) {
-      setLoading(false);
-      console.error("Driver Login Error:", err.response?.data || err.message);
       return {
         success: false,
         message: err.response?.data?.message || err.message,
       };
+    } finally {
+      setLoading(false);
     }
   };
 
-  // ----------------- Fetch Driver Details -----------------
-  const fetchDriver = async () => {
-    if (!token) return { success: false, message: "No token found" };
+  // ====================================================
+  // FETCH DRIVER (ME)
+  // ====================================================
+  const fetchDriver = useCallback(async () => {
+    if (!token) return;
 
-    setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/driver/driver/me`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
-      if (res.data.success) setDriver(res.data.driver);
+      if (res.data.success) {
+        setDriver(res.data.driver);
+        localStorage.setItem("driverData", JSON.stringify(res.data.driver));
+      }
+    } catch (err) {
+      console.error("[FETCH DRIVER]", err.response?.data || err.message);
+    }
+  }, [token]);
 
-      setLoading(false);
+  useEffect(() => {
+    if (token) fetchDriver();
+  }, [token, fetchDriver]);
+
+  // ====================================================
+  // UPLOAD DRIVER PROFILE IMAGE
+  // ====================================================
+  const uploadProfileImage = async (file) => {
+    if (!file || !token) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await axios.put(
+        `${API_BASE_URL}/driver/driver/profile-image`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (res.data.success) {
+        const updatedDriver = {
+          ...driver,
+          profileImage: res.data.driver.profileImage,
+        };
+
+        setDriver(updatedDriver);
+        localStorage.setItem("driverData", JSON.stringify(updatedDriver));
+      }
+
       return res.data;
     } catch (err) {
-      setLoading(false);
-      console.error("Fetch Driver Error:", err.response?.data || err.message);
       return {
         success: false,
         message: err.response?.data?.message || err.message,
@@ -82,12 +137,44 @@ export const DriverAuthProvider = ({ children }) => {
     }
   };
 
-  // ----------------- Auto fetch driver on token change -----------------
-  useEffect(() => {
-    if (token) fetchDriver();
-  }, [token]);
+  // ====================================================
+  // DELETE DRIVER PROFILE IMAGE
+  // ====================================================
+  const deleteProfileImage = async () => {
+    if (!token) return;
 
-  // ----------------- Logout -----------------
+    try {
+      const res = await axios.delete(
+        `${API_BASE_URL}/driver/driver/profile-image`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.data.success) {
+        const updatedDriver = {
+          ...driver,
+          profileImage: { url: null, public_id: null },
+        };
+
+        setDriver(updatedDriver);
+        localStorage.setItem("driverData", JSON.stringify(updatedDriver));
+      }
+
+      return res.data;
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message,
+      };
+    }
+  };
+
+  // ====================================================
+  // LOGOUT
+  // ====================================================
   const logout = () => {
     setDriver(null);
     setToken("");
@@ -96,6 +183,9 @@ export const DriverAuthProvider = ({ children }) => {
     navigate("/driver/login", { replace: true });
   };
 
+  // ====================================================
+  // CONTEXT PROVIDER
+  // ====================================================
   return (
     <DriverAuthContext.Provider
       value={{
@@ -104,6 +194,8 @@ export const DriverAuthProvider = ({ children }) => {
         loading,
         login,
         fetchDriver,
+        uploadProfileImage,
+        deleteProfileImage,
         logout,
       }}
     >
