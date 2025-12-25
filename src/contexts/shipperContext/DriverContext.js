@@ -181,7 +181,7 @@ export const DriverProvider = ({ children }) => {
     setLoading(true);
     try {
       await axios.patch(
-        `${API_BASE_URL}/drivers/${driverId}/status`,
+        `${API_BASE_URL}/drivers/${driverId}/toggle-status`,
         { isActive },
         { headers: { Authorization: `Bearer ${token}` } }
       );
