@@ -3,8 +3,7 @@ import { GrNext } from "react-icons/gr";
 import { FaTruck } from "react-icons/fa";
 import { MdPlace, MdOutlineNavigateNext } from "react-icons/md";
 import VehiclesAndCapacity from "./VehiclesAndCapacity";
-import PreferredAreas from "./PreferredAreasPage";
-import { useShipperLocation } from "../../contexts/ShipperLocationContext";
+import { useShipperLocation } from "../../contexts/shipperContext/ShipperLocationContext";
 
 const ShipmentSettings = () => {
   const { updateLocation } = useShipperLocation();

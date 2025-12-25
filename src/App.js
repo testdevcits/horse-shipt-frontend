@@ -10,7 +10,7 @@ import { DriverProvider } from "./contexts/shipperContext/DriverContext";
 import { PreferredAreasProvider } from "./contexts/PreferredAreasContext";
 import { ShipperSettingsProvider } from "./contexts/ShipperSettingsContext";
 import { ShipperProfileProvider } from "./contexts/ShipperProfileContext";
-import { ShipperLocationProvider } from "./contexts/ShipperLocationContext";
+import { ShipperLocationProvider } from "./contexts/shipperContext/ShipperLocationContext";
 import { ShipperPreferredAreaProvider } from "./contexts/ShipperPreferredAreaContext";
 import { CustomerShipmentProvider } from "./contexts/customerContext/CustomerShipmentContext";
 import { ShipperQuoteProvider } from "./contexts/shipperContext/ShipperQuoteContext";

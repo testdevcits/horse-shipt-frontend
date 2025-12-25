@@ -9,8 +9,8 @@ import React, {
   useCallback,
 } from "react";
 import axios from "axios";
-import { useAuth } from "./AuthContext";
-import Toast from "../components/common/Toast";
+import { useAuth } from "../AuthContext";
+import Toast from "../../components/common/Toast";
 
 const ShipperLocationContext = createContext();
 const API_BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
