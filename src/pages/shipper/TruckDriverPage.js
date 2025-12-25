@@ -17,7 +17,7 @@ const TruckDriverPage = () => {
     updateDriver,
     deleteDriver,
     assignVehicles,
-    toggleDriverStatus, // ✅ added
+    toggleDriverStatus,
     loading,
   } = useDriver() || {};
 
@@ -77,15 +77,14 @@ const TruckDriverPage = () => {
     setSelectedVehicles([]);
   };
 
-  // ✅ Toggle handler
   const handleToggleStatus = async (driver) => {
     await toggleDriverStatus(driver._id, !driver.isActive);
   };
 
   return (
-    <div className="w-full font-montserrat">
+    <div className="w-full font-montserrat ">
       {/* ---------------- Header ---------------- */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-6 mb-6">
         <h1 className="text-xl sm:text-2xl font-semibold">
           Truck Driver Management
         </h1>
@@ -115,74 +114,76 @@ const TruckDriverPage = () => {
 
       {/* ---------------- FORM ---------------- */}
       {showForm && (
-        <Formik
-          initialValues={initialValues}
-          validationSchema={validationSchema}
-          enableReinitialize
-          onSubmit={handleSubmit}
-        >
-          {({ values, handleChange, handleSubmit, errors, touched }) => (
-            <form
-              onSubmit={handleSubmit}
-              className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10"
-            >
-              <InputField
-                label="Name"
-                value={values.name}
-                onChange={handleChange("name")}
-              />
+        <div className="bg-white shadow-lg rounded-xl p-6 mb-10 border border-gray-200">
+          <Formik
+            initialValues={initialValues}
+            validationSchema={validationSchema}
+            enableReinitialize
+            onSubmit={handleSubmit}
+          >
+            {({ values, handleChange, handleSubmit }) => (
+              <form
+                onSubmit={handleSubmit}
+                className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4"
+              >
+                <InputField
+                  label="Name"
+                  value={values.name}
+                  onChange={handleChange("name")}
+                />
 
-              <InputField
-                label="Email"
-                value={values.email}
-                onChange={handleChange("email")}
-              />
+                <InputField
+                  label="Email"
+                  value={values.email}
+                  onChange={handleChange("email")}
+                />
 
-              <InputField
-                label="Phone"
-                value={values.phone}
-                onChange={handleChange("phone")}
-              />
+                <InputField
+                  label="Phone"
+                  value={values.phone}
+                  onChange={handleChange("phone")}
+                />
 
-              <InputField
-                label="License Number"
-                value={values.licenseNumber}
-                onChange={handleChange("licenseNumber")}
-              />
+                <InputField
+                  label="License Number"
+                  value={values.licenseNumber}
+                  onChange={handleChange("licenseNumber")}
+                />
 
-              <InputField
-                label="Password"
-                type="password"
-                placeholder={
-                  editingDriver ? "Leave blank to keep same password" : ""
-                }
-                value={values.password}
-                onChange={handleChange("password")}
-                className="sm:col-span-2"
-              />
+                <InputField
+                  label="Password"
+                  type="password"
+                  placeholder={
+                    editingDriver ? "Leave blank to keep same password" : ""
+                  }
+                  value={values.password}
+                  onChange={handleChange("password")}
+                  className="sm:col-span-2"
+                />
 
-              <InputField
-                label="Notes"
-                value={values.notes}
-                onChange={handleChange("notes")}
-                className="sm:col-span-2"
-              />
+                <InputField
+                  label="Notes"
+                  value={values.notes}
+                  onChange={handleChange("notes")}
+                  className="sm:col-span-2"
+                />
 
-              <div className="sm:col-span-2 flex justify-end gap-3 mt-4">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => setShowForm(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {editingDriver ? "Update Driver" : "Save Driver"}
-                </Button>
-              </div>
-            </form>
-          )}
-        </Formik>
+                <div className="sm:col-span-2 flex justify-end gap-3 mt-4">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setShowForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    {editingDriver ? "Update Driver" : "Save Driver"}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </Formik>
+        </div>
       )}
 
       {/* ---------------- DRIVER LIST ---------------- */}
@@ -191,14 +192,22 @@ const TruckDriverPage = () => {
           {drivers.map((driver) => (
             <div
               key={driver._id}
-              className="border rounded-lg p-4 flex flex-col justify-between"
+              className="border rounded-lg p-4 flex flex-col justify-between bg-white shadow-sm hover:shadow-md transition relative"
             >
-              <div>
+              {/* Profile Image Top Right */}
+              {driver.profileImage?.url && (
+                <img
+                  src={driver.profileImage.url}
+                  alt={driver.name}
+                  className="w-12 h-12 rounded-full object-cover absolute top-4 right-4 border-2 border-gray-200"
+                />
+              )}
+
+              <div className="mt-2">
                 <h3 className="font-semibold">{driver.name}</h3>
                 <p className="text-sm">{driver.email}</p>
                 <p className="text-sm">{driver.phone}</p>
 
-                {/* ✅ Status badge */}
                 <span
                   className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${
                     driver.isActive
@@ -223,7 +232,7 @@ const TruckDriverPage = () => {
 
                 <Button
                   size="sm"
-                  variant="danger"
+                  variant="secondary"
                   onClick={() =>
                     setConfirmDelete({ show: true, id: driver._id })
                   }
@@ -235,7 +244,6 @@ const TruckDriverPage = () => {
                   Assign
                 </Button>
 
-                {/* ✅ Toggle button */}
                 <Button
                   size="sm"
                   variant={driver.isActive ? "secondary" : "primary"}

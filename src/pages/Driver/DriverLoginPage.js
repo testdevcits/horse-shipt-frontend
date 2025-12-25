@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useDriverAuth } from "../../contexts/DriverAuthContext";
+import Button from "../../components/common/Button";
+import loginBg from "../../assets/images/authPage.jpg"; // background image
 
 const DriverLoginPage = () => {
   const { login, loading } = useDriverAuth();
@@ -24,19 +26,22 @@ const DriverLoginPage = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 bg-white rounded shadow">
-        <h1 className="text-2xl font-semibold text-center mb-6">
+    <div
+      className="min-h-screen flex items-center justify-center font-montserrat p-4 bg-cover bg-center"
+      style={{ backgroundImage: `url(${loginBg})` }}
+    >
+      <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-lg p-8 md:p-12 shadow-md flex flex-col items-center">
+        <h1 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-4 text-center">
           Driver Login
         </h1>
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm">
+          <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm w-full text-center">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="w-full space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
             <input
@@ -45,6 +50,7 @@ const DriverLoginPage = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
               placeholder="Enter your email"
+              required
             />
           </div>
 
@@ -56,16 +62,18 @@ const DriverLoginPage = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
               placeholder="Enter your password"
+              required
             />
           </div>
 
-          <button
+          <Button
             type="submit"
+            fullWidth
             disabled={loading}
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+            className="mt-2 flex justify-center items-center"
           >
             {loading ? "Logging in..." : "Login"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

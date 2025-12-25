@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom"; // import Link
 import footerLogo from "../assets/images/footerLogo.png"; // replace with your logo path
 
 const Footer = () => {
@@ -22,9 +23,17 @@ const Footer = () => {
             />
           </div>
 
-          {/* Right: Copyright */}
-          <div className="text-gray-700  text-center md:text-right">
-            &copy; {new Date().getFullYear()} All rights reserved.
+          {/* Right: Copyright & Links */}
+          <div className="text-gray-700 text-center md:text-right flex flex-col md:flex-row items-center gap-2">
+            <span>&copy; {new Date().getFullYear()} All rights reserved.</span>
+
+            {/* Driver Login Link */}
+            <Link
+              to="/driver/login"
+              className="text-blue-600 hover:text-blue-800 underline ml-0 md:ml-4"
+            >
+              Driver Login
+            </Link>
           </div>
         </div>
       </div>
