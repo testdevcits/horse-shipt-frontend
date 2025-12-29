@@ -45,7 +45,7 @@ const MyShipmentDetails = () => {
   const loading = shipmentLoading || quotesLoading;
 
   if (loading)
-    return <PageLoader text="Loading shipment details..." fullScreen />;
+    return <PageLoader text="Loading shipment details..." fullScreen={false} />;
 
   if (!currentShipment)
     return <p className="text-red-500 text-center mt-8">Shipment not found.</p>;
