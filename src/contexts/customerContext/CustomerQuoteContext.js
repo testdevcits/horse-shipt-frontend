@@ -25,7 +25,9 @@ export const CustomerQuoteProvider = ({ children }) => {
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   };
 
-  // ---------------- GET QUOTES BY SHIPMENT (CUSTOMER) ----------------
+  /* =========================================================
+     GET QUOTES BY SHIPMENT ID (CUSTOMER)
+  ========================================================= */
   const getQuotesByShipment = async (shipmentId) => {
     if (!token || !shipmentId) return;
 
@@ -41,53 +43,60 @@ export const CustomerQuoteProvider = ({ children }) => {
       );
 
       setQuotes(res.data.quotes || []);
-    } catch (err) {
+    } catch (error) {
       showToast("Failed to fetch quotes", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  // ---------------- ACCEPT QUOTE (CUSTOMER) ----------------
-  const acceptQuote = async (quoteId, contractFile, acceptedTerms) => {
+  /* =========================================================
+     ACCEPT QUOTE WITH SIGNATURE (CUSTOMER)
+     customerSignature = base64 string
+  ========================================================= */
+  const acceptQuote = async (quoteId, customerSignature) => {
     if (!token) {
       showToast("Unauthorized. Please login again.", "error");
       return { success: false };
     }
 
-    if (!contractFile || !acceptedTerms) {
-      showToast("Please accept terms and upload Contract.pdf", "error");
+    if (!customerSignature) {
+      showToast("Customer signature is required", "error");
       return { success: false };
     }
 
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("contractFile", contractFile);
-      formData.append("acceptedTerms", acceptedTerms);
-
       const res = await axios.put(
         `${API_BASE_URL}/customer/quotes/${quoteId}/accept`,
-        formData,
+        { customerSignature },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
           },
         }
       );
 
       showToast(res.data.message || "Quote accepted successfully", "success");
 
-      // Update local state
-      setQuotes((prev) =>
-        prev.map((q) => (q._id === quoteId ? { ...q, status: "accepted" } : q))
+      // Update local quotes state
+      setQuotes((prevQuotes) =>
+        prevQuotes.map((q) =>
+          q._id === quoteId
+            ? {
+                ...q,
+                status: "accepted",
+                contractAccepted: true,
+              }
+            : { ...q, status: "rejected" }
+        )
       );
 
       return { success: true };
-    } catch (err) {
+    } catch (error) {
       showToast(
-        err.response?.data?.message || "Failed to accept quote",
+        error.response?.data?.message || "Failed to accept quote",
         "error"
       );
       return { success: false };
