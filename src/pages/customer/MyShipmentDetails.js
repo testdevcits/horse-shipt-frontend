@@ -1,20 +1,20 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { SlLocationPin } from "react-icons/sl";
-import { LuCalendarDays } from "react-icons/lu";
+import { LuCalendarDays, LuCircleChevronRight } from "react-icons/lu";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteContext";
-import Button from "../../components/common/Button";
 import PageLoader from "../../components/common/PageLoader";
+import Toast from "../../components/common/Toast";
+import AcceptQuoteModal from "./AcceptQuoteModal";
 
 const MyShipmentDetails = () => {
-  const { id: paramId } = useParams(); // From URL /my-shipment/:id
-  const [searchParams] = useSearchParams(); // From query ?shipmentId=
+  const { id: paramId } = useParams();
+  const [searchParams] = useSearchParams();
   const queryId = searchParams.get("shipmentId");
-
-  const shipmentId = paramId || queryId; // Use param first, then query
+  const shipmentId = paramId || queryId;
 
   const {
     fetchShipmentById,
@@ -29,8 +29,9 @@ const MyShipmentDetails = () => {
 
   const [activeTab, setActiveTab] = useState("overview");
   const [openDetails, setOpenDetails] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState(null);
+  const [toast, setToast] = useState({ message: "", type: "", visible: false });
 
-  // Make sure API calls run once per shipmentId
   const fetchData = useCallback(() => {
     if (!shipmentId) return;
     fetchShipmentById(shipmentId);
@@ -51,7 +52,6 @@ const MyShipmentDetails = () => {
 
   const shipment = currentShipment;
 
-  /* ===================== TAB BUTTON ===================== */
   const TabButton = ({ id, label, count }) => (
     <button
       onClick={() => setActiveTab(id)}
@@ -71,12 +71,19 @@ const MyShipmentDetails = () => {
   );
 
   return (
-    <div className="w-full font-montserrat">
+    <div className="w-full font-montserrat relative">
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ message: "", type: "", visible: false })}
+        />
+      )}
+
       <h2 className="font-semibold text-2xl md:text-3xl mb-6">
         Shipment Details
       </h2>
 
-      {/* ===================== TABS ===================== */}
       <div className="flex gap-6 border-b mb-6">
         <TabButton id="overview" label="Overview" />
         <TabButton id="quotes" label="Quotes" count={quotes.length} />
@@ -86,10 +93,8 @@ const MyShipmentDetails = () => {
       {/* ===================== OVERVIEW TAB ===================== */}
       {activeTab === "overview" && (
         <div className="flex flex-col gap-6">
-          {/* MAIN CARD */}
           <div className="bg-white border rounded-lg p-4 md:p-6">
             <div className="flex flex-col md:flex-row gap-6">
-              {/* Image */}
               <div className="w-full md:w-[60%]">
                 <img
                   src={shipment.horses[0]?.photo?.url}
@@ -97,8 +102,6 @@ const MyShipmentDetails = () => {
                   className="w-full h-[220px] md:h-[360px] object-cover rounded-md"
                 />
               </div>
-
-              {/* Content */}
               <div className="w-full md:w-[40%] flex flex-col gap-6">
                 <div>
                   <h4 className="text-gray-500 text-sm mb-1">Pickup Info</h4>
@@ -110,7 +113,6 @@ const MyShipmentDetails = () => {
                     {new Date(shipment.pickupDate).toLocaleDateString()}
                   </p>
                 </div>
-
                 <div>
                   <h4 className="text-gray-500 text-sm mb-1">Delivery Info</h4>
                   <p className="flex items-center gap-2">
@@ -121,7 +123,6 @@ const MyShipmentDetails = () => {
                     {new Date(shipment.deliveryDate).toLocaleDateString()}
                   </p>
                 </div>
-
                 <div>
                   <h4 className="text-gray-500 text-sm mb-1">
                     Shipment Status
@@ -166,31 +167,45 @@ const MyShipmentDetails = () => {
 
       {/* ===================== QUOTES TAB ===================== */}
       {activeTab === "quotes" && (
-        <div className="bg-white border rounded-lg p-6">
+        <div className="bg-white border rounded-lg p-6 relative">
           {quotes.length === 0 ? (
             <p className="text-gray-500 text-center">No quotes received yet.</p>
           ) : (
-            <div className="space-y-4">
-              {quotes.map((quote) => (
-                <div
-                  key={quote._id}
-                  className="border rounded-lg p-4 flex justify-between items-center"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {quote.shipper?.companyName || quote.shipper?.name}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      ${quote.totalPrice} • {quote.status}
-                    </p>
-                  </div>
+            <>
+              <h3 className="text-lg font-medium mb-4">
+                Total quotes: {quotes.length}
+              </h3>
 
-                  <Button variant="secondary" disabled>
-                    View
-                  </Button>
-                </div>
-              ))}
-            </div>
+              <div className="grid grid-cols-2 gap-4 border-b pb-2 mb-2 text-sm font-medium text-gray-600">
+                <span>Service Provider</span>
+                <span>Price (USD)</span>
+              </div>
+
+              <div className="space-y-2">
+                {quotes.map((quote) => (
+                  <div
+                    key={quote._id}
+                    className="grid grid-cols-2 gap-4 items-center p-3 border rounded-md relative hover:shadow-sm transition"
+                  >
+                    <span>
+                      {quote.shipper?.companyName || quote.shipper?.name}
+                    </span>
+                    <span>${quote.totalPrice}</span>
+
+                    {/* Open AcceptQuoteModal */}
+                    <div
+                      onClick={() => setSelectedQuote(quote)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+                    >
+                      <LuCircleChevronRight
+                        size={22}
+                        className="text-system-primary hover:scale-110 transition"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -200,6 +215,14 @@ const MyShipmentDetails = () => {
         <div className="bg-white border rounded-lg p-6 text-center text-gray-500">
           Questions feature coming soon 🚧
         </div>
+      )}
+
+      {/* ===================== ACCEPT QUOTE MODAL ===================== */}
+      {selectedQuote && (
+        <AcceptQuoteModal
+          quote={selectedQuote}
+          onClose={() => setSelectedQuote(null)}
+        />
       )}
     </div>
   );
