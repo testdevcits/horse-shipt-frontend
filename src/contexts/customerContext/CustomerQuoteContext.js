@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 import Toast from "../../components/common/Toast";
@@ -26,29 +26,45 @@ export const CustomerQuoteProvider = ({ children }) => {
   };
 
   /* =========================================================
-     GET QUOTES BY SHIPMENT ID (CUSTOMER)
+     GET QUOTES BY SHIPMENT ID (CUSTOMER) - ONE TIME CALL
   ========================================================= */
-  const getQuotesByShipment = async (shipmentId) => {
-    if (!token || !shipmentId) return;
+  const getQuotesByShipment = useCallback(
+    async (shipmentId) => {
+      if (!token || !shipmentId) return;
 
-    setLoading(true);
-    try {
-      const res = await axios.get(
-        `${API_BASE_URL}/customer/quotes/${shipmentId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      // Prevent repeated calls if quotes already fetched
+      if (quotes.length > 0) return;
+
+      setLoading(true);
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/customer/quotes/${shipmentId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (res.data.success) {
+          setQuotes(res.data.quotes || []);
+        } else {
+          setQuotes([]);
+          showToast(res.data.message || "No quotes found", "info");
         }
-      );
-
-      setQuotes(res.data.quotes || []);
-    } catch (error) {
-      showToast("Failed to fetch quotes", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+      } catch (error) {
+        console.error("Quotes API error:", error);
+        setQuotes([]);
+        showToast(
+          error.response?.data?.message || "Failed to fetch quotes",
+          "error"
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token, quotes.length]
+  );
 
   /* =========================================================
      ACCEPT QUOTE WITH SIGNATURE (CUSTOMER)
@@ -84,11 +100,7 @@ export const CustomerQuoteProvider = ({ children }) => {
       setQuotes((prevQuotes) =>
         prevQuotes.map((q) =>
           q._id === quoteId
-            ? {
-                ...q,
-                status: "accepted",
-                contractAccepted: true,
-              }
+            ? { ...q, status: "accepted", contractAccepted: true }
             : { ...q, status: "rejected" }
         )
       );

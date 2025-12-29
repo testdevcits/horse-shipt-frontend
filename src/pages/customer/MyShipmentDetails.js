@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { SlLocationPin } from "react-icons/sl";
 import { LuCalendarDays } from "react-icons/lu";
@@ -16,21 +16,32 @@ const MyShipmentDetails = () => {
 
   const shipmentId = paramId || queryId; // Use param first, then query
 
-  const { fetchShipmentById, currentShipment, loading } =
-    useCustomerShipments();
-
-  const { quotes, getQuotesByShipment } = useCustomerQuote();
+  const {
+    fetchShipmentById,
+    currentShipment,
+    loading: shipmentLoading,
+  } = useCustomerShipments();
+  const {
+    quotes,
+    getQuotesByShipment,
+    loading: quotesLoading,
+  } = useCustomerQuote();
 
   const [activeTab, setActiveTab] = useState("overview");
   const [openDetails, setOpenDetails] = useState(false);
 
-  // Fetch shipment and quotes
-  useEffect(() => {
-    if (shipmentId) {
-      fetchShipmentById(shipmentId);
-      getQuotesByShipment(shipmentId);
-    }
+  // Make sure API calls run once per shipmentId
+  const fetchData = useCallback(() => {
+    if (!shipmentId) return;
+    fetchShipmentById(shipmentId);
+    getQuotesByShipment(shipmentId);
   }, [shipmentId, fetchShipmentById, getQuotesByShipment]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const loading = shipmentLoading || quotesLoading;
 
   if (loading)
     return <PageLoader text="Loading shipment details..." fullScreen />;
