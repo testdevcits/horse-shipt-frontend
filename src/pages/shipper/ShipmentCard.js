@@ -161,7 +161,7 @@ const ShipmentCard = ({ shipment }) => {
             <div className="flex gap-1">
               <span className="text-gray-500">Total Price:</span>
               <span className="font-medium text-system-primary">
-                ${shipment.totalPrice || "1,200"} USD
+                ${shipment.totalPrice || ""} USD
               </span>
             </div>
           </div>

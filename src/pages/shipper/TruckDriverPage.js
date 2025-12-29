@@ -203,11 +203,13 @@ const TruckDriverPage = () => {
                 />
               )}
 
+              {/* Driver Info */}
               <div className="mt-2">
                 <h3 className="font-semibold">{driver.name}</h3>
                 <p className="text-sm">{driver.email}</p>
                 <p className="text-sm">{driver.phone}</p>
 
+                {/* Status */}
                 <span
                   className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${
                     driver.isActive
@@ -217,8 +219,28 @@ const TruckDriverPage = () => {
                 >
                   {driver.isActive ? "Active" : "Inactive"}
                 </span>
+
+                {/* Assigned Vehicles */}
+                {driver.assignedVehicles?.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs font-medium text-gray-600 mb-1">
+                      Assigned Vehicles
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {driver.assignedVehicles.map((vehicle) => (
+                        <span
+                          key={vehicle._id}
+                          className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200"
+                        >
+                          {vehicle.vehicleNumber || "N/A"}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
+              {/* Actions */}
               <div className="flex gap-2 mt-4 flex-wrap">
                 <Button
                   size="sm"

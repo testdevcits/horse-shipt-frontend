@@ -1,7 +1,14 @@
 import React from "react";
 import { FiX } from "react-icons/fi";
 
-const ConfirmModal = ({ show, title, message, onConfirm, onCancel }) => {
+const ConfirmModal = ({
+  show,
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  confirmText = "Confirm",
+}) => {
   if (!show) return null;
 
   return (
@@ -33,7 +40,7 @@ const ConfirmModal = ({ show, title, message, onConfirm, onCancel }) => {
             onClick={onConfirm}
             className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition text-sm"
           >
-            Delete
+            {confirmText}
           </button>
         </div>
       </div>

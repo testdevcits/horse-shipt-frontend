@@ -14,7 +14,7 @@ import {
   ProfileIcon,
   ChatIcon,
   SettingsIcon,
-  TruckDriverIcon, // new icon
+  TruckDriverIcon,
 } from "../../components/common/ColoredIcons";
 
 // ---------------- NAV ITEMS ----------------
@@ -25,12 +25,12 @@ const navItems = [
     icon: <DashboardIcon />,
   },
   {
-    name: "Orders",
-    path: "/shipper/orders",
+    name: "Contract",
+    path: "/shipper/contract",
     icon: <OrdersIcon />,
     subPaths: [
-      { name: "Pending", path: "/shipper/orders/pending" },
-      { name: "Completed", path: "/shipper/orders/completed" },
+      { name: "Contracts", path: "/shipper/orders/pending" },
+      // { name: "Completed", path: "/shipper/orders/completed" },
     ],
   },
   {
@@ -77,7 +77,7 @@ const Sidebar = ({
       async (error) => {
         if (error.response?.status === 401) {
           await logout();
-          navigate("/login", { replace: true });
+          navigate("/", { replace: true });
         }
         return Promise.reject(error);
       }
@@ -102,7 +102,7 @@ const Sidebar = ({
 
   return (
     <div
-      className={`fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300 font-montserrat
+      className={`fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300 font-montserrat flex flex-col
         ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}
       style={{ width: sidebarWidth }}
@@ -118,12 +118,11 @@ const Sidebar = ({
         </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex flex-col mt-2 h-full overflow-y-auto">
+      {/* Navigation (scrollable) */}
+      <nav className="flex-1 overflow-y-auto vehicle-scroll px-2">
         <ul className="space-y-2">
           {navItems.map((item) => {
             const active = isActivePath(item.path, item.subPaths);
-
             return (
               <li key={item.path}>
                 {/* Main Menu */}
@@ -147,7 +146,7 @@ const Sidebar = ({
                   {(sidebarOpen || mobileOpen) && <span>{item.name}</span>}
                 </NavLink>
 
-                {/* Submenu with better UI */}
+                {/* Submenu */}
                 {item.subPaths && (sidebarOpen || mobileOpen) && (
                   <div className="ml-6 mt-1 border-l border-gray-200 pl-4 flex flex-col gap-1">
                     {item.subPaths.map((sub) => {
@@ -178,7 +177,7 @@ const Sidebar = ({
       </nav>
 
       {/* Bottom Help Icon */}
-      <div className="absolute bottom-4 w-full px-4">
+      <div className="p-4 flex-shrink-0">
         <button className="flex items-center justify-center w-full py-2 bg-gray-100 hover:bg-gray-200 text-system-primary rounded transition-all duration-300">
           <CiCircleQuestion size={20} />
         </button>

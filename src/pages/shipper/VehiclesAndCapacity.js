@@ -54,17 +54,25 @@ const VehiclePage = () => {
   // --------- Form validation schema ---------
   const validationSchema = Yup.object({
     vehicleType: Yup.string().required("Vehicle type is required"),
+
+    vehicleNumber: Yup.string()
+      .required("Vehicle number is required")
+      .max(20, "Vehicle number is too long"),
+
     trailerType: Yup.string().required("Trailer type is required"),
+
     numberOfStalls: Yup.number()
       .required("Number of stalls is required")
       .positive("Must be positive")
       .integer("Must be an integer"),
+
     stallSize: Yup.string().required("Stall size is required"),
   });
 
   const getInitialValues = (vehicle) => ({
     transportType: "Trucking",
     vehicleType: vehicle?.vehicleType || "",
+    vehicleNumber: vehicle?.vehicleNumber || "",
     trailerType: vehicle?.trailerType || "Stock Trailer",
     numberOfStalls: vehicle?.numberOfStalls || "",
     stallSize: vehicle?.stallSize || "",
@@ -173,6 +181,16 @@ const VehiclePage = () => {
                     {vehicle.vehicleType || "N/A"}
                   </span>
                 </div>
+              </div>
+
+              {/* Vehicle Number (NEW) */}
+              <div className="flex flex-col px-2">
+                <span className="text-[16px] font-medium text-systemText">
+                  Vehicle Number:
+                </span>
+                <span className="text-sm text-gray-500">
+                  {vehicle.vehicleNumber || "N/A"}
+                </span>
               </div>
 
               {/* Stalls & Size */}
@@ -345,6 +363,29 @@ const VehiclePage = () => {
                         <option key={opt}>{opt}</option>
                       ))}
                     </Field>
+                  </div>
+                  {/* Vehicle Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Vehicle Number
+                    </label>
+                    <Field
+                      type="text"
+                      name="vehicleNumber"
+                      placeholder="Enter vehicle number"
+                      className="w-full border border-gray-300 rounded-lg p-2 uppercase"
+                      onChange={(e) =>
+                        setFieldValue(
+                          "vehicleNumber",
+                          e.target.value.toUpperCase()
+                        )
+                      }
+                    />
+                    <ErrorMessage
+                      name="vehicleNumber"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
                   </div>
 
                   {/* Images */}

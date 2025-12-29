@@ -56,7 +56,10 @@ module.exports = {
         montserrat: ["Montserrat", "sans-serif"],
       },
       fontSize: {
-        paragraph: ["18px", "28px"],
+        paragraph: ["18px", "28px"], // font-size: 18px, line-height: 28px
+      },
+      fontWeight: {
+        medium: 500, // font-weight 500
       },
       borderRadius: {
         xl: "1rem",

@@ -6,6 +6,7 @@ import { useShipperProfile } from "../../contexts/ShipperProfileContext";
 import { useAuth } from "../../contexts/AuthContext";
 import Button from "../../components/common/Button";
 import NewOpportunities from "./NewOpportunities";
+import PageLoader from "../../components/common/PageLoader";
 
 const Dashboard = () => {
   const { profile, loading } = useShipperProfile();
@@ -19,9 +20,12 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="text-gray-600 font-[Montserrat] text-lg">
-        Loading dashboard...
-      </div>
+      <PageLoader
+        text="Loading dashboard..."
+        fullScreen={false}
+        size={28}
+        color="#BF9B53"
+      />
     );
   }
 

@@ -151,6 +151,11 @@ const DriverDashboard = () => {
                   </div>
 
                   <p className="text-sm">
+                    <strong>Vehicle No:</strong>{" "}
+                    {vehicle.vehicleNumber || "N/A"}
+                  </p>
+
+                  <p className="text-sm">
                     <strong>Trailer:</strong> {vehicle.trailerType}
                   </p>
                   <p className="text-sm">
@@ -163,7 +168,7 @@ const DriverDashboard = () => {
                       <img
                         key={img._id}
                         src={img.url}
-                        alt="Truck"
+                        alt={`Truck ${vehicle.vehicleNumber}`}
                         className="w-20 h-20 object-cover rounded-lg border"
                       />
                     ))}
@@ -239,6 +244,7 @@ const DriverDashboard = () => {
         message="Are you sure you want to delete your profile image?"
         onConfirm={confirmDeleteProfile}
         onCancel={() => setConfirmDelete(false)}
+        confirmText="Delete"
       />
 
       {/* ================= Confirm Logout Modal ================= */}
@@ -248,6 +254,7 @@ const DriverDashboard = () => {
         message="Are you sure you want to log out?"
         onConfirm={confirmLogoutAction}
         onCancel={() => setConfirmLogout(false)}
+        confirmText="Logout"
       />
     </div>
   );

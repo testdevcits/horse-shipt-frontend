@@ -25,7 +25,7 @@ const OAuthSuccessPage = lazy(() => import("../pages/auth/OAuthSuccessPage"));
 // ---------------- Shipper Pages ----------------
 const ShipperLayout = lazy(() => import("../layouts/ShipperLayout"));
 const ShipperDashboard = lazy(() => import("../pages/shipper/Dashboard"));
-const ShipperOrders = lazy(() => import("../pages/shipper/Orders"));
+const ShipperContract = lazy(() => import("../pages/shipper/Contract"));
 const ShipperProfile = lazy(() => import("../pages/shipper/Profile"));
 const ShipperSettings = lazy(() => import("../pages/shipper/Settings"));
 const ShipmentDetails = lazy(() => import("../pages/shipper/ShipmentDetails"));
@@ -155,7 +155,7 @@ const AppRoutes = () => {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<ShipperDashboard />} />
-          <Route path="orders" element={<ShipperOrders />} />
+          <Route path="contract" element={<ShipperContract />} />
           <Route path="profile" element={<ShipperProfile />} />
           <Route path="vehicles" element={<VehiclesAndCapacity />} />
           <Route path="shipment-settings" element={<ShipmentSettings />} />

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useDriverAuth } from "../../contexts/DriverAuthContext";
 import Button from "../../components/common/Button";
 import loginBg from "../../assets/images/authPage.jpg"; // background image
@@ -34,13 +35,11 @@ const DriverLoginPage = () => {
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-4 text-center">
           Driver Login
         </h1>
-
         {error && (
           <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm w-full text-center">
             {error}
           </div>
         )}
-
         <form onSubmit={handleSubmit} className="w-full space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
@@ -74,7 +73,16 @@ const DriverLoginPage = () => {
           >
             {loading ? "Logging in..." : "Login"}
           </Button>
-        </form>
+        </form>{" "}
+        {/* Back to Home Link */}
+        <div className="mt-4 w-full text-end">
+          <Link
+            to="/"
+            className="text-blue-600 hover:underline text-sm font-medium"
+          >
+            &larr; Back to Home
+          </Link>
+        </div>
       </div>
     </div>
   );

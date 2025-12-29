@@ -22,7 +22,7 @@ body::-webkit-scrollbar {
 
 body::-webkit-scrollbar-thumb {
   background-color: #BF9B53; /* your desired color */
-  border-radius: 3px;
+  border-radius: 0px;
 }
 
 body::-webkit-scrollbar-track {
@@ -66,7 +66,7 @@ select option:checked {
 
 .vehicle-scroll::-webkit-scrollbar-thumb {
   background-color: #BF9B53;
-  border-radius: 3px;
+  border-radius: 0px;
 }
 
 .vehicle-scroll::-webkit-scrollbar-track {

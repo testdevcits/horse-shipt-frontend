@@ -15,6 +15,7 @@ import { ShipperPreferredAreaProvider } from "./contexts/ShipperPreferredAreaCon
 import { CustomerShipmentProvider } from "./contexts/customerContext/CustomerShipmentContext";
 import { ShipperQuoteProvider } from "./contexts/shipperContext/ShipperQuoteContext";
 import { ShipperShipmentProvider } from "./contexts/shipperContext/ShipperShipmentContext";
+import { ShipperContractProvider } from "./contexts/shipperContext/ShipperContractContext";
 
 // ------------------- Driver Auth Context -------------------
 import { DriverAuthProvider } from "./contexts/DriverAuthContext";
@@ -37,14 +38,15 @@ function App() {
                       <ShipperLocationProvider>
                         <ShipperPreferredAreaProvider>
                           <CustomerShipmentProvider>
-                            <ShipperQuoteProvider>
-                              <ShipperShipmentProvider>
-                                {/* Driver Auth Context wraps only driver pages */}
-                                <DriverAuthProvider>
-                                  <AppRoutes />
-                                </DriverAuthProvider>
-                              </ShipperShipmentProvider>
-                            </ShipperQuoteProvider>
+                            <ShipperContractProvider>
+                              <ShipperQuoteProvider>
+                                <ShipperShipmentProvider>
+                                  <DriverAuthProvider>
+                                    <AppRoutes />
+                                  </DriverAuthProvider>
+                                </ShipperShipmentProvider>
+                              </ShipperQuoteProvider>
+                            </ShipperContractProvider>
                           </CustomerShipmentProvider>
                         </ShipperPreferredAreaProvider>
                       </ShipperLocationProvider>
