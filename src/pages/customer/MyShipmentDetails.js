@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { SlLocationPin } from "react-icons/sl";
 import { LuCalendarDays } from "react-icons/lu";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
@@ -7,10 +7,14 @@ import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteContext";
 import Button from "../../components/common/Button";
+import PageLoader from "../../components/common/PageLoader";
 
 const MyShipmentDetails = () => {
-  const [searchParams] = useSearchParams();
-  const shipmentId = searchParams.get("shipmentId");
+  const { id: paramId } = useParams(); // From URL /my-shipment/:id
+  const [searchParams] = useSearchParams(); // From query ?shipmentId=
+  const queryId = searchParams.get("shipmentId");
+
+  const shipmentId = paramId || queryId; // Use param first, then query
 
   const { fetchShipmentById, currentShipment, loading } =
     useCustomerShipments();
@@ -20,6 +24,7 @@ const MyShipmentDetails = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [openDetails, setOpenDetails] = useState(false);
 
+  // Fetch shipment and quotes
   useEffect(() => {
     if (shipmentId) {
       fetchShipmentById(shipmentId);
@@ -28,7 +33,7 @@ const MyShipmentDetails = () => {
   }, [shipmentId, fetchShipmentById, getQuotesByShipment]);
 
   if (loading)
-    return <p className="text-center mt-8">Loading shipment details...</p>;
+    return <PageLoader text="Loading shipment details..." fullScreen />;
 
   if (!currentShipment)
     return <p className="text-red-500 text-center mt-8">Shipment not found.</p>;
