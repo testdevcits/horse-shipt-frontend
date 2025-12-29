@@ -13,6 +13,7 @@ import { ShipperProfileProvider } from "./contexts/ShipperProfileContext";
 import { ShipperLocationProvider } from "./contexts/shipperContext/ShipperLocationContext";
 import { ShipperPreferredAreaProvider } from "./contexts/ShipperPreferredAreaContext";
 import { CustomerShipmentProvider } from "./contexts/customerContext/CustomerShipmentContext";
+import { CustomerQuoteProvider } from "./contexts/customerContext/CustomerQuoteContext";
 import { ShipperQuoteProvider } from "./contexts/shipperContext/ShipperQuoteContext";
 import { ShipperShipmentProvider } from "./contexts/shipperContext/ShipperShipmentContext";
 import { ShipperContractProvider } from "./contexts/shipperContext/ShipperContractContext";
@@ -38,15 +39,19 @@ function App() {
                       <ShipperLocationProvider>
                         <ShipperPreferredAreaProvider>
                           <CustomerShipmentProvider>
-                            <ShipperContractProvider>
-                              <ShipperQuoteProvider>
-                                <ShipperShipmentProvider>
-                                  <DriverAuthProvider>
-                                    <AppRoutes />
-                                  </DriverAuthProvider>
-                                </ShipperShipmentProvider>
-                              </ShipperQuoteProvider>
-                            </ShipperContractProvider>
+                            <CustomerQuoteProvider>
+                              {" "}
+                              {/* ✅ Wrap with CustomerQuoteProvider */}
+                              <ShipperContractProvider>
+                                <ShipperQuoteProvider>
+                                  <ShipperShipmentProvider>
+                                    <DriverAuthProvider>
+                                      <AppRoutes />
+                                    </DriverAuthProvider>
+                                  </ShipperShipmentProvider>
+                                </ShipperQuoteProvider>
+                              </ShipperContractProvider>
+                            </CustomerQuoteProvider>
                           </CustomerShipmentProvider>
                         </ShipperPreferredAreaProvider>
                       </ShipperLocationProvider>
