@@ -31,15 +31,27 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
     setSubmitting(true);
     const customerSignature = sigPad.toDataURL("image/png");
-    const res = await acceptQuote(quote._id, customerSignature);
 
-    if (res.success) {
-      showToast("Quote accepted successfully", "success");
-      sigPad.clear();
-      onClose();
+    try {
+      const res = await acceptQuote(quote._id, customerSignature);
+
+      if (res.success) {
+        showToast("Quote accepted successfully", "success");
+        sigPad.clear();
+        onClose();
+      } else {
+        // Show backend error message
+        showToast(res.message || "Failed to accept quote", "error");
+      }
+    } catch (error) {
+      console.error("Accept quote error:", error);
+      showToast(
+        error?.response?.data?.message || "Failed to accept quote",
+        "error"
+      );
+    } finally {
+      setSubmitting(false);
     }
-
-    setSubmitting(false);
   };
 
   return (
@@ -144,7 +156,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                 disabled={submitting}
                 onClick={handleSubmit}
               >
-                Accept Quote
+                {submitting ? "Submitting..." : "Accept Quote"}
               </Button>
             </div>
           </div>
