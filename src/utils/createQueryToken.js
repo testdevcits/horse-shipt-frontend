@@ -20,7 +20,7 @@ export const createShipmentQueryToken = (shipmentId) => {
       JSON.stringify({
         sid: shipmentId, // shipment ID
         user: userInfo, // logged-in user info
-        exp: Date.now() + 1 * 60 * 1000, // 5 min expiry
+        exp: Date.now() + 5 * 60 * 1000, // 5 min expiry
       })
     );
   } catch (err) {

@@ -4,6 +4,7 @@ import Toast from "../../components/common/Toast";
 import { useCustomerNotifications } from "../../contexts/CustomerNotificationContext";
 import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
+import PageLoader from "../../components/common/PageLoader";
 
 const notificationsList = [
   { id: "newQuote", label: "When I receive a new quote" },
@@ -54,27 +55,28 @@ const CustomerNotifications = () => {
     }
   };
 
-  if (loading || !notifications) return <p>Loading...</p>;
+  if (loading || !notifications) {
+    return (
+      <PageLoader
+        text="Loading notifications..."
+        fullScreen={false}
+        size={22}
+        color="#BF9B53"
+      />
+    );
+  }
 
   return (
     <div className="max-w-full mx-auto p-4 sm:p-6 font-montserrat">
-      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">
+      <h1 className="font-montserrat font-medium text-base leading-6 tracking-normal text-systemText mb-2">
         Notifications
       </h1>
-      <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-6">
-        Notifications are customizable alerts that keep you updated about
-        specific activities in HorseShipt.
-      </p>
 
-      {/* Test Notification Button */}
-      <div className="mb-4">
-        <button
-          onClick={sendTestNotification}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-        >
-          Send Test Notification
-        </button>
-      </div>
+      <p className="font-montserrat font-normal text-base leading-6 tracking-normal text-gray-600 mb-6">
+        Notifications are customizable alerts that keep you updated about
+        specific activities in HorseShipt, they ensure you never miss anything
+        while you’re away.
+      </p>
 
       {/* Notification Toggles */}
       <div className="w-full flex flex-col space-y-4 p-4 border border-gray-200 rounded-xl bg-white">
@@ -83,9 +85,10 @@ const CustomerNotifications = () => {
             key={item.id}
             className="flex justify-between items-center gap-2 flex-wrap"
           >
-            <span className="text-[14px] sm:text-sm md:text-base lg:text-lg text-gray-800 flex-1 break-words font-normal">
+            <span className="font-montserrat font-medium text-base leading-6 tracking-normal text-gray-800 flex-1 break-words">
               {item.label}
             </span>
+
             <div className="flex-shrink-0 mt-1 sm:mt-0">
               <Switch
                 checked={notifications[item.id]}
