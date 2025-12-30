@@ -49,10 +49,11 @@ const CustomerProfile = () => {
       <div className="w-full bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm flex flex-col gap-3 border rounded-[14px] border-gray-300 ">
         {/* Header with Edit Button */}
         <div className="flex justify-between items-center">
-          <h3 className="text-base sm:text-lg md:text-xl font-semibold">
+          <h3 className="font-montserrat font-semibold text-base leading-6 tracking-normal">
             Basic Info
           </h3>
-          <button className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition">
+
+          <button className="p-2 bg-gray-100 rounded-sm hover:bg-gray-200 transition">
             <FiEdit3 />
           </button>
         </div>
@@ -61,30 +62,30 @@ const CustomerProfile = () => {
         <div className="flex flex-col w-full gap-3">
           {/* Name */}
           <div className="flex justify-between items-center border-b border-gray-300 pb-2">
-            <span className="text-gray-500 text-sm sm:text-base md:text-lg">
+            <span className="font-montserrat font-medium text-sm leading-5 tracking-normal text-gray-500">
               Name:
             </span>
-            <span className="font-medium text-sm sm:text-base md:text-lg">
+            <span className="font-montserrat font-medium text-sm leading-5 tracking-normal text-systemText">
               {user?.name || "John Doe"}
             </span>
           </div>
 
           {/* Email */}
           <div className="flex justify-between items-center border-b border-gray-300 pb-2">
-            <span className="text-gray-500 text-sm sm:text-base md:text-lg">
+            <span className="font-montserrat font-medium text-sm leading-5 tracking-normal text-gray-500">
               Email:
             </span>
-            <span className="font-medium text-sm sm:text-base md:text-lg">
+            <span className="font-montserrat font-medium text-sm leading-5 tracking-normal text-systemText">
               {user?.email || "johndoe@example.com"}
             </span>
           </div>
 
           {/* Phone */}
           <div className="flex justify-between items-center border-b border-gray-300 pb-2">
-            <span className="text-gray-500 text-sm sm:text-base md:text-lg">
+            <span className="font-montserrat font-medium text-sm leading-5 tracking-normal text-gray-500">
               Phone:
             </span>
-            <span className="font-medium text-sm sm:text-base md:text-lg">
+            <span className="font-montserrat font-medium text-sm leading-5 tracking-normal text-systemText">
               {user?.phone || "+91 9876543210"}
             </span>
           </div>

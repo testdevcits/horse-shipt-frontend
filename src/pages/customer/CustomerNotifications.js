@@ -79,7 +79,7 @@ const CustomerNotifications = () => {
       </p>
 
       {/* Notification Toggles */}
-      <div className="w-full flex flex-col space-y-4 p-4 border border-gray-200 rounded-xl bg-white">
+      <div className="w-full flex flex-col space-y-4 p-4 border border-gray-200 rounded-sm bg-white">
         {notificationsList.map((item) => (
           <div
             key={item.id}
