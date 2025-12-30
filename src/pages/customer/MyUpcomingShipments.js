@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { MdNavigateNext } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-// 🔹 Import the new customer shipment card
-import CustomerShipmentCard from "./CustomerShipmentCard";
+import CustomerShipmentCard from "../../components/common/ShipmentCard";
 import Button from "../../components/common/Button";
 import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
@@ -39,24 +38,28 @@ const MyUpcomingShipments = () => {
     fetchShipments();
   }, [token]);
 
-  const shipmentsToShow = shipments.slice(0, 3); // Show only 3 cards
+  const shipmentsToShow = shipments.slice(0, 3); // Show only 3 cards on dashboard
 
   const handleSeeAll = () => {
     navigate("/customer/my-shipments"); // Navigate to full shipments page
   };
 
-  if (loading) return <p>Loading shipments...</p>;
+  if (loading)
+    return (
+      <p className="text-gray-500 font-montserrat text-center mt-6">
+        Loading shipments...
+      </p>
+    );
 
   return (
     <div className="w-full flex flex-col gap-6">
-      {shipmentsToShow.length > 0 && (
+      {shipmentsToShow.length > 0 ? (
         <div className="flex flex-col gap-4">
           <h2 className="font-montserrat font-semibold text-lg text-systemText">
             My Upcoming Shipments
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {shipmentsToShow.map((shipment) => (
-              // 🔹 Use the new CustomerShipmentCard
               <CustomerShipmentCard key={shipment._id} shipment={shipment} />
             ))}
           </div>
@@ -78,10 +81,10 @@ const MyUpcomingShipments = () => {
             </div>
           )}
         </div>
-      )}
-
-      {shipmentsToShow.length === 0 && (
-        <p className="text-gray-500 font-montserrat">You have no shipments.</p>
+      ) : (
+        <p className="text-gray-500 font-montserrat text-center">
+          You have no shipments.
+        </p>
       )}
     </div>
   );
