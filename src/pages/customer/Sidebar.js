@@ -9,24 +9,40 @@ import { CiCircleQuestion } from "react-icons/ci";
 import { useAuth } from "../../contexts/AuthContext";
 
 // ICONS
-import { FaTachometerAlt, FaBoxOpen, FaPlus, FaCog } from "react-icons/fa";
+import {
+  CustomerDashboardIcon,
+  CustomerOrdersIcon,
+  CustomerNewShipmentIcon,
+  CustomerSettingsIcon,
+} from "../../components/common/ColoredIcons";
 
 // ---------------- NAV ITEMS ----------------
 const navItems = [
-  { name: "Dashboard", path: "/customer/dashboard", icon: <FaTachometerAlt /> },
+  {
+    name: "Dashboard",
+    path: "/customer/dashboard",
+    icon: <CustomerDashboardIcon />,
+  },
   {
     name: "Orders",
     path: "/customer/orders",
-    icon: <FaBoxOpen />,
+    icon: <CustomerOrdersIcon />,
     subPaths: [
       { name: "Pending", path: "/customer/orders/pending" },
       { name: "Completed", path: "/customer/orders/completed" },
     ],
   },
-  { name: "New Shipment", path: "/customer/new-shipment", icon: <FaPlus /> },
-  { name: "Settings", path: "/customer/settings", icon: <FaCog /> },
+  {
+    name: "New Shipment",
+    path: "/customer/new-shipment",
+    icon: <CustomerNewShipmentIcon />,
+  },
+  {
+    name: "Settings",
+    path: "/customer/settings",
+    icon: <CustomerSettingsIcon />,
+  },
 ];
-
 const CustomerSidebar = ({
   sidebarOpen,
   setSidebarOpen,
