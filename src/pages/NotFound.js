@@ -2,7 +2,7 @@ import React from "react";
 
 const NotFound = () => {
   return (
-    <div className="flex flex-col items-center justify-center bg-light px-6 py-12 font-montserrat animate-slide-fade-in">
+    <div className="flex flex-col items-center justify-center px-6 py-12 font-montserrat animate-slide-fade-in">
       {/* 404 Big Text */}
       <h1 className="text-[8rem] sm:text-[10rem] md:text-[12rem] font-extrabold text-system-primary mb-6 text-center">
         404
