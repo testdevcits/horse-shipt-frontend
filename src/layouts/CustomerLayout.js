@@ -8,7 +8,6 @@ import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
 import logo from "../assets/images/logo.png";
 import { MdOutlineNotificationsActive } from "react-icons/md";
-import StatusBadge from "../components/common/StatusBadge";
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
@@ -72,9 +71,6 @@ const CustomerLayout = () => {
               </span>
             )}
           </div>
-
-          {/* Chat / Status Badge */}
-          <StatusBadge text="Available" />
 
           {/* Profile */}
           <div className="relative">

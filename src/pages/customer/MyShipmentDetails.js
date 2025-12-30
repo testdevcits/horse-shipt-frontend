@@ -29,7 +29,7 @@ const MyShipmentDetails = () => {
     loading: quotesLoading,
   } = useCustomerQuote();
 
-  const [activeTab, setActiveTab] = useState("quotes"); // Show quotes first
+  const [activeTab, setActiveTab] = useState("overview"); // Show quotes first
   const [openDetails, setOpenDetails] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
@@ -128,74 +128,131 @@ const MyShipmentDetails = () => {
       )}
 
       {/* ================= OVERVIEW TAB ================= */}
-      {activeTab === "overview" && (
-        <div className="flex flex-col gap-6">
-          <div className="bg-white border rounded-lg p-4 md:p-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="w-full md:w-[60%]">
+      {activeTab === "overview" && shipment && (
+        <div className="flex flex-col gap-6 font-montserrat text-sm">
+          {/* TOP CARD */}
+          <div className="bg-white border border-gray-300 rounded-[10px]">
+            <div className="flex flex-col md:flex-row gap-4 p-4 md:gap-8">
+              {/* IMAGE */}
+              <div className="order-1 md:order-2 w-full md:w-[60%]">
                 <img
-                  src={shipment.horses[0]?.photo?.url}
-                  alt="shipment"
-                  className="w-full h-[220px] md:h-[360px] object-cover rounded-md"
+                  src={shipment.horses?.[0]?.photo?.url || "/placeholder.png"}
+                  alt="Shipment"
+                  className="w-full h-[220px] sm:h-[280px] md:h-[382px] object-cover rounded-md"
                 />
               </div>
 
-              <div className="w-full md:w-[40%] flex flex-col gap-6">
-                <div>
-                  <h4 className="text-gray-500 text-sm mb-1">Pickup Info</h4>
-                  <p className="flex items-center gap-2">
-                    <SlLocationPin /> {shipment.pickupLocation}
+              {/* INFO */}
+              <div className="order-2 md:order-1 w-full md:w-[40%] flex flex-col gap-8">
+                {/* PICKUP */}
+                <div className="flex flex-col gap-1">
+                  <h4 className="text-gray-500 font-medium">Pickup Info</h4>
+                  <p className="flex items-center gap-2 text-gray-700">
+                    <SlLocationPin />
+                    {shipment.pickupLocation}
                   </p>
-                  <p className="flex items-center gap-2">
-                    <LuCalendarDays />{" "}
+                  <p className="flex items-center gap-2 text-gray-700">
+                    <LuCalendarDays />
                     {new Date(shipment.pickupDate).toLocaleDateString()}
                   </p>
                 </div>
 
-                <div>
-                  <h4 className="text-gray-500 text-sm mb-1">Delivery Info</h4>
-                  <p className="flex items-center gap-2">
-                    <SlLocationPin /> {shipment.deliveryLocation}
+                {/* DELIVERY */}
+                <div className="flex flex-col gap-1">
+                  <h4 className="text-gray-500 font-medium">Delivery Info</h4>
+                  <p className="flex items-center gap-2 text-gray-700">
+                    <SlLocationPin />
+                    {shipment.deliveryLocation}
                   </p>
-                  <p className="flex items-center gap-2">
-                    <LuCalendarDays />{" "}
+                  <p className="flex items-center gap-2 text-gray-700">
+                    <LuCalendarDays />
                     {new Date(shipment.deliveryDate).toLocaleDateString()}
                   </p>
                 </div>
 
-                <div>
-                  <h4 className="text-gray-500 text-sm mb-1">
-                    Shipment Status
-                  </h4>
-                  <p className="font-semibold capitalize">{shipment.status}</p>
+                {/* STATUS */}
+                <div className="flex flex-col gap-1">
+                  <h4 className="text-gray-500 font-medium">Shipment Status</h4>
+                  <p className="font-semibold capitalize text-system-primary">
+                    {shipment.status.replaceAll("_", " ")}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="border rounded-lg p-4">
+          {/* DETAILS TOGGLE */}
+          <div className="border border-gray-300 rounded-[10px] p-4">
             <div
               onClick={() => setOpenDetails(!openDetails)}
-              className="flex justify-between items-center bg-[#F2EBDD] p-3 rounded-md cursor-pointer"
+              className="flex items-center justify-between h-[44px] p-[14px] bg-[#F2EBDD] rounded-[8px] cursor-pointer"
             >
-              <h3 className="font-medium">Shipment Details</h3>
-              {openDetails ? <FiChevronUp /> : <FiChevronDown />}
+              <h2 className="text-[16px] font-medium text-[#333333]">
+                Shipment Details
+              </h2>
+              {openDetails ? (
+                <FiChevronUp size={20} />
+              ) : (
+                <FiChevronDown size={20} />
+              )}
             </div>
 
             {openDetails && (
-              <div className="mt-4 space-y-6">
+              <div className="p-4 space-y-6">
+                {/* GENERAL */}
+                <div className="flex gap-6">
+                  <div className="w-1/4 text-gray-800 font-medium">
+                    GENERAL DETAILS
+                  </div>
+                  <div className="w-3/4 text-gray-700 flex flex-col gap-1">
+                    <span>Total Horses: {shipment.horses.length}</span>
+                    <span>Pickup Time Option: {shipment.pickupTimeOption}</span>
+                    <span>
+                      Delivery Time Option: {shipment.deliveryTimeOption}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-300" />
+
+                {/* HORSES */}
                 {shipment.horses.map((horse, index) => (
-                  <div
-                    key={horse._id}
-                    className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm"
-                  >
-                    <p>
-                      <strong>Horse {index + 1}:</strong> {horse.registeredName}
-                    </p>
-                    <p>Breed: {horse.breed}</p>
-                    <p>Colour: {horse.colour}</p>
-                    <p>Age: {horse.age}</p>
-                    <p>Sex: {horse.sex}</p>
+                  <div key={horse._id} className="flex gap-6">
+                    <div className="w-1/4 text-gray-800 font-medium">
+                      HORSE {index + 1}
+                    </div>
+
+                    <div className="w-3/4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
+                      <div>
+                        <span className="text-gray-500">Registered Name:</span>{" "}
+                        {horse.registeredName}
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Barn Name:</span>{" "}
+                        {horse.barnName}
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Breed:</span>{" "}
+                        {horse.breed}
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Colour:</span>{" "}
+                        {horse.colour}
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Age:</span> {horse.age}
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Sex:</span> {horse.sex}
+                      </div>
+
+                      {horse.generalInfo && (
+                        <div className="sm:col-span-2">
+                          <span className="text-gray-500">General Info:</span>{" "}
+                          {horse.generalInfo}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
