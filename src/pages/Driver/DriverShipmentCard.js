@@ -22,7 +22,7 @@ L.Icon.Default.mergeOptions({
 
 const DriverShipmentCard = ({ shipment }) => {
   // 📍 STATIC LOCATIONS
-  const pickupCoords = [22.7196, 75.8577]; // Indore
+  const pickupCoords = [22.737848, 75.888239]; // Indore
   const deliveryCoords = [23.1828, 75.7772]; // Ujjain
 
   const [routeCoords, setRouteCoords] = useState([]);
