@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 import Toast from "../../components/common/Toast";
@@ -11,17 +17,16 @@ export const ShipperContractProvider = ({ children }) => {
 
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [hasFetched, setHasFetched] = useState(false); // ✅ KEY
+  const [hasFetched, setHasFetched] = useState(false);
 
-  // ---------------- TOAST ----------------
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const showToast = (message, type = "info") => {
     setToast({ message, type, visible: true });
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   };
 
-  // ---------------- FETCH CONTRACTS (ONCE AFTER LOGIN) ----------------
-  const fetchContracts = async () => {
+  // ---------------- FETCH CONTRACTS ----------------
+  const fetchContracts = useCallback(async () => {
     if (!token || hasFetched) return;
 
     setLoading(true);
@@ -31,18 +36,18 @@ export const ShipperContractProvider = ({ children }) => {
       });
 
       setContracts(res.data.data ? [res.data.data] : []);
-      setHasFetched(true); // ✅ STOP future calls
+      setHasFetched(true);
     } catch (err) {
       setContracts([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, hasFetched]); // ✅ stable reference for useEffect
 
   // 🔥 Auto-call once when token is available
   useEffect(() => {
-    fetchContracts();
-  }, [token]); // ✅ only when login happens
+    fetchContracts(); // ✅ no ESLint warning now
+  }, [fetchContracts]);
 
   // ---------------- UPLOAD CONTRACT ----------------
   const uploadContract = async (formData) => {
@@ -59,7 +64,7 @@ export const ShipperContractProvider = ({ children }) => {
 
       showToast("Contract uploaded successfully", "success");
 
-      // refresh once
+      // refresh
       setHasFetched(false);
       fetchContracts();
 
@@ -84,9 +89,7 @@ export const ShipperContractProvider = ({ children }) => {
       await axios.patch(
         `${API_BASE_URL}/shipper/contracts/deactivate`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       showToast("Contract deactivated", "success");

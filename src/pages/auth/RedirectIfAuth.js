@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import PageLoader from "../../components/common/PageLoader";
 
 const RedirectIfAuth = ({ children, redirectPath }) => {
   const { user, token, loading } = useAuth(); // include token to ensure login is valid
@@ -8,10 +9,12 @@ const RedirectIfAuth = ({ children, redirectPath }) => {
   // Prevent flashing while auth state is being determined
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen text-gray-600">
-        <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
-        <p className="mt-3 text-sm">Checking authentication...</p>
-      </div>
+      <PageLoader
+        text="Checking authentication..."
+        fullScreen={false} // makes it cover the whole screen
+        size={28} // size of cubes
+        color="#BF9B53" // loader color
+      />
     );
   }
 

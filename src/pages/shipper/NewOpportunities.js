@@ -14,23 +14,24 @@ const NewOpportunities = () => {
 
   const { shipments, getAvailableShipments, loading } = useShipperShipment();
 
+  // ✅ Fetch shipments once
   useEffect(() => {
-    if (shipments.length === 0) {
+    if (!shipments || shipments.length === 0) {
       getAvailableShipments();
     }
-  }, [shipments.length, getAvailableShipments]);
+  }, [shipments, getAvailableShipments]);
 
-  const filteredShipments = shipments.filter((shipment) =>
-    `${shipment.pickupLocation} ${shipment.deliveryLocation}`
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
+  // ✅ Search filter (safe)
+  const filteredShipments = shipments.filter((shipment) => {
+    const searchText = `${shipment.pickupLocation} ${shipment.deliveryLocation}`;
+    return searchText.toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
     <div className="flex flex-col w-full h-full">
       {/* ================= HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
-        <h1 className="font-montserrat font-semibold text-3xl sm:text-3xl leading-[38px] text-gray-800">
+        <h1 className="font-montserrat font-semibold text-3xl leading-[38px] text-gray-800">
           New Opportunities for you
         </h1>
 
@@ -54,25 +55,25 @@ const NewOpportunities = () => {
           <div className="flex w-full sm:w-auto border border-gray-400 rounded-lg overflow-hidden">
             <button
               onClick={() => setActiveTab("map")}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold transition ${
                 activeTab === "map"
                   ? "bg-system-primary text-white"
                   : "bg-white text-gray-700 hover:bg-gray-100"
               }`}
             >
-              <CiMap size={18} className="sm:w-[20px] sm:h-[20px]" />
+              <CiMap size={18} />
               <span className="hidden xs:inline">Map</span>
             </button>
 
             <button
               onClick={() => setActiveTab("list")}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold transition ${
                 activeTab === "list"
                   ? "bg-system-primary text-white"
                   : "bg-white text-gray-700 hover:bg-gray-100"
               }`}
             >
-              <IoList size={18} className="sm:w-[20px] sm:h-[20px]" />
+              <IoList size={18} />
               <span className="hidden xs:inline">List</span>
             </button>
           </div>
@@ -81,7 +82,7 @@ const NewOpportunities = () => {
 
       {/* ================= CONTENT ================= */}
       <div className="mt-4 w-full flex-1 min-h-[400px] relative overflow-auto">
-        {/* Loader inside content */}
+        {/* Loader */}
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
             <PageLoader
@@ -93,12 +94,12 @@ const NewOpportunities = () => {
         )}
 
         {!loading && filteredShipments.length === 0 && (
-          <p className="text-gray-500 text-center">
+          <p className="text-gray-500 text-center mt-10">
             No available shipments found
           </p>
         )}
 
-        {/* LIST TAB */}
+        {/* LIST VIEW */}
         {activeTab === "list" && (
           <div className="space-y-4">
             {filteredShipments.map((shipment) => (
@@ -107,7 +108,7 @@ const NewOpportunities = () => {
           </div>
         )}
 
-        {/* MAP TAB */}
+        {/* MAP VIEW */}
         {activeTab === "map" && <ShipmentMap shipments={filteredShipments} />}
       </div>
     </div>

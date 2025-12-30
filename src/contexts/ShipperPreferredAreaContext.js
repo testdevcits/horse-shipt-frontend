@@ -1,6 +1,3 @@
-// -------------------------------------------------
-// src/contexts/ShipperPreferredAreaContext.js
-// -------------------------------------------------
 import React, {
   createContext,
   useContext,
@@ -28,9 +25,7 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   }, []);
 
-  // =====================================================
-  // Fetch All Preferred Areas
-  // =====================================================
+  // ---------------- FETCH PREFERRED AREAS ----------------
   const fetchPreferredAreas = useCallback(async () => {
     if (!token) return;
 
@@ -49,11 +44,18 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token, showToast]); // ✅ include dependencies
 
-  // =====================================================
-  // Add New Preferred Area
-  // =====================================================
+  // ---------------- AUTO FETCH WHEN TOKEN AVAILABLE ----------------
+  useEffect(() => {
+    if (token && user?.role === "shipper") {
+      fetchPreferredAreas();
+    } else {
+      setPreferredAreas([]);
+    }
+  }, [token, user, fetchPreferredAreas]); // ✅ all dependencies included
+
+  // ---------------- ADD PREFERRED AREA ----------------
   const addPreferredArea = async (areaData) => {
     if (!token) return { success: false };
     setLoading(true);
@@ -84,9 +86,7 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
     }
   };
 
-  // =====================================================
-  // Update Preferred Area
-  // =====================================================
+  // ---------------- UPDATE PREFERRED AREA ----------------
   const updatePreferredArea = async (areaId, updatedData) => {
     if (!token) return { success: false };
     setLoading(true);
@@ -119,9 +119,7 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
     }
   };
 
-  // =====================================================
-  // Delete Preferred Area
-  // =====================================================
+  // ---------------- DELETE PREFERRED AREA ----------------
   const deletePreferredArea = async (areaId) => {
     if (!token) return { success: false };
     setLoading(true);
@@ -148,20 +146,6 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
     }
   };
 
-  // =====================================================
-  // Auto Fetch When Logged In
-  // =====================================================
-  // useEffect(() => {
-  //   if (token && user?.role === "shipper") {
-  //     fetchPreferredAreas();
-  //   } else {
-  //     setPreferredAreas([]);
-  //   }
-  // }, [token, user, fetchPreferredAreas]);
-
-  // =====================================================
-  // Context Provider
-  // =====================================================
   return (
     <ShipperPreferredAreaContext.Provider
       value={{

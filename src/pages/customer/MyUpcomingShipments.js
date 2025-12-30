@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { MdNavigateNext } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import ShipmentCard from "../../components/common/ShipmentCard";
+// 🔹 Import the new customer shipment card
+import CustomerShipmentCard from "./CustomerShipmentCard";
 import Button from "../../components/common/Button";
 import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
@@ -38,12 +39,7 @@ const MyUpcomingShipments = () => {
     fetchShipments();
   }, [token]);
 
-  // Filter upcoming shipments
-  const upcomingShipments = shipments.filter(
-    (s) => !s.publish || new Date(s.deliveryDate) >= new Date()
-  );
-
-  const upcomingToShow = upcomingShipments.slice(0, 3); // Show only 3 cards
+  const shipmentsToShow = shipments.slice(0, 3); // Show only 3 cards
 
   const handleSeeAll = () => {
     navigate("/customer/my-shipments"); // Navigate to full shipments page
@@ -53,18 +49,19 @@ const MyUpcomingShipments = () => {
 
   return (
     <div className="w-full flex flex-col gap-6">
-      {upcomingToShow.length > 0 && (
+      {shipmentsToShow.length > 0 && (
         <div className="flex flex-col gap-4">
           <h2 className="font-montserrat font-semibold text-lg text-systemText">
             My Upcoming Shipments
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {upcomingToShow.map((shipment) => (
-              <ShipmentCard key={shipment._id} shipment={shipment} />
+            {shipmentsToShow.map((shipment) => (
+              // 🔹 Use the new CustomerShipmentCard
+              <CustomerShipmentCard key={shipment._id} shipment={shipment} />
             ))}
           </div>
 
-          {upcomingShipments.length > 3 && (
+          {shipments.length > 3 && (
             <div className="flex gap-4 mt-2">
               <Button
                 variant="custom"
@@ -83,10 +80,8 @@ const MyUpcomingShipments = () => {
         </div>
       )}
 
-      {upcomingToShow.length === 0 && (
-        <p className="text-gray-500 font-montserrat">
-          You have no upcoming shipments.
-        </p>
+      {shipmentsToShow.length === 0 && (
+        <p className="text-gray-500 font-montserrat">You have no shipments.</p>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCustomerPayment } from "../../contexts/CustomerPaymentContext";
 import Button from "../../components/common/Button";
@@ -16,7 +16,6 @@ const Payment = () => {
     otpSent,
     otpCooldown,
     setOtpSent,
-    setOtpCooldown,
   } = useCustomerPayment();
 
   const [toast, setToast] = useState(null);
@@ -26,9 +25,13 @@ const Payment = () => {
   const [errors, setErrors] = useState({});
 
   // ---------------- Fetch payment on user login ----------------
+  const fetchPaymentCallback = useCallback(() => {
+    if (user) fetchPayment();
+  }, [fetchPayment, user]);
+
   useEffect(() => {
-    fetchPayment();
-  }, [user]);
+    fetchPaymentCallback();
+  }, [fetchPaymentCallback]);
 
   // ---------------- Set form data if payment exists ----------------
   useEffect(() => {
@@ -61,11 +64,10 @@ const Payment = () => {
       return;
     }
 
-    const paymentId = paymentData?._id || null; // pass existing paymentId if updating
     const res = await sendOtp({
       pkLive: formData.pkLive,
       skLive: formData.skLive,
-      paymentId,
+      paymentId: paymentData?._id || null,
     });
 
     if (res.success) {
@@ -80,12 +82,11 @@ const Payment = () => {
   const handleVerifyOtp = async () => {
     if (!otp) return showToast("Please enter OTP", "error");
 
-    const paymentId = paymentData?._id || null;
     const res = await verifyOtp({
       otp,
       pkLive: formData.pkLive,
       skLive: formData.skLive,
-      paymentId,
+      paymentId: paymentData?._id || null,
     });
 
     if (res.success) {
@@ -100,14 +101,14 @@ const Payment = () => {
 
   return (
     <div className="flex flex-col items-center justify-center font-montserrat p-4 sm:p-6 md:p-8">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-5 sm:p-8">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-5 sm:p-8">
         <h1 className="text-xl sm:text-2xl font-bold mb-6 text-center">
           Payment Details
         </h1>
 
         {/* ---------------- Existing Payment Display ---------------- */}
         {paymentData && !showForm && (
-          <div className="bg-gray-100 p-4 rounded-lg text-center space-y-3">
+          <div className="bg-gray-100 p-4 rounded-xl text-center space-y-3">
             <img
               src={stripeLogo}
               alt="Stripe"
