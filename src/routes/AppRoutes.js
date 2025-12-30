@@ -13,16 +13,16 @@ import MainLayout from "../layouts/MainLayout";
 import NotificationsPage from "../pages/shipper/NotificationsPage";
 import TruckDriverPage from "../pages/shipper/TruckDriverPage";
 
-// Driver Auth
+// ---------------- Driver Auth ----------------
 import { DriverAuthProvider } from "../contexts/DriverAuthContext";
 import ProtectedDriverRoute from "./ProtectedDriverRoute";
 
-// Auth Pages
+// ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 const SignupPage = lazy(() => import("../pages/auth/SignupPage"));
 const OAuthSuccessPage = lazy(() => import("../pages/auth/OAuthSuccessPage"));
 
-// Shipper Pages
+// ---------------- Shipper Pages ----------------
 const ShipperLayout = lazy(() => import("../layouts/ShipperLayout"));
 const ShipperDashboard = lazy(() => import("../pages/shipper/Dashboard"));
 const ShipperContract = lazy(() => import("../pages/shipper/Contract"));
@@ -40,7 +40,7 @@ const VehiclesAndCapacity = lazy(() =>
   import("../pages/shipper/VehiclesAndCapacity")
 );
 
-// Customer Pages
+// ---------------- Customer Pages ----------------
 const CustomerLayout = lazy(() => import("../layouts/CustomerLayout"));
 const CustomerDashboard = lazy(() => import("../pages/customer/CustDashboard"));
 const CustomerOrders = lazy(() => import("../pages/customer/Orders"));
@@ -52,11 +52,11 @@ const MyShipmentDetails = lazy(() =>
   import("../pages/customer/MyShipmentDetails")
 );
 
-// Driver Pages
+// ---------------- Driver Pages ----------------
 const DriverLoginPage = lazy(() => import("../pages/Driver/DriverLoginPage"));
 const DriverDashboard = lazy(() => import("../pages/Driver/DriverDashboard"));
 
-// Common Pages
+// ---------------- Common Pages ----------------
 const Home = lazy(() => import("../pages/Home"));
 const NotFoundPage = lazy(() => import("../pages/NotFound"));
 
@@ -93,7 +93,7 @@ const AppRoutes = () => {
       }
     >
       <Routes>
-        {/* Main Layout */}
+        {/* ---------- Public Pages (Main Layout) ---------- */}
         <Route element={<MainLayout />}>
           <Route
             path="/"
@@ -105,7 +105,7 @@ const AppRoutes = () => {
           />
         </Route>
 
-        {/* Auth */}
+        {/* ---------- Auth Pages ---------- */}
         <Route
           path="/login"
           element={
@@ -124,7 +124,7 @@ const AppRoutes = () => {
         />
         <Route path="/oauth-success" element={<OAuthSuccessPage />} />
 
-        {/* Driver Routes */}
+        {/* ---------- Driver Routes ---------- */}
         <Route
           path="/driver/*"
           element={
@@ -139,22 +139,22 @@ const AppRoutes = () => {
                     </ProtectedDriverRoute>
                   }
                 />
-                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </DriverAuthProvider>
           }
         />
 
-        {/* Shipper Routes */}
+        {/* ---------- Shipper Routes ---------- */}
         <Route
           path="/shipper/*"
           element={
             <ProtectedRoute role="shipper">
-              <ShipperLayout />
+              <ShipperLayout key="shipper" />
             </ProtectedRoute>
           }
         >
           <Route index element={<Navigate to="dashboard" replace />} />
+
           <Route path="dashboard" element={<ShipperDashboard />} />
           <Route path="contract" element={<ShipperContract />} />
           <Route path="profile" element={<ShipperProfile />} />
@@ -162,20 +162,23 @@ const AppRoutes = () => {
           <Route path="shipment-settings" element={<ShipmentSettings />} />
           <Route path="settings" element={<ShipperSettings />} />
           <Route path="notifications" element={<NotificationsPage />} />
+
+          {/* LIST PAGE */}
           <Route path="shipments" element={<AllUpcomingShipments />} />
+
+          {/* DETAILS PAGE (QUERY OR PARAM) */}
           <Route path="shipments/:id" element={<ShipmentDetails />} />
+
           <Route path="truck-driver" element={<TruckDriverPage />} />
           <Route path="chat" element={<ChatOverview />} />
-          {/* Catch-all for shipper */}
-          <Route path="*" element={<NotFoundPage />} />
         </Route>
 
-        {/* Customer Routes */}
+        {/* ---------- Customer Routes ---------- */}
         <Route
           path="/customer/*"
           element={
             <ProtectedRoute role="customer">
-              <CustomerLayout />
+              <CustomerLayout key="customer" />
             </ProtectedRoute>
           }
         >
@@ -187,11 +190,9 @@ const AppRoutes = () => {
           <Route path="new-shipment" element={<NewShipment />} />
           <Route path="profile/edit" element={<EditProfile />} />
           <Route path="my-shipments" element={<MyShipmentDetails />} />
-          {/* Catch-all for customer */}
-          <Route path="*" element={<NotFoundPage />} />
         </Route>
 
-        {/* Global fallback */}
+        {/* ---------- Fallback ---------- */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>

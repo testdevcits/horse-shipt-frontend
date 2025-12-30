@@ -16,26 +16,80 @@ const API_BASE_URL =
 export const DriverAuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
-  const [driver, setDriver] = useState(null);
+  const [driver, setDriver] = useState(
+    () => JSON.parse(localStorage.getItem("driverData")) || null
+  );
+  const [shipments, setShipments] = useState(
+    () => JSON.parse(localStorage.getItem("driverShipments")) || []
+  );
   const [token, setToken] = useState(
     () => localStorage.getItem("driverToken") || ""
+  );
+  const [role, setRole] = useState(
+    () => localStorage.getItem("driverRole") || "driver"
   );
   const [loading, setLoading] = useState(true);
 
   // ====================================================
-  // AUTO LOGIN (ON APP LOAD)
+  // FETCH DRIVER + SHIPMENTS (ME)
+  // ====================================================
+  const fetchDriver = useCallback(
+    async (overrideToken) => {
+      const authToken = overrideToken || token;
+      if (!authToken) return;
+
+      try {
+        const res = await axios.get(`${API_BASE_URL}/driver/driver/me`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+
+        if (res.data.success) {
+          const driverData = res.data.driver;
+          const shipmentsData = res.data.shipments || [];
+
+          setDriver(driverData);
+          setShipments(shipmentsData);
+
+          // persist locally
+          localStorage.setItem("driverData", JSON.stringify(driverData));
+          localStorage.setItem(
+            "driverShipments",
+            JSON.stringify(shipmentsData)
+          );
+        }
+      } catch (err) {
+        console.error("[FETCH DRIVER]", err.response?.data || err.message);
+        logout(); // Auto logout if token invalid
+      }
+    },
+    [token]
+  );
+
+  // ====================================================
+  // AUTO LOGIN / FETCH DRIVER ON LOAD
   // ====================================================
   useEffect(() => {
-    const storedToken = localStorage.getItem("driverToken");
-    const storedDriver = localStorage.getItem("driverData");
+    const initAuth = async () => {
+      const storedToken = localStorage.getItem("driverToken");
+      const storedDriver = localStorage.getItem("driverData");
+      const storedShipments = localStorage.getItem("driverShipments");
+      const storedRole = localStorage.getItem("driverRole");
 
-    if (storedToken && storedDriver) {
-      setToken(storedToken);
-      setDriver(JSON.parse(storedDriver));
-    }
+      if (storedToken && storedDriver) {
+        setToken(storedToken);
+        setDriver(JSON.parse(storedDriver));
+        setShipments(storedShipments ? JSON.parse(storedShipments) : []);
+        setRole(storedRole || "driver");
 
-    setLoading(false);
-  }, []);
+        // fetch fresh data from server
+        await fetchDriver(storedToken);
+      }
+
+      setLoading(false);
+    };
+
+    initAuth();
+  }, [fetchDriver]);
 
   // ====================================================
   // DRIVER LOGIN
@@ -49,13 +103,20 @@ export const DriverAuthProvider = ({ children }) => {
       });
 
       if (res.data.success) {
-        const { token, driver } = res.data;
+        const { token, driver, shipments: shipmentsData } = res.data;
 
         setToken(token);
         setDriver(driver);
+        setShipments(shipmentsData || []);
+        setRole("driver");
 
         localStorage.setItem("driverToken", token);
         localStorage.setItem("driverData", JSON.stringify(driver));
+        localStorage.setItem(
+          "driverShipments",
+          JSON.stringify(shipmentsData || [])
+        );
+        localStorage.setItem("driverRole", "driver");
 
         navigate("/driver/dashboard", { replace: true });
       }
@@ -70,32 +131,6 @@ export const DriverAuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
-  // ====================================================
-  // FETCH DRIVER (ME)
-  // ====================================================
-  const fetchDriver = useCallback(async () => {
-    if (!token) return;
-
-    try {
-      const res = await axios.get(`${API_BASE_URL}/driver/driver/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.data.success) {
-        setDriver(res.data.driver);
-        localStorage.setItem("driverData", JSON.stringify(res.data.driver));
-      }
-    } catch (err) {
-      console.error("[FETCH DRIVER]", err.response?.data || err.message);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    if (token) fetchDriver();
-  }, [token, fetchDriver]);
 
   // ====================================================
   // UPLOAD DRIVER PROFILE IMAGE
@@ -123,7 +158,6 @@ export const DriverAuthProvider = ({ children }) => {
           ...driver,
           profileImage: res.data.driver.profileImage,
         };
-
         setDriver(updatedDriver);
         localStorage.setItem("driverData", JSON.stringify(updatedDriver));
       }
@@ -146,11 +180,7 @@ export const DriverAuthProvider = ({ children }) => {
     try {
       const res = await axios.delete(
         `${API_BASE_URL}/driver/driver/profile-image`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (res.data.success) {
@@ -158,7 +188,6 @@ export const DriverAuthProvider = ({ children }) => {
           ...driver,
           profileImage: { url: null, public_id: null },
         };
-
         setDriver(updatedDriver);
         localStorage.setItem("driverData", JSON.stringify(updatedDriver));
       }
@@ -177,20 +206,23 @@ export const DriverAuthProvider = ({ children }) => {
   // ====================================================
   const logout = () => {
     setDriver(null);
+    setShipments([]);
     setToken("");
+    setRole(null);
     localStorage.removeItem("driverToken");
     localStorage.removeItem("driverData");
+    localStorage.removeItem("driverShipments");
+    localStorage.removeItem("driverRole");
     navigate("/driver/login", { replace: true });
   };
 
-  // ====================================================
-  // CONTEXT PROVIDER
-  // ====================================================
   return (
     <DriverAuthContext.Provider
       value={{
         driver,
+        shipments,
         token,
+        role,
         loading,
         login,
         fetchDriver,

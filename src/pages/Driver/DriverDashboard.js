@@ -1,33 +1,35 @@
 import React, { useState, useRef } from "react";
-import { FaTruck, FaRoute } from "react-icons/fa";
+import { FaTruck } from "react-icons/fa";
 import { FiX, FiTrash2, FiLogOut } from "react-icons/fi";
 import PageLoader from "../../components/common/PageLoader";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import Button from "../../components/common/Button";
 import { useDriverAuth } from "../../contexts/DriverAuthContext";
 import { useNavigate } from "react-router-dom";
+import DriverShipmentCard from "./DriverShipmentCard"; // <-- Import here
 
 const DriverDashboard = () => {
   const {
     driver,
+    shipments,
     fetchDriver,
     uploadProfileImage,
     deleteProfileImage,
-    logout, // from context
+    logout,
   } = useDriverAuth();
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const [loadingModal, setLoadingModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
-
   const profileInputRef = useRef(null);
 
   if (!driver)
     return <PageLoader text="Loading driver dashboard..." fullScreen />;
 
   const assignedVehicles = driver.assignedVehicles || [];
+  const hasShipments = shipments && shipments.length > 0;
 
   const handleProfileChange = async (e) => {
     const file = e.target.files[0];
@@ -40,7 +42,6 @@ const DriverDashboard = () => {
   };
 
   const handleDeleteProfile = () => setConfirmDelete(true);
-
   const confirmDeleteProfile = async () => {
     setLoadingModal(true);
     await deleteProfileImage();
@@ -51,19 +52,17 @@ const DriverDashboard = () => {
   };
 
   const handleLogout = () => setConfirmLogout(true);
-
   const confirmLogoutAction = () => {
-    logout(); // clears localStorage and context
+    logout();
     navigate("/driver/login");
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen font-montserrat">
-      {/* ================= Navbar Header ================= */}
+    <div className="bg-light min-h-screen font-montserrat pb-6">
+      {/* Navbar */}
       <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
         <div className="mx-auto px-4 sm:px-6 lg:px-10 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Profile Image */}
             <div
               className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-gray-200 cursor-pointer"
               onClick={() => setModalOpen(true)}
@@ -74,16 +73,13 @@ const DriverDashboard = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            {/* Name & Email */}
-            <div className="flex flex-col text-sm sm:text-base">
-              <span className="font-semibold text-gray-800">{driver.name}</span>
-              <span className="text-gray-500 truncate max-w-xs sm:max-w-sm">
-                {driver.email}
+            <div className="flex flex-col text-sm sm:text-base truncate max-w-[180px]">
+              <span className="font-semibold text-systemText truncate">
+                {driver.name}
               </span>
+              <span className="text-gray-500 truncate">{driver.email}</span>
             </div>
           </div>
-
-          {/* Logout Icon */}
           <button
             onClick={handleLogout}
             className="text-gray-600 hover:text-gray-800 transition p-2 rounded-md"
@@ -94,24 +90,12 @@ const DriverDashboard = () => {
         </div>
       </header>
 
-      {/* Spacer for fixed navbar */}
+      {/* Spacer */}
       <div className="h-20 sm:h-24"></div>
 
-      <div className="px-4 sm:px-6 md:px-2 mt-6 space-y-6">
-        {/* ================= Route Status ================= */}
-        <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 p-2 flex items-center gap-4 rounded-sm">
-          <FaRoute size={28} />
-          <div>
-            <h3 className="text-lg font-semibold">Your Route Coming Soon 🚧</h3>
-            <p className="text-sm">
-              Shipment route will be assigned once the shipper schedules your
-              trip.
-            </p>
-          </div>
-        </div>
-
-        {/* ================= Driver Info ================= */}
-        <div className="bg-white rounded-lg shadow p-5">
+      <div className="px-4 sm:px-6 md:px-10 mt-6 space-y-6">
+        {/* Driver Info */}
+        <div className="bg-white rounded-md shadow p-5">
           <h3 className="text-lg font-semibold mb-3">Your Information</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <p>
@@ -129,11 +113,11 @@ const DriverDashboard = () => {
           </div>
         </div>
 
-        {/* ================= Assigned Vehicles ================= */}
+        {/* Assigned Vehicles */}
         <div>
           <h3 className="text-lg font-semibold mb-4">Assigned Truck(s)</h3>
           {assignedVehicles.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-5 text-center text-gray-500">
+            <div className="bg-white rounded-2xl shadow p-5 text-center text-gray-500">
               No truck assigned yet.
             </div>
           ) : (
@@ -141,20 +125,18 @@ const DriverDashboard = () => {
               {assignedVehicles.map((vehicle) => (
                 <div
                   key={vehicle._id}
-                  className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition"
+                  className="bg-white rounded-md shadow p-4 hover:shadow-lg transition"
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <FaTruck className="text-yellow-400" />
-                    <h4 className="font-bold">
+                    <FaTruck className="text-yellow-500" />
+                    <h4 className="font-bold truncate">
                       {vehicle.vehicleType} ({vehicle.transportType})
                     </h4>
                   </div>
-
                   <p className="text-sm">
                     <strong>Vehicle No:</strong>{" "}
                     {vehicle.vehicleNumber || "N/A"}
                   </p>
-
                   <p className="text-sm">
                     <strong>Trailer:</strong> {vehicle.trailerType}
                   </p>
@@ -162,14 +144,13 @@ const DriverDashboard = () => {
                     <strong>Stalls:</strong> {vehicle.numberOfStalls} (
                     {vehicle.stallSize})
                   </p>
-
-                  <div className="flex gap-2 mt-3 overflow-x-auto">
+                  <div className="flex gap-2 mt-3 overflow-x-auto hide-scrollbar">
                     {(vehicle.images || []).map((img) => (
                       <img
                         key={img._id}
                         src={img.url}
                         alt={`Truck ${vehicle.vehicleNumber}`}
-                        className="w-20 h-20 object-cover rounded-lg border"
+                        className="w-20 h-20 object-cover rounded-lg border flex-shrink-0"
                       />
                     ))}
                   </div>
@@ -178,9 +159,25 @@ const DriverDashboard = () => {
             </div>
           )}
         </div>
+
+        {/* Shipments */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Assigned Shipments</h3>
+          {!hasShipments ? (
+            <div className="bg-white rounded-2xl shadow p-5 text-center text-gray-500">
+              No shipments assigned.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {shipments.map((shipment) => (
+                <DriverShipmentCard key={shipment._id} shipment={shipment} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ================= Profile Modal ================= */}
+      {/* Profile Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-xs relative">
@@ -190,21 +187,17 @@ const DriverDashboard = () => {
             >
               <FiX size={20} />
             </button>
-
             <h3 className="text-lg font-semibold mb-4 text-center">
               Profile Image
             </h3>
-
             <div className="flex flex-col items-center gap-4">
               <img
                 src={driver.profileImage?.url || "/default-profile.png"}
                 alt="Driver"
                 className="w-20 h-20 rounded-full object-cover border"
               />
-
               {loadingModal && <PageLoader text="Uploading..." size={18} />}
-
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap justify-center">
                 <Button
                   onClick={() => profileInputRef.current.click()}
                   disabled={loadingModal}
@@ -212,7 +205,6 @@ const DriverDashboard = () => {
                 >
                   {loadingModal ? "Uploading..." : "Update"}
                 </Button>
-
                 <Button
                   onClick={handleDeleteProfile}
                   disabled={loadingModal}
@@ -224,7 +216,6 @@ const DriverDashboard = () => {
                   Delete
                 </Button>
               </div>
-
               <input
                 ref={profileInputRef}
                 type="file"
@@ -237,7 +228,7 @@ const DriverDashboard = () => {
         </div>
       )}
 
-      {/* ================= Confirm Delete Modal ================= */}
+      {/* Confirm Delete Modal */}
       <ConfirmModal
         show={confirmDelete}
         title="Delete Profile Image"
@@ -247,7 +238,7 @@ const DriverDashboard = () => {
         confirmText="Delete"
       />
 
-      {/* ================= Confirm Logout Modal ================= */}
+      {/* Confirm Logout Modal */}
       <ConfirmModal
         show={confirmLogout}
         title="Logout"

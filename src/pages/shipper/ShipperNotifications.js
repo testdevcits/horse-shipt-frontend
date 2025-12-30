@@ -1,12 +1,13 @@
 import React from "react";
 import Checkbox from "../../components/common/Checkbox";
 import { useShipperSettings } from "../../contexts/ShipperSettingsContext";
+import PageLoader from "../../components/common/PageLoader";
 
 const ShipperNotifications = () => {
   const { settings, updateSettings, loading } = useShipperSettings();
 
   if (loading) {
-    return <p className="text-center text-gray-600">Loading settings...</p>;
+    return <PageLoader text="Loading settings..." fullScreen={false} />;
   }
 
   // Default structure in case notifications are missing
