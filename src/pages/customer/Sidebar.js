@@ -86,7 +86,7 @@ const CustomerSidebar = ({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-2">
+      <nav className="flex-1 overflow-y-auto vehicle-scroll px-2">
         <ul className="space-y-2">
           {navItems.map((item) => {
             const active = isActivePath(item.path, item.subPaths);
@@ -96,7 +96,7 @@ const CustomerSidebar = ({
                 <NavLink
                   to={item.path}
                   onClick={() => mobileOpen && setMobileOpen(false)}
-                  className={`flex items-center transition-colors duration-300 px-2 py-4 rounded
+                  className={`flex items-center px-2 py-4 rounded transition-colors duration-300 hover:bg-gray-100
                     ${
                       sidebarOpen || mobileOpen
                         ? "gap-6 justify-start"
@@ -105,7 +105,7 @@ const CustomerSidebar = ({
                     ${
                       active
                         ? "bg-gray-100 font-semibold text-system-primary"
-                        : "text-gray-700 hover:bg-gray-100"
+                        : ""
                     }
                   `}
                 >
