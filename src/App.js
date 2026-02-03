@@ -18,10 +18,6 @@ import { ShipperQuoteProvider } from "./contexts/shipperContext/ShipperQuoteCont
 import { ShipperShipmentProvider } from "./contexts/shipperContext/ShipperShipmentContext";
 import { ShipperContractProvider } from "./contexts/shipperContext/ShipperContractContext";
 
-// ------------------- Chat List Contexts -------------------
-import { ShipperChatProvider } from "./contexts/shipperContext/ShipperChatContext";
-import { CustomerChatProvider } from "./contexts/customerContext/CustomerChatContext";
-
 // ------------------- Driver Auth Context -------------------
 import { DriverAuthProvider } from "./contexts/DriverAuthContext";
 
@@ -45,16 +41,12 @@ function App() {
                           <CustomerShipmentProvider>
                             <CustomerQuoteProvider>
                               {" "}
-                              {/* Wrap with CustomerQuoteProvider */}
+                              {/* ✅ Wrap with CustomerQuoteProvider */}
                               <ShipperContractProvider>
                                 <ShipperQuoteProvider>
                                   <ShipperShipmentProvider>
                                     <DriverAuthProvider>
-                                      <ShipperChatProvider>
-                                        <CustomerChatProvider>
-                                          <AppRoutes />
-                                        </CustomerChatProvider>
-                                      </ShipperChatProvider>
+                                      <AppRoutes />
                                     </DriverAuthProvider>
                                   </ShipperShipmentProvider>
                                 </ShipperQuoteProvider>
