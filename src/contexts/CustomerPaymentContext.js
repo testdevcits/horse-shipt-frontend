@@ -114,6 +114,10 @@ export const CustomerPaymentProvider = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+    fetchPayment();
+  }, [fetchPayment]);
+
   // ---------------- Provider Value ----------------
   return (
     <CustomerPaymentContext.Provider

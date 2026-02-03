@@ -113,6 +113,11 @@ export const CustomerNotificationProvider = ({ children }) => {
     }
   }, [user, token]);
 
+  useEffect(() => {
+    fetchNotifications();
+    subscribeToPush();
+  }, [fetchNotifications, subscribeToPush]);
+
   // ---------------- Provider Value ----------------
   return (
     <CustomerNotificationContext.Provider
