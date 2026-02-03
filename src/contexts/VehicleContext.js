@@ -55,94 +55,109 @@ export const VehicleProvider = ({ children }) => {
   }, [token, fetched]);
 
   // ---------------- ADD VEHICLE ----------------
-  const addVehicle = async (formData) => {
-    if (!token) {
-      showToast("Unauthorized. Please log in again.", "error");
-      return { success: false };
-    }
+  const addVehicle = useCallback(
+    async (formData) => {
+      if (!token) {
+        showToast("Unauthorized. Please log in again.", "error");
+        return { success: false };
+      }
 
-    setLoading(true);
-    try {
-      await axios.post(`${API_BASE_URL}/vehicles`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      setFetched(false); // re-fetch after add
-      await fetchVehicles();
-      showToast("Vehicle added successfully", "success");
-      return { success: true };
-    } catch (err) {
-      console.error("Add Vehicle Error:", err.response?.data || err.message);
-      showToast(
-        err.response?.data?.message || "Failed to add vehicle",
-        "error"
-      );
-      return { success: false };
-    } finally {
-      setLoading(false);
-    }
-  };
+      setLoading(true);
+      try {
+        await axios.post(`${API_BASE_URL}/vehicles`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        setFetched(false); // re-fetch after add
+        await fetchVehicles();
+        showToast("Vehicle added successfully", "success");
+        return { success: true };
+      } catch (err) {
+        console.error("Add Vehicle Error:", err.response?.data || err.message);
+        showToast(
+          err.response?.data?.message || "Failed to add vehicle",
+          "error"
+        );
+        return { success: false };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token, fetchVehicles]
+  );
 
   // ---------------- UPDATE VEHICLE ----------------
-  const updateVehicle = async (id, formData) => {
-    if (!token) {
-      showToast("Unauthorized. Please log in again.", "error");
-      return { success: false };
-    }
+  const updateVehicle = useCallback(
+    async (id, formData) => {
+      if (!token) {
+        showToast("Unauthorized. Please log in again.", "error");
+        return { success: false };
+      }
 
-    setLoading(true);
-    try {
-      await axios.put(`${API_BASE_URL}/vehicles/${id}`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      setFetched(false);
-      await fetchVehicles();
-      showToast("Vehicle updated successfully", "success");
-      return { success: true };
-    } catch (err) {
-      console.error("Update Vehicle Error:", err.response?.data || err.message);
-      showToast(
-        err.response?.data?.message || "Failed to update vehicle",
-        "error"
-      );
-      return { success: false };
-    } finally {
-      setLoading(false);
-    }
-  };
+      setLoading(true);
+      try {
+        await axios.put(`${API_BASE_URL}/vehicles/${id}`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        setFetched(false);
+        await fetchVehicles();
+        showToast("Vehicle updated successfully", "success");
+        return { success: true };
+      } catch (err) {
+        console.error(
+          "Update Vehicle Error:",
+          err.response?.data || err.message
+        );
+        showToast(
+          err.response?.data?.message || "Failed to update vehicle",
+          "error"
+        );
+        return { success: false };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token, fetchVehicles]
+  );
 
   // ---------------- DELETE VEHICLE ----------------
-  const deleteVehicle = async (id) => {
-    if (!token) {
-      showToast("Unauthorized. Please log in again.", "error");
-      return { success: false };
-    }
+  const deleteVehicle = useCallback(
+    async (id) => {
+      if (!token) {
+        showToast("Unauthorized. Please log in again.", "error");
+        return { success: false };
+      }
 
-    setLoading(true);
-    try {
-      await axios.delete(`${API_BASE_URL}/vehicles/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setFetched(false);
-      await fetchVehicles();
-      showToast("Vehicle deleted successfully", "success");
-      return { success: true };
-    } catch (err) {
-      console.error("Delete Vehicle Error:", err.response?.data || err.message);
-      showToast(
-        err.response?.data?.message || "Failed to delete vehicle",
-        "error"
-      );
-      return { success: false };
-    } finally {
-      setLoading(false);
-    }
-  };
+      setLoading(true);
+      try {
+        await axios.delete(`${API_BASE_URL}/vehicles/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setFetched(false);
+        await fetchVehicles();
+        showToast("Vehicle deleted successfully", "success");
+        return { success: true };
+      } catch (err) {
+        console.error(
+          "Delete Vehicle Error:",
+          err.response?.data || err.message
+        );
+        showToast(
+          err.response?.data?.message || "Failed to delete vehicle",
+          "error"
+        );
+        return { success: false };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token, fetchVehicles]
+  );
 
   // ---------------- FETCH ONLY WHEN LOGGED IN ----------------
   useEffect(() => {
@@ -152,7 +167,7 @@ export const VehicleProvider = ({ children }) => {
       setVehicles([]);
       setFetched(false);
     }
-  }, [token, user, fetchVehicles]);
+  }, [token, user, fetchVehicles]); // all dependencies included
 
   return (
     <VehicleContext.Provider
