@@ -31,44 +31,45 @@ import AppRoutes from "./routes/AppRoutes";
 function App() {
   return (
     <Router>
+      {/* Shipper & Customer Contexts */}
       <AuthProvider>
-        {/* CHAT LIST CONTEXTS */}
-        <ShipperChatProvider>
-          <CustomerChatProvider>
-            {/* Existing Contexts */}
-            <CustomerPaymentProvider>
-              <CustomerNotificationProvider>
-                <VehicleProvider>
-                  <DriverProvider>
-                    <PreferredAreasProvider>
-                      <ShipperSettingsProvider>
-                        <ShipperProfileProvider>
-                          <ShipperLocationProvider>
-                            <ShipperPreferredAreaProvider>
-                              <CustomerShipmentProvider>
-                                <CustomerQuoteProvider>
-                                  <ShipperContractProvider>
-                                    <ShipperQuoteProvider>
-                                      <ShipperShipmentProvider>
-                                        <DriverAuthProvider>
+        <CustomerPaymentProvider>
+          <CustomerNotificationProvider>
+            <VehicleProvider>
+              <DriverProvider>
+                <PreferredAreasProvider>
+                  <ShipperSettingsProvider>
+                    <ShipperProfileProvider>
+                      <ShipperLocationProvider>
+                        <ShipperPreferredAreaProvider>
+                          <CustomerShipmentProvider>
+                            <CustomerQuoteProvider>
+                              {" "}
+                              {/* Wrap with CustomerQuoteProvider */}
+                              <ShipperContractProvider>
+                                <ShipperQuoteProvider>
+                                  <ShipperShipmentProvider>
+                                    <DriverAuthProvider>
+                                      <ShipperChatProvider>
+                                        <CustomerChatProvider>
                                           <AppRoutes />
-                                        </DriverAuthProvider>
-                                      </ShipperShipmentProvider>
-                                    </ShipperQuoteProvider>
-                                  </ShipperContractProvider>
-                                </CustomerQuoteProvider>
-                              </CustomerShipmentProvider>
-                            </ShipperPreferredAreaProvider>
-                          </ShipperLocationProvider>
-                        </ShipperProfileProvider>
-                      </ShipperSettingsProvider>
-                    </PreferredAreasProvider>
-                  </DriverProvider>
-                </VehicleProvider>
-              </CustomerNotificationProvider>
-            </CustomerPaymentProvider>
-          </CustomerChatProvider>
-        </ShipperChatProvider>
+                                        </CustomerChatProvider>
+                                      </ShipperChatProvider>
+                                    </DriverAuthProvider>
+                                  </ShipperShipmentProvider>
+                                </ShipperQuoteProvider>
+                              </ShipperContractProvider>
+                            </CustomerQuoteProvider>
+                          </CustomerShipmentProvider>
+                        </ShipperPreferredAreaProvider>
+                      </ShipperLocationProvider>
+                    </ShipperProfileProvider>
+                  </ShipperSettingsProvider>
+                </PreferredAreasProvider>
+              </DriverProvider>
+            </VehicleProvider>
+          </CustomerNotificationProvider>
+        </CustomerPaymentProvider>
       </AuthProvider>
     </Router>
   );
