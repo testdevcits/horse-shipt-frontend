@@ -15,11 +15,17 @@ const API_BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
 
 export const VehicleProvider = ({ children }) => {
   const { token, user } = useAuth();
-  const [vehicles, setVehicles] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [fetched, setFetched] = useState(false);
 
-  // ---------------- TOAST STATE ----------------
+  // 🔹 CACHE (GET data)
+  const [vehicles, setVehicles] = useState([]);
+
+  // 🔹 UI state
+  const [loading, setLoading] = useState(false);
+
+  // 🔹 Optional cache timestamp (5 min)
+  const [lastFetch, setLastFetch] = useState(0);
+
+  // ---------------- TOAST ----------------
   const [toast, setToast] = useState({
     message: "",
     type: "",
@@ -33,84 +39,86 @@ export const VehicleProvider = ({ children }) => {
     }, 3000);
   };
 
-  // ---------------- FETCH VEHICLES ----------------
+  // ---------------- GET VEHICLES (CACHED) ----------------
   const fetchVehicles = useCallback(async () => {
-    if (!token || fetched) return;
+    if (!token || user?.role !== "shipper") return;
+
+    const now = Date.now();
+
+    // ✅ CACHE CHECK (5 minutes)
+    if (vehicles.length > 0 && now - lastFetch < 5 * 60 * 1000) {
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/vehicles`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setVehicles(res.data.vehicles || []);
-      setFetched(true);
+      setLastFetch(now);
     } catch (err) {
-      console.error("Fetch Vehicles Error:", err.response?.data || err.message);
-      showToast(
-        err.response?.data?.message || "Failed to fetch vehicles",
-        "error"
-      );
+      console.error("Fetch Vehicles Error:", err);
+      showToast("Failed to fetch vehicles", "error");
     } finally {
       setLoading(false);
     }
-  }, [token, fetched]);
+  }, [token, user, vehicles.length, lastFetch]);
 
-  // ---------------- ADD VEHICLE ----------------
+  // ---------------- ADD VEHICLE (POST) ----------------
   const addVehicle = async (formData) => {
     if (!token) {
       showToast("Unauthorized. Please log in again.", "error");
-      return { success: false };
+      return;
     }
 
     setLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/vehicles`, formData, {
+      const res = await axios.post(`${API_BASE_URL}/vehicles`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
-      setFetched(false); // re-fetch after add
-      await fetchVehicles();
+
+      // UPDATE CACHE (no refetch)
+      setVehicles((prev) => [...prev, res.data.vehicle]);
+
       showToast("Vehicle added successfully", "success");
-      return { success: true };
     } catch (err) {
-      console.error("Add Vehicle Error:", err.response?.data || err.message);
-      showToast(
-        err.response?.data?.message || "Failed to add vehicle",
-        "error"
-      );
-      return { success: false };
+      console.error("Add Vehicle Error:", err);
+      showToast("Failed to add vehicle", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  // ---------------- UPDATE VEHICLE ----------------
+  // ---------------- UPDATE VEHICLE (PUT) ----------------
   const updateVehicle = async (id, formData) => {
     if (!token) {
       showToast("Unauthorized. Please log in again.", "error");
-      return { success: false };
+      return;
     }
 
     setLoading(true);
     try {
-      await axios.put(`${API_BASE_URL}/vehicles/${id}`, formData, {
+      const res = await axios.put(`${API_BASE_URL}/vehicles/${id}`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
-      setFetched(false);
-      await fetchVehicles();
-      showToast("Vehicle updated successfully", "success");
-      return { success: true };
-    } catch (err) {
-      console.error("Update Vehicle Error:", err.response?.data || err.message);
-      showToast(
-        err.response?.data?.message || "Failed to update vehicle",
-        "error"
+
+      // ✅ UPDATE CACHE
+      setVehicles((prev) =>
+        prev.map((v) => (v._id === id ? res.data.vehicle : v))
       );
-      return { success: false };
+
+      showToast("Vehicle updated successfully", "success");
+    } catch (err) {
+      console.error("Update Vehicle Error:", err);
+      showToast("Failed to update vehicle", "error");
     } finally {
       setLoading(false);
     }
@@ -120,7 +128,7 @@ export const VehicleProvider = ({ children }) => {
   const deleteVehicle = async (id) => {
     if (!token) {
       showToast("Unauthorized. Please log in again.", "error");
-      return { success: false };
+      return;
     }
 
     setLoading(true);
@@ -128,29 +136,27 @@ export const VehicleProvider = ({ children }) => {
       await axios.delete(`${API_BASE_URL}/vehicles/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setFetched(false);
-      await fetchVehicles();
+
+      // ✅ UPDATE CACHE
+      setVehicles((prev) => prev.filter((v) => v._id !== id));
+
       showToast("Vehicle deleted successfully", "success");
-      return { success: true };
     } catch (err) {
-      console.error("Delete Vehicle Error:", err.response?.data || err.message);
-      showToast(
-        err.response?.data?.message || "Failed to delete vehicle",
-        "error"
-      );
-      return { success: false };
+      console.error("Delete Vehicle Error:", err);
+      showToast("Failed to delete vehicle", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  // ---------------- FETCH ONLY WHEN LOGGED IN ----------------
+  // ---------------- AUTO FETCH ON LOGIN ----------------
   useEffect(() => {
     if (token && user?.role === "shipper") {
       fetchVehicles();
     } else {
+      // 🔐 CLEAR CACHE ON LOGOUT
       setVehicles([]);
-      setFetched(false);
+      setLastFetch(0);
     }
   }, [token, user, fetchVehicles]);
 
@@ -167,7 +173,6 @@ export const VehicleProvider = ({ children }) => {
     >
       {children}
 
-      {/* Toast Component */}
       {toast.visible && (
         <Toast
           message={toast.message}
