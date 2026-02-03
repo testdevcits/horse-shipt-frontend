@@ -9,7 +9,7 @@ const AllUpcomingShipments = () => {
   // Fetch quotes on component mount
   useEffect(() => {
     getMyQuotes();
-  }, []);
+  }, [getMyQuotes]);
 
   // Filter accepted quotes whenever quotes change
   useEffect(() => {
