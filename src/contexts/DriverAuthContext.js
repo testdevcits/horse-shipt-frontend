@@ -30,9 +30,20 @@ export const DriverAuthProvider = ({ children }) => {
   );
   const [loading, setLoading] = useState(true);
 
-  // ====================================================
-  // FETCH DRIVER + SHIPMENTS (ME)
-  // ====================================================
+  // ------------------ LOGOUT ------------------
+  const logout = useCallback(() => {
+    setDriver(null);
+    setShipments([]);
+    setToken("");
+    setRole(null);
+    localStorage.removeItem("driverToken");
+    localStorage.removeItem("driverData");
+    localStorage.removeItem("driverShipments");
+    localStorage.removeItem("driverRole");
+    navigate("/driver/login", { replace: true });
+  }, [navigate]);
+
+  // ------------------ FETCH DRIVER + SHIPMENTS ------------------
   const fetchDriver = useCallback(
     async (overrideToken) => {
       const authToken = overrideToken || token;
@@ -50,7 +61,6 @@ export const DriverAuthProvider = ({ children }) => {
           setDriver(driverData);
           setShipments(shipmentsData);
 
-          // persist locally
           localStorage.setItem("driverData", JSON.stringify(driverData));
           localStorage.setItem(
             "driverShipments",
@@ -59,15 +69,13 @@ export const DriverAuthProvider = ({ children }) => {
         }
       } catch (err) {
         console.error("[FETCH DRIVER]", err.response?.data || err.message);
-        logout(); // Auto logout if token invalid
+        logout(); // ✅ logout included in dependencies
       }
     },
-    [token]
+    [token, logout] // ✅ added logout here
   );
 
-  // ====================================================
-  // AUTO LOGIN / FETCH DRIVER ON LOAD
-  // ====================================================
+  // ------------------ AUTO LOGIN / FETCH DRIVER ON LOAD ------------------
   useEffect(() => {
     const initAuth = async () => {
       const storedToken = localStorage.getItem("driverToken");
@@ -91,9 +99,7 @@ export const DriverAuthProvider = ({ children }) => {
     initAuth();
   }, [fetchDriver]);
 
-  // ====================================================
-  // DRIVER LOGIN
-  // ====================================================
+  // ------------------ DRIVER LOGIN ------------------
   const login = async (email, password) => {
     setLoading(true);
     try {
@@ -132,9 +138,7 @@ export const DriverAuthProvider = ({ children }) => {
     }
   };
 
-  // ====================================================
-  // UPLOAD DRIVER PROFILE IMAGE
-  // ====================================================
+  // ------------------ UPLOAD DRIVER PROFILE IMAGE ------------------
   const uploadProfileImage = async (file) => {
     if (!file || !token) return;
 
@@ -171,9 +175,7 @@ export const DriverAuthProvider = ({ children }) => {
     }
   };
 
-  // ====================================================
-  // DELETE DRIVER PROFILE IMAGE
-  // ====================================================
+  // ------------------ DELETE DRIVER PROFILE IMAGE ------------------
   const deleteProfileImage = async () => {
     if (!token) return;
 
@@ -199,21 +201,6 @@ export const DriverAuthProvider = ({ children }) => {
         message: err.response?.data?.message || err.message,
       };
     }
-  };
-
-  // ====================================================
-  // LOGOUT
-  // ====================================================
-  const logout = () => {
-    setDriver(null);
-    setShipments([]);
-    setToken("");
-    setRole(null);
-    localStorage.removeItem("driverToken");
-    localStorage.removeItem("driverData");
-    localStorage.removeItem("driverShipments");
-    localStorage.removeItem("driverRole");
-    navigate("/driver/login", { replace: true });
   };
 
   return (

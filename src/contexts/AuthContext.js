@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,7 +28,7 @@ export const AuthProvider = ({ children }) => {
       setRole(storedRole);
     }
     setLoading(false);
-  }, []);
+  }, []); // no dependencies needed here
 
   // ----------------- Normal Login -----------------
   const login = async ({ email, password, role, deviceId, location }) => {
@@ -153,19 +154,19 @@ export const AuthProvider = ({ children }) => {
   // ----------------- Handle OAuth redirect on mount -----------------
   useEffect(() => {
     const query = new URLSearchParams(location.search);
-    const token = query.get("token");
+    const tokenParam = query.get("token");
     const id = query.get("id");
-    const role = query.get("role");
+    const roleParam = query.get("role");
     const name = query.get("name");
     const email = query.get("email");
     const photo = query.get("photo");
     const providerId = query.get("providerId");
 
-    if (token && id && role) {
+    if (tokenParam && id && roleParam) {
       oauthLogin({
-        token,
+        token: tokenParam,
         id,
-        role,
+        role: roleParam,
         name,
         email,
         photo,
@@ -173,9 +174,10 @@ export const AuthProvider = ({ children }) => {
         providerId,
       });
 
+      // navigate after OAuth login
       navigate(location.pathname, { replace: true });
     }
-  }, [location.search]);
+  }, [location.search, location.pathname, navigate]); // ✅ added all dependencies
 
   // ----------------- Role Helpers -----------------
   const isCustomer = role === "customer";
