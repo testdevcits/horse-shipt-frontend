@@ -61,12 +61,12 @@ export const ShipperShipmentProvider = ({ children }) => {
   );
 
   // ---------------- AUTO FETCH ONLY ON LOGIN ----------------
-  useEffect(() => {
-    // Only run if token exists and shipments not yet fetched
-    if (token && shipments.length === 0 && isShipper) {
-      getAvailableShipments();
-    }
-  }, [token, isShipper, getAvailableShipments, shipments.length]);
+  // useEffect(() => {
+  //   // Only run if token exists and shipments not yet fetched
+  //   if (token && shipments.length === 0 && isShipper) {
+  //     getAvailableShipments();
+  //   }
+  // }, [token, isShipper, getAvailableShipments, shipments.length]);
 
   return (
     <ShipperShipmentContext.Provider
