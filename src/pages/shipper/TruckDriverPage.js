@@ -85,9 +85,9 @@ const TruckDriverPage = () => {
     <div className="w-full font-montserrat ">
       {/* ---------------- Header ---------------- */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-6 mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold">
+        <h2 className="text-[16px] font-semibold text-systemText leading-[24px]">
           Truck Driver Management
-        </h1>
+        </h2>
 
         <Button
           onClick={() => {

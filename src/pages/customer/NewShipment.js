@@ -754,7 +754,7 @@ const NewShipment = () => {
           onClose={() => setIsModalOpen(false)}
           onViewShipments={() => {
             setIsModalOpen(false);
-            navigate("/customer/my-shipments");
+            navigate("/customer/dashboard");
           }}
           onAnotherAction={() => setIsModalOpen(false)}
         />

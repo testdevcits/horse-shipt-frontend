@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { validateShipmentQueryToken } from "../../utils/createQueryToken";
 import { SlLocationPin } from "react-icons/sl";
@@ -52,13 +52,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
     }
   }, [tokenFromQuery, idToUse, navigate]);
 
-  const fetchedOnce = useRef(false);
-
   useEffect(() => {
-    if (!fetchedOnce.current && !shipments.length) {
-      getAvailableShipments();
-      fetchedOnce.current = true;
-    }
+    if (!shipments.length) getAvailableShipments();
   }, [shipments, getAvailableShipments]);
 
   useEffect(() => {
