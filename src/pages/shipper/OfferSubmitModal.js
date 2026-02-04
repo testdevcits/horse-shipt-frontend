@@ -22,7 +22,7 @@ const OfferSubmitModal = ({
   };
   const { vehicles, loading: vehiclesLoading } = vehicleContext;
 
-  // ✅ ONLY ID STATE (AS REQUESTED)
+  // ONLY ID STATE (AS REQUESTED)
   const [selectedVehicleId, setSelectedVehicleId] = useState("");
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [sigPad, setSigPad] = useState(null);
@@ -65,10 +65,10 @@ const OfferSubmitModal = ({
       return;
     }
 
-    // ✅ PAYLOAD WITH VEHICLE ID
+    // PAYLOAD WITH VEHICLE ID
     const payload = {
       shipment: shipment._id,
-      vehicle: selectedVehicleId, // ✅ SEND VEHICLE ID
+      vehicle: selectedVehicleId,
       totalPrice: Number(values.totalPrice),
       paymentMethod: values.paymentMethod,
       paymentDue: values.paymentDue,
@@ -124,6 +124,7 @@ const OfferSubmitModal = ({
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
             >
+              Shipping Title
               {({ isSubmitting }) => (
                 <Form className="flex flex-col gap-4">
                   {/* VEHICLE SELECTION */}

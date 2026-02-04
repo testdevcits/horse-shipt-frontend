@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 
@@ -12,7 +12,7 @@ export const ShipperShipmentProvider = ({ children }) => {
   const [shipment, setShipment] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 GET AVAILABLE SHIPMENTS
+  // ---------------- GET AVAILABLE SHIPMENTS ----------------
   const getAvailableShipments = async () => {
     if (!token) return;
 
@@ -24,16 +24,15 @@ export const ShipperShipmentProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
       setShipments(res.data.shipments || []);
     } catch (err) {
-      console.error(err);
+      console.error("Get Available Shipments Error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔹 GET SHIPMENT BY ID
+  // ---------------- GET SHIPMENT BY ID ----------------
   const getShipmentById = async (id) => {
     if (!token || !id) return;
 
@@ -42,16 +41,23 @@ export const ShipperShipmentProvider = ({ children }) => {
       const res = await axios.get(`${API_BASE_URL}/shipper/shipments/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       setShipment(res.data.shipment);
       return res.data.shipment;
     } catch (err) {
-      console.error(err);
+      console.error("Get Shipment By ID Error:", err);
       setShipment(null);
     } finally {
       setLoading(false);
     }
   };
+
+  // ---------------- AUTO FETCH AVAILABLE SHIPMENTS ON LOGIN ----------------
+  useEffect(() => {
+    if (token && shipments.length === 0) {
+      getAvailableShipments();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]); // ignore getAvailableShipments dependency to prevent loop
 
   return (
     <ShipperShipmentContext.Provider
