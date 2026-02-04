@@ -1,53 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { HiArrowLeft, HiSearch, HiX } from "react-icons/hi";
 import Select from "../../components/common/Select";
+import PageLoader from "../../components/common/PageLoader";
+import { useShipperChat } from "../../contexts/shipperContext/ShipperChatContext";
 
 const ChatOverview = () => {
-  const mockUsers = [
-    {
-      _id: "1",
-      userName: "Rahul Sharma",
-      numberOfHorses: 3,
-      pickupLocation: "Delhi",
-      deliveryLocation: "Mumbai",
-      contact: "rahul@example.com",
-      phone: "9876543210",
-      messages: [
-        { from: "user", text: "Hello, any updates?", time: "10:00 AM" },
-        {
-          from: "shipper",
-          text: "Your shipment is on the way.",
-          time: "10:05 AM",
-        },
-      ],
-    },
-    {
-      _id: "2",
-      userName: "Anita Singh",
-      numberOfHorses: 2,
-      pickupLocation: "Bengaluru",
-      deliveryLocation: "Hyderabad",
-      contact: "anita@example.com",
-      phone: "9123456780",
-      messages: [
-        {
-          from: "user",
-          text: "When will my shipment arrive?",
-          time: "09:30 AM",
-        },
-      ],
-    },
-    {
-      _id: "3",
-      userName: "Vikram Patil",
-      numberOfHorses: 1,
-      pickupLocation: "Chennai",
-      deliveryLocation: "Pune",
-      contact: "vikram@example.com",
-      phone: "9988776655",
-      messages: [],
-    },
-  ];
+  const { customers, loading } = useShipperChat();
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDetailsMobile, setShowDetailsMobile] = useState(false);
@@ -58,17 +16,24 @@ const ChatOverview = () => {
 
   const chatEndRef = useRef(null);
 
+  /* ===============================
+     Auto scroll on new messages
+  ================================ */
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [selectedUser?.messages]);
 
+  /* ===============================
+     Send Message (TEMP – Socket later)
+  ================================ */
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedUser) return;
 
-    setSelectedUser({
-      ...selectedUser,
+    // TEMP local update (Socket.IO will replace this)
+    setSelectedUser((prev) => ({
+      ...prev,
       messages: [
-        ...selectedUser.messages,
+        ...(prev.messages || []),
         {
           from: "shipper",
           text: newMessage,
@@ -78,22 +43,33 @@ const ChatOverview = () => {
           }),
         },
       ],
-    });
+    }));
+
     setNewMessage("");
   };
 
-  const filteredUsers = mockUsers.filter(
-    (u) =>
-      u.userName.toLowerCase().includes(search.toLowerCase()) ||
-      u.pickupLocation.toLowerCase().includes(search.toLowerCase()) ||
-      u.deliveryLocation.toLowerCase().includes(search.toLowerCase())
-  );
+  /* ===============================
+     Search + Filter Customers
+  ================================ */
+  const filteredUsers = useMemo(() => {
+    return (customers || []).filter((u) => {
+      const text =
+        `${u.userName} ${u.pickupLocation} ${u.deliveryLocation}`.toLowerCase();
+      return text.includes(search.toLowerCase());
+    });
+  }, [customers, search]);
+
+  if (loading) {
+    return (
+      <PageLoader text="Loading chats..." fullScreen={false} color="#BF9B53" />
+    );
+  }
 
   return (
     <>
-      {/* HEADER */}
-      <div className="flex flex-col gap-6 font-[Montserrat]">
-        <h1 className="text-3xl font-montserrat text-gray-800">Chats</h1>
+      {/* ================= HEADER ================= */}
+      <div className="flex flex-col gap-6 font-montserrat">
+        <h1 className="text-3xl text-gray-800">Chats</h1>
 
         <div className="flex items-center justify-between gap-3 mb-6">
           <div className="w-full max-w-md relative">
@@ -123,20 +99,28 @@ const ChatOverview = () => {
         </div>
       </div>
 
-      {/* MAIN CONTAINER */}
-      <div className="flex flex-col lg:flex-row bg-gray-50 shadow-lg h-[741px] border overflow-hidden font-[Montserrat]">
-        {/* LEFT LIST */}
+      {/* ================= MAIN CONTAINER ================= */}
+      <div className="flex flex-col lg:flex-row bg-gray-50 shadow-lg h-[741px] border overflow-hidden font-montserrat">
+        {/* ================= LEFT LIST ================= */}
         <div
           className={`lg:w-1/4 bg-white border-r overflow-y-auto ${
             selectedUser && "hidden lg:block"
           }`}
         >
-          <div className="p-4 border-b font-semibold">Shipments</div>
+          <div className="p-4 border-b font-semibold">Customers</div>
+
+          {filteredUsers.length === 0 && (
+            <p className="p-4 text-gray-500 text-sm">No customers found</p>
+          )}
+
           {filteredUsers.map((u) => (
             <div
               key={u._id}
               onClick={() => {
-                setSelectedUser(u);
+                setSelectedUser({
+                  ...u,
+                  messages: u.messages || [],
+                });
                 setShowDetailsMobile(false);
               }}
               className={`p-3 cursor-pointer ${
@@ -145,7 +129,7 @@ const ChatOverview = () => {
                   : "hover:bg-gray-100"
               }`}
             >
-              <p>{u.userName}</p>
+              <p className="font-medium">{u.userName}</p>
               <p className="text-sm text-gray-600">
                 {u.pickupLocation} → {u.deliveryLocation}
               </p>
@@ -153,8 +137,8 @@ const ChatOverview = () => {
           ))}
         </div>
 
-        {/* CHAT */}
-        <div className="flex-1 flex flex-col min-h-0 bg-white ">
+        {/* ================= CHAT ================= */}
+        <div className="flex-1 flex flex-col min-h-0 bg-white">
           {/* MOBILE HEADER */}
           {selectedUser && (
             <div className="lg:hidden p-3 border-b flex justify-between items-center">
@@ -175,29 +159,25 @@ const ChatOverview = () => {
 
           {/* DESKTOP HEADER */}
           {selectedUser && (
-            <div className="hidden lg:flex justify-between p-4 border-b font-semibold ">
+            <div className="hidden lg:flex justify-between p-4 border-b font-semibold">
               Conversation with {selectedUser.userName}
               <button
-                onClick={() => setShowDetailsDesktop(!showDetailsDesktop)}
-                className="
-    text-system-primary
-    font-semibold
-    transition-all
-    duration-200
-    hover:text-system-primary/80
-   
-  "
+                onClick={() => setShowDetailsDesktop((prev) => !prev)}
+                className="text-system-primary font-semibold hover:text-system-primary/80"
               >
                 {showDetailsDesktop ? "Hide Profile" : "See Profile"}
               </button>
             </div>
           )}
 
-          {/* MESSAGES (SCROLL FIXED) */}
-          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 vehicle-scroll">
+          {/* MESSAGES */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {!selectedUser && (
-              <p className="text-center text-gray-500">Select a shipment</p>
+              <p className="text-center text-gray-500">
+                Select a customer to start chat
+              </p>
             )}
+
             {selectedUser?.messages.map((msg, i) => (
               <div
                 key={i}
@@ -213,10 +193,11 @@ const ChatOverview = () => {
                   }`}
                 >
                   <p>{msg.text}</p>
-                  <span className="text-xs">{msg.time}</span>
+                  <span className="text-xs block mt-1">{msg.time}</span>
                 </div>
               </div>
             ))}
+
             <div ref={chatEndRef} />
           </div>
 
@@ -240,7 +221,7 @@ const ChatOverview = () => {
           )}
         </div>
 
-        {/* DESKTOP PROFILE */}
+        {/* ================= DESKTOP PROFILE ================= */}
         {selectedUser && showDetailsDesktop && (
           <div className="hidden lg:block lg:w-1/4 bg-white border-l p-4 overflow-y-auto">
             <h2 className="font-semibold mb-2">Details</h2>
@@ -248,7 +229,10 @@ const ChatOverview = () => {
               <b>Name:</b> {selectedUser.userName}
             </p>
             <p>
-              <b>Horses:</b> {selectedUser.numberOfHorses}
+              <b>Pickup:</b> {selectedUser.pickupLocation}
+            </p>
+            <p>
+              <b>Delivery:</b> {selectedUser.deliveryLocation}
             </p>
             <p>
               <b>Email:</b> {selectedUser.contact}
@@ -260,21 +244,19 @@ const ChatOverview = () => {
         )}
       </div>
 
-      {/* MOBILE PROFILE PANEL */}
+      {/* ================= MOBILE PROFILE ================= */}
       {selectedUser && showDetailsMobile && (
-        <div className="fixed inset-0 bg-white z-50 lg:hidden overflow-y-auto">
+        <div className="fixed inset-0 bg-white z-50 lg:hidden">
           <div className="p-4 border-b flex justify-between items-center">
             <h2 className="font-semibold">Profile</h2>
             <button onClick={() => setShowDetailsMobile(false)}>
               <HiX size={22} />
             </button>
           </div>
+
           <div className="p-4 space-y-2">
             <p>
               <b>Name:</b> {selectedUser.userName}
-            </p>
-            <p>
-              <b>Horses:</b> {selectedUser.numberOfHorses}
             </p>
             <p>
               <b>Pickup:</b> {selectedUser.pickupLocation}
