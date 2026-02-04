@@ -1,24 +1,27 @@
-// src/layouts/CustomerLayout.jsx
 import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import Sidebar from "../pages/customer/Sidebar"; // updated path
+import Sidebar from "../pages/customer/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { useCustomerNotifications } from "../contexts/CustomerNotificationContext";
 import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
 import logo from "../assets/images/logo.png";
 import { MdOutlineNotificationsActive } from "react-icons/md";
+import { useProfile } from "../contexts/customerContext/ProfileContext"; // <-- import ProfileContext
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { notificationCount } = useCustomerNotifications();
+  const { profileImage } = useProfile(); // <-- get profileImage from context
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-  const profileImage = user?.photo || "https://via.placeholder.com/40";
+  // Use profile image from context or fallback to user.photo
+  const displayedProfileImage =
+    profileImage?.url || user?.photo || "https://via.placeholder.com/40";
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
@@ -75,7 +78,7 @@ const CustomerLayout = () => {
           {/* Profile */}
           <div className="relative">
             <img
-              src={profileImage}
+              src={displayedProfileImage} // <-- now reactive to context changes
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
               onClick={() => setProfilePopup(!profilePopup)}

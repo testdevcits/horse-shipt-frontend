@@ -1,32 +1,67 @@
-import React, { useState } from "react";
-import { FiEdit3 } from "react-icons/fi";
-import { useAuth } from "../../contexts/AuthContext";
+import React, { useState, useRef } from "react";
+import { HiPencil } from "react-icons/hi";
 import { FaStar } from "react-icons/fa";
+import { useAuth } from "../../contexts/AuthContext";
+import { useProfile } from "../../contexts/customerContext/ProfileContext";
 import CustomerReviews from "./CustomerReviews";
 
 const CustomerProfile = () => {
   const { user } = useAuth();
-  const [profilePopup, setProfilePopup] = useState(false);
+  const { profileImage, updateProfileImage, loading } = useProfile();
+  const [error, setError] = useState(null);
+  const profileInputRef = useRef(null);
+
+  // Handle profile image change
+  const handleProfileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      await updateProfileImage(file, user.token); // JWT token
+      setError(null);
+      alert("Profile image updated successfully!");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to update profile image");
+    }
+  };
 
   return (
     <div className="flex flex-col items-center w-full space-y-6">
-      {/* Top Profile Image */}
+      {/* Profile Image Section */}
       <div className="relative">
-        <img
-          src={user?.photo || "https://via.placeholder.com/80"}
-          alt="Profile"
-          className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border border-gray-300 cursor-pointer"
-        />
+        <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full flex-shrink-0">
+          <img
+            src={
+              profileImage?.url ||
+              user?.photo ||
+              "https://via.placeholder.com/150"
+            }
+            alt="Profile"
+            className={`w-full h-full object-cover rounded-full border ${
+              loading ? "opacity-50" : ""
+            }`}
+          />
+          <button
+            disabled={loading}
+            onClick={() => profileInputRef.current.click()}
+            className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow-md hover:bg-gray-100 transition flex items-center justify-center"
+          >
+            <HiPencil className="text-gray-700 w-4 h-4" />
+          </button>
+          <input
+            type="file"
+            accept="image/*"
+            ref={profileInputRef}
+            onChange={handleProfileChange}
+            className="hidden"
+          />
+        </div>
+        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
       </div>
-      {/* Edit Picture Button */}
-      <button
-        className="flex items-center gap-2 transition text-sm sm:text-base md:text-lg"
-        onClick={() => setProfilePopup(!profilePopup)}
-      >
-        <FiEdit3 /> Edit Picture
-      </button>
+
       {/* Shipments & Rating Card */}
-      <div className="w-full  bg-white flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300 ">
+      <div className="w-full bg-white flex items-center justify-between px-4 py-3 border rounded-[14px] border-gray-300">
         {/* Shipments */}
         <div className="flex flex-col items-center justify-center">
           <span className="text-base sm:text-lg md:text-xl font-bold">10</span>
@@ -45,16 +80,16 @@ const CustomerProfile = () => {
           </span>
         </div>
       </div>
+
       {/* Basic Info Section */}
-      <div className="w-full bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm flex flex-col gap-3 border rounded-[14px] border-gray-300 ">
+      <div className="w-full bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm flex flex-col gap-3 border rounded-[14px] border-gray-300">
         {/* Header with Edit Button */}
         <div className="flex justify-between items-center">
           <h3 className="font-montserrat font-semibold text-base leading-6 tracking-normal">
             Basic Info
           </h3>
-
           <button className="p-2 bg-gray-100 rounded-sm hover:bg-gray-200 transition">
-            <FiEdit3 />
+            <HiPencil />
           </button>
         </div>
 
@@ -91,7 +126,9 @@ const CustomerProfile = () => {
           </div>
         </div>
       </div>
-      <CustomerReviews /> {/* call the new page/component here */}
+
+      {/* Customer Reviews Component */}
+      <CustomerReviews />
     </div>
   );
 };

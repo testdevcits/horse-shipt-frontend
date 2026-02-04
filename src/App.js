@@ -22,6 +22,9 @@ import { ShipperContractProvider } from "./contexts/shipperContext/ShipperContra
 import { ShipperChatProvider } from "./contexts/shipperContext/ShipperChatContext";
 import { CustomerChatProvider } from "./contexts/customerContext/CustomerChatContext";
 
+// ------------------- Customer Profile Context -------------------
+import { ProfileProvider } from "./contexts/customerContext/ProfileContext";
+
 // ------------------- Driver Auth Context -------------------
 import { DriverAuthProvider } from "./contexts/DriverAuthContext";
 
@@ -44,21 +47,21 @@ function App() {
                         <ShipperPreferredAreaProvider>
                           <CustomerShipmentProvider>
                             <CustomerQuoteProvider>
-                              {" "}
-                              {/* Wrap with CustomerQuoteProvider */}
-                              <ShipperContractProvider>
-                                <ShipperQuoteProvider>
-                                  <ShipperShipmentProvider>
-                                    <DriverAuthProvider>
-                                      <ShipperChatProvider>
-                                        <CustomerChatProvider>
-                                          <AppRoutes />
-                                        </CustomerChatProvider>
-                                      </ShipperChatProvider>
-                                    </DriverAuthProvider>
-                                  </ShipperShipmentProvider>
-                                </ShipperQuoteProvider>
-                              </ShipperContractProvider>
+                              <ProfileProvider>
+                                <ShipperContractProvider>
+                                  <ShipperQuoteProvider>
+                                    <ShipperShipmentProvider>
+                                      <DriverAuthProvider>
+                                        <ShipperChatProvider>
+                                          <CustomerChatProvider>
+                                            <AppRoutes />
+                                          </CustomerChatProvider>
+                                        </ShipperChatProvider>
+                                      </DriverAuthProvider>
+                                    </ShipperShipmentProvider>
+                                  </ShipperQuoteProvider>
+                                </ShipperContractProvider>
+                              </ProfileProvider>
                             </CustomerQuoteProvider>
                           </CustomerShipmentProvider>
                         </ShipperPreferredAreaProvider>
