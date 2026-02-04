@@ -14,6 +14,7 @@ import {
   CustomerOrdersIcon,
   CustomerNewShipmentIcon,
   CustomerSettingsIcon,
+  ChatIcon,
 } from "../../components/common/ColoredIcons";
 
 // ---------------- NAV ITEMS ----------------
@@ -38,11 +39,17 @@ const navItems = [
     icon: <CustomerNewShipmentIcon />,
   },
   {
+    name: "Chats",
+    path: "/customer/chats",
+    icon: <ChatIcon />,
+  },
+  {
     name: "Settings",
     path: "/customer/settings",
     icon: <CustomerSettingsIcon />,
   },
 ];
+
 const CustomerSidebar = ({
   sidebarOpen,
   setSidebarOpen,

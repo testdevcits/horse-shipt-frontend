@@ -16,6 +16,7 @@ import TruckDriverPage from "../pages/shipper/TruckDriverPage";
 // ---------------- Driver Auth ----------------
 import { DriverAuthProvider } from "../contexts/DriverAuthContext";
 import ProtectedDriverRoute from "./ProtectedDriverRoute";
+import CustomerChatOverview from "../pages/customer/ChatOverview";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -190,6 +191,7 @@ const AppRoutes = () => {
           <Route path="new-shipment" element={<NewShipment />} />
           <Route path="profile/edit" element={<EditProfile />} />
           <Route path="my-shipments" element={<MyShipmentDetails />} />
+          <Route path="chats" element={<CustomerChatOverview />} />
         </Route>
 
         {/* ---------- Fallback ---------- */}
