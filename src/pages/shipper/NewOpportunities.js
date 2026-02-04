@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { HiSearch } from "react-icons/hi";
 import { CiMap } from "react-icons/ci";
 import { IoList } from "react-icons/io5";
@@ -17,9 +17,12 @@ const NewOpportunities = () => {
   /* ===============================
      Fetch Shipments (FIXED)
   ================================ */
+  const fetchedOnce = useRef(false);
+
   useEffect(() => {
-    if (!shipments || shipments.length === 0) {
+    if (!fetchedOnce.current && (!shipments || shipments.length === 0)) {
       getAvailableShipments();
+      fetchedOnce.current = true; // prevent future calls
     }
   }, [shipments, getAvailableShipments]);
 
