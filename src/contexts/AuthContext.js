@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
+import { socket } from "../services/socket";
 
 const AuthContext = createContext();
 
@@ -16,23 +17,48 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ----------------- Auto-login on page load -----------------
+  /* ===============================
+     AUTO LOGIN (PAGE REFRESH)
+  ================================ */
   useEffect(() => {
     const storedUser = localStorage.getItem("horseShiptUser");
     const storedToken = localStorage.getItem("token");
     const storedRole = localStorage.getItem("role");
 
     if (storedUser && storedToken && storedRole) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
       setToken(storedToken);
       setRole(storedRole);
-    }
-    setLoading(false);
-  }, []); // no dependencies needed here
 
-  // ----------------- Normal Login -----------------
+      // SOCKET CONNECT ON REFRESH
+      socket.auth = {
+        userId: parsedUser._id,
+        role: storedRole,
+      };
+      socket.connect();
+    }
+
+    setLoading(false);
+  }, []);
+
+  /* ===============================
+     SOCKET CLEANUP ON LOGOUT / UNMOUNT
+  ================================ */
+  useEffect(() => {
+    return () => {
+      if (socket.connected) {
+        socket.disconnect();
+      }
+    };
+  }, []);
+
+  /* ===============================
+     LOGIN
+  ================================ */
   const login = async ({ email, password, role, deviceId, location }) => {
     if (!role) return { success: false, errors: ["Role is required"] };
+
     setLoading(true);
     try {
       const res = await axios.post(
@@ -51,6 +77,13 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
 
+      // SOCKET CONNECT AFTER LOGIN
+      socket.auth = {
+        userId: userData._id,
+        role: userData.role,
+      };
+      socket.connect();
+
       return { success: true };
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
@@ -63,9 +96,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ----------------- Normal Signup -----------------
+  /* ===============================
+     SIGNUP
+  ================================ */
   const signup = async ({ name, email, password, role }) => {
     if (!role) return { success: false, errors: ["Role is required"] };
+
     setLoading(true);
     try {
       const res = await axios.post(
@@ -75,6 +111,7 @@ export const AuthProvider = ({ children }) => {
       );
 
       const newUser = res.data.data;
+
       setUser(newUser);
       setToken(newUser.token);
       setRole(newUser.role);
@@ -82,6 +119,13 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("horseShiptUser", JSON.stringify(newUser));
       localStorage.setItem("token", newUser.token);
       localStorage.setItem("role", newUser.role);
+
+      //  SOCKET CONNECT AFTER SIGNUP
+      socket.auth = {
+        userId: newUser._id,
+        role: newUser.role,
+      };
+      socket.connect();
 
       return { success: true };
     } catch (err) {
@@ -95,9 +139,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ----------------- Logout -----------------
+  /* ===============================
+     LOGOUT
+  ================================ */
   const logout = async () => {
     if (!user) return;
+
     try {
       await axios.post(
         `${API_BASE_URL}/auth/logout`,
@@ -107,17 +154,26 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Logout Error:", err.response?.data || err.message);
     } finally {
+      //  SOCKET DISCONNECT
+      if (socket.connected) {
+        socket.disconnect();
+      }
+
       setUser(null);
       setToken(null);
       setRole(null);
+
       localStorage.removeItem("horseShiptUser");
       localStorage.removeItem("token");
       localStorage.removeItem("role");
+
       navigate("/login", { replace: true });
     }
   };
 
-  // ----------------- OAuth Login -----------------
+  /* ===============================
+     OAUTH LOGIN
+  ================================ */
   const oauthLogin = ({
     token,
     role,
@@ -149,11 +205,21 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("horseShiptUser", JSON.stringify(oauthUser));
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
+
+    //  SOCKET CONNECT
+    socket.auth = {
+      userId: oauthUser._id,
+      role: oauthUser.role,
+    };
+    socket.connect();
   };
 
-  // ----------------- Handle OAuth redirect on mount -----------------
+  /* ===============================
+     HANDLE OAUTH REDIRECT
+  ================================ */
   useEffect(() => {
     const query = new URLSearchParams(location.search);
+
     const tokenParam = query.get("token");
     const id = query.get("id");
     const roleParam = query.get("role");
@@ -174,12 +240,13 @@ export const AuthProvider = ({ children }) => {
         providerId,
       });
 
-      // navigate after OAuth login
       navigate(location.pathname, { replace: true });
     }
-  }, [location.search, location.pathname, navigate]); // ✅ added all dependencies
+  }, [location.search, location.pathname, navigate]);
 
-  // ----------------- Role Helpers -----------------
+  /* ===============================
+     ROLE HELPERS
+  ================================ */
   const isCustomer = role === "customer";
   const isShipper = role === "shipper";
 
@@ -187,7 +254,6 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        setUser,
         token,
         role,
         isCustomer,

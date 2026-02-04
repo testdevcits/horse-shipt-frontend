@@ -2,14 +2,19 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
 import PageLoader from "../../components/common/PageLoader";
 import { useShipperChat } from "../../contexts/shipperContext/ShipperChatContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { socket } from "../../services/socket";
 
 const ChatOverview = () => {
   const { customers, loading, fetchCustomers } = useShipperChat();
+  const { user } = useAuth();
 
   const [selectedUser, setSelectedUser] = useState(null);
-  const [newMessage, setNewMessage] = useState("");
+  const [roomId, setRoomId] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [newMessage, setNewMessage] = useState("");
 
   const chatEndRef = useRef(null);
 
@@ -21,14 +26,44 @@ const ChatOverview = () => {
   }, [fetchCustomers]);
 
   /* ===============================
+     JOIN ROOM WHEN CUSTOMER SELECTED
+  ================================ */
+  useEffect(() => {
+    if (!selectedUser) return;
+
+    // Emit joinRoom to backend
+    socket.emit("joinRoom", {
+      customerId: selectedUser._id,
+      shipperId: user._id,
+    });
+
+    // Listen for roomJoined
+    socket.on("roomJoined", (id) => {
+      setRoomId(id);
+    });
+
+    // Listen for incoming messages
+    socket.on("receiveMessage", (msg) => {
+      if (msg.chatRoom === roomId) {
+        setMessages((prev) => [...prev, msg]);
+      }
+    });
+
+    return () => {
+      socket.off("roomJoined");
+      socket.off("receiveMessage");
+    };
+  }, [selectedUser, user, roomId]);
+
+  /* ===============================
      AUTO SCROLL
   ================================ */
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selectedUser?.messages]);
+  }, [messages]);
 
   /* ===============================
-     SEARCH + ONLINE/OFFLINE FILTER
+     SEARCH + FILTER
   ================================ */
   const filteredUsers = useMemo(() => {
     return (customers || [])
@@ -41,25 +76,29 @@ const ChatOverview = () => {
   }, [customers, search, filter]);
 
   /* ===============================
-     SEND MESSAGE (TEMP)
+     SEND MESSAGE
   ================================ */
   const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedUser) return;
+    if (!newMessage.trim() || !roomId) return;
 
-    setSelectedUser((prev) => ({
+    const msgData = {
+      roomId,
+      senderId: user._id,
+      senderRole: "shipper",
+      message: newMessage,
+    };
+
+    // Emit to backend
+    socket.emit("sendMessage", msgData);
+
+    // Optimistically update UI
+    setMessages((prev) => [
       ...prev,
-      messages: [
-        ...(prev.messages || []),
-        {
-          from: "shipper",
-          text: newMessage,
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        },
-      ],
-    }));
+      {
+        ...msgData,
+        createdAt: new Date().toISOString(),
+      },
+    ]);
 
     setNewMessage("");
   };
@@ -79,7 +118,6 @@ const ChatOverview = () => {
       >
         <div className="p-4 border-b font-semibold">Customers</div>
 
-        {/* 🔍 SEARCH */}
         <div className="p-3 relative">
           <HiSearch
             className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500"
@@ -93,7 +131,6 @@ const ChatOverview = () => {
           />
         </div>
 
-        {/* FILTER BUTTONS */}
         <div className="flex gap-2 px-3 pb-3">
           {["all", "online", "offline"].map((type) => (
             <button
@@ -122,10 +159,12 @@ const ChatOverview = () => {
         {filteredUsers.map((u) => (
           <div
             key={u._id}
-            onClick={() => setSelectedUser({ ...u, messages: [] })}
+            onClick={() => {
+              setSelectedUser(u);
+              setMessages([]); // reset messages
+            }}
             className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100"
           >
-            {/* Avatar */}
             <div className="relative">
               <img
                 src={u.avatar}
@@ -160,7 +199,6 @@ const ChatOverview = () => {
 
         {selectedUser && (
           <>
-            {/* HEADER */}
             <div className="p-4 border-b flex items-center gap-3 font-semibold">
               <button
                 className="lg:hidden"
@@ -181,31 +219,38 @@ const ChatOverview = () => {
               </div>
             </div>
 
-            {/* MESSAGES */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {selectedUser.messages?.length === 0 && (
+              {messages.length === 0 && (
                 <p className="text-gray-400 text-sm text-center">
                   No messages yet
                 </p>
               )}
 
-              {selectedUser.messages?.map((msg, i) => (
+              {messages.map((msg, i) => (
                 <div
                   key={i}
                   className={`flex ${
-                    msg.from === "shipper" ? "justify-end" : "justify-start"
+                    msg.senderRole === "shipper"
+                      ? "justify-end"
+                      : "justify-start"
                   }`}
                 >
                   <div
                     className={`p-2 rounded-lg max-w-[75%] ${
-                      msg.from === "shipper"
+                      msg.senderRole === "shipper"
                         ? "bg-system-primary text-white"
                         : "bg-gray-200"
                     }`}
                   >
-                    <p>{msg.text}</p>
+                    <p>{msg.message || msg.text}</p>
                     <span className="text-xs block mt-1 opacity-70">
-                      {msg.time}
+                      {new Date(msg.createdAt || msg.time).toLocaleTimeString(
+                        [],
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
                     </span>
                   </div>
                 </div>
@@ -213,7 +258,6 @@ const ChatOverview = () => {
               <div ref={chatEndRef} />
             </div>
 
-            {/* INPUT */}
             <div className="p-3 border-t flex gap-2">
               <input
                 value={newMessage}
