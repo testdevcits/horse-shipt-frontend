@@ -85,7 +85,7 @@ export const ShipperShipmentProvider = ({ children }) => {
     return () => {
       isMounted = false;
     };
-  }, [token, isShipper, getAvailableShipments]);
+  }, []);
 
   return (
     <ShipperShipmentContext.Provider
