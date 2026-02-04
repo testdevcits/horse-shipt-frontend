@@ -143,12 +143,12 @@ const ShipmentCard = ({ shipment }) => {
               </span>
             </div>
 
-            <div className="flex gap-1">
+            {/* <div className="flex gap-1">
               <span className="text-gray-500">Total Price:</span>
               <span className="font-medium text-system-primary">
                 ${shipment.totalPrice || ""} USD
               </span>
-            </div>
+            </div> */}
           </div>
 
           {/* DESKTOP ARROW */}
