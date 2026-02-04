@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
       setToken(storedToken);
       setRole(storedRole);
 
-      // SOCKET CONNECT ON REFRESH
+      // 🔹 Socket connect on refresh
       socket.auth = {
         userId: parsedUser._id,
         role: storedRole,
@@ -47,9 +47,7 @@ export const AuthProvider = ({ children }) => {
   ================================ */
   useEffect(() => {
     return () => {
-      if (socket.connected) {
-        socket.disconnect();
-      }
+      if (socket.connected) socket.disconnect();
     };
   }, []);
 
@@ -77,11 +75,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
 
-      // SOCKET CONNECT AFTER LOGIN
-      socket.auth = {
-        userId: userData._id,
-        role: userData.role,
-      };
+      // 🔹 Socket connect after login
+      socket.auth = { userId: userData._id, role: userData.role };
       socket.connect();
 
       return { success: true };
@@ -120,11 +115,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", newUser.token);
       localStorage.setItem("role", newUser.role);
 
-      //  SOCKET CONNECT AFTER SIGNUP
-      socket.auth = {
-        userId: newUser._id,
-        role: newUser.role,
-      };
+      // 🔹 Socket connect after signup
+      socket.auth = { userId: newUser._id, role: newUser.role };
       socket.connect();
 
       return { success: true };
@@ -154,10 +146,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Logout Error:", err.response?.data || err.message);
     } finally {
-      //  SOCKET DISCONNECT
-      if (socket.connected) {
-        socket.disconnect();
-      }
+      if (socket.connected) socket.disconnect();
 
       setUser(null);
       setToken(null);
@@ -206,11 +195,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
 
-    //  SOCKET CONNECT
-    socket.auth = {
-      userId: oauthUser._id,
-      role: oauthUser.role,
-    };
+    // 🔹 Socket connect for OAuth
+    socket.auth = { userId: oauthUser._id, role: oauthUser.role };
     socket.connect();
   };
 
