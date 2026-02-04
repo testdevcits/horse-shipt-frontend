@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import Switch from "../../components/common/Switch";
 import Toast from "../../components/common/Toast";
 import { useCustomerNotifications } from "../../contexts/CustomerNotificationContext";
-import axios from "axios";
-import { useAuth } from "../../contexts/AuthContext";
 import PageLoader from "../../components/common/PageLoader";
 
 const notificationsList = [
@@ -21,38 +19,24 @@ const notificationsList = [
 const CustomerNotifications = () => {
   const { notifications, updateNotification, loading } =
     useCustomerNotifications();
-  const { token } = useAuth();
+
   const [toast, setToast] = useState(null);
 
-  // ---------------- Toggle notification ----------------
+  /* ===============================
+     Toggle Notification
+  ================================ */
   const handleToggle = (id) => {
     const newValue = !notifications[id];
+
     updateNotification(id, newValue);
+
+    const label =
+      notificationsList.find((n) => n.id === id)?.label || "Notification";
+
     setToast({
-      message: `${notificationsList.find((n) => n.id === id).label} ${
-        newValue ? "enabled" : "disabled"
-      }`,
+      message: `${label} ${newValue ? "enabled" : "disabled"}`,
       type: "success",
     });
-  };
-
-  // ---------------- Test Notification ----------------
-  const sendTestNotification = async () => {
-    if (!token) return;
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/customer/test-notification`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setToast({ message: "Test notification sent!", type: "success" });
-    } catch (err) {
-      console.error("Test notification error:", err);
-      setToast({
-        message: "Failed to send test notification",
-        type: "error",
-      });
-    }
   };
 
   if (loading || !notifications) {
@@ -74,7 +58,7 @@ const CustomerNotifications = () => {
 
       <p className="font-montserrat font-normal text-base leading-6 tracking-normal text-gray-600 mb-6">
         Notifications are customizable alerts that keep you updated about
-        specific activities in HorseShipt, they ensure you never miss anything
+        specific activities in HorseShipt. They ensure you never miss anything
         while you’re away.
       </p>
 
@@ -91,7 +75,7 @@ const CustomerNotifications = () => {
 
             <div className="flex-shrink-0 mt-1 sm:mt-0">
               <Switch
-                checked={notifications[item.id]}
+                checked={!!notifications[item.id]}
                 onChange={() => handleToggle(item.id)}
                 size="md"
               />

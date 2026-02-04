@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
 
@@ -19,12 +25,18 @@ export const CustomerPaymentProvider = ({ children }) => {
   const [otpSent, setOtpSent] = useState(false);
   const [otpCooldown, setOtpCooldown] = useState(0);
 
-  // ---------------- Fetch payment for logged-in customer ----------------
-  const fetchPayment = async () => {
-    if (!user?.token || user?.role !== "customer") return;
+  /* ===============================
+     Fetch Payment (FIXED)
+  ================================ */
+  const fetchPayment = useCallback(async () => {
+    if (!user?.token || user?.role !== "customer") {
+      setPaymentData(null);
+      return;
+    }
 
     try {
       setLoading(true);
+
       const res = await axios.get(`${API_BASE_URL}/customer/payment`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
@@ -40,85 +52,101 @@ export const CustomerPaymentProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // ---------------- Auto fetch when customer logs in ----------------
-  useEffect(() => {
-    if (user && user.role === "customer") {
-      fetchPayment();
-    } else {
-      setPaymentData(null); // clear data if logged-out or different role
-    }
   }, [user]);
 
-  // ---------------- OTP cooldown timer ----------------
-  useEffect(() => {
-    let timer;
-    if (otpCooldown > 0) {
-      timer = setInterval(() => setOtpCooldown((prev) => prev - 1), 1000);
-    }
-    return () => clearInterval(timer);
-  }, [otpCooldown]);
-
-  // ---------------- Send OTP ----------------
-  const sendOtp = async ({ pkLive, skLive, paymentId }) => {
-    if (!user?.token)
-      return { success: false, message: "User not authenticated" };
-
-    try {
-      setLoading(true);
-      await axios.post(
-        `${API_BASE_URL}/customer/payment/request-otp`,
-        { pkLive, skLive, paymentId },
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
-
-      setOtpSent(true);
-      setOtpCooldown(30);
-      return { success: true };
-    } catch (err) {
-      console.error("[Send OTP] Error:", err.response || err.message);
-      return {
-        success: false,
-        message: err.response?.data?.message || "Failed to send OTP",
-      };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ---------------- Verify OTP ----------------
-  const verifyOtp = async ({ otp, pkLive, skLive, paymentId }) => {
-    if (!user?.token)
-      return { success: false, message: "User not authenticated" };
-
-    try {
-      setLoading(true);
-      const res = await axios.post(
-        `${API_BASE_URL}/customer/payment/verify-otp`,
-        { otp, pkLive, skLive, paymentId },
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
-
-      setPaymentData(res.data.data);
-      setOtpSent(false);
-      return { success: true, message: res.data.message };
-    } catch (err) {
-      console.error("[Verify OTP] Error:", err.response || err.message);
-      return {
-        success: false,
-        message: err.response?.data?.message || "OTP verification failed",
-      };
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  /* ===============================
+     Auto Fetch on Login / Change
+  ================================ */
   useEffect(() => {
     fetchPayment();
   }, [fetchPayment]);
 
-  // ---------------- Provider Value ----------------
+  /* ===============================
+     OTP Cooldown Timer
+  ================================ */
+  useEffect(() => {
+    if (otpCooldown <= 0) return;
+
+    const timer = setInterval(() => {
+      setOtpCooldown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [otpCooldown]);
+
+  /* ===============================
+     Send OTP
+  ================================ */
+  const sendOtp = useCallback(
+    async ({ pkLive, skLive, paymentId }) => {
+      if (!user?.token) {
+        return { success: false, message: "User not authenticated" };
+      }
+
+      try {
+        setLoading(true);
+
+        await axios.post(
+          `${API_BASE_URL}/customer/payment/request-otp`,
+          { pkLive, skLive, paymentId },
+          { headers: { Authorization: `Bearer ${user.token}` } }
+        );
+
+        setOtpSent(true);
+        setOtpCooldown(30);
+
+        return { success: true };
+      } catch (err) {
+        console.error("[Send OTP] Error:", err.response || err.message);
+        return {
+          success: false,
+          message: err.response?.data?.message || "Failed to send OTP",
+        };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user]
+  );
+
+  /* ===============================
+     Verify OTP
+  ================================ */
+  const verifyOtp = useCallback(
+    async ({ otp, pkLive, skLive, paymentId }) => {
+      if (!user?.token) {
+        return { success: false, message: "User not authenticated" };
+      }
+
+      try {
+        setLoading(true);
+
+        const res = await axios.post(
+          `${API_BASE_URL}/customer/payment/verify-otp`,
+          { otp, pkLive, skLive, paymentId },
+          { headers: { Authorization: `Bearer ${user.token}` } }
+        );
+
+        setPaymentData(res.data.data);
+        setOtpSent(false);
+
+        return { success: true, message: res.data.message };
+      } catch (err) {
+        console.error("[Verify OTP] Error:", err.response || err.message);
+        return {
+          success: false,
+          message: err.response?.data?.message || "OTP verification failed",
+        };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user]
+  );
+
+  /* ===============================
+     Provider Value
+  ================================ */
   return (
     <CustomerPaymentContext.Provider
       value={{

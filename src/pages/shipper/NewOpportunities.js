@@ -14,15 +14,19 @@ const NewOpportunities = () => {
 
   const { shipments, getAvailableShipments, loading } = useShipperShipment();
 
-  //Fetch shipments once
+  /* ===============================
+     Fetch Shipments (FIXED)
+  ================================ */
   useEffect(() => {
     if (!shipments || shipments.length === 0) {
       getAvailableShipments();
     }
-  }, []);
+  }, [shipments, getAvailableShipments]);
 
-  // Search filter (safe)
-  const filteredShipments = shipments.filter((shipment) => {
+  /* ===============================
+     Search Filter
+  ================================ */
+  const filteredShipments = (shipments || []).filter((shipment) => {
     const searchText = `${shipment.pickupLocation} ${shipment.deliveryLocation}`;
     return searchText.toLowerCase().includes(search.toLowerCase());
   });
