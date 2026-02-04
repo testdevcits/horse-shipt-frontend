@@ -11,7 +11,6 @@ export const ShipperChatProvider = ({ children }) => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch ONLY when explicitly called
   const fetchCustomers = useCallback(async () => {
     if (!token) return;
 
@@ -20,7 +19,6 @@ export const ShipperChatProvider = ({ children }) => {
       const res = await axios.get(`${API_BASE_URL}/shipper/chat/customers`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       setCustomers(res.data?.data || []);
     } catch (err) {
       console.error("Fetch customers chat error:", err);

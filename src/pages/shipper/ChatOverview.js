@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
-import Select from "../../components/common/Select";
 import PageLoader from "../../components/common/PageLoader";
 import { useShipperChat } from "../../contexts/shipperContext/ShipperChatContext";
 
 const ChatOverview = () => {
-  const { customers, loading } = useShipperChat();
+  const { customers, loading, fetchCustomers } = useShipperChat();
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [newMessage, setNewMessage] = useState("");
@@ -15,14 +14,34 @@ const ChatOverview = () => {
   const chatEndRef = useRef(null);
 
   /* ===============================
-     Auto scroll on new messages
+     FETCH CUSTOMERS ON PAGE LOAD
+  ================================ */
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
+
+  /* ===============================
+     AUTO SCROLL
   ================================ */
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [selectedUser?.messages]);
 
   /* ===============================
-     Send Message (TEMP – Socket later)
+     SEARCH + ONLINE/OFFLINE FILTER
+  ================================ */
+  const filteredUsers = useMemo(() => {
+    return (customers || [])
+      .filter((u) => u.name?.toLowerCase().includes(search.toLowerCase()))
+      .filter((u) => {
+        if (filter === "online") return u.isLogin;
+        if (filter === "offline") return !u.isLogin;
+        return true;
+      });
+  }, [customers, search, filter]);
+
+  /* ===============================
+     SEND MESSAGE (TEMP)
   ================================ */
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedUser) return;
@@ -41,22 +60,8 @@ const ChatOverview = () => {
         },
       ],
     }));
-
     setNewMessage("");
   };
-
-  /* ===============================
-     SEARCH + FILTER
-  ================================ */
-  const filteredUsers = useMemo(() => {
-    return (customers || [])
-      .filter((u) => u.name?.toLowerCase().includes(search.toLowerCase()))
-      .filter((u) => {
-        if (filter === "online") return u.isLogin;
-        if (filter === "offline") return !u.isLogin;
-        return true;
-      });
-  }, [customers, search, filter]);
 
   if (loading) {
     return (
@@ -66,14 +71,14 @@ const ChatOverview = () => {
 
   return (
     <div className="flex h-[calc(100vh-120px)] bg-white border shadow font-montserrat overflow-hidden">
-      {/* ================= LEFT: CUSTOMER LIST ================= */}
+      {/* ================= CUSTOMER LIST ================= */}
       <div
         className={`w-full lg:w-1/4 border-r overflow-y-auto bg-white
         ${selectedUser ? "hidden lg:block" : "block"}`}
       >
         <div className="p-4 border-b font-semibold">Customers</div>
 
-        {/* Search */}
+        {/* 🔍 SEARCH INSIDE BOX */}
         <div className="p-3 relative">
           <HiSearch
             className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500"
@@ -87,17 +92,26 @@ const ChatOverview = () => {
           />
         </div>
 
-        {/* Filter */}
-        <div className="px-3 pb-3">
-          <Select
-            value={filter}
-            onChange={setFilter}
-            options={[
-              { label: "All Customers", value: "all" },
-              { label: "Online", value: "online" },
-              { label: "Offline", value: "offline" },
-            ]}
-          />
+        {/* 🟢 ONLINE / OFFLINE FILTER */}
+        <div className="flex gap-2 px-3 pb-3">
+          {["all", "online", "offline"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilter(type)}
+              className={`flex-1 py-2 rounded text-sm font-medium border
+                ${
+                  filter === type
+                    ? "bg-system-primary text-white border-system-primary"
+                    : "bg-white text-gray-600 hover:bg-gray-100"
+                }`}
+            >
+              {type === "all"
+                ? "All"
+                : type === "online"
+                ? "Online"
+                : "Offline"}
+            </button>
+          ))}
         </div>
 
         {filteredUsers.length === 0 && (
@@ -129,7 +143,6 @@ const ChatOverview = () => {
               />
             </div>
 
-            {/* Info */}
             <div className="flex flex-col">
               <span className="font-medium">{u.name}</span>
               <span className="text-xs text-gray-500">{u.email}</span>
@@ -138,7 +151,7 @@ const ChatOverview = () => {
         ))}
       </div>
 
-      {/* ================= RIGHT: CHAT ================= */}
+      {/* ================= CHAT ================= */}
       <div
         className={`flex-1 flex flex-col bg-white
         ${selectedUser ? "block" : "hidden lg:flex"}`}
@@ -151,7 +164,7 @@ const ChatOverview = () => {
 
         {selectedUser && (
           <>
-            {/* Header (Mobile + Desktop) */}
+            {/* HEADER */}
             <div className="p-4 border-b flex items-center gap-3 font-semibold">
               <button
                 className="lg:hidden"
@@ -172,14 +185,13 @@ const ChatOverview = () => {
               </div>
             </div>
 
-            {/* Messages */}
+            {/* MESSAGES */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {selectedUser.messages.length === 0 && (
                 <p className="text-gray-400 text-sm text-center">
                   No messages yet
                 </p>
               )}
-
               {selectedUser.messages.map((msg, i) => (
                 <div
                   key={i}
@@ -201,11 +213,10 @@ const ChatOverview = () => {
                   </div>
                 </div>
               ))}
-
               <div ref={chatEndRef} />
             </div>
 
-            {/* Input */}
+            {/* INPUT */}
             <div className="p-3 border-t flex gap-2">
               <input
                 value={newMessage}

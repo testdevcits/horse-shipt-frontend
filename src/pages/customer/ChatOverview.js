@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
 import PageLoader from "../../components/common/PageLoader";
-import Select from "../../components/common/Select";
 import { useCustomerChat } from "../../contexts/customerContext/CustomerChatContext";
 
 const CustomerChatOverview = () => {
@@ -13,14 +12,14 @@ const CustomerChatOverview = () => {
   const [newMessage, setNewMessage] = useState("");
 
   /* ===============================
-     FETCH SHIPPERS
+     FETCH SHIPPERS ON PAGE LOAD
   ================================ */
   useEffect(() => {
     fetchShippers();
   }, [fetchShippers]);
 
   /* ===============================
-     SEARCH + FILTER
+     SEARCH + ONLINE/OFFLINE FILTER
   ================================ */
   const filteredShippers = useMemo(() => {
     return (shippers || [])
@@ -33,7 +32,7 @@ const CustomerChatOverview = () => {
   }, [shippers, search, filter]);
 
   /* ===============================
-     SEND MESSAGE (TEMP)
+     SEND MESSAGE (TEMP – Socket later)
   ================================ */
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedShipper) return;
@@ -64,14 +63,14 @@ const CustomerChatOverview = () => {
 
   return (
     <div className="flex h-[calc(100vh-120px)] bg-white border shadow font-montserrat overflow-hidden">
-      {/* ================= LEFT: SHIPPERS LIST ================= */}
+      {/* ================= SHIPPERS LIST ================= */}
       <div
-        className={`w-full lg:w-1/3 border-r overflow-y-auto
+        className={`w-full lg:w-1/3 border-r overflow-y-auto bg-white
         ${selectedShipper ? "hidden lg:block" : "block"}`}
       >
         <div className="p-4 border-b font-semibold">Shippers</div>
 
-        {/* Search */}
+        {/* 🔍 SEARCH */}
         <div className="p-3 relative">
           <HiSearch
             className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500"
@@ -85,17 +84,26 @@ const CustomerChatOverview = () => {
           />
         </div>
 
-        {/* Filter */}
-        <div className="px-3 pb-3">
-          <Select
-            value={filter}
-            onChange={setFilter}
-            options={[
-              { label: "All Shippers", value: "all" },
-              { label: "Online", value: "online" },
-              { label: "Offline", value: "offline" },
-            ]}
-          />
+        {/* 🟢 ONLINE / OFFLINE FILTER BUTTONS */}
+        <div className="flex gap-2 px-3 pb-3">
+          {["all", "online", "offline"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilter(type)}
+              className={`flex-1 py-2 rounded text-sm font-medium border
+                ${
+                  filter === type
+                    ? "bg-system-primary text-white border-system-primary"
+                    : "bg-white text-gray-600 hover:bg-gray-100"
+                }`}
+            >
+              {type === "all"
+                ? "All"
+                : type === "online"
+                ? "Online"
+                : "Offline"}
+            </button>
+          ))}
         </div>
 
         {filteredShippers.length === 0 && (
@@ -135,9 +143,9 @@ const CustomerChatOverview = () => {
         ))}
       </div>
 
-      {/* ================= RIGHT: CHAT ================= */}
+      {/* ================= CHAT ================= */}
       <div
-        className={`flex-1 flex flex-col
+        className={`flex-1 flex flex-col bg-white
         ${selectedShipper ? "block" : "hidden lg:flex"}`}
       >
         {!selectedShipper && (
@@ -148,7 +156,7 @@ const CustomerChatOverview = () => {
 
         {selectedShipper && (
           <>
-            {/* HEADER (Mobile + Desktop) */}
+            {/* HEADER */}
             <div className="p-4 border-b flex items-center gap-3 font-semibold">
               <button
                 className="lg:hidden"
