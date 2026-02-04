@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 
@@ -13,10 +7,11 @@ const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
 export const ShipperChatProvider = ({ children }) => {
   const { token } = useAuth();
+
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Stable fetch function using useCallback
+  // Fetch ONLY when explicitly called
   const fetchCustomers = useCallback(async () => {
     if (!token) return;
 
@@ -25,19 +20,15 @@ export const ShipperChatProvider = ({ children }) => {
       const res = await axios.get(`${API_BASE_URL}/shipper/chat/customers`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setCustomers(res.data?.data || []);
     } catch (err) {
+      console.error("Fetch customers chat error:", err);
       setCustomers([]);
-      console.error("Fetch customers chat error", err);
     } finally {
       setLoading(false);
     }
   }, [token]);
-
-  // Auto-fetch when token or fetchCustomers changes
-  useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
 
   return (
     <ShipperChatContext.Provider

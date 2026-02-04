@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 
@@ -16,7 +10,7 @@ export const CustomerChatProvider = ({ children }) => {
   const [shippers, setShippers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Stable fetch function using useCallback
+  // Fetch ONLY when called manually
   const fetchShippers = useCallback(async () => {
     if (!token) return;
 
@@ -27,17 +21,12 @@ export const CustomerChatProvider = ({ children }) => {
       });
       setShippers(res.data?.data || []);
     } catch (err) {
-      setShippers([]);
       console.error("Fetch shippers chat error", err);
+      setShippers([]);
     } finally {
       setLoading(false);
     }
   }, [token]);
-
-  // Auto-fetch when token or fetchShippers changes
-  useEffect(() => {
-    fetchShippers();
-  }, [fetchShippers]);
 
   return (
     <CustomerChatContext.Provider

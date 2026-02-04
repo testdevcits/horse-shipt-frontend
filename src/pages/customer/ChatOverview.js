@@ -1,26 +1,39 @@
-import React, { useState, useMemo } from "react";
-import { HiSearch } from "react-icons/hi";
+import React, { useState, useMemo, useEffect } from "react";
+import { HiSearch, HiArrowLeft } from "react-icons/hi";
 import PageLoader from "../../components/common/PageLoader";
+import Select from "../../components/common/Select";
 import { useCustomerChat } from "../../contexts/customerContext/CustomerChatContext";
 
 const CustomerChatOverview = () => {
-  const { shippers, loading } = useCustomerChat();
+  const { shippers, loading, fetchShippers } = useCustomerChat();
 
   const [selectedShipper, setSelectedShipper] = useState(null);
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
   const [newMessage, setNewMessage] = useState("");
 
   /* ===============================
-     Search Filter
+     FETCH SHIPPERS
   ================================ */
-  const filteredShippers = useMemo(() => {
-    return (shippers || []).filter((s) =>
-      s.name?.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [shippers, search]);
+  useEffect(() => {
+    fetchShippers();
+  }, [fetchShippers]);
 
   /* ===============================
-     Send Message (TEMP – socket later)
+     SEARCH + FILTER
+  ================================ */
+  const filteredShippers = useMemo(() => {
+    return (shippers || [])
+      .filter((s) => s.name?.toLowerCase().includes(search.toLowerCase()))
+      .filter((s) => {
+        if (filter === "online") return s.isLogin;
+        if (filter === "offline") return !s.isLogin;
+        return true;
+      });
+  }, [shippers, search, filter]);
+
+  /* ===============================
+     SEND MESSAGE (TEMP)
   ================================ */
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedShipper) return;
@@ -50,9 +63,12 @@ const CustomerChatOverview = () => {
   }
 
   return (
-    <div className="flex h-[720px] bg-white border shadow font-montserrat">
+    <div className="flex h-[calc(100vh-120px)] bg-white border shadow font-montserrat overflow-hidden">
       {/* ================= LEFT: SHIPPERS LIST ================= */}
-      <div className="w-1/3 border-r overflow-y-auto">
+      <div
+        className={`w-full lg:w-1/3 border-r overflow-y-auto
+        ${selectedShipper ? "hidden lg:block" : "block"}`}
+      >
         <div className="p-4 border-b font-semibold">Shippers</div>
 
         {/* Search */}
@@ -69,6 +85,19 @@ const CustomerChatOverview = () => {
           />
         </div>
 
+        {/* Filter */}
+        <div className="px-3 pb-3">
+          <Select
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { label: "All Shippers", value: "all" },
+              { label: "Online", value: "online" },
+              { label: "Offline", value: "offline" },
+            ]}
+          />
+        </div>
+
         {filteredShippers.length === 0 && (
           <p className="p-4 text-gray-500 text-sm">No shippers found</p>
         )}
@@ -77,11 +106,7 @@ const CustomerChatOverview = () => {
           <div
             key={s._id}
             onClick={() => setSelectedShipper({ ...s, messages: [] })}
-            className={`flex items-center gap-3 p-3 cursor-pointer ${
-              selectedShipper?._id === s._id
-                ? "bg-[#F2EBDD]"
-                : "hover:bg-gray-100"
-            }`}
+            className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100"
           >
             {/* Avatar */}
             <div className="relative">
@@ -95,8 +120,6 @@ const CustomerChatOverview = () => {
                 alt={s.name}
                 className="w-10 h-10 rounded-full object-cover"
               />
-
-              {/* Online Status */}
               <span
                 className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
                   s.isLogin ? "bg-green-500" : "bg-gray-400"
@@ -104,17 +127,19 @@ const CustomerChatOverview = () => {
               />
             </div>
 
-            {/* Info */}
             <div className="flex flex-col">
-              <span className="font-medium text-gray-800">{s.name}</span>
+              <span className="font-medium">{s.name}</span>
               <span className="text-xs text-gray-500">{s.email}</span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* ================= RIGHT: CHAT AREA ================= */}
-      <div className="flex-1 flex flex-col">
+      {/* ================= RIGHT: CHAT ================= */}
+      <div
+        className={`flex-1 flex flex-col
+        ${selectedShipper ? "block" : "hidden lg:flex"}`}
+      >
         {!selectedShipper && (
           <div className="flex-1 flex items-center justify-center text-gray-500">
             Select a shipper to start chat
@@ -123,19 +148,28 @@ const CustomerChatOverview = () => {
 
         {selectedShipper && (
           <>
-            {/* Header */}
-            <div className="p-4 border-b flex justify-between font-semibold">
-              <span>{selectedShipper.name}</span>
-              <span
-                className={`text-sm ${
-                  selectedShipper.isLogin ? "text-green-600" : "text-gray-400"
-                }`}
+            {/* HEADER (Mobile + Desktop) */}
+            <div className="p-4 border-b flex items-center gap-3 font-semibold">
+              <button
+                className="lg:hidden"
+                onClick={() => setSelectedShipper(null)}
               >
-                {selectedShipper.isLogin ? "Online" : "Offline"}
-              </span>
+                <HiArrowLeft size={22} />
+              </button>
+
+              <div className="flex flex-col">
+                <span>{selectedShipper.name}</span>
+                <span
+                  className={`text-xs ${
+                    selectedShipper.isLogin ? "text-green-600" : "text-gray-400"
+                  }`}
+                >
+                  {selectedShipper.isLogin ? "Online" : "Offline"}
+                </span>
+              </div>
             </div>
 
-            {/* Messages */}
+            {/* MESSAGES */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {selectedShipper.messages.length === 0 && (
                 <p className="text-gray-400 text-sm text-center">
@@ -151,20 +185,22 @@ const CustomerChatOverview = () => {
                   }`}
                 >
                   <div
-                    className={`p-2 rounded-lg max-w-[70%] ${
+                    className={`p-2 rounded-lg max-w-[75%] ${
                       msg.from === "customer"
                         ? "bg-system-primary text-white"
                         : "bg-gray-200"
                     }`}
                   >
                     <p>{msg.text}</p>
-                    <span className="text-xs block mt-1">{msg.time}</span>
+                    <span className="text-xs block mt-1 opacity-70">
+                      {msg.time}
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Input */}
+            {/* INPUT */}
             <div className="p-3 border-t flex gap-2">
               <input
                 value={newMessage}
