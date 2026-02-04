@@ -19,14 +19,13 @@ export const ShipperShipmentProvider = ({ children }) => {
   const [shipment, setShipment] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Ref to track if we already fetched once
   const fetchedOnce = useRef(false);
 
-  // ---------------- GET AVAILABLE SHIPMENTS ----------------
   const getAvailableShipments = useCallback(async () => {
-    if (!token || !isShipper || fetchedOnce.current) return;
+    if (!token || !isShipper) return;
 
     setLoading(true);
+
     try {
       const res = await axios.get(
         `${API_BASE_URL}/shipper/shipments/available`,
@@ -40,12 +39,9 @@ export const ShipperShipmentProvider = ({ children }) => {
       console.error("Get Available Shipments Error:", err);
     } finally {
       setLoading(false);
-      // ✅ Always mark fetchedOnce true, no matter response
-      fetchedOnce.current = true;
     }
   }, [token, isShipper]);
 
-  // ---------------- GET SHIPMENT BY ID ----------------
   const getShipmentById = useCallback(
     async (id) => {
       if (!token || !id) return;
@@ -67,25 +63,14 @@ export const ShipperShipmentProvider = ({ children }) => {
     [token]
   );
 
-  // ---------------- AUTO FETCH ON LOGIN (ONE TIME) ----------------
   useEffect(() => {
     if (!token || !isShipper) return;
 
-    // 🔹 Cancelable pattern
-    let isMounted = true;
-
-    const fetchOnce = async () => {
-      if (isMounted && !fetchedOnce.current) {
-        await getAvailableShipments();
-      }
-    };
-
-    fetchOnce();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    if (!fetchedOnce.current) {
+      fetchedOnce.current = true; // 🔹 Set immediately before async call
+      getAvailableShipments();
+    }
+  }, [token, isShipper, getAvailableShipments]);
 
   return (
     <ShipperShipmentContext.Provider
