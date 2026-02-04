@@ -24,7 +24,7 @@ export const ShipperShipmentProvider = ({ children }) => {
 
   // ---------------- GET AVAILABLE SHIPMENTS ----------------
   const getAvailableShipments = useCallback(async () => {
-    if (!token || !isShipper) return;
+    if (!token || !isShipper || fetchedOnce.current) return;
 
     setLoading(true);
     try {
@@ -35,13 +35,12 @@ export const ShipperShipmentProvider = ({ children }) => {
         }
       );
 
-      // Set shipments even if empty
       setShipments(res.data.shipments || []);
     } catch (err) {
       console.error("Get Available Shipments Error:", err);
     } finally {
       setLoading(false);
-      // Mark as fetched to prevent continuous calls
+      // ✅ Always mark fetchedOnce true, no matter response
       fetchedOnce.current = true;
     }
   }, [token, isShipper]);
@@ -70,9 +69,22 @@ export const ShipperShipmentProvider = ({ children }) => {
 
   // ---------------- AUTO FETCH ON LOGIN (ONE TIME) ----------------
   useEffect(() => {
-    if (token && isShipper && !fetchedOnce.current) {
-      getAvailableShipments();
-    }
+    if (!token || !isShipper) return;
+
+    // 🔹 Cancelable pattern
+    let isMounted = true;
+
+    const fetchOnce = async () => {
+      if (isMounted && !fetchedOnce.current) {
+        await getAvailableShipments();
+      }
+    };
+
+    fetchOnce();
+
+    return () => {
+      isMounted = false;
+    };
   }, [token, isShipper, getAvailableShipments]);
 
   return (
