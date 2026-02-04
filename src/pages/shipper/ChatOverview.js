@@ -14,7 +14,7 @@ const ChatOverview = () => {
   const chatEndRef = useRef(null);
 
   /* ===============================
-     FETCH CUSTOMERS ON PAGE LOAD
+     FETCH CUSTOMER LIST
   ================================ */
   useEffect(() => {
     fetchCustomers();
@@ -34,8 +34,8 @@ const ChatOverview = () => {
     return (customers || [])
       .filter((u) => u.name?.toLowerCase().includes(search.toLowerCase()))
       .filter((u) => {
-        if (filter === "online") return u.isLogin;
-        if (filter === "offline") return !u.isLogin;
+        if (filter === "online") return u.isOnline === true;
+        if (filter === "offline") return u.isOnline === false;
         return true;
       });
   }, [customers, search, filter]);
@@ -60,6 +60,7 @@ const ChatOverview = () => {
         },
       ],
     }));
+
     setNewMessage("");
   };
 
@@ -71,14 +72,14 @@ const ChatOverview = () => {
 
   return (
     <div className="flex h-[calc(100vh-120px)] bg-white border shadow font-montserrat overflow-hidden">
-      {/* ================= CUSTOMER LIST ================= */}
+      {/* ================= LEFT: CUSTOMER LIST ================= */}
       <div
         className={`w-full lg:w-1/4 border-r overflow-y-auto bg-white
         ${selectedUser ? "hidden lg:block" : "block"}`}
       >
         <div className="p-4 border-b font-semibold">Customers</div>
 
-        {/* 🔍 SEARCH INSIDE BOX */}
+        {/* 🔍 SEARCH */}
         <div className="p-3 relative">
           <HiSearch
             className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500"
@@ -92,7 +93,7 @@ const ChatOverview = () => {
           />
         </div>
 
-        {/* 🟢 ONLINE / OFFLINE FILTER */}
+        {/* FILTER BUTTONS */}
         <div className="flex gap-2 px-3 pb-3">
           {["all", "online", "offline"].map((type) => (
             <button
@@ -127,18 +128,13 @@ const ChatOverview = () => {
             {/* Avatar */}
             <div className="relative">
               <img
-                src={
-                  u.profilePicture ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    u.name
-                  )}`
-                }
+                src={u.avatar}
                 alt={u.name}
                 className="w-10 h-10 rounded-full object-cover"
               />
               <span
                 className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
-                  u.isLogin ? "bg-green-500" : "bg-gray-400"
+                  u.isOnline ? "bg-green-500" : "bg-gray-400"
                 }`}
               />
             </div>
@@ -151,7 +147,7 @@ const ChatOverview = () => {
         ))}
       </div>
 
-      {/* ================= CHAT ================= */}
+      {/* ================= RIGHT: CHAT ================= */}
       <div
         className={`flex-1 flex flex-col bg-white
         ${selectedUser ? "block" : "hidden lg:flex"}`}
@@ -177,22 +173,23 @@ const ChatOverview = () => {
                 <span>{selectedUser.name}</span>
                 <span
                   className={`text-xs ${
-                    selectedUser.isLogin ? "text-green-600" : "text-gray-400"
+                    selectedUser.isOnline ? "text-green-600" : "text-gray-400"
                   }`}
                 >
-                  {selectedUser.isLogin ? "Online" : "Offline"}
+                  {selectedUser.isOnline ? "Online" : "Offline"}
                 </span>
               </div>
             </div>
 
             {/* MESSAGES */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {selectedUser.messages.length === 0 && (
+              {selectedUser.messages?.length === 0 && (
                 <p className="text-gray-400 text-sm text-center">
                   No messages yet
                 </p>
               )}
-              {selectedUser.messages.map((msg, i) => (
+
+              {selectedUser.messages?.map((msg, i) => (
                 <div
                   key={i}
                   className={`flex ${

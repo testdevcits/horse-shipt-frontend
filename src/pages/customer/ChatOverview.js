@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
 import PageLoader from "../../components/common/PageLoader";
 import { useCustomerChat } from "../../contexts/customerContext/CustomerChatContext";
@@ -11,12 +11,21 @@ const CustomerChatOverview = () => {
   const [filter, setFilter] = useState("all");
   const [newMessage, setNewMessage] = useState("");
 
+  const chatEndRef = useRef(null);
+
   /* ===============================
-     FETCH SHIPPERS ON PAGE LOAD
+     FETCH SHIPPERS
   ================================ */
   useEffect(() => {
     fetchShippers();
   }, [fetchShippers]);
+
+  /* ===============================
+     AUTO SCROLL
+  ================================ */
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [selectedShipper?.messages]);
 
   /* ===============================
      SEARCH + ONLINE/OFFLINE FILTER
@@ -25,14 +34,14 @@ const CustomerChatOverview = () => {
     return (shippers || [])
       .filter((s) => s.name?.toLowerCase().includes(search.toLowerCase()))
       .filter((s) => {
-        if (filter === "online") return s.isLogin;
-        if (filter === "offline") return !s.isLogin;
+        if (filter === "online") return s.isOnline === true;
+        if (filter === "offline") return s.isOnline === false;
         return true;
       });
   }, [shippers, search, filter]);
 
   /* ===============================
-     SEND MESSAGE (TEMP – Socket later)
+     SEND MESSAGE (TEMP)
   ================================ */
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedShipper) return;
@@ -70,7 +79,7 @@ const CustomerChatOverview = () => {
       >
         <div className="p-4 border-b font-semibold">Shippers</div>
 
-        {/* 🔍 SEARCH */}
+        {/* SEARCH */}
         <div className="p-3 relative">
           <HiSearch
             className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500"
@@ -84,7 +93,7 @@ const CustomerChatOverview = () => {
           />
         </div>
 
-        {/* 🟢 ONLINE / OFFLINE FILTER BUTTONS */}
+        {/* FILTER BUTTONS */}
         <div className="flex gap-2 px-3 pb-3">
           {["all", "online", "offline"].map((type) => (
             <button
@@ -119,18 +128,13 @@ const CustomerChatOverview = () => {
             {/* Avatar */}
             <div className="relative">
               <img
-                src={
-                  s.profilePicture ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    s.name
-                  )}`
-                }
+                src={s.avatar}
                 alt={s.name}
                 className="w-10 h-10 rounded-full object-cover"
               />
               <span
                 className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
-                  s.isLogin ? "bg-green-500" : "bg-gray-400"
+                  s.isOnline ? "bg-green-500" : "bg-gray-400"
                 }`}
               />
             </div>
@@ -169,23 +173,25 @@ const CustomerChatOverview = () => {
                 <span>{selectedShipper.name}</span>
                 <span
                   className={`text-xs ${
-                    selectedShipper.isLogin ? "text-green-600" : "text-gray-400"
+                    selectedShipper.isOnline
+                      ? "text-green-600"
+                      : "text-gray-400"
                   }`}
                 >
-                  {selectedShipper.isLogin ? "Online" : "Offline"}
+                  {selectedShipper.isOnline ? "Online" : "Offline"}
                 </span>
               </div>
             </div>
 
             {/* MESSAGES */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {selectedShipper.messages.length === 0 && (
+              {selectedShipper.messages?.length === 0 && (
                 <p className="text-gray-400 text-sm text-center">
                   No messages yet
                 </p>
               )}
 
-              {selectedShipper.messages.map((msg, i) => (
+              {selectedShipper.messages?.map((msg, i) => (
                 <div
                   key={i}
                   className={`flex ${
@@ -206,6 +212,8 @@ const CustomerChatOverview = () => {
                   </div>
                 </div>
               ))}
+
+              <div ref={chatEndRef} />
             </div>
 
             {/* INPUT */}
