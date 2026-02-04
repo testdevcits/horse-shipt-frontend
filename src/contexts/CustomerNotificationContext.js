@@ -1,8 +1,16 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
 
-// ---------------- Utility: Convert VAPID key ----------------
+/* ===============================
+   Utility: Convert VAPID key
+================================ */
 const urlBase64ToUint8Array = (base64String) => {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -10,7 +18,9 @@ const urlBase64ToUint8Array = (base64String) => {
   return new Uint8Array([...rawData].map((char) => char.charCodeAt(0)));
 };
 
-// ---------------- Context Setup ----------------
+/* ===============================
+   Context Setup
+================================ */
 const CustomerNotificationContext = createContext();
 
 const API_BASE_URL =
@@ -18,7 +28,9 @@ const API_BASE_URL =
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_PUBLIC_KEY;
 
-// ---------------- Provider ----------------
+/* ===============================
+   Provider
+================================ */
 export const CustomerNotificationProvider = ({ children }) => {
   const { token, user } = useAuth();
 
@@ -27,9 +39,12 @@ export const CustomerNotificationProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [notificationCount, setNotificationCount] = useState(0);
 
-  // ---------------- Fetch Notifications ----------------
-  const fetchNotifications = async () => {
+  /* ===============================
+     Fetch Notifications
+  ================================ */
+  const fetchNotifications = useCallback(async () => {
     if (!user || !token) return;
+
     setLoading(true);
     setError(null);
 
@@ -51,33 +66,41 @@ export const CustomerNotificationProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, token]);
 
-  // ---------------- Update a single notification ----------------
-  const updateNotification = async (type, value) => {
-    if (!user || !token) return;
-    try {
-      const res = await axios.put(
-        `${API_BASE_URL}/customer/notifications/${type}`,
-        { value },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  /* ===============================
+     Update Single Notification
+  ================================ */
+  const updateNotification = useCallback(
+    async (type, value) => {
+      if (!user || !token) return;
 
-      if (res.data.success) {
-        const data = res.data.data || {};
-        setNotifications(data);
-        setNotificationCount(Object.values(data).filter(Boolean).length);
-      } else {
-        setError(res.data.message || "Failed to update notification");
+      try {
+        const res = await axios.put(
+          `${API_BASE_URL}/customer/notifications/${type}`,
+          { value },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (res.data.success) {
+          const data = res.data.data || {};
+          setNotifications(data);
+          setNotificationCount(Object.values(data).filter(Boolean).length);
+        } else {
+          setError(res.data.message || "Failed to update notification");
+        }
+      } catch (err) {
+        console.error("Update notification error:", err);
+        setError(err.response?.data?.message || err.message);
       }
-    } catch (err) {
-      console.error("Update notification error:", err);
-      setError(err.response?.data?.message || err.message);
-    }
-  };
+    },
+    [user, token]
+  );
 
-  // ---------------- Subscribe to push notifications ----------------
-  const subscribeToPush = async () => {
+  /* ===============================
+     Subscribe to Push Notifications
+  ================================ */
+  const subscribeToPush = useCallback(async () => {
     if (!("serviceWorker" in navigator) || !token) return;
 
     try {
@@ -97,28 +120,26 @@ export const CustomerNotificationProvider = ({ children }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log(" Customer subscribed to push notifications!");
+      console.log("✅ Customer subscribed to push notifications");
     } catch (err) {
       console.error("Push subscription failed:", err);
       setError("Push subscription failed. Please allow notifications.");
     }
-  };
+  }, [token]);
 
-  // ---------------- Effect: only for logged-in customers ----------------
+  /* ===============================
+     Effect: Run for logged-in customers
+  ================================ */
   useEffect(() => {
-    // Only call if user exists, token exists, and user type is "customer"
     if (user && token && user.role === "customer") {
       fetchNotifications();
       subscribeToPush();
     }
-  }, [user, token]);
+  }, [user, token, fetchNotifications, subscribeToPush]);
 
-  useEffect(() => {
-    fetchNotifications();
-    subscribeToPush();
-  }, [fetchNotifications, subscribeToPush]);
-
-  // ---------------- Provider Value ----------------
+  /* ===============================
+     Provider Value
+  ================================ */
   return (
     <CustomerNotificationContext.Provider
       value={{
@@ -135,6 +156,8 @@ export const CustomerNotificationProvider = ({ children }) => {
   );
 };
 
-// ---------------- Custom Hook ----------------
+/* ===============================
+   Custom Hook
+================================ */
 export const useCustomerNotifications = () =>
   useContext(CustomerNotificationContext);
