@@ -65,10 +65,10 @@ const OfferSubmitModal = ({
       return;
     }
 
-    // PAYLOAD WITH VEHICLE ID
+    // ✅ PAYLOAD WITH VEHICLE ID
     const payload = {
       shipment: shipment._id,
-      vehicle: selectedVehicleId,
+      vehicle: selectedVehicleId, // ✅ SEND VEHICLE ID
       totalPrice: Number(values.totalPrice),
       paymentMethod: values.paymentMethod,
       paymentDue: values.paymentDue,
@@ -124,7 +124,6 @@ const OfferSubmitModal = ({
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
             >
-              Shipping Title
               {({ isSubmitting }) => (
                 <Form className="flex flex-col gap-4">
                   {/* VEHICLE SELECTION */}
