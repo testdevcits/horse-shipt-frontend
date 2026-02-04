@@ -19,7 +19,7 @@ export const ShipperShipmentProvider = ({ children }) => {
   const [shipment, setShipment] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Track if we already fetched once
+  // 🔹 Ref to track if we already fetched once
   const fetchedOnce = useRef(false);
 
   // ---------------- GET AVAILABLE SHIPMENTS ----------------
@@ -34,11 +34,15 @@ export const ShipperShipmentProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      // Set shipments even if empty
       setShipments(res.data.shipments || []);
     } catch (err) {
       console.error("Get Available Shipments Error:", err);
     } finally {
       setLoading(false);
+      // Mark as fetched to prevent continuous calls
+      fetchedOnce.current = true;
     }
   }, [token, isShipper]);
 
@@ -68,7 +72,6 @@ export const ShipperShipmentProvider = ({ children }) => {
   useEffect(() => {
     if (token && isShipper && !fetchedOnce.current) {
       getAvailableShipments();
-      fetchedOnce.current = true; // ✅ mark as fetched
     }
   }, [token, isShipper, getAvailableShipments]);
 
