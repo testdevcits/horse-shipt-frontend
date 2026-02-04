@@ -4,7 +4,6 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  useRef,
 } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
@@ -13,18 +12,15 @@ const ShipperShipmentContext = createContext();
 const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
 export const ShipperShipmentProvider = ({ children }) => {
-  const { token } = useAuth();
+  const { token, isShipper } = useAuth(); // auth role included
 
   const [shipments, setShipments] = useState([]);
   const [shipment, setShipment] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Ref to track if we already fetched once
-  const fetchedOnce = useRef(false);
-
   // ---------------- GET AVAILABLE SHIPMENTS ----------------
   const getAvailableShipments = useCallback(async () => {
-    if (!token) return;
+    if (!token || !isShipper) return;
 
     setLoading(true);
     try {
@@ -40,7 +36,7 @@ export const ShipperShipmentProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, isShipper]);
 
   // ---------------- GET SHIPMENT BY ID ----------------
   const getShipmentById = useCallback(
@@ -64,13 +60,13 @@ export const ShipperShipmentProvider = ({ children }) => {
     [token]
   );
 
-  // ---------------- AUTO FETCH AVAILABLE SHIPMENTS ON LOGIN ----------------
+  // ---------------- AUTO FETCH ONLY ON LOGIN ----------------
   useEffect(() => {
-    if (token && !fetchedOnce.current) {
+    // Only run if token exists and shipments not yet fetched
+    if (token && shipments.length === 0 && isShipper) {
       getAvailableShipments();
-      fetchedOnce.current = true;
     }
-  }, [token, getAvailableShipments]);
+  }, [token, isShipper, getAvailableShipments, shipments.length]);
 
   return (
     <ShipperShipmentContext.Provider
