@@ -47,6 +47,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
   return (
     <>
+      {/* Toast */}
       {toast.visible && (
         <Toast
           message={toast.message}
@@ -55,10 +56,11 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         />
       )}
 
+      {/* Modal */}
       <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center overflow-y-auto px-4 py-8">
         <div className="bg-white w-full max-w-[95%] xl:max-w-[1400px] rounded-[14px] flex flex-col overflow-hidden shadow-xl">
           {/* Header */}
-          <div className="relative p-6 border-b">
+          <div className="relative p-6 border-b bg-white sticky top-0 z-10">
             <button
               onClick={onClose}
               className="absolute right-6 top-6 text-gray-500 hover:text-black transition"
@@ -71,7 +73,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
             </p>
           </div>
 
-          {/* Body */}
+          {/* Body (Scrollable only) */}
           <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Left Column: Quote Details */}
             <div className="space-y-4">
@@ -146,11 +148,13 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
               {quote.contract?.url && (
                 <div className="border rounded-md p-4 h-[400px] overflow-hidden">
                   <h3 className="font-medium text-lg mb-2">Contract</h3>
+                  {/* VIEW ONLY IFRAME - NO DOWNLOAD */}
                   <iframe
                     src={quote.contract.url}
                     title="Contract PDF"
                     className="w-full h-full"
                     frameBorder="0"
+                    sandbox="allow-scripts allow-same-origin"
                   />
                 </div>
               )}
