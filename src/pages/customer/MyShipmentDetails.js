@@ -14,7 +14,6 @@ const MyShipmentDetails = () => {
   const { id: paramId } = useParams();
   const [searchParams] = useSearchParams();
   const queryId = searchParams.get("shipmentId");
-
   const shipmentId = paramId || queryId;
 
   const {
@@ -30,7 +29,7 @@ const MyShipmentDetails = () => {
     loading: quotesLoading,
   } = useCustomerQuote();
 
-  const [activeTab, setActiveTab] = useState("overview"); // Show quotes first
+  const [activeTab, setActiveTab] = useState("overview");
   const [openDetails, setOpenDetails] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
@@ -46,32 +45,21 @@ const MyShipmentDetails = () => {
   }, [fetchData]);
 
   const loading = shipmentLoading || quotesLoading;
+  const shipment = currentShipment;
+
+  const showToast = (message, type = "info") => {
+    setToast({ message, type, visible: true });
+    setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
+  };
 
   const handlePublishShipment = async () => {
     try {
       await publishShipment(shipment._id);
-
-      setToast({
-        message: "Shipment published successfully",
-        type: "success",
-        visible: true,
-      });
+      showToast("Shipment published successfully", "success");
     } catch (err) {
-      setToast({
-        message: err.message || "Failed to publish shipment",
-        type: "error",
-        visible: true,
-      });
+      showToast(err.message || "Failed to publish shipment", "error");
     }
   };
-
-  if (loading)
-    return <PageLoader text="Loading shipment details..." fullScreen />;
-
-  if (!currentShipment)
-    return <p className="text-red-500 text-center mt-8">Shipment not found.</p>;
-
-  const shipment = currentShipment;
 
   const TabButton = ({ id, label, count }) => (
     <button
@@ -91,8 +79,14 @@ const MyShipmentDetails = () => {
     </button>
   );
 
+  if (loading)
+    return <PageLoader text="Loading shipment details..." fullScreen />;
+  if (!shipment)
+    return <p className="text-red-500 text-center mt-8">Shipment not found.</p>;
+
   return (
     <div className="w-full font-montserrat relative">
+      {/* ================= TOAST ================= */}
       {toast.visible && (
         <Toast
           message={toast.message}
@@ -105,6 +99,7 @@ const MyShipmentDetails = () => {
         Shipment Details
       </h2>
 
+      {/* ================= TABS ================= */}
       <div className="flex gap-6 border-b mb-6">
         <TabButton id="overview" label="Overview" />
         <TabButton id="quotes" label="Quotes" count={quotes.length} />
@@ -115,7 +110,6 @@ const MyShipmentDetails = () => {
       {activeTab === "quotes" && (
         <div className="bg-white border rounded-lg p-6 relative">
           <h3 className="font-medium mb-4">Total Quotes: {quotes.length}</h3>
-
           {quotes.length === 0 ? (
             <p className="text-gray-500 text-center">No quotes received yet.</p>
           ) : (
@@ -196,6 +190,7 @@ const MyShipmentDetails = () => {
                     {shipment.status.replaceAll("_", " ")}
                   </p>
                 </div>
+
                 {!shipment.publish && shipment.status === "pending" && (
                   <button
                     onClick={handlePublishShipment}
@@ -248,7 +243,6 @@ const MyShipmentDetails = () => {
                     <div className="w-1/4 text-gray-800 font-medium">
                       HORSE {index + 1}
                     </div>
-
                     <div className="w-3/4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
                       <div>
                         <span className="text-gray-500">Registered Name:</span>{" "}
@@ -272,7 +266,6 @@ const MyShipmentDetails = () => {
                       <div>
                         <span className="text-gray-500">Sex:</span> {horse.sex}
                       </div>
-
                       {horse.generalInfo && (
                         <div className="sm:col-span-2">
                           <span className="text-gray-500">General Info:</span>{" "}
