@@ -21,6 +21,7 @@ const MyShipmentDetails = () => {
     fetchShipmentById,
     currentShipment,
     loading: shipmentLoading,
+    publishShipment,
   } = useCustomerShipments();
 
   const {
@@ -45,6 +46,24 @@ const MyShipmentDetails = () => {
   }, [fetchData]);
 
   const loading = shipmentLoading || quotesLoading;
+
+  const handlePublishShipment = async () => {
+    try {
+      await publishShipment(shipment._id);
+
+      setToast({
+        message: "Shipment published successfully",
+        type: "success",
+        visible: true,
+      });
+    } catch (err) {
+      setToast({
+        message: err.message || "Failed to publish shipment",
+        type: "error",
+        visible: true,
+      });
+    }
+  };
 
   if (loading)
     return <PageLoader text="Loading shipment details..." fullScreen />;
@@ -177,6 +196,14 @@ const MyShipmentDetails = () => {
                     {shipment.status.replaceAll("_", " ")}
                   </p>
                 </div>
+                {!shipment.publish && shipment.status === "pending" && (
+                  <button
+                    onClick={handlePublishShipment}
+                    className="mt-4 px-6 py-3 bg-system-primary text-white rounded-lg font-medium hover:opacity-90 transition"
+                  >
+                    Publish Shipment
+                  </button>
+                )}
               </div>
             </div>
           </div>

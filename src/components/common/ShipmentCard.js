@@ -104,8 +104,9 @@ const ShipmentCard = ({ shipment }) => {
         <div className="flex items-center gap-2 text-gray-700 text-sm md:text-[14px] font-montserrat">
           <LuCalendarDays size={18} />
           <span>
-            {shipment.deliveryDate &&
-              new Date(shipment.deliveryDate).toLocaleDateString()}
+            {shipment?.deliveryDate
+              ? new Date(shipment.deliveryDate).toLocaleDateString()
+              : "Pending"}
           </span>
         </div>
       </div>
