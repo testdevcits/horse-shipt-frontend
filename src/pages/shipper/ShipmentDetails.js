@@ -24,19 +24,17 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const vehiclesLoading = vehicleContext.loading || false;
 
   const [shipment, setShipment] = useState(null);
-  const [openDetails, setOpenDetails] = useState(false);
+  const [openDetails, setOpenDetails] = useState(true);
   const [isOfferOpen, setIsOfferOpen] = useState(false);
 
   const idToUse = shipmentIdFromQuery || paramId || defaultId;
 
-  //  Check token immediately and auto-redirect
   useEffect(() => {
     if (!validateShipmentQueryToken(tokenFromQuery, idToUse)) {
       navigate("/shipper/dashboard", { replace: true });
       return;
     }
 
-    // Calculate time left until token expiry
     const decoded = JSON.parse(atob(tokenFromQuery));
     const timeLeft = decoded.exp - Date.now();
 
@@ -45,7 +43,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         navigate("/shipper/dashboard", { replace: true });
       }, timeLeft);
 
-      return () => clearTimeout(timer); // cleanup on unmount
+      return () => clearTimeout(timer);
     } else {
       // Already expired
       navigate("/shipper/dashboard", { replace: true });
@@ -74,10 +72,16 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between gap-2">
         <h1 className="font-montserrat font-semibold text-[30px] text-systemText leading-[38px]">
-          Shipping Title – ID {shipment._id.slice(0, 8)}
+          Shipping Title – ID {shipment.shipmentCode}
         </h1>
         <div className="text-gray-600 md:text-right font-montserrat font-normal text-[16px] leading-[24px]">
-          <p>Listed on {new Date(shipment.createdAt).toLocaleDateString()}</p>
+          <p>
+            Listed on{" "}
+            {shipment.publishedAt
+              ? new Date(shipment.publishedAt).toLocaleDateString()
+              : "Not published yet"}
+          </p>
+
           <p>
             by{" "}
             <span className="text-black">
