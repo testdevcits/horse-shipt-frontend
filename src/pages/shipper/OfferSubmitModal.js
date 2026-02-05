@@ -104,8 +104,8 @@ const OfferSubmitModal = ({
       )}
 
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-3">
-        <div className="bg-white w-full max-w-xl max-h-[90vh] rounded-[14px] flex flex-col overflow-hidden">
-          <div className="relative p-5 border-b">
+        <div className="bg-white w-full max-w-[95%] xl:max-w-[1400px] rounded-[14px] flex flex-col overflow-hidden">
+          <div className="relative p-6 border-b">
             <button
               onClick={onClose}
               className="absolute right-4 top-4 text-gray-500"

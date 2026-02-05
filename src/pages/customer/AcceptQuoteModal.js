@@ -4,6 +4,7 @@ import SignatureCanvas from "react-signature-canvas";
 import Toast from "../../components/common/Toast";
 import Button from "../../components/common/Button";
 import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteContext";
+import Checkbox from "../../components/common/Checkbox";
 
 // React PDF Viewer
 import { Worker, Viewer } from "@react-pdf-viewer/core";
@@ -52,8 +53,8 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
     }
   };
 
-  // PDF Viewer plugin
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
+  const strongLabelClass = "text-[#BF9B53]"; // colored labels
 
   return (
     <>
@@ -65,7 +66,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         />
       )}
 
-      <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center overflow-y-auto px-4 py-8">
+      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-3">
         <div className="bg-white w-full max-w-[95%] xl:max-w-[1400px] rounded-[14px] flex flex-col overflow-hidden shadow-xl">
           {/* Header */}
           <div className="relative p-6 border-b">
@@ -83,47 +84,59 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {/* Left Column: Quote Details */}
+            {/* Left Column */}
             <div className="space-y-4">
               <div className="border rounded-md p-4 bg-gray-50 space-y-2">
                 <p>
-                  <strong>Shipper:</strong>{" "}
+                  <strong className={strongLabelClass}>Shipper:</strong>{" "}
                   {quote.shipper?.companyName || quote.shipper?.name}
                 </p>
                 <p>
-                  <strong>Email:</strong> {quote.shipper?.email}
+                  <strong className={strongLabelClass}>Email:</strong>{" "}
+                  {quote.shipper?.email}
                 </p>
                 <p>
-                  <strong>Total Price:</strong> ${quote.totalPrice}
+                  <strong className={strongLabelClass}>Total Price:</strong> $
+                  {quote.totalPrice}
                 </p>
                 <p>
-                  <strong>Currency:</strong> {quote.currency}
+                  <strong className={strongLabelClass}>Currency:</strong>{" "}
+                  {quote.currency}
                 </p>
                 <p>
-                  <strong>Payment Method:</strong> {quote.paymentMethod}
+                  <strong className={strongLabelClass}>Payment Method:</strong>{" "}
+                  {quote.paymentMethod}
                 </p>
                 <p>
-                  <strong>Payment Due:</strong> {quote.paymentDue}
+                  <strong className={strongLabelClass}>Payment Due:</strong>{" "}
+                  {quote.paymentDue}
                 </p>
                 <p>
-                  <strong>Pickup Time:</strong> {quote.pickupTime || "N/A"}
+                  <strong className={strongLabelClass}>Pickup Time:</strong>{" "}
+                  {quote.pickupTime || "N/A"}
                 </p>
                 <p>
-                  <strong>Estimated Arrival:</strong>{" "}
+                  <strong className={strongLabelClass}>
+                    Estimated Arrival:
+                  </strong>{" "}
                   {quote.estimatedArrivalTime || "N/A"}
                 </p>
                 <p>
-                  <strong>Transport Type:</strong> {quote.transportType}
+                  <strong className={strongLabelClass}>Transport Type:</strong>{" "}
+                  {quote.transportType}
                 </p>
                 <p>
-                  <strong>Stalls Required:</strong> {quote.stallsRequired}
+                  <strong className={strongLabelClass}>Stalls Required:</strong>{" "}
+                  {quote.stallsRequired}
                 </p>
                 <p>
-                  <strong>Status:</strong> {quote.status}
+                  <strong className={strongLabelClass}>Status:</strong>{" "}
+                  {quote.status}
                 </p>
                 {quote.notes && (
                   <p>
-                    <strong>Notes:</strong> {quote.notes}
+                    <strong className={strongLabelClass}>Notes:</strong>{" "}
+                    {quote.notes}
                   </p>
                 )}
               </div>
@@ -132,26 +145,30 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                 <div className="border rounded-md p-4 bg-gray-50 space-y-2">
                   <h3 className="font-medium text-lg">Vehicle Info</h3>
                   <p>
-                    <strong>Vehicle Number:</strong>{" "}
+                    <strong className={strongLabelClass}>
+                      Vehicle Number:
+                    </strong>{" "}
                     {quote.vehicle.vehicleNumber}
                   </p>
                   <p>
-                    <strong>Vehicle Type:</strong> {quote.vehicle.vehicleType}
+                    <strong className={strongLabelClass}>Vehicle Type:</strong>{" "}
+                    {quote.vehicle.vehicleType}
                   </p>
                   <p>
-                    <strong>Stalls:</strong> {quote.vehicle.numberOfStalls} -{" "}
-                    {quote.vehicle.stallSize}
+                    <strong className={strongLabelClass}>Stalls:</strong>{" "}
+                    {quote.vehicle.numberOfStalls} - {quote.vehicle.stallSize}
                   </p>
                   {quote.vehicle.notes && (
                     <p>
-                      <strong>Notes:</strong> {quote.vehicle.notes}
+                      <strong className={strongLabelClass}>Notes:</strong>{" "}
+                      {quote.vehicle.notes}
                     </p>
                   )}
                 </div>
               )}
             </div>
 
-            {/* Right Column: Contract PDF & Signature */}
+            {/* Right Column: PDF & Signature */}
             <div className="flex flex-col gap-6">
               {quote.contract?.url && !showPDF && (
                 <Button
@@ -164,31 +181,34 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
               )}
 
               {showPDF && quote.contract?.url && (
-                <div className="border rounded-md p-2 h-[400px] overflow-auto">
-                  <Worker
-                    workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}
+                <>
+                  <div className="border rounded-md p-2 h-[400px] overflow-auto">
+                    <Worker
+                      workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}
+                    >
+                      <Viewer
+                        fileUrl={quote.contract.url}
+                        plugins={[defaultLayoutPluginInstance]}
+                      />
+                    </Worker>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    fullWidth
+                    onClick={() => setShowPDF(false)}
                   >
-                    <Viewer
-                      fileUrl={quote.contract.url}
-                      plugins={[defaultLayoutPluginInstance]}
-                    />
-                  </Worker>
-                </div>
+                    Hide Contract
+                  </Button>
+                </>
               )}
 
               {/* Terms & Signature */}
               <div className="border rounded-md p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={agreed}
-                    onChange={(e) => setAgreed(e.target.checked)}
-                    id="agreeTerms"
-                  />
-                  <label htmlFor="agreeTerms" className="text-gray-700">
-                    I agree to accept this quote and terms
-                  </label>
-                </div>
+                <Checkbox
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  label="I agree to accept this quote and terms"
+                />
 
                 <div>
                   <label className="block mb-1 font-medium text-gray-700">
