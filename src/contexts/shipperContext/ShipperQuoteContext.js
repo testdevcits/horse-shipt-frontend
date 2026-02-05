@@ -33,7 +33,10 @@ export const ShipperQuoteProvider = ({ children }) => {
       showToast("Quote sent successfully", "success");
       return { success: true, data: res.data.quote };
     } catch (err) {
-      showToast(err.response?.data?.message || "Failed to send quote", "error");
+      showToast(
+        err.response?.data?.message || err.message || "Failed to send quote",
+        "error"
+      );
       return { success: false };
     } finally {
       setLoading(false);
@@ -46,12 +49,17 @@ export const ShipperQuoteProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/shipper/quotes/my`, {
+      const res = await axios.get(`${API_BASE_URL}/shipper/quotes/mq`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setQuotes(res.data.quotes || []);
+      return res.data.quotes || [];
     } catch (err) {
-      showToast("Failed to fetch quotes", "error");
+      showToast(
+        err.response?.data?.message || err.message || "Failed to fetch quotes",
+        "error"
+      );
+      return [];
     } finally {
       setLoading(false);
     }
@@ -70,14 +78,15 @@ export const ShipperQuoteProvider = ({ children }) => {
         }
       );
 
-      setAcceptedQuote(res.data.quote);
-      return res.data.quote;
+      setAcceptedQuote(res.data.quote || null);
+      return res.data.quote || null;
     } catch (err) {
       setAcceptedQuote(null);
       showToast(
-        err.response?.data?.message || "No accepted quote found",
+        err.response?.data?.message || err.message || "No accepted quote found",
         "error"
       );
+      return null;
     } finally {
       setLoading(false);
     }

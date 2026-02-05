@@ -2,14 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
 
 const AllUpcomingShipments = () => {
-  const { quotes, loading, getMyQuotes } = useShipperQuote();
+  const { quotes, loading } = useShipperQuote();
   const [acceptedQuotes, setAcceptedQuotes] = useState([]);
   const [selectedQuote, setSelectedQuote] = useState(null); // store selected quote for details
-
-  // Fetch quotes on component mount
-  useEffect(() => {
-    getMyQuotes();
-  }, [getMyQuotes]);
 
   // Filter accepted quotes whenever quotes change
   useEffect(() => {
