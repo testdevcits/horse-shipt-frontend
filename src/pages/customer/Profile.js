@@ -4,7 +4,8 @@ import { FaStar } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import { useProfile } from "../../contexts/customerContext/ProfileContext";
 import CustomerReviews from "./CustomerReviews";
-import Toast from "../../components/common/Toast"; // import your Toast component
+import Toast from "../../components/common/Toast";
+import defaultProfileImage from "../../assets/images/profileImage.png";
 
 const CustomerProfile = () => {
   const { user } = useAuth();
@@ -55,16 +56,13 @@ const CustomerProfile = () => {
       {/* Profile Image Section */}
       <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full flex-shrink-0">
         <img
-          src={
-            profileImage?.url ||
-            user?.photo ||
-            "https://via.placeholder.com/150"
-          }
+          src={profileImage?.url || user?.photo || defaultProfileImage}
           alt="Profile"
-          className={`w-full h-full object-cover rounded-full border ${
+          className={`w-full h-full object-cover rounded-full border border-gray-300 ${
             loading ? "opacity-50" : ""
           }`}
         />
+
         <button
           disabled={loading}
           onClick={() => profileInputRef.current.click()}
@@ -72,6 +70,7 @@ const CustomerProfile = () => {
         >
           <HiPencil className="text-gray-700 w-4 h-4" />
         </button>
+
         <input
           type="file"
           accept="image/*"
