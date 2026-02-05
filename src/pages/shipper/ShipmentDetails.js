@@ -9,6 +9,7 @@ import { useVehicle } from "../../contexts/VehicleContext";
 import Button from "../../components/common/Button";
 import { ChatIcon } from "../../components/common/ColoredIcons";
 import OfferSubmitModal from "./OfferSubmitModal";
+import { getPublishedTime } from "../../utils/timeAgo";
 
 const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const { id: paramId } = useParams();
@@ -71,16 +72,11 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
     <div className="font-montserrat flex flex-col gap-6 relative text-sm leading-5 font-normal">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between gap-2">
-        <h1 className="font-montserrat font-semibold text-[30px] text-systemText leading-[38px]">
+        <h1 className="font-montserrat font-semibold text-[30px] text-systemText leading-[38px] uppercase">
           Shipping Title – ID {shipment.shipmentCode}
         </h1>
         <div className="text-gray-600 md:text-right font-montserrat font-normal text-[16px] leading-[24px]">
-          <p>
-            Listed on{" "}
-            {shipment.publishedAt
-              ? new Date(shipment.publishedAt).toLocaleDateString()
-              : "Not published yet"}
-          </p>
+          <p>Listed {getPublishedTime(shipment.publishedAt)}</p>
 
           <p>
             by{" "}
