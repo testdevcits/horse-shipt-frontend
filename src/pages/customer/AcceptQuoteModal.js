@@ -4,6 +4,9 @@ import { FiX } from "react-icons/fi";
 import Toast from "../../components/common/Toast";
 import Button from "../../components/common/Button";
 import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteContext";
+import { Worker, Viewer } from "@react-pdf-viewer/core";
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 
 const AcceptQuoteModal = ({ quote, onClose }) => {
   const { acceptQuote } = useCustomerQuote();
@@ -11,6 +14,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
+  const [showContract, setShowContract] = useState(false);
 
   const showToast = (message, type = "info") => {
     setToast({ message, type, visible: true });
@@ -47,7 +51,6 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
   return (
     <>
-      {/* Toast */}
       {toast.visible && (
         <Toast
           message={toast.message}
@@ -56,11 +59,10 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         />
       )}
 
-      {/* Modal */}
       <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center overflow-y-auto px-4 py-8">
         <div className="bg-white w-full max-w-[95%] xl:max-w-[1400px] rounded-[14px] flex flex-col overflow-hidden shadow-xl">
           {/* Header */}
-          <div className="relative p-6 border-b bg-white sticky top-0 z-10">
+          <div className="relative p-6 border-b">
             <button
               onClick={onClose}
               className="absolute right-6 top-6 text-gray-500 hover:text-black transition"
@@ -73,7 +75,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
             </p>
           </div>
 
-          {/* Body (Scrollable only) */}
+          {/* Body */}
           <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Left Column: Quote Details */}
             <div className="space-y-4">
@@ -145,17 +147,24 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
             {/* Right Column: Contract PDF & Signature */}
             <div className="flex flex-col gap-6">
+              {/* VIEW CONTRACT BUTTON */}
               {quote.contract?.url && (
-                <div className="border rounded-md p-4 h-[400px] overflow-hidden">
-                  <h3 className="font-medium text-lg mb-2">Contract</h3>
-                  {/* VIEW ONLY IFRAME - NO DOWNLOAD */}
-                  <iframe
-                    src={quote.contract.url}
-                    title="Contract PDF"
-                    className="w-full h-full"
-                    frameBorder="0"
-                    sandbox="allow-scripts allow-same-origin"
-                  />
+                <div>
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    onClick={() => setShowContract((prev) => !prev)}
+                  >
+                    {showContract ? "Hide Contract" : "View Contract"}
+                  </Button>
+
+                  {showContract && (
+                    <div className="border rounded-md p-4 h-[400px] overflow-auto mt-2">
+                      <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.7.107/build/pdf.worker.min.js">
+                        <Viewer fileUrl={quote.contract.url} />
+                      </Worker>
+                    </div>
+                  )}
                 </div>
               )}
 
