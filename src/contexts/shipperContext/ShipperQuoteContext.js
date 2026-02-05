@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 import Toast from "../../components/common/Toast";
@@ -44,8 +44,8 @@ export const ShipperQuoteProvider = ({ children }) => {
   };
 
   // ---------------- GET MY QUOTES ----------------
-  const getMyQuotes = async () => {
-    if (!token) return;
+  const getMyQuotes = useCallback(async () => {
+    if (!token) return [];
 
     setLoading(true);
     try {
@@ -63,34 +63,36 @@ export const ShipperQuoteProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   // ---------------- GET ACCEPTED QUOTE BY SHIPMENT ----------------
-  const getAcceptedQuoteByShipment = async (shipmentId) => {
-    if (!token || !shipmentId) return;
+  const getAcceptedQuoteByShipment = useCallback(
+    async (shipmentId) => {
+      if (!token || !shipmentId) return null;
 
-    setLoading(true);
-    try {
-      const res = await axios.get(
-        `${API_BASE_URL}/shipper/quotes/accepted/${shipmentId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      setAcceptedQuote(res.data.quote || null);
-      return res.data.quote || null;
-    } catch (err) {
-      setAcceptedQuote(null);
-      showToast(
-        err.response?.data?.message || err.message || "No accepted quote found",
-        "error"
-      );
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
+      setLoading(true);
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/shipper/quotes/accepted/${shipmentId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setAcceptedQuote(res.data.quote || null);
+        return res.data.quote || null;
+      } catch (err) {
+        setAcceptedQuote(null);
+        showToast(
+          err.response?.data?.message ||
+            err.message ||
+            "No accepted quote found",
+          "error"
+        );
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token]
+  );
 
   return (
     <ShipperQuoteContext.Provider

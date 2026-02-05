@@ -5,17 +5,16 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
 import Toast from "../../components/common/Toast";
+import PageLoader from "../../components/common/PageLoader";
 
 const ShipperQuotesPage = () => {
   const { quotes, loading, getMyQuotes } = useShipperQuote();
-
   const [visibleContractId, setVisibleContractId] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
 
-  // PDF Viewer plugin
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
-  // Fetch quotes on mount
+  // Fetch quotes once on mount
   useEffect(() => {
     const fetchQuotes = async () => {
       const data = await getMyQuotes();
@@ -31,11 +30,7 @@ const ShipperQuotesPage = () => {
   }, [getMyQuotes]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen text-xl font-semibold">
-        Loading quotes...
-      </div>
-    );
+    return <PageLoader text="Loading settings..." fullScreen={false} />;
   }
 
   return (
@@ -143,9 +138,7 @@ const ShipperQuotesPage = () => {
 
                 {visibleContractId === quote._id && (
                   <div className="border rounded-md mt-2 h-[400px] overflow-auto">
-                    <Worker
-                      workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}
-                    >
+                    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
                       <Viewer
                         fileUrl={quote.contract.url}
                         plugins={[defaultLayoutPluginInstance]}
