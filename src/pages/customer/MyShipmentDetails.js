@@ -30,7 +30,7 @@ const MyShipmentDetails = () => {
   } = useCustomerQuote();
 
   const [activeTab, setActiveTab] = useState("overview");
-  const [openDetails, setOpenDetails] = useState(false);
+  const [openDetails, setOpenDetails] = useState(true);
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
 
