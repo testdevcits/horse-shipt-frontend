@@ -7,13 +7,14 @@ import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
 import logo from "../assets/images/logo.png";
 import { MdOutlineNotificationsActive } from "react-icons/md";
-import { useProfile } from "../contexts/customerContext/ProfileContext"; // <-- import ProfileContext
+import { useProfile } from "../contexts/customerContext/ProfileContext";
+import defaultProfileImage from "../assets/images/profileImage.png";
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { notificationCount } = useCustomerNotifications();
-  const { profileImage } = useProfile(); // <-- get profileImage from context
+  const { profileImage } = useProfile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
@@ -21,7 +22,7 @@ const CustomerLayout = () => {
 
   // Use profile image from context or fallback to user.photo
   const displayedProfileImage =
-    profileImage?.url || user?.photo || "https://via.placeholder.com/40";
+    profileImage?.url || user?.photo || defaultProfileImage;
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);

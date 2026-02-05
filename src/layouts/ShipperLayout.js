@@ -9,6 +9,7 @@ import logo from "../assets/images/logo.png";
 import { MdOutlineNotificationsActive } from "react-icons/md";
 import { IoShareSocial } from "react-icons/io5";
 import StatusBadge from "../components/common/StatusBadge";
+import defaultProfileImage from "../assets/images/profileImage.png";
 
 const ShipperLayout = () => {
   const navigate = useNavigate(); // initialize navigate
@@ -25,6 +26,7 @@ const ShipperLayout = () => {
     user?.profileImage ||
     profile?.profilePicture ||
     user?.profilePicture ||
+    defaultProfileImage ||
     null;
 
   useEffect(() => {
