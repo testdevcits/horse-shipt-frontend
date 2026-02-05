@@ -95,8 +95,9 @@ const MyShipmentDetails = () => {
         />
       )}
 
-      <h2 className="font-semibold text-2xl md:text-3xl mb-6">
-        Shipment Details
+      <h2 className="font-semibold text-2xl md:text-3xl mb-6 uppercase">
+        Shipment_ID :{" "}
+        <span className="text-[#BF9B53]">{shipment.shipmentCode}</span>
       </h2>
 
       {/* ================= TABS ================= */}

@@ -73,8 +73,10 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between gap-2">
         <h1 className="font-montserrat font-semibold text-[30px] text-systemText leading-[38px] uppercase">
-          Shipping_ID – {shipment.shipmentCode}
+          Shipping_ID :{" "}
+          <span className="text-[#BF9B53]">{shipment.shipmentCode}</span>
         </h1>
+
         <div className="text-gray-600 md:text-right font-montserrat font-normal text-[16px] leading-[24px]">
           <p>Listed {getPublishedTime(shipment.publishedAt)}</p>
 
