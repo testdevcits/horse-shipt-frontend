@@ -1,10 +1,13 @@
 import React, { useState } from "react";
-import SignatureCanvas from "react-signature-canvas";
 import { FiX } from "react-icons/fi";
+import SignatureCanvas from "react-signature-canvas";
 import Toast from "../../components/common/Toast";
 import Button from "../../components/common/Button";
 import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteContext";
+
+// React PDF Viewer
 import { Worker, Viewer } from "@react-pdf-viewer/core";
+import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 
@@ -14,7 +17,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
-  const [showContract, setShowContract] = useState(false);
+  const [showPDF, setShowPDF] = useState(false);
 
   const showToast = (message, type = "info") => {
     setToast({ message, type, visible: true });
@@ -48,6 +51,9 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
       setSubmitting(false);
     }
   };
+
+  // PDF Viewer plugin
+  const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
   return (
     <>
@@ -147,24 +153,26 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
             {/* Right Column: Contract PDF & Signature */}
             <div className="flex flex-col gap-6">
-              {/* VIEW CONTRACT BUTTON */}
-              {quote.contract?.url && (
-                <div>
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    onClick={() => setShowContract((prev) => !prev)}
-                  >
-                    {showContract ? "Hide Contract" : "View Contract"}
-                  </Button>
+              {quote.contract?.url && !showPDF && (
+                <Button
+                  variant="primary"
+                  fullWidth
+                  onClick={() => setShowPDF(true)}
+                >
+                  View Contract
+                </Button>
+              )}
 
-                  {showContract && (
-                    <div className="border rounded-md p-4 h-[400px] overflow-auto mt-2">
-                      <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.7.107/build/pdf.worker.min.js">
-                        <Viewer fileUrl={quote.contract.url} />
-                      </Worker>
-                    </div>
-                  )}
+              {showPDF && quote.contract?.url && (
+                <div className="border rounded-md p-2 h-[400px] overflow-auto">
+                  <Worker
+                    workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}
+                  >
+                    <Viewer
+                      fileUrl={quote.contract.url}
+                      plugins={[defaultLayoutPluginInstance]}
+                    />
+                  </Worker>
                 </div>
               )}
 
