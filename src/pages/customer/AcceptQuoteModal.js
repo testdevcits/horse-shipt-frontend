@@ -66,7 +66,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         />
       )}
 
-      <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center overflow-y-auto px-4 py-8">
+      <div className="fixed inset-0 z-40 bg-black/50 flex items-start justify-center overflow-y-auto px-4 py-8">
         <div className="bg-white w-full max-w-[95%] xl:max-w-[1400px] rounded-[14px] flex flex-col overflow-hidden shadow-xl">
           {/* Header */}
           <div className="relative p-6 border-b">
