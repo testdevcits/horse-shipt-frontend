@@ -13,8 +13,8 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const upcomingShipmentsCount = 5;
-  const submittedQuotesCount = 3;
+  const upcomingShipmentsCount = 1;
+  const submittedQuotesCount = 1;
 
   const formatCount = (count) => String(count).padStart(2, "0");
 

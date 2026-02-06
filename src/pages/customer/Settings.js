@@ -1,16 +1,30 @@
-import React, { useState } from "react";
+// src/pages/customer/Settings.js
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Profile from "./Profile";
 import Payment from "./Payment";
 import CustomerNotifications from "./CustomerNotifications";
 
-const CustomerSettings = () => {
-  const tabs = [
-    { id: "profile", label: "Profile" },
-    { id: "notification", label: "Notifications" },
-    { id: "payment", label: "Payments" },
-  ];
+// Move tabs array outside component to avoid useEffect dependency warning
+const tabs = [
+  { id: "profile", label: "Profile" },
+  { id: "notification", label: "Notifications" },
+  { id: "payment", label: "Payments" },
+];
 
+const CustomerSettings = () => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("profile");
+
+  // Open tab from URL query (like ?tab=notification)
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    const tab = query.get("tab");
+
+    if (tab && tabs.some((t) => t.id === tab)) {
+      setActiveTab(tab);
+    }
+  }, [location.search]); // ✅ no warning now
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -51,7 +65,7 @@ const CustomerSettings = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="w-full  text-sm sm:text-base md:text-lg lg:text-xl">
+      <div className="w-full text-sm sm:text-base md:text-lg lg:text-xl">
         {renderTabContent()}
       </div>
     </div>

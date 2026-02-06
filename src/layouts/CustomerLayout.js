@@ -63,7 +63,7 @@ const CustomerLayout = () => {
           {/* Notification Bell */}
           <div
             className="relative cursor-pointer"
-            onClick={() => navigate("/customer/notifications")}
+            onClick={() => navigate("/customer/settings?tab=notification")}
           >
             <MdOutlineNotificationsActive
               size={24}
