@@ -26,7 +26,7 @@ const OfferSubmitModal = ({
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [sigPad, setSigPad] = useState(null);
 
-  // ONLY FOR RESPONSIVE SIGNATURE
+  // 🔥 ONLY FOR RESPONSIVE SIGNATURE
   const sigWrapperRef = useRef(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
 
@@ -68,8 +68,6 @@ const OfferSubmitModal = ({
     arrivalTime: Yup.string().required("Required"),
   });
 
-  // ONLY CHANGED PARTS SHOWN (UI SAME RAHEGI)
-
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     if (!selectedVehicleId) {
       showToast("Please select a vehicle", "error");
@@ -83,9 +81,6 @@ const OfferSubmitModal = ({
       return;
     }
 
-    // FIXED SIGNATURE EXPORT
-    const shipperSignature = sigPad.getTrimmedCanvas().toDataURL("image/png");
-
     const payload = {
       shipment: shipment._id,
       vehicle: selectedVehicleId,
@@ -97,7 +92,7 @@ const OfferSubmitModal = ({
       transportType: selectedVehicle?.transportType || "",
       stallsRequired: Number(selectedVehicle?.numberOfStalls || 1),
       notes: values.notes || "",
-      shipperSignature,
+      shipperSignature: sigPad.toDataURL("image/png"),
     };
 
     const res = await addQuote(payload);
@@ -278,7 +273,7 @@ const OfferSubmitModal = ({
                         <SignatureCanvas
                           ref={(ref) => setSigPad(ref)}
                           penColor="#22c55e"
-                          backgroundColor="transparent"
+                          backgroundColor="#ffffff"
                           canvasProps={{
                             width: canvasWidth,
                             height: 150,

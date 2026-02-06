@@ -11,6 +11,7 @@ const ShipperQuotesPage = () => {
   const { quotes, loading, getMyQuotes } = useShipperQuote();
   const [visibleContractId, setVisibleContractId] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
+  const [searchTerm, setSearchTerm] = useState("");
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
@@ -30,72 +31,98 @@ const ShipperQuotesPage = () => {
   }, [getMyQuotes]);
 
   if (loading) {
-    return <PageLoader text="Loading settings..." fullScreen={false} />;
+    return <PageLoader text="" fullScreen={true} />;
   }
 
-  return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-semibold mb-6 uppercase">My Quotes</h1>
+  // Filter quotes by last 6 digits of Shipment ID
+  const filteredQuotes = quotes.filter((quote) => {
+    const shipmentCode = quote.shipment?.shipmentCode || "";
+    const lastSix = shipmentCode.slice(-6).toLowerCase();
+    return lastSix.includes(searchTerm.toLowerCase());
+  });
 
-      {quotes.length === 0 && !loading && (
-        <p className="text-gray-500">You have no quotes yet.</p>
+  return (
+    <div className="min-h-screen">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-800 uppercase mb-4 md:mb-0">
+          My Quotes
+        </h1>
+
+        {/* Search Box */}
+        <div className="">
+          <input
+            type="text"
+            placeholder="Search by last 6 digits of Shipment ID"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full md:w-80 px-4 py-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-[#997C42]"
+          />
+        </div>
+      </div>
+
+      {filteredQuotes.length === 0 && !loading && (
+        <p className="text-gray-500">No quotes match your search.</p>
       )}
 
       <div className="space-y-6">
-        {quotes.map((quote) => (
+        {filteredQuotes.map((quote) => (
           <div
             key={quote._id}
-            className="border rounded-lg bg-white shadow-sm p-6 space-y-4"
+            className="border rounded-lg bg-white shadow p-6 space-y-4"
           >
             {/* Shipment Info */}
-            <h2 className="text-2xl font-semibold uppercase">
-              Shipment_ID :{" "}
-              <span className="text-[#BF9B53]">
-                {quote.shipment?.shipmentCode || "N/A"}
-              </span>
-            </h2>
+            <div>
+              <h2 className="text-xl font-semibold uppercase">
+                Shipment ID:{" "}
+                <span className="text-[#BF9B53]">
+                  {quote.shipment?.shipmentCode || "N/A"}
+                </span>
+              </h2>
 
-            <div className="space-y-2 text-gray-700">
-              <p>
-                <strong className="text-[#997C42]">Shipper:</strong>{" "}
-                {quote.shipper?.companyName || quote.shipper?.name || "N/A"}
-              </p>
-              <p>
-                <strong>Email:</strong> {quote.shipper?.email || "N/A"}
-              </p>
-              <p>
-                <strong>Total Price:</strong> ${quote.totalPrice || 0}
-              </p>
-              <p>
-                <strong>Currency:</strong> {quote.currency || "N/A"}
-              </p>
-              <p>
-                <strong>Payment Method:</strong> {quote.paymentMethod || "N/A"}
-              </p>
-              <p>
-                <strong>Payment Due:</strong> {quote.paymentDue || "N/A"}
-              </p>
-              <p>
-                <strong>Pickup Time:</strong> {quote.pickupTime || "N/A"}
-              </p>
-              <p>
-                <strong>Estimated Arrival:</strong>{" "}
-                {quote.estimatedArrivalTime || "N/A"}
-              </p>
-              <p>
-                <strong>Transport Type:</strong> {quote.transportType || "N/A"}
-              </p>
-              <p>
-                <strong>Stalls Required:</strong> {quote.stallsRequired || 0}
-              </p>
-              <p>
-                <strong>Status:</strong> {quote.status || "N/A"}
-              </p>
-              {quote.notes && (
+              <div className="mt-2 space-y-1 text-gray-700">
                 <p>
-                  <strong>Notes:</strong> {quote.notes}
+                  <strong>Shipper:</strong>{" "}
+                  {quote.shipper?.companyName || quote.shipper?.name || "N/A"}
                 </p>
-              )}
+                <p>
+                  <strong>Email:</strong> {quote.shipper?.email || "N/A"}
+                </p>
+                <p>
+                  <strong>Total Price:</strong> ${quote.totalPrice || 0}
+                </p>
+                <p>
+                  <strong>Currency:</strong> {quote.currency || "N/A"}
+                </p>
+                <p>
+                  <strong>Payment Method:</strong>{" "}
+                  {quote.paymentMethod || "N/A"}
+                </p>
+                <p>
+                  <strong>Payment Due:</strong> {quote.paymentDue || "N/A"}
+                </p>
+                <p>
+                  <strong>Pickup Time:</strong> {quote.pickupTime || "N/A"}
+                </p>
+                <p>
+                  <strong>Estimated Arrival:</strong>{" "}
+                  {quote.estimatedArrivalTime || "N/A"}
+                </p>
+                <p>
+                  <strong>Transport Type:</strong>{" "}
+                  {quote.transportType || "N/A"}
+                </p>
+                <p>
+                  <strong>Stalls Required:</strong> {quote.stallsRequired || 0}
+                </p>
+                <p>
+                  <strong>Status:</strong> {quote.status || "N/A"}
+                </p>
+                {quote.notes && (
+                  <p>
+                    <strong>Notes:</strong> {quote.notes}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Vehicle Info */}
@@ -137,13 +164,15 @@ const ShipperQuotesPage = () => {
                 </button>
 
                 {visibleContractId === quote._id && (
-                  <div className="border rounded-md mt-2 h-[400px] overflow-auto">
-                    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                      <Viewer
-                        fileUrl={quote.contract.url}
-                        plugins={[defaultLayoutPluginInstance]}
-                      />
-                    </Worker>
+                  <div className="border rounded-md mt-2 overflow-auto">
+                    <div className="w-full md:max-w-4xl mx-auto h-[400px]">
+                      <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                        <Viewer
+                          fileUrl={quote.contract.url}
+                          plugins={[defaultLayoutPluginInstance]}
+                        />
+                      </Worker>
+                    </div>
                   </div>
                 )}
               </div>
@@ -152,7 +181,7 @@ const ShipperQuotesPage = () => {
         ))}
       </div>
 
-      {/* Toast */}
+      {/* Toast Notification */}
       {toast.visible && (
         <Toast
           message={toast.message}

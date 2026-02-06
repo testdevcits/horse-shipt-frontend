@@ -48,9 +48,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
       return showToast("Please provide signature", "error");
 
     setSubmitting(true);
-
-    // FIXED SIGNATURE EXPORT
-    const customerSignature = sigPad.getTrimmedCanvas().toDataURL("image/png");
+    const customerSignature = sigPad.toDataURL("image/png");
 
     try {
       const res = await acceptQuote(quote._id, customerSignature);
@@ -62,6 +60,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         showToast(res.message || "Failed to accept quote", "error");
       }
     } catch (error) {
+      console.error(error);
       showToast(
         error?.response?.data?.message || "Failed to accept quote",
         "error"
