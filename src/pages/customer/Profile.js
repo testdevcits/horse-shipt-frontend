@@ -56,7 +56,7 @@ const CustomerProfile = () => {
       {/* Profile Image Section */}
       <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full flex-shrink-0">
         <img
-          src={profileImage?.url || user?.photo || defaultProfileImage}
+          src={profileImage || user?.photo || defaultProfileImage}
           alt="Profile"
           className={`w-full h-full object-cover rounded-full border border-gray-300 ${
             loading ? "opacity-50" : ""

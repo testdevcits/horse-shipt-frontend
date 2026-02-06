@@ -22,7 +22,7 @@ const CustomerLayout = () => {
 
   // Use profile image from context or fallback to user.photo
   const displayedProfileImage =
-    profileImage?.url || user?.photo || defaultProfileImage;
+    profileImage || user?.photo || defaultProfileImage;
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
