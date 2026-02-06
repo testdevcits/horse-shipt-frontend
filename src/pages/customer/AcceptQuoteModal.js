@@ -21,7 +21,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [showPDF, setShowPDF] = useState(false);
 
-  // 🔥 RESPONSIVE SIGNATURE ONLY
+  // RESPONSIVE SIGNATURE ONLY
   const sigWrapperRef = useRef(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
 
@@ -48,7 +48,9 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
       return showToast("Please provide signature", "error");
 
     setSubmitting(true);
-    const customerSignature = sigPad.toDataURL("image/png");
+
+    // FIXED SIGNATURE EXPORT
+    const customerSignature = sigPad.getTrimmedCanvas().toDataURL("image/png");
 
     try {
       const res = await acceptQuote(quote._id, customerSignature);
@@ -60,7 +62,6 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         showToast(res.message || "Failed to accept quote", "error");
       }
     } catch (error) {
-      console.error(error);
       showToast(
         error?.response?.data?.message || "Failed to accept quote",
         "error"
@@ -238,7 +239,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                       <SignatureCanvas
                         ref={(ref) => setSigPad(ref)}
                         penColor="#22c55e"
-                        backgroundColor="#ffffff"
+                        backgroundColor="transparent"
                         canvasProps={{
                           width: canvasWidth,
                           height: 150,
