@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Button from "../../components/common/Button";
@@ -22,17 +22,33 @@ const OfferSubmitModal = ({
   };
   const { vehicles, loading: vehiclesLoading } = vehicleContext;
 
-  // ONLY ID STATE (AS REQUESTED)
   const [selectedVehicleId, setSelectedVehicleId] = useState("");
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [sigPad, setSigPad] = useState(null);
 
-  // DERIVED VEHICLE (FOR UI PREVIEW ONLY)
+  // 🔥 ONLY FOR RESPONSIVE SIGNATURE
+  const sigWrapperRef = useRef(null);
+  const [canvasWidth, setCanvasWidth] = useState(0);
+
   const selectedVehicle = vehicles.find((v) => v._id === selectedVehicleId);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (sigWrapperRef.current) {
+        setCanvasWidth(sigWrapperRef.current.offsetWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
 
   const showToast = (message, type = "info") => {
     setToast({ message, type, visible: true });
-    setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
+    setTimeout(() => {
+      setToast({ message: "", type: "", visible: false });
+    }, 3000);
   };
 
   const initialValues = {
@@ -65,10 +81,9 @@ const OfferSubmitModal = ({
       return;
     }
 
-    // ✅ PAYLOAD WITH VEHICLE ID
     const payload = {
       shipment: shipment._id,
-      vehicle: selectedVehicleId, // ✅ SEND VEHICLE ID
+      vehicle: selectedVehicleId,
       totalPrice: Number(values.totalPrice),
       paymentMethod: values.paymentMethod,
       paymentDue: values.paymentDue,
@@ -105,6 +120,7 @@ const OfferSubmitModal = ({
 
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-3">
         <div className="bg-white w-full max-w-[95%] xl:max-w-[1400px] max-h-[90vh] rounded-[14px] flex flex-col overflow-hidden">
+          {/* HEADER */}
           <div className="relative p-5 border-b">
             <button
               onClick={onClose}
@@ -118,7 +134,8 @@ const OfferSubmitModal = ({
             </p>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5 space-y-4 vehicle-scroll">
+          {/* BODY */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-4">
             <Formik
               initialValues={initialValues}
               validationSchema={validationSchema}
@@ -131,14 +148,13 @@ const OfferSubmitModal = ({
                     <label className="block mb-1 font-medium text-gray-700">
                       Select Vehicle
                     </label>
-
                     {vehiclesLoading ? (
-                      <p className="text-gray-500 text-sm">
+                      <p className="text-sm text-gray-500">
                         Loading vehicles...
                       </p>
                     ) : (
                       <select
-                        className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#BF9B53]"
+                        className="w-full border rounded-md px-3 py-2 text-sm"
                         value={selectedVehicleId}
                         onChange={(e) => setSelectedVehicleId(e.target.value)}
                       >
@@ -152,9 +168,9 @@ const OfferSubmitModal = ({
                     )}
                   </div>
 
-                  {/* VEHICLE PREVIEW (NO UI CHANGE) */}
+                  {/* VEHICLE PREVIEW */}
                   {selectedVehicle && (
-                    <div className="p-3 border rounded-md bg-gray-50 space-y-1 text-sm">
+                    <div className="p-3 border rounded-md bg-gray-50 text-sm">
                       <p>
                         <strong>Transport Type:</strong>{" "}
                         {selectedVehicle.transportType}
@@ -170,7 +186,7 @@ const OfferSubmitModal = ({
                     </div>
                   )}
 
-                  {/* FORM FIELDS */}
+                  {/* TOTAL PRICE */}
                   <div>
                     <label className="block mb-1 font-medium text-gray-700">
                       Total Price
@@ -187,6 +203,7 @@ const OfferSubmitModal = ({
                     />
                   </div>
 
+                  {/* PAYMENT */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block mb-1 font-medium text-gray-700">
@@ -220,6 +237,7 @@ const OfferSubmitModal = ({
                     </div>
                   </div>
 
+                  {/* TIME */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field
                       name="pickupTime"
@@ -233,6 +251,7 @@ const OfferSubmitModal = ({
                     />
                   </div>
 
+                  {/* NOTES */}
                   <Field
                     as="textarea"
                     name="notes"
@@ -240,22 +259,29 @@ const OfferSubmitModal = ({
                     className="w-full border rounded-md px-3 py-2 text-sm"
                   />
 
-                  {/* SIGNATURE */}
+                  {/* RESPONSIVE SIGNATURE */}
                   <div>
                     <label className="block mb-1 font-medium text-gray-700">
                       Your Signature
                     </label>
 
-                    <SignatureCanvas
-                      ref={(ref) => setSigPad(ref)}
-                      penColor="#22c55e"
-                      backgroundColor="#000000"
-                      canvasProps={{
-                        width: 500,
-                        height: 150,
-                        className: "border rounded-md w-full",
-                      }}
-                    />
+                    <div
+                      ref={sigWrapperRef}
+                      className="w-full border rounded-md overflow-hidden"
+                    >
+                      {canvasWidth > 0 && (
+                        <SignatureCanvas
+                          ref={(ref) => setSigPad(ref)}
+                          penColor="#22c55e"
+                          backgroundColor="#ffffff"
+                          canvasProps={{
+                            width: canvasWidth,
+                            height: 150,
+                            className: "w-full",
+                          }}
+                        />
+                      )}
+                    </div>
 
                     <button
                       type="button"
@@ -266,6 +292,7 @@ const OfferSubmitModal = ({
                     </button>
                   </div>
 
+                  {/* ACTIONS */}
                   <div className="p-4 border-t flex gap-3">
                     <Button variant="secondary" fullWidth onClick={onClose}>
                       Cancel

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FiX } from "react-icons/fi";
 import SignatureCanvas from "react-signature-canvas";
 import Toast from "../../components/common/Toast";
@@ -14,11 +14,28 @@ import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 
 const AcceptQuoteModal = ({ quote, onClose }) => {
   const { acceptQuote } = useCustomerQuote();
+
   const [sigPad, setSigPad] = useState(null);
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [showPDF, setShowPDF] = useState(false);
+
+  // 🔥 RESPONSIVE SIGNATURE ONLY
+  const sigWrapperRef = useRef(null);
+  const [canvasWidth, setCanvasWidth] = useState(0);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (sigWrapperRef.current) {
+        setCanvasWidth(sigWrapperRef.current.offsetWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
 
   const showToast = (message, type = "info") => {
     setToast({ message, type, visible: true });
@@ -54,7 +71,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   };
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
-  const strongLabelClass = "text-gray-600"; // colored labels
+  const strongLabelClass = "text-gray-600";
 
   return (
     <>
@@ -66,13 +83,13 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         />
       )}
 
-      <div className="fixed inset-0 z-40 bg-black/50 flex items-start justify-center overflow-y-auto px-4 py-8">
+      <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center overflow-y-auto px-4 py-8">
         <div className="bg-white w-full max-w-[95%] xl:max-w-[1400px] rounded-[14px] flex flex-col overflow-hidden shadow-xl">
           {/* Header */}
           <div className="relative p-6 border-b">
             <button
               onClick={onClose}
-              className="absolute right-6 top-6 text-gray-500 hover:text-black transition"
+              className="absolute right-6 top-6 text-gray-500 hover:text-black"
             >
               <FiX size={24} />
             </button>
@@ -84,7 +101,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {/* Left Column */}
+            {/* LEFT */}
             <div className="space-y-4">
               <div className="border rounded-md p-4 bg-gray-50 space-y-2">
                 <p>
@@ -168,7 +185,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
               )}
             </div>
 
-            {/* Right Column: PDF & Signature */}
+            {/* RIGHT */}
             <div className="flex flex-col gap-6">
               {quote.contract?.url && !showPDF && (
                 <Button
@@ -183,9 +200,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
               {showPDF && quote.contract?.url && (
                 <>
                   <div className="border rounded-md p-2 h-[400px] overflow-auto">
-                    <Worker
-                      workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}
-                    >
+                    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
                       <Viewer
                         fileUrl={quote.contract.url}
                         plugins={[defaultLayoutPluginInstance]}
@@ -202,7 +217,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                 </>
               )}
 
-              {/* Terms & Signature */}
+              {/* TERMS + SIGNATURE */}
               <div className="border rounded-md p-4 space-y-3">
                 <Checkbox
                   checked={agreed}
@@ -214,16 +229,25 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                   <label className="block mb-1 font-medium text-gray-700">
                     Your Signature
                   </label>
-                  <SignatureCanvas
-                    ref={(ref) => setSigPad(ref)}
-                    penColor="#22c55e"
-                    backgroundColor="#f8f8f8"
-                    canvasProps={{
-                      width: 500,
-                      height: 150,
-                      className: "border rounded-md w-full",
-                    }}
-                  />
+
+                  <div
+                    ref={sigWrapperRef}
+                    className="w-full border rounded-md overflow-hidden"
+                  >
+                    {canvasWidth > 0 && (
+                      <SignatureCanvas
+                        ref={(ref) => setSigPad(ref)}
+                        penColor="#22c55e"
+                        backgroundColor="#ffffff"
+                        canvasProps={{
+                          width: canvasWidth,
+                          height: 150,
+                          className: "w-full",
+                        }}
+                      />
+                    )}
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => sigPad.clear()}
@@ -234,7 +258,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                 </div>
               </div>
 
-              {/* Actions */}
+              {/* ACTIONS */}
               <div className="flex gap-3 mt-auto">
                 <Button variant="secondary" fullWidth onClick={onClose}>
                   Cancel
