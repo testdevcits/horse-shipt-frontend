@@ -78,7 +78,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         </h1>
 
         <div className="text-gray-600 md:text-right font-montserrat font-normal text-[16px] leading-[24px]">
-          <p>Listed {getPublishedTime(shipment.publishedAt)}</p>
+          <p>Listed - {getPublishedTime(shipment.publishedAt)}</p>
 
           <p>
             by{" "}

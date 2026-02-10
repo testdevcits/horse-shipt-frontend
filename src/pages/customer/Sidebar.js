@@ -5,16 +5,17 @@ import axios from "axios";
 
 import { LuArrowLeftFromLine, LuArrowRightFromLine } from "react-icons/lu";
 import { CiCircleQuestion } from "react-icons/ci";
+import { LiaHorseHeadSolid } from "react-icons/lia";
 
 import { useAuth } from "../../contexts/AuthContext";
 
-// ICONS
+// COMMON ICONS
 import {
   CustomerDashboardIcon,
   CustomerOrdersIcon,
   CustomerNewShipmentIcon,
-  CustomerSettingsIcon,
   ChatIcon,
+  CustomerSettingsIcon,
 } from "../../components/common/ColoredIcons";
 
 // ---------------- NAV ITEMS ----------------
@@ -39,7 +40,12 @@ const navItems = [
     icon: <CustomerNewShipmentIcon />,
   },
   {
-    name: "Chats",
+    name: "My Horses",
+    path: "/customer/my-horses",
+    icon: <LiaHorseHeadSolid />,
+  },
+  {
+    name: "Chat",
     path: "/customer/chats",
     icon: <ChatIcon />,
   },
@@ -79,8 +85,9 @@ const CustomerSidebar = ({
 
   const isActivePath = (path, subPaths) => {
     if (window.location.pathname === path) return true;
-    if (subPaths)
+    if (subPaths) {
       return subPaths.some((sub) => sub.path === window.location.pathname);
+    }
     return false;
   };
 
@@ -101,14 +108,14 @@ const CustomerSidebar = ({
       <div className="flex justify-end p-4 hidden lg:flex">
         <button onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? (
-            <LuArrowLeftFromLine size={24} />
+            <LuArrowLeftFromLine size={20} />
           ) : (
-            <LuArrowRightFromLine size={24} />
+            <LuArrowRightFromLine size={20} />
           )}
         </button>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation (scrollable) */}
       <nav className="flex-1 overflow-y-auto vehicle-scroll px-2">
         <ul className="space-y-2">
           {navItems.map((item) => {
@@ -128,17 +135,21 @@ const CustomerSidebar = ({
                     ${
                       active
                         ? "bg-gray-100 font-semibold text-system-primary"
-                        : ""
+                        : "text-gray-600"
                     }
                   `}
                 >
-                  {item.icon}
+                  {React.cloneElement(item.icon, {
+                    className: `${
+                      active ? "text-system-primary" : "text-system-primary"
+                    } w-5 h-5`,
+                  })}
                   {(sidebarOpen || mobileOpen) && <span>{item.name}</span>}
                 </NavLink>
 
                 {/* Submenu */}
                 {item.subPaths && (sidebarOpen || mobileOpen) && (
-                  <ul className="ml-6 mt-1 border-l border-gray-200 pl-4 flex flex-col gap-1">
+                  <div className="ml-6 mt-1 border-l border-gray-200 pl-4 flex flex-col gap-1">
                     {item.subPaths.map((sub) => {
                       const subActive = window.location.pathname === sub.path;
                       return (
@@ -158,7 +169,7 @@ const CustomerSidebar = ({
                         </NavLink>
                       );
                     })}
-                  </ul>
+                  </div>
                 )}
               </li>
             );

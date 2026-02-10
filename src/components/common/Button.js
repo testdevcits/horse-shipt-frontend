@@ -22,9 +22,10 @@ const Button = ({
   const focus = "focus:outline-none focus:ring-2 focus:ring-[#BF9B53]";
 
   const variantStyles = {
-    primary: "bg-[#BF9B53] hover:bg-[#a6813f] text-white border-none",
+    primary: "bg-[#BF9B53] hover:bg-[#a6813f] text-white border-none ",
     secondary:
-      "bg-gray-100 hover:bg-gray-200 text-gray-700 border-2 border-gray-500",
+      "bg-[#F3F4F6] hover:bg-gray-200 text-gray-700 border-2 border-[#D1D5DB] rounded-md",
+
     google: "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
     custom: "", // empty, will use bgColor/borderColor/textColor
   };

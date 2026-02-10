@@ -6,6 +6,7 @@ import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
 import Toast from "../../components/common/Toast";
 import PageLoader from "../../components/common/PageLoader";
+import NotFound from "../../components/common/NoData";
 
 const ShipperQuotesPage = () => {
   const { quotes, loading, getMyQuotes } = useShipperQuote();
@@ -30,9 +31,7 @@ const ShipperQuotesPage = () => {
     fetchQuotes();
   }, [getMyQuotes]);
 
-  if (loading) {
-    return <PageLoader text="" fullScreen={true} />;
-  }
+  if (loading) return <PageLoader text="" fullScreen={false} />;
 
   // Filter quotes by last 6 digits of Shipment ID
   const filteredQuotes = quotes.filter((quote) => {
@@ -42,106 +41,112 @@ const ShipperQuotesPage = () => {
   });
 
   return (
-    <div className="min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 uppercase mb-4 md:mb-0">
+    <div className="">
+      {/* Header + Search */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+        <h2 className="text-2xl font-bold text-gray-800 uppercase">
           My Quotes
-        </h1>
-
-        {/* Search Box */}
-        <div className="">
-          <input
-            type="text"
-            placeholder="Search by last 6 digits of Shipment ID"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full md:w-80 px-4 py-2 border rounded shadow focus:outline-none focus:ring-2 focus:ring-[#997C42]"
-          />
-        </div>
+        </h2>
+        <input
+          type="text"
+          placeholder="Search by last 6 digits of Shipment ID"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-80 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#997C42]"
+        />
       </div>
 
-      {filteredQuotes.length === 0 && !loading && (
-        <p className="text-gray-500">No quotes match your search.</p>
-      )}
+      {/* No Data */}
+      {filteredQuotes.length === 0 && !loading && <NotFound />}
 
-      <div className="space-y-6">
+      {/* Quotes List */}
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
         {filteredQuotes.map((quote) => (
           <div
             key={quote._id}
-            className="border rounded-lg bg-white shadow p-6 space-y-4"
+            className="bg-white rounded-2xl shadow-md p-6 flex flex-col gap-4 hover:shadow-lg transition"
           >
             {/* Shipment Info */}
-            <div>
-              <h2 className="text-xl font-semibold uppercase">
-                Shipment ID:{" "}
-                <span className="text-[#BF9B53]">
-                  {quote.shipment?.shipmentCode || "N/A"}
-                </span>
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold text-[#BF9B53]">
+                Shipment ID: {quote.shipment?.shipmentCode || "N/A"}
               </h2>
 
-              <div className="mt-2 space-y-1 text-gray-700">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-700 text-sm">
                 <p>
-                  <strong>Shipper:</strong>{" "}
+                  <span className="font-semibold">Shipper:</span>{" "}
                   {quote.shipper?.companyName || quote.shipper?.name || "N/A"}
                 </p>
                 <p>
-                  <strong>Email:</strong> {quote.shipper?.email || "N/A"}
+                  <span className="font-semibold">Email:</span>{" "}
+                  {quote.shipper?.email || "N/A"}
                 </p>
                 <p>
-                  <strong>Total Price:</strong> ${quote.totalPrice || 0}
+                  <span className="font-semibold">Total Price:</span> $
+                  {quote.totalPrice || 0}
                 </p>
                 <p>
-                  <strong>Currency:</strong> {quote.currency || "N/A"}
+                  <span className="font-semibold">Currency:</span>{" "}
+                  {quote.currency || "N/A"}
                 </p>
                 <p>
-                  <strong>Payment Method:</strong>{" "}
+                  <span className="font-semibold">Payment Method:</span>{" "}
                   {quote.paymentMethod || "N/A"}
                 </p>
                 <p>
-                  <strong>Payment Due:</strong> {quote.paymentDue || "N/A"}
+                  <span className="font-semibold">Payment Due:</span>{" "}
+                  {quote.paymentDue || "N/A"}
                 </p>
                 <p>
-                  <strong>Pickup Time:</strong> {quote.pickupTime || "N/A"}
+                  <span className="font-semibold">Pickup:</span>{" "}
+                  {quote.pickupTime || "N/A"}
                 </p>
                 <p>
-                  <strong>Estimated Arrival:</strong>{" "}
+                  <span className="font-semibold">Estimated Arrival:</span>{" "}
                   {quote.estimatedArrivalTime || "N/A"}
                 </p>
                 <p>
-                  <strong>Transport Type:</strong>{" "}
+                  <span className="font-semibold">Transport Type:</span>{" "}
                   {quote.transportType || "N/A"}
                 </p>
                 <p>
-                  <strong>Stalls Required:</strong> {quote.stallsRequired || 0}
+                  <span className="font-semibold">Stalls Required:</span>{" "}
+                  {quote.stallsRequired || 0}
                 </p>
                 <p>
-                  <strong>Status:</strong> {quote.status || "N/A"}
+                  <span className="font-semibold">Status:</span>{" "}
+                  {quote.status || "N/A"}
                 </p>
-                {quote.notes && (
-                  <p>
-                    <strong>Notes:</strong> {quote.notes}
-                  </p>
-                )}
               </div>
+
+              {quote.notes && (
+                <p className="text-gray-600 mt-2">
+                  <span className="font-semibold">Notes:</span> {quote.notes}
+                </p>
+              )}
             </div>
 
             {/* Vehicle Info */}
             {quote.vehicle && (
-              <div className="border rounded-md p-4 bg-gray-50 space-y-2">
-                <h3 className="font-medium text-lg">Vehicle Info</h3>
+              <div className="bg-gray-50 p-4 rounded-lg border space-y-2">
+                <h3 className="font-semibold text-lg">Vehicle Info</h3>
                 <p>
-                  <strong>Vehicle Number:</strong> {quote.vehicle.vehicleNumber}
+                  <span className="font-semibold">Vehicle Number:</span>{" "}
+                  {quote.vehicle.vehicleNumber}
                 </p>
                 <p>
-                  <strong>Vehicle Type:</strong> {quote.vehicle.vehicleType}
+                  <span className="font-semibold">Vehicle Type:</span>{" "}
+                  {quote.vehicle.vehicleType}
                 </p>
                 <p>
-                  <strong>Stalls:</strong> {quote.vehicle.numberOfStalls} -{" "}
+                  <span className="font-semibold">Stalls:</span>{" "}
+                  {quote.vehicle.numberOfStalls} -{" "}
                   {quote.vehicle.stallSize || "N/A"}
                 </p>
                 {quote.vehicle.notes && (
                   <p>
-                    <strong>Notes:</strong> {quote.vehicle.notes}
+                    <span className="font-semibold">Notes:</span>{" "}
+                    {quote.vehicle.notes}
                   </p>
                 )}
               </div>
@@ -156,7 +161,7 @@ const ShipperQuotesPage = () => {
                       visibleContractId === quote._id ? null : quote._id
                     )
                   }
-                  className="px-4 py-2 bg-[#997C42] text-white rounded hover:bg-[#BF9B53] transition"
+                  className="px-4 py-2 bg-[#997C42] text-white rounded-lg hover:bg-[#BF9B53] transition"
                 >
                   {visibleContractId === quote._id
                     ? "Hide Contract"

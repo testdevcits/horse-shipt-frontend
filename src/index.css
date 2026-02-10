@@ -43,25 +43,19 @@ body::-webkit-scrollbar-track {
 }
 
 
-/* Selected option */
-select option:checked {
-  background-color: var(--system-primary);
-  color: #fff;
+
+
+
+
+
+/* index.css or App.css */
+.vehicle-scroll {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #BF9B53 #f0f0f0; /* Firefox */
 }
 
-/* TRY hover (works in some browsers, not all) */
-select option:hover {
-  background-color: var(--system-primary);
-  color: #fff;
-}
-
-/* Firefox fix */
-select option:checked {
-  box-shadow: 0 0 0 100px var(--system-primary) inset;
-}
-/* Vehicle page scrollbar */
 .vehicle-scroll::-webkit-scrollbar {
-  width: 6px;
+  width: 6px; /* Chrome, Edge, Safari */
 }
 
 .vehicle-scroll::-webkit-scrollbar-thumb {
@@ -72,3 +66,44 @@ select option:checked {
 .vehicle-scroll::-webkit-scrollbar-track {
   background-color: #f0f0f0;
 }
+
+
+
+/* Custom select styling */
+select {
+  color: #000; /* default text color */
+  background-color: #fff; /* default background */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px 12px;
+  appearance: none; /* removes default arrow in some browsers */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* Option text color */
+select option {
+  color: #000;
+  background-color: #fff;
+}
+
+/* For selected option background (works in most browsers) */
+select option:checked {
+  background-color: #BF9B53;
+  color: #fff; /* text color on selection */
+}
+
+/* Scrollbar for options dropdown (works in Chrome/Edge/Opera) */
+select::-webkit-scrollbar {
+  width: 6px;
+}
+
+select::-webkit-scrollbar-thumb {
+  background-color: #BF9B53;
+  border-radius: 0px;
+}
+
+select::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+}
+

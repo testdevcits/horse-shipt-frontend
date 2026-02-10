@@ -18,6 +18,7 @@ import { DriverAuthProvider } from "../contexts/DriverAuthContext";
 import ProtectedDriverRoute from "./ProtectedDriverRoute";
 import CustomerChatOverview from "../pages/customer/ChatOverview";
 import ShipperQuotesPage from "../pages/shipper/ShipperQuotesPage";
+import MyHorses from "../pages/customer/MyHorses";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -194,6 +195,7 @@ const AppRoutes = () => {
           <Route path="profile/edit" element={<EditProfile />} />
           <Route path="my-shipments" element={<MyShipmentDetails />} />
           <Route path="chats" element={<CustomerChatOverview />} />
+          <Route path="my-horses" element={<MyHorses />} />
         </Route>
 
         {/* ---------- Fallback ---------- */}

@@ -229,9 +229,15 @@ const MyShipmentDetails = () => {
                   </div>
                   <div className="w-3/4 text-gray-700 flex flex-col gap-1">
                     <span>Total Horses: {shipment.horses.length}</span>
-                    <span>Pickup Time Option: {shipment.pickupTimeOption}</span>
                     <span>
-                      Delivery Time Option: {shipment.deliveryTimeOption}
+                      <strong>Pickup:</strong>{" "}
+                      {new Date(shipment.pickupDate).toLocaleDateString()} -{" "}
+                      {shipment.pickupTimeOption}
+                    </span>
+                    <span>
+                      <strong>Delivery:</strong>{" "}
+                      {new Date(shipment.deliveryDate).toLocaleDateString()} -{" "}
+                      {shipment.deliveryTimeOption}
                     </span>
                   </div>
                 </div>

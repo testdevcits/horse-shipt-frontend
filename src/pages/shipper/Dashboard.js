@@ -19,14 +19,7 @@ const Dashboard = () => {
   const formatCount = (count) => String(count).padStart(2, "0");
 
   if (loading) {
-    return (
-      <PageLoader
-        text="Loading dashboard..."
-        fullScreen={false}
-        size={28}
-        color="#BF9B53"
-      />
-    );
+    return <PageLoader text="" fullScreen={false} size={28} color="#BF9B53" />;
   }
 
   return (
