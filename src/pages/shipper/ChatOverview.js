@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
 import PageLoader from "../../components/common/PageLoader";
 import { useShipperChat } from "../../contexts/shipperContext/ShipperChatContext";
@@ -8,6 +9,9 @@ import { socket } from "../../services/socket";
 const ChatOverview = () => {
   const { customers, loading, fetchCustomers } = useShipperChat();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+
+  const customerIdFromQuery = searchParams.get("customerId"); // GET CUSTOMER ID FROM QUERY
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [roomId, setRoomId] = useState(null);
@@ -26,10 +30,24 @@ const ChatOverview = () => {
   }, [fetchCustomers]);
 
   /* ===============================
+     AUTO-SELECT CUSTOMER FROM QUERY
+  ================================ */
+  useEffect(() => {
+    if (customers.length && customerIdFromQuery) {
+      const userFromQuery = customers.find(
+        (c) => c._id === customerIdFromQuery
+      );
+      if (userFromQuery) setSelectedUser(userFromQuery);
+    }
+  }, [customers, customerIdFromQuery]);
+
+  /* ===============================
      JOIN ROOM WHEN CUSTOMER SELECTED
   ================================ */
   useEffect(() => {
     if (!selectedUser) return;
+
+    setMessages([]); // reset messages when new user selected
 
     // Emit joinRoom to backend
     socket.emit("joinRoom", {

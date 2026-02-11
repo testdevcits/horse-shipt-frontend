@@ -1,26 +1,33 @@
 import jwtDecode from "jwt-decode";
 
-// 🔹 Create a shipment query token including user info
+// Simple helper to generate a random string
+const generateRandomString = (length = 8) => {
+  return Math.random()
+    .toString(36)
+    .substring(2, 2 + length);
+};
+
 export const createShipmentQueryToken = (shipmentId) => {
-  const token = localStorage.getItem("token"); // login JWT
+  const token = localStorage.getItem("token");
   if (!token) return null;
 
   try {
-    const decoded = jwtDecode(token); // decode JWT
-
-    // Include user info (_id, uniqueId, name) in the token
+    const decoded = jwtDecode(token);
     const userInfo = {
       _id: decoded.id,
       uniqueId: decoded.uniqueId || "",
       name: decoded.name || "",
     };
 
-    // Encode shipmentId, user info, and expiry
+    // Add a random string to make the token unique each time
+    const randomKey = generateRandomString(12);
+
     return btoa(
       JSON.stringify({
-        sid: shipmentId, // shipment ID
-        user: userInfo, // logged-in user info
-        exp: Date.now() + 5 * 60 * 1000, // 5 min expiry
+        sid: shipmentId,
+        user: userInfo,
+        exp: Date.now() + 5 * 60 * 1000, // 5 minutes expiry
+        rand: randomKey,
       })
     );
   } catch (err) {
@@ -29,7 +36,6 @@ export const createShipmentQueryToken = (shipmentId) => {
   }
 };
 
-// 🔹 Validate shipment query token
 export const validateShipmentQueryToken = (token, shipmentId) => {
   if (!token) return false;
 
@@ -45,6 +51,7 @@ export const validateShipmentQueryToken = (token, shipmentId) => {
     // Check user info exists
     if (!decoded.user || !decoded.user._id) return false;
 
+    // rand key is just ignored here, only used to make token unique
     return true;
   } catch (err) {
     console.error("Invalid shipment token", err);

@@ -3,12 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { IoLocationOutline } from "react-icons/io5";
 import { LuCalendarDays } from "react-icons/lu";
 import StatusBadge from "./StatusBadge"; // Reusable badge
+import { createShipmentQueryToken } from "../../utils/createQueryToken";
 
 const CustomerShipmentCard = ({ shipment }) => {
   const navigate = useNavigate();
 
-  const handleClick = () => {
-    navigate(`/customer/my-shipments?shipmentId=${shipment._id}`);
+  // Navigate with shipmentId + token query
+  const handleNavigateWithQuery = () => {
+    const token = createShipmentQueryToken(shipment._id);
+    const params = new URLSearchParams({
+      shipmentId: shipment._id,
+      ref: token, // optional token for reference/security
+    });
+    navigate(`/customer/my-shipments?${params.toString()}`);
   };
 
   const getPickupStatusColors = () => {
@@ -51,10 +58,10 @@ const CustomerShipmentCard = ({ shipment }) => {
 
   return (
     <div
-      onClick={handleClick}
+      onClick={handleNavigateWithQuery}
       className="flex flex-col sm:flex-row w-full border border-gray-300 rounded-[14px] p-3 gap-3 sm:gap-4 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200"
     >
-      {/* Left Image (Full width on mobile) */}
+      {/* Left Image */}
       <div className="w-full sm:w-auto flex-shrink-0">
         <img
           src={shipment.horses[0]?.photo?.url}
@@ -65,7 +72,6 @@ const CustomerShipmentCard = ({ shipment }) => {
 
       {/* Right Content */}
       <div className="flex flex-col justify-between flex-1 gap-2 min-w-0">
-        {/* Shipment Name / Horses Info */}
         <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-800 truncate">
           {shipment.numberOfHorses} Horse
           {shipment.numberOfHorses > 1 ? "s" : ""} Shipping from{" "}

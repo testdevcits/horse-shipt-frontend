@@ -29,7 +29,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const vehiclesLoading = vehicleContext.loading || false;
 
   const [shipment, setShipment] = useState(null);
-  const [openDetails, setOpenDetails] = useState(true);
+  const [openDetails, setOpenDetails] = useState(false);
   const [isOfferOpen, setIsOfferOpen] = useState(false);
 
   const idToUse = shipmentIdFromQuery || paramId || defaultId;
@@ -153,9 +153,11 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 variant="secondary"
                 fullWidth
                 icon={<ChatIcon color="gray-500" />}
-                onClick={() => navigate(`/shipper/chat`)}
+                onClick={() =>
+                  navigate(`/shipper/chat?customerId=${shipment.customer?._id}`)
+                }
               >
-                Send Buyer a Message
+                Chat with Buyer
               </Button>
             </div>
           </div>
@@ -195,7 +197,6 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
               </div>
               <div className="w-3/4 flex flex-col gap-1 text-gray-700">
                 <span>Total Horses: {shipment.horses.length}</span>
-                <span>Total Weight: 2000 pounds</span>
               </div>
             </div>
 

@@ -6,11 +6,12 @@ import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteContext";
+import { useCustomerQuestions } from "../../contexts/customerContext/CustomerQuestionContext";
+
 import PageLoader from "../../components/common/PageLoader";
-import AcceptQuoteModal from "./AcceptQuoteModal"; // Make sure path is correct
+import AcceptQuoteModal from "./AcceptQuoteModal";
 import Toast from "../../components/common/Toast";
 import ShipmentQuestions from "./ShipmentQuestions";
-import { useCustomerQuestions } from "../../contexts/customerContext/CustomerQuestionContext";
 
 const MyShipmentDetails = () => {
   const { id: paramId } = useParams();
@@ -25,24 +26,24 @@ const MyShipmentDetails = () => {
     publishShipment,
   } = useCustomerShipments();
 
-  const { questions } = useCustomerQuestions();
-
   const {
     quotes,
     getQuotesByShipment,
     loading: quotesLoading,
   } = useCustomerQuote();
 
+  const { questions, fetchQuestions } = useCustomerQuestions();
+
   const [activeTab, setActiveTab] = useState("overview");
   const [openDetails, setOpenDetails] = useState(true);
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
 
+  // ---------------- FETCH SHIPMENT ON PAGE LOAD ----------------
   const fetchData = useCallback(() => {
     if (!shipmentId) return;
     fetchShipmentById(shipmentId);
-    getQuotesByShipment(shipmentId);
-  }, [shipmentId, fetchShipmentById, getQuotesByShipment]);
+  }, [shipmentId, fetchShipmentById]);
 
   useEffect(() => {
     fetchData();
@@ -51,11 +52,13 @@ const MyShipmentDetails = () => {
   const loading = shipmentLoading || quotesLoading;
   const shipment = currentShipment;
 
+  // ---------------- TOAST ----------------
   const showToast = (message, type = "info") => {
     setToast({ message, type, visible: true });
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   };
 
+  // ---------------- PUBLISH SHIPMENT ----------------
   const handlePublishShipment = async () => {
     try {
       await publishShipment(shipment._id);
@@ -65,18 +68,37 @@ const MyShipmentDetails = () => {
     }
   };
 
+  // ---------------- TAB BUTTON ----------------
+  const handleTabClick = (id) => {
+    setActiveTab(id);
+
+    // Fetch quotes if tab is quotes
+    if (id === "quotes" && shipmentId) {
+      getQuotesByShipment(shipmentId, true); // force fetch
+    }
+
+    // Fetch questions if tab is questions
+    if (id === "questions" && shipmentId) {
+      fetchQuestions(shipmentId); // fetch from context
+    }
+  };
+
   const TabButton = ({ id, label, count }) => (
     <button
-      onClick={() => setActiveTab(id)}
-      className={`px-4 py-2 font-medium text-sm border-b-2 ${
-        activeTab === id
-          ? "border-[#BF9B53] text-[#BF9B53]"
-          : "border-transparent text-gray-500 hover:text-black"
-      }`}
+      onClick={() => handleTabClick(id)}
+      className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 font-medium text-xs sm:text-sm border-b-2 transition-all duration-200
+        ${
+          activeTab === id
+            ? "border-[#BF9B53] text-[#BF9B53]"
+            : "border-transparent text-gray-600 hover:text-black rounded-full"
+        }`}
     >
-      {label}
+      <span className="truncate">{label}</span>
       {count !== undefined && (
-        <span className="ml-2 bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">
+        <span
+          className="flex items-center justify-center w-[25px] h-[24px] text-[10px] sm:text-xs font-medium 
+                     bg-[#F2EBDD] border border-[#BF9B53] rounded-full"
+        >
           {count}
         </span>
       )}
@@ -84,7 +106,12 @@ const MyShipmentDetails = () => {
   );
 
   if (loading)
-    return <PageLoader text="Loading shipment details..." fullScreen />;
+    return (
+      <PageLoader
+        text="Loading shipment Quotes details..."
+        fullScreen={false}
+      />
+    );
   if (!shipment)
     return <p className="text-red-500 text-center mt-8">Shipment not found.</p>;
 
@@ -108,42 +135,12 @@ const MyShipmentDetails = () => {
       <div className="flex gap-6 border-b mb-6">
         <TabButton id="overview" label="Overview" />
         <TabButton id="quotes" label="Quotes" count={quotes.length} />
-        <TabButton id="questions" label="Questions" count={questions.length} />
+        <TabButton
+          id="questions"
+          label="Questions"
+          count={questions.answered.length + questions.pending.length}
+        />
       </div>
-
-      {/* ================= QUOTES TAB ================= */}
-      {activeTab === "quotes" && (
-        <div className="bg-white border rounded-lg p-6 relative">
-          <h3 className="font-medium mb-4">Total Quotes: {quotes.length}</h3>
-          {quotes.length === 0 ? (
-            <p className="text-gray-500 text-center">No quotes received yet.</p>
-          ) : (
-            <div className="space-y-4">
-              {quotes.map((quote) => (
-                <div
-                  key={quote._id}
-                  className="border rounded-lg p-4 flex justify-between items-center relative"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {quote.shipper?.companyName || quote.shipper?.name}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Price (USD): ${quote.totalPrice} • {quote.status}
-                    </p>
-                  </div>
-
-                  <LuCircleChevronRight
-                    size={22}
-                    className="text-system-primary cursor-pointer hover:scale-110 transition absolute right-2 top-1/2 -translate-y-1/2"
-                    onClick={() => setSelectedQuote(quote)}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ================= OVERVIEW TAB ================= */}
       {activeTab === "overview" && shipment && (
@@ -289,6 +286,40 @@ const MyShipmentDetails = () => {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ================= QUOTES TAB ================= */}
+      {activeTab === "quotes" && (
+        <div className="bg-white border rounded-lg p-6 relative">
+          <h3 className="font-medium mb-4">Total Quotes: {quotes.length}</h3>
+          {quotes.length === 0 ? (
+            <p className="text-gray-500 text-center">No quotes received yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {quotes.map((quote) => (
+                <div
+                  key={quote._id}
+                  className="border rounded-lg p-4 flex justify-between items-center relative"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {quote.shipper?.companyName || quote.shipper?.name}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Price (USD): ${quote.totalPrice} • {quote.status}
+                    </p>
+                  </div>
+
+                  <LuCircleChevronRight
+                    size={22}
+                    className="text-system-primary cursor-pointer hover:scale-110 transition absolute right-2 top-1/2 -translate-y-1/2"
+                    onClick={() => setSelectedQuote(quote)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

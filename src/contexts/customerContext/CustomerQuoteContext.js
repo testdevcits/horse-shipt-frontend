@@ -29,31 +29,25 @@ export const CustomerQuoteProvider = ({ children }) => {
      GET QUOTES BY SHIPMENT ID (CUSTOMER) - ONE TIME CALL
   ========================================================= */
   const getQuotesByShipment = useCallback(
-    async (shipmentId) => {
+    async (shipmentId, force = false) => {
       if (!token || !shipmentId) return;
 
-      // Prevent repeated calls if quotes already fetched
-      if (quotes.length > 0) return;
+      // Only skip if not forced
+      if (!force && quotes.length > 0) return;
 
       setLoading(true);
       try {
         const res = await axios.get(
           `${API_BASE_URL}/customer/quotes/${shipmentId}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
-
-        if (res.data.success) {
-          setQuotes(res.data.quotes || []);
-        } else {
-          setQuotes([]);
+        setQuotes(res.data.success ? res.data.quotes || [] : []);
+        if (!res.data.success)
           showToast(res.data.message || "No quotes found", "info");
-        }
       } catch (error) {
-        console.error("Quotes API error:", error);
+        console.error(error);
         setQuotes([]);
         showToast(
           error.response?.data?.message || "Failed to fetch quotes",
