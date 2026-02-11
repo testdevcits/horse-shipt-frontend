@@ -28,6 +28,10 @@ import { ProfileProvider } from "./contexts/customerContext/ProfileContext";
 // ------------------- Driver Auth Context -------------------
 import { DriverAuthProvider } from "./contexts/DriverAuthContext";
 
+// ------------------- Question Contexts -------------------
+import { CustomerQuestionProvider } from "./contexts/customerContext/CustomerQuestionContext";
+import { ShipperQuestionProvider } from "./contexts/shipperContext/ShipperQuestionContext";
+
 // ------------------- Routes -------------------
 import AppRoutes from "./routes/AppRoutes";
 
@@ -54,7 +58,11 @@ function App() {
                                       <DriverAuthProvider>
                                         <ShipperChatProvider>
                                           <CustomerChatProvider>
-                                            <AppRoutes />
+                                            <ShipperQuestionProvider>
+                                              <CustomerQuestionProvider>
+                                                <AppRoutes />
+                                              </CustomerQuestionProvider>
+                                            </ShipperQuestionProvider>
                                           </CustomerChatProvider>
                                         </ShipperChatProvider>
                                       </DriverAuthProvider>

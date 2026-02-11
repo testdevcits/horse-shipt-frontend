@@ -9,6 +9,8 @@ import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteCo
 import PageLoader from "../../components/common/PageLoader";
 import AcceptQuoteModal from "./AcceptQuoteModal"; // Make sure path is correct
 import Toast from "../../components/common/Toast";
+import ShipmentQuestions from "./ShipmentQuestions";
+import { useCustomerQuestions } from "../../contexts/customerContext/CustomerQuestionContext";
 
 const MyShipmentDetails = () => {
   const { id: paramId } = useParams();
@@ -22,6 +24,8 @@ const MyShipmentDetails = () => {
     loading: shipmentLoading,
     publishShipment,
   } = useCustomerShipments();
+
+  const { questions } = useCustomerQuestions();
 
   const {
     quotes,
@@ -104,7 +108,7 @@ const MyShipmentDetails = () => {
       <div className="flex gap-6 border-b mb-6">
         <TabButton id="overview" label="Overview" />
         <TabButton id="quotes" label="Quotes" count={quotes.length} />
-        <TabButton id="questions" label="Questions" />
+        <TabButton id="questions" label="Questions" count={questions.length} />
       </div>
 
       {/* ================= QUOTES TAB ================= */}
@@ -290,8 +294,8 @@ const MyShipmentDetails = () => {
 
       {/* ================= QUESTIONS TAB ================= */}
       {activeTab === "questions" && (
-        <div className="bg-white border rounded-lg p-6 text-center text-gray-500">
-          Questions feature coming soon 🚧
+        <div className="mt-6">
+          <ShipmentQuestions shipmentId={shipmentId} />
         </div>
       )}
 

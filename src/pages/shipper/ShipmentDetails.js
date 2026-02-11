@@ -10,6 +10,8 @@ import Button from "../../components/common/Button";
 import { ChatIcon } from "../../components/common/ColoredIcons";
 import OfferSubmitModal from "./OfferSubmitModal";
 import { getPublishedTime } from "../../utils/timeAgo";
+import AskQuestionModal from "./AskQuestionModal";
+import { FiHelpCircle } from "react-icons/fi";
 
 const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const { id: paramId } = useParams();
@@ -20,6 +22,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const tokenFromQuery = searchParams.get("ref");
 
   const { shipments, getAvailableShipments, loading } = useShipperShipment();
+  const [isQuestionOpen, setIsQuestionOpen] = useState(false);
+
   const vehicleContext = useVehicle() || {};
   const vehicles = vehicleContext.vehicles || [];
   const vehiclesLoading = vehicleContext.loading || false;
@@ -71,21 +75,22 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   return (
     <div className="font-montserrat flex flex-col gap-6 relative text-sm leading-5 font-normal">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between gap-2">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <h1 className="font-montserrat font-semibold text-[30px] text-systemText leading-[38px] uppercase">
           Shipping_ID :{" "}
           <span className="text-[#BF9B53]">{shipment.shipmentCode}</span>
         </h1>
 
-        <div className="text-gray-600 md:text-right font-montserrat font-normal text-[16px] leading-[24px]">
-          <p>Listed - {getPublishedTime(shipment.publishedAt)}</p>
-
-          <p>
-            by{" "}
-            <span className="text-black">
-              {shipment.customer?.name || "Unknown User"}
-            </span>
-          </p>
+        <div className="flex flex-col items-end gap-2">
+          <div className="text-gray-600 md:text-right font-montserrat font-normal text-[16px] leading-[24px]">
+            <p>Listed - {getPublishedTime(shipment.publishedAt)}</p>
+            <p>
+              by{" "}
+              <span className="text-black">
+                {shipment.customer?.name || "Unknown User"}
+              </span>
+            </p>
+          </div>
         </div>
       </div>
 
@@ -156,6 +161,15 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
           </div>
         </div>
       </div>
+      <Button
+        variant="secondary"
+        size="sm"
+        icon={<FiHelpCircle className="text-gray-500" size={18} />}
+        onClick={() => setIsQuestionOpen(true)}
+        className="whitespace-nowrap"
+      >
+        Ask Question
+      </Button>
 
       {/* DETAILS TOGGLE */}
       <div className="border border-gray-300 rounded-[10px] p-4">
@@ -227,6 +241,13 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
           </div>
         )}
       </div>
+
+      {isQuestionOpen && (
+        <AskQuestionModal
+          shipmentId={shipment._id}
+          onClose={() => setIsQuestionOpen(false)}
+        />
+      )}
 
       {isOfferOpen && (
         <OfferSubmitModal

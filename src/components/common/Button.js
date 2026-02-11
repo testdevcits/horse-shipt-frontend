@@ -15,7 +15,7 @@ const Button = ({
   icon, // optional React icon component
 }) => {
   const baseStyles =
-    "px-4 py-1.5 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2";
+    "px-4 py-3 text-base font-medium transition-all duration-200 flex items-center justify-center gap-2 min-h-[44px]";
 
   const width = fullWidth ? "w-full" : "";
   const borderRadius = rounded ? "rounded-full" : "rounded-md";

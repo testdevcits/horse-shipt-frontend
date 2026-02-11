@@ -1,5 +1,6 @@
 // src/components/common/NoData.jsx
 import React from "react";
+import comingSoonImg from "../../assets/images/defultlogo.png";
 
 const NoData = ({
   title = "No Data Found",
@@ -10,9 +11,11 @@ const NoData = ({
   return (
     <div className="flex flex-col items-center justify-center px-6 py-12 font-montserrat animate-slide-fade-in">
       {/* Big Icon/Text */}
-      {/* <h1 className="text-[6rem] sm:text-[8rem] md:text-[10rem] font-extrabold text-system-primary mb-6 text-center">
-        🐴
-      </h1> */}
+      <img
+        src={comingSoonImg}
+        alt="Coming Soon"
+        className="w-[52px] sm:w-[52px] mb-6 object-contain"
+      />
 
       {/* Title */}
       <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-systemText mb-4 text-center">

@@ -27,7 +27,7 @@ const Toast = ({ message, type = "info", duration = 3000, onClose }) => {
 
   return (
     <div
-      className={`fixed top-4 right-4 sm:top-5 sm:right-5 z-50 max-w-xs w-[90%] sm:w-auto px-4 py-2 rounded-md text-white shadow-lg break-words ${bgColor} ${
+      className={`fixed top-4 right-4 sm:top-5 sm:right-5 z-[9999] max-w-xs w-[90%] sm:w-auto px-4 py-2 rounded-md text-white shadow-lg break-words ${bgColor} ${
         leaving ? "animate-slide-out-right" : "animate-slide-in-right"
       }`}
     >

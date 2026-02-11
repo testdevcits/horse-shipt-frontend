@@ -138,15 +138,15 @@ const MyHorses = () => {
   };
 
   return (
-    <div className="">
-      {/* Heading + Add Button Row */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
-        <h2 className="text-[16px] font-semibold text-systemText leading-[24px] uppercase">
+    <div className="w-full flex flex-col gap-6">
+      {/* Heading + Add Button */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-systemText uppercase">
           My Horses
         </h2>
         {!showForm && (
           <Button
-            className="flex items-center justify-center gap-2 bg-[#bf9b53] text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition w-full sm:w-auto font-bold"
+            className="bg-system-primary text-white hover:bg-opacity-90 transition w-full sm:w-auto px-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2"
             onClick={() => {
               setShowForm(true);
               setEditingHorse(null);
@@ -157,7 +157,7 @@ const MyHorses = () => {
         )}
       </div>
 
-      {/* Form */}
+      {/* Horse Form */}
       {showForm && (
         <Formik
           initialValues={{
@@ -192,7 +192,6 @@ const MyHorses = () => {
               } else {
                 res = await createHorse(values);
               }
-
               const data = res?.json ? await res.json() : res;
               if (data.success || res?.data?.horse) {
                 const horseData = data.horse || res?.data?.horse;
@@ -232,11 +231,12 @@ const MyHorses = () => {
           {({ values, handleChange, handleSubmit, errors, touched }) => (
             <Form
               onSubmit={handleSubmit}
-              className="mb-6 border p-4 rounded-xl shadow-sm"
+              className="mb-6 border p-4 sm:p-6 rounded-2xl shadow-sm bg-white"
             >
-              <h2 className="text-lg font-semibold mb-4">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-4">
                 {editingHorse ? "Edit Horse" : "Add New Horse"}
               </h2>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InputField
                   label="Registered Name"
@@ -267,7 +267,6 @@ const MyHorses = () => {
                   onChange={handleChange}
                   error={touched.age && errors.age}
                 />
-
                 <Select
                   label="Breed"
                   name="breed"
@@ -301,7 +300,6 @@ const MyHorses = () => {
                   options={stallTypes.map((s) => ({ value: s, label: s }))}
                   error={touched.stallType && errors.stallType}
                 />
-
                 <InputField
                   label="Notes"
                   name="notes"
@@ -312,12 +310,13 @@ const MyHorses = () => {
                 />
               </div>
 
-              <div className="mt-4 flex gap-3 flex-wrap">
-                <Button type="submit">
+              <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                <Button type="submit" className="w-full sm:w-auto">
                   {editingHorse ? "Update Horse" : "Save Horse"}
                 </Button>
                 <Button
                   variant="secondary"
+                  className="w-full sm:w-auto"
                   onClick={() => {
                     setShowForm(false);
                     setEditingHorse(null);
@@ -337,74 +336,96 @@ const MyHorses = () => {
           {horseLoading ? (
             <PageLoader text="" fullScreen={false} />
           ) : horseError ? (
-            <p className="text-red-500">{horseError}</p>
+            <p className="text-red-500 text-center">{horseError}</p>
           ) : horses.length === 0 ? (
             <NoData
               title="No Horses Found"
               description="You haven't added any horses yet. Click 'Horse +' to get started!"
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1  gap-6">
               {horses.map((horse) => (
                 <div
                   key={horse._id}
                   className="border rounded-2xl p-5 shadow-md bg-white hover:shadow-lg transition flex flex-col"
                 >
                   {/* Header */}
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
                       {horse.registeredName}
                     </h3>
-                    <div className="flex gap-2">
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 flex-shrink-0">
                       <Button
                         variant="custom"
-                        icon={<CiEdit />}
+                        icon={<CiEdit size={22} />}
                         onClick={() => {
                           setEditingHorse(horse);
                           setShowForm(true);
                         }}
+                        rounded
+                        bgColor="#F3F4F6"
+                        textColor="#374151"
+                        borderColor="#D1D5DB"
                       />
                       <Button
                         variant="custom"
-                        icon={<CiTrash />}
+                        icon={<CiTrash size={22} />}
                         onClick={() => setDeleteHorseId(horse._id)}
-                        bgColor="#EF4444"
-                        textColor="#fff"
+                        rounded
+                        bgColor="#FEE2E2"
+                        textColor="#B91C1C"
+                        borderColor="#FCA5A5"
                       />
                     </div>
                   </div>
 
                   {/* Horse Info */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-700 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-gray-700 text-sm sm:text-base md:text-[15px]">
                     <p>
-                      <span className="font-semibold">Barn Name:</span>{" "}
-                      {horse.barnName}
+                      <span className="font-semibold text-gray-800">
+                        Barn Name:
+                      </span>{" "}
+                      <span className="text-gray-700">{horse.barnName}</span>
                     </p>
                     <p>
-                      <span className="font-semibold">Breed:</span>{" "}
-                      {horse.breed}
+                      <span className="font-semibold text-gray-800">
+                        Breed:
+                      </span>{" "}
+                      <span className="text-gray-700">{horse.breed}</span>
                     </p>
                     <p>
-                      <span className="font-semibold">Colour:</span>{" "}
-                      {horse.colour}
+                      <span className="font-semibold text-gray-800">
+                        Colour:
+                      </span>{" "}
+                      <span className="text-gray-700">{horse.colour}</span>
                     </p>
                     <p>
-                      <span className="font-semibold">Age:</span> {horse.age}
+                      <span className="font-semibold text-gray-800">Age:</span>{" "}
+                      <span className="text-gray-700">{horse.age}</span>
                     </p>
                     <p>
-                      <span className="font-semibold">Sex:</span> {horse.sex}
+                      <span className="font-semibold text-gray-800">Sex:</span>{" "}
+                      <span className="text-gray-700">{horse.sex}</span>
                     </p>
                     <p>
-                      <span className="font-semibold">Stall:</span>{" "}
-                      {horse.stallType || horse.defaultStallSize}
+                      <span className="font-semibold text-gray-800">
+                        Stall:
+                      </span>{" "}
+                      <span className="text-gray-700">
+                        {horse.stallType || horse.defaultStallSize}
+                      </span>
                     </p>
                   </div>
 
                   {/* Notes */}
                   {horse.notes && (
-                    <p className="mt-3 text-gray-600 text-sm">
-                      <span className="font-semibold">Notes:</span>{" "}
-                      {horse.notes}
+                    <p className="mt-3 text-gray-600 text-sm sm:text-base break-words">
+                      <span className="font-semibold text-gray-800">
+                        Notes:
+                      </span>{" "}
+                      <span className="text-gray-700">{horse.notes}</span>
                     </p>
                   )}
                 </div>

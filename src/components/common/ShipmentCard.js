@@ -2,17 +2,15 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { IoLocationOutline } from "react-icons/io5";
 import { LuCalendarDays } from "react-icons/lu";
-import StatusBadge from "./StatusBadge"; // Import your reusable badge
+import StatusBadge from "./StatusBadge"; // Reusable badge
 
-const ShipmentCard = ({ shipment }) => {
+const CustomerShipmentCard = ({ shipment }) => {
   const navigate = useNavigate();
 
-  // Navigate to shipment details page
   const handleClick = () => {
     navigate(`/customer/my-shipments?shipmentId=${shipment._id}`);
   };
 
-  // Determine pickup badge colors based on pickup date
   const getPickupStatusColors = () => {
     if (!shipment.pickupDate)
       return {
@@ -24,7 +22,6 @@ const ShipmentCard = ({ shipment }) => {
 
     const today = new Date();
     const pickup = new Date(shipment.pickupDate);
-    const diffMs = pickup.getTime() - today.getTime();
 
     if (pickup.toDateString() === today.toDateString()) {
       return {
@@ -33,7 +30,7 @@ const ShipmentCard = ({ shipment }) => {
         dotColor: "bg-success-400",
         textColor: "text-success-700",
       };
-    } else if (diffMs < 24 * 60 * 60 * 1000 && diffMs > 0) {
+    } else if (pickup > today && pickup - today < 24 * 60 * 60 * 1000) {
       return {
         bgColor: "bg-yellow-100",
         borderColor: "border-yellow-700",
@@ -55,31 +52,29 @@ const ShipmentCard = ({ shipment }) => {
   return (
     <div
       onClick={handleClick}
-      className="flex flex-row w-full border border-gray-300 rounded-[14px] p-3 gap-4 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200"
+      className="flex flex-col sm:flex-row w-full border border-gray-300 rounded-[14px] p-3 gap-3 sm:gap-4 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-200"
     >
-      {/* Left Image */}
-      <div className="flex-shrink-0">
+      {/* Left Image (Full width on mobile) */}
+      <div className="w-full sm:w-auto flex-shrink-0">
         <img
           src={shipment.horses[0]?.photo?.url}
           alt={shipment.horses[0]?.registeredName || shipment._id}
-          className="w-[80px] h-[124px] sm:w-[100px] sm:h-[140px] md:w-[140px] md:h-[160px] lg:h-[180px] rounded-[10px] object-cover"
+          className="w-full h-[200px] sm:w-[100px] sm:h-[140px] md:w-[120px] md:h-[160px] lg:h-[180px] rounded-[10px] object-cover"
         />
       </div>
 
       {/* Right Content */}
       <div className="flex flex-col justify-between flex-1 gap-2 min-w-0">
         {/* Shipment Name / Horses Info */}
-        <div className="flex items-center gap-2 text-gray-700 text-sm md:text-[14px] font-SemiBold">
-          <h3 className="text-lg md:text-xl font-semibold mb-0">
-            {shipment.numberOfHorses} Horse
-            {shipment.numberOfHorses > 1 ? "s" : ""} Shipping from{" "}
-            <span className="font-medium">{shipment.pickupLocation}</span> to{" "}
-            <span className="font-medium">{shipment.deliveryLocation}</span>
-          </h3>
-        </div>
+        <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-800 truncate">
+          {shipment.numberOfHorses} Horse
+          {shipment.numberOfHorses > 1 ? "s" : ""} Shipping from{" "}
+          <span className="font-medium">{shipment.pickupLocation}</span> to{" "}
+          <span className="font-medium">{shipment.deliveryLocation}</span>
+        </h3>
 
         {/* Pickup Status */}
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <span className="text-sm font-montserrat">Pickup</span>
           <StatusBadge
             text={
@@ -95,14 +90,14 @@ const ShipmentCard = ({ shipment }) => {
         </div>
 
         {/* Pickup Location */}
-        <div className="flex items-center gap-2 text-gray-700 text-sm md:text-[14px] font-montserrat">
-          <IoLocationOutline size={18} />
-          <span>{shipment.pickupLocation}</span>
+        <div className="flex items-center gap-2 text-gray-700 text-sm sm:text-[14px] font-montserrat truncate">
+          <IoLocationOutline size={16} />
+          <span className="truncate">{shipment.pickupLocation}</span>
         </div>
 
         {/* Delivery Date */}
-        <div className="flex items-center gap-2 text-gray-700 text-sm md:text-[14px] font-montserrat">
-          <LuCalendarDays size={18} />
+        <div className="flex items-center gap-2 text-gray-700 text-sm sm:text-[14px] font-montserrat">
+          <LuCalendarDays size={16} />
           <span>
             {shipment?.deliveryDate
               ? new Date(shipment.deliveryDate).toLocaleDateString()
@@ -114,4 +109,4 @@ const ShipmentCard = ({ shipment }) => {
   );
 };
 
-export default ShipmentCard;
+export default CustomerShipmentCard;

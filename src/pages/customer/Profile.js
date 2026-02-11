@@ -42,7 +42,7 @@ const CustomerProfile = () => {
   };
 
   return (
-    <div className="flex flex-col items-center w-full space-y-6">
+    <div className="flex flex-col items-center w-full space-y-6 mt-6 animate-slide-fade-in">
       {/* Toasts */}
       {toastList.map((t, i) => (
         <Toast

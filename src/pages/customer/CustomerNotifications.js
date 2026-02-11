@@ -51,7 +51,7 @@ const CustomerNotifications = () => {
   }
 
   return (
-    <div className="max-w-full mx-auto p-4 sm:p-6 font-montserrat">
+    <div className="max-w-full mx-auto mt-6 font-montserrat animate-slide-fade-in">
       <h1 className="font-montserrat font-medium text-base leading-6 tracking-normal text-systemText mb-2">
         Notifications
       </h1>
