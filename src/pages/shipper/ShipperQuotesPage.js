@@ -41,10 +41,10 @@ const ShipperQuotesPage = () => {
   });
 
   return (
-    <div className="">
+    <div className="w-full mx-auto font-[Montserrat] animate-slide-fade-in">
       {/* Header + Search */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-        <h2 className="text-2xl font-bold text-gray-800 uppercase">
+        <h2 className="text-[20px] sm:text-[22px] lg:text-[24px] font-medium text-gray-800 uppercase">
           My Quotes
         </h2>
         <input
@@ -68,59 +68,71 @@ const ShipperQuotesPage = () => {
           >
             {/* Shipment Info */}
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-[#BF9B53]">
+              <h2 className="text-[18px] sm:text-[20px] lg:text-[22px] font-semibold text-[#BF9B53]">
                 Shipment ID: {quote.shipment?.shipmentCode || "N/A"}
               </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-700 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2  text-[14px] sm:text-[15px] lg:text-[16px]">
                 <p>
-                  <span className="font-semibold">Shipper:</span>{" "}
+                  <span className="font-semibold text-gray-700">Shipper:</span>{" "}
                   {quote.shipper?.companyName || quote.shipper?.name || "N/A"}
                 </p>
                 <p>
-                  <span className="font-semibold">Email:</span>{" "}
+                  <span className="font-semibold text-gray-700">Email:</span>{" "}
                   {quote.shipper?.email || "N/A"}
                 </p>
                 <p>
-                  <span className="font-semibold">Total Price:</span> $
-                  {quote.totalPrice || 0}
+                  <span className="font-semibold text-gray-700">
+                    Total Price:
+                  </span>{" "}
+                  ${quote.totalPrice || 0}
                 </p>
                 <p>
-                  <span className="font-semibold">Currency:</span>{" "}
+                  <span className="font-semibold text-gray-700">Currency:</span>{" "}
                   {quote.currency || "N/A"}
                 </p>
                 <p>
-                  <span className="font-semibold">Payment Method:</span>{" "}
+                  <span className="font-semibold text-gray-700">
+                    Payment Method:
+                  </span>{" "}
                   {quote.paymentMethod || "N/A"}
                 </p>
                 <p>
-                  <span className="font-semibold">Payment Due:</span>{" "}
+                  <span className="font-semibold text-gray-700">
+                    Payment Due:
+                  </span>{" "}
                   {quote.paymentDue || "N/A"}
                 </p>
                 <p>
-                  <span className="font-semibold">Pickup:</span>{" "}
+                  <span className="font-semibold text-gray-700">Pickup:</span>{" "}
                   {quote.pickupTime || "N/A"}
                 </p>
                 <p>
-                  <span className="font-semibold">Estimated Arrival:</span>{" "}
+                  <span className="font-semibold text-gray-700">
+                    Estimated Arrival:
+                  </span>{" "}
                   {quote.estimatedArrivalTime || "N/A"}
                 </p>
                 <p>
-                  <span className="font-semibold">Transport Type:</span>{" "}
+                  <span className="font-semibold text-gray-700">
+                    Transport Type:
+                  </span>{" "}
                   {quote.transportType || "N/A"}
                 </p>
                 <p>
-                  <span className="font-semibold">Stalls Required:</span>{" "}
+                  <span className="font-semibold text-gray-700">
+                    Stalls Required:
+                  </span>{" "}
                   {quote.stallsRequired || 0}
                 </p>
                 <p>
-                  <span className="font-semibold">Status:</span>{" "}
+                  <span className="font-semibold text-gray-700">Status:</span>{" "}
                   {quote.status || "N/A"}
                 </p>
               </div>
 
               {quote.notes && (
-                <p className="text-gray-600 mt-2">
+                <p className="text-gray-600 mt-2 text-[14px] sm:text-[15px] lg:text-[16px]">
                   <span className="font-semibold">Notes:</span> {quote.notes}
                 </p>
               )}
@@ -129,22 +141,24 @@ const ShipperQuotesPage = () => {
             {/* Vehicle Info */}
             {quote.vehicle && (
               <div className="bg-gray-50 p-4 rounded-lg border space-y-2">
-                <h3 className="font-semibold text-lg">Vehicle Info</h3>
-                <p>
+                <h3 className="font-semibold text-[16px] sm:text-[17px] lg:text-[18px]">
+                  Vehicle Info
+                </h3>
+                <p className="text-[14px] sm:text-[15px] lg:text-[16px]">
                   <span className="font-semibold">Vehicle Number:</span>{" "}
                   {quote.vehicle.vehicleNumber}
                 </p>
-                <p>
+                <p className="text-[14px] sm:text-[15px] lg:text-[16px]">
                   <span className="font-semibold">Vehicle Type:</span>{" "}
                   {quote.vehicle.vehicleType}
                 </p>
-                <p>
+                <p className="text-[14px] sm:text-[15px] lg:text-[16px]">
                   <span className="font-semibold">Stalls:</span>{" "}
                   {quote.vehicle.numberOfStalls} -{" "}
                   {quote.vehicle.stallSize || "N/A"}
                 </p>
                 {quote.vehicle.notes && (
-                  <p>
+                  <p className="text-[14px] sm:text-[15px] lg:text-[16px]">
                     <span className="font-semibold">Notes:</span>{" "}
                     {quote.vehicle.notes}
                   </p>
@@ -161,7 +175,7 @@ const ShipperQuotesPage = () => {
                       visibleContractId === quote._id ? null : quote._id
                     )
                   }
-                  className="px-4 py-2 bg-[#997C42] text-white rounded-lg hover:bg-[#BF9B53] transition"
+                  className="px-4 py-2 bg-[#997C42] text-white rounded-lg hover:bg-[#BF9B53] transition text-[14px] sm:text-[15px] lg:text-[16px]"
                 >
                   {visibleContractId === quote._id
                     ? "Hide Contract"

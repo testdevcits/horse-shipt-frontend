@@ -8,8 +8,8 @@ const SecondSection = () => {
   const [activeTab, setActiveTab] = useState("solutions");
 
   const tabs = [
-    { id: "solutions", label: "Solutions" },
-    { id: "features", label: "Features" },
+    { id: "solutions", label: "For Horse Owners" },
+    { id: "features", label: "For Shippers" },
   ];
 
   // Refs must be called directly in component body
