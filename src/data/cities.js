@@ -38,7 +38,6 @@ const citiesData = [
     id: 2124279679,
     country: "USA",
   },
-  // ... add as many as needed
 ];
 
 export default citiesData;
