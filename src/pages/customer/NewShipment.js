@@ -1,4 +1,5 @@
 // /pages/customer/NewShipment.jsx
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -51,11 +52,13 @@ const NewShipment = () => {
   const [pickupLocation, setPickupLocation] = useState("");
   const [pickupTimeOption, setPickupTimeOption] = useState("on");
   const [pickupDate, setPickupDate] = useState("");
+  const [pickupCoords, setPickupCoords] = useState(null);
 
   // Step 2: Delivery
   const [deliveryLocation, setDeliveryLocation] = useState("");
   const [deliveryTimeOption, setDeliveryTimeOption] = useState("on");
   const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliveryCoords, setDeliveryCoords] = useState(null);
 
   // Step 3 & 4: Horses
   const [numberOfHorses, setNumberOfHorses] = useState(1);
@@ -188,17 +191,29 @@ const NewShipment = () => {
   /* ---------------- Submit shipment ---------------- */
   const handleFinish = async () => {
     if (!validateStep()) return;
+
     try {
       const formData = new FormData();
+
+      // 🔹 Pickup
       formData.append("pickupLocation", pickupLocation);
+      formData.append("pickupLat", pickupCoords?.lat || "");
+      formData.append("pickupLng", pickupCoords?.lng || "");
       formData.append("pickupTimeOption", pickupTimeOption);
       formData.append("pickupDate", pickupDate);
+
+      // 🔹 Delivery
       formData.append("deliveryLocation", deliveryLocation);
+      formData.append("deliveryLat", deliveryCoords?.lat || "");
+      formData.append("deliveryLng", deliveryCoords?.lng || "");
       formData.append("deliveryTimeOption", deliveryTimeOption);
       formData.append("deliveryDate", deliveryDate);
+
+      // 🔹 Other details
       formData.append("numberOfHorses", numberOfHorses);
       formData.append("additionalInfo", additionalInfo);
 
+      // 🔹 Horses
       horses.forEach((h, idx) => {
         formData.append(`horses[${idx}][registeredName]`, h.registeredName);
         formData.append(`horses[${idx}][barnName]`, h.barnName);
@@ -240,6 +255,8 @@ const NewShipment = () => {
           <Step1Pickup
             pickupLocation={pickupLocation}
             setPickupLocation={setPickupLocation}
+            pickupCoords={pickupCoords}
+            setPickupCoords={setPickupCoords}
             pickupTimeOption={pickupTimeOption}
             setPickupTimeOption={setPickupTimeOption}
             pickupDate={pickupDate}
@@ -253,6 +270,8 @@ const NewShipment = () => {
           <Step2Delivery
             deliveryLocation={deliveryLocation}
             setDeliveryLocation={setDeliveryLocation}
+            deliveryCoords={deliveryCoords}
+            setDeliveryCoords={setDeliveryCoords}
             deliveryTimeOption={deliveryTimeOption}
             setDeliveryTimeOption={setDeliveryTimeOption}
             deliveryDate={deliveryDate}

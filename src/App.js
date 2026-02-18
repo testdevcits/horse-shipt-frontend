@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router } from "react-router-dom";
+import { LoadScript } from "@react-google-maps/api";
 
 // ------------------- Context Providers -------------------
 import { AuthProvider } from "./contexts/AuthContext";
@@ -35,53 +36,60 @@ import { ShipperQuestionProvider } from "./contexts/shipperContext/ShipperQuesti
 // ------------------- Routes -------------------
 import AppRoutes from "./routes/AppRoutes";
 
+const GOOGLE_LIBRARIES = ["places"];
+
 function App() {
   return (
     <Router>
-      {/* Shipper & Customer Contexts */}
-      <AuthProvider>
-        <CustomerPaymentProvider>
-          <CustomerNotificationProvider>
-            <VehicleProvider>
-              <DriverProvider>
-                <PreferredAreasProvider>
-                  <ShipperSettingsProvider>
-                    <ShipperProfileProvider>
-                      <ShipperLocationProvider>
-                        <ShipperPreferredAreaProvider>
-                          <CustomerShipmentProvider>
-                            <CustomerQuoteProvider>
-                              <ProfileProvider>
-                                <ShipperContractProvider>
-                                  <ShipperQuoteProvider>
-                                    <ShipperShipmentProvider>
-                                      <DriverAuthProvider>
-                                        <ShipperChatProvider>
-                                          <CustomerChatProvider>
-                                            <ShipperQuestionProvider>
-                                              <CustomerQuestionProvider>
-                                                <AppRoutes />
-                                              </CustomerQuestionProvider>
-                                            </ShipperQuestionProvider>
-                                          </CustomerChatProvider>
-                                        </ShipperChatProvider>
-                                      </DriverAuthProvider>
-                                    </ShipperShipmentProvider>
-                                  </ShipperQuoteProvider>
-                                </ShipperContractProvider>
-                              </ProfileProvider>
-                            </CustomerQuoteProvider>
-                          </CustomerShipmentProvider>
-                        </ShipperPreferredAreaProvider>
-                      </ShipperLocationProvider>
-                    </ShipperProfileProvider>
-                  </ShipperSettingsProvider>
-                </PreferredAreasProvider>
-              </DriverProvider>
-            </VehicleProvider>
-          </CustomerNotificationProvider>
-        </CustomerPaymentProvider>
-      </AuthProvider>
+      <LoadScript
+        googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
+        libraries={GOOGLE_LIBRARIES}
+      >
+        {/* Shipper & Customer Contexts */}
+        <AuthProvider>
+          <CustomerPaymentProvider>
+            <CustomerNotificationProvider>
+              <VehicleProvider>
+                <DriverProvider>
+                  <PreferredAreasProvider>
+                    <ShipperSettingsProvider>
+                      <ShipperProfileProvider>
+                        <ShipperLocationProvider>
+                          <ShipperPreferredAreaProvider>
+                            <CustomerShipmentProvider>
+                              <CustomerQuoteProvider>
+                                <ProfileProvider>
+                                  <ShipperContractProvider>
+                                    <ShipperQuoteProvider>
+                                      <ShipperShipmentProvider>
+                                        <DriverAuthProvider>
+                                          <ShipperChatProvider>
+                                            <CustomerChatProvider>
+                                              <ShipperQuestionProvider>
+                                                <CustomerQuestionProvider>
+                                                  <AppRoutes />
+                                                </CustomerQuestionProvider>
+                                              </ShipperQuestionProvider>
+                                            </CustomerChatProvider>
+                                          </ShipperChatProvider>
+                                        </DriverAuthProvider>
+                                      </ShipperShipmentProvider>
+                                    </ShipperQuoteProvider>
+                                  </ShipperContractProvider>
+                                </ProfileProvider>
+                              </CustomerQuoteProvider>
+                            </CustomerShipmentProvider>
+                          </ShipperPreferredAreaProvider>
+                        </ShipperLocationProvider>
+                      </ShipperProfileProvider>
+                    </ShipperSettingsProvider>
+                  </PreferredAreasProvider>
+                </DriverProvider>
+              </VehicleProvider>
+            </CustomerNotificationProvider>
+          </CustomerPaymentProvider>
+        </AuthProvider>
+      </LoadScript>
     </Router>
   );
 }

@@ -157,7 +157,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                   navigate(`/shipper/chat?customerId=${shipment.customer?._id}`)
                 }
               >
-                Chat with Buyer
+                Chat with {shipment.customer?.name}
               </Button>
             </div>
           </div>

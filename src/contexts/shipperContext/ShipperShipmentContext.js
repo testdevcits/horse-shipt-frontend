@@ -16,11 +16,13 @@ export const ShipperShipmentProvider = ({ children }) => {
   const { token, isShipper } = useAuth();
 
   const [shipments, setShipments] = useState([]);
+  const [mapShipments, setMapShipments] = useState([]);
   const [shipment, setShipment] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const fetchedOnce = useRef(false);
 
+  // Get Available Shipments (List View)
   const getAvailableShipments = useCallback(async () => {
     if (!token || !isShipper) return;
 
@@ -42,6 +44,26 @@ export const ShipperShipmentProvider = ({ children }) => {
     }
   }, [token, isShipper]);
 
+  //   NEW – Get Shipments For Map (Lightweight API)
+  const getAvailableShipmentsForMap = useCallback(async () => {
+    if (!token || !isShipper) return [];
+
+    try {
+      const res = await axios.get(`${API_BASE_URL}/shipper/shipments/map`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = res.data.shipments || [];
+      setMapShipments(data);
+
+      return data;
+    } catch (err) {
+      console.error("Get Shipments For Map Error:", err);
+      return [];
+    }
+  }, [token, isShipper]);
+
+  //   Get Single Shipment Detail
   const getShipmentById = useCallback(
     async (id) => {
       if (!token || !id) return;
@@ -51,6 +73,7 @@ export const ShipperShipmentProvider = ({ children }) => {
         const res = await axios.get(`${API_BASE_URL}/shipper/shipments/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         setShipment(res.data.shipment);
         return res.data.shipment;
       } catch (err) {
@@ -63,11 +86,12 @@ export const ShipperShipmentProvider = ({ children }) => {
     [token]
   );
 
+  //  Initial Load (Only List API auto-fetch)
   useEffect(() => {
     if (!token || !isShipper) return;
 
     if (!fetchedOnce.current) {
-      fetchedOnce.current = true; // 🔹 Set immediately before async call
+      fetchedOnce.current = true;
       getAvailableShipments();
     }
   }, [token, isShipper, getAvailableShipments]);
@@ -76,9 +100,11 @@ export const ShipperShipmentProvider = ({ children }) => {
     <ShipperShipmentContext.Provider
       value={{
         shipments,
+        mapShipments,
         shipment,
         loading,
         getAvailableShipments,
+        getAvailableShipmentsForMap,
         getShipmentById,
       }}
     >

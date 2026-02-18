@@ -12,23 +12,18 @@ const NewOpportunities = () => {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("list");
 
-  const { shipments, getAvailableShipments, loading } = useShipperShipment();
+  const { shipments, mapShipments, getAvailableShipmentsForMap, loading } =
+    useShipperShipment();
 
-  /* ===============================
-     Fetch Shipments (FIXED)
-  ================================ */
   const fetchedOnce = useRef(false);
 
   useEffect(() => {
-    if (!fetchedOnce.current && (!shipments || shipments.length === 0)) {
-      getAvailableShipments();
-      fetchedOnce.current = true; // prevent future calls
+    if (!fetchedOnce.current) {
+      getAvailableShipmentsForMap(); // 🔥 fetch lightweight map shipments
+      fetchedOnce.current = true;
     }
-  }, [shipments, getAvailableShipments]);
+  }, [getAvailableShipmentsForMap]);
 
-  /* ===============================
-     Search Filter
-  ================================ */
   const filteredShipments = (shipments || []).filter((shipment) => {
     const searchText = `${shipment.pickupLocation} ${shipment.deliveryLocation}`;
     return searchText.toLowerCase().includes(search.toLowerCase());
@@ -36,9 +31,9 @@ const NewOpportunities = () => {
 
   return (
     <div className="flex flex-col w-full h-full">
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
-        <h1 className="font-montserrat font-semibold text-3xl leading-[38px] text-gray-800">
+        <h1 className="font-montserrat font-semibold text-3xl text-gray-800">
           New Opportunities for you
         </h1>
 
@@ -62,7 +57,7 @@ const NewOpportunities = () => {
           <div className="flex w-full sm:w-auto border border-gray-400 rounded-lg overflow-hidden">
             <button
               onClick={() => setActiveTab("map")}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold transition ${
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold ${
                 activeTab === "map"
                   ? "bg-system-primary text-white"
                   : "bg-white text-gray-700 hover:bg-gray-100"
@@ -74,7 +69,7 @@ const NewOpportunities = () => {
 
             <button
               onClick={() => setActiveTab("list")}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold transition ${
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 font-semibold ${
                 activeTab === "list"
                   ? "bg-system-primary text-white"
                   : "bg-white text-gray-700 hover:bg-gray-100"
@@ -87,9 +82,8 @@ const NewOpportunities = () => {
         </div>
       </div>
 
-      {/* ================= CONTENT ================= */}
+      {/* CONTENT */}
       <div className="mt-4 w-full flex-1 min-h-[400px] relative overflow-auto">
-        {/* Loader */}
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
             <PageLoader
@@ -116,7 +110,7 @@ const NewOpportunities = () => {
         )}
 
         {/* MAP VIEW */}
-        {activeTab === "map" && <ShipmentMap shipments={filteredShipments} />}
+        {activeTab === "map" && <ShipmentMap shipments={mapShipments} />}
       </div>
     </div>
   );
