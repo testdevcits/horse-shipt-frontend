@@ -3,7 +3,7 @@ import { GoogleMap, Marker, DirectionsRenderer } from "@react-google-maps/api";
 
 const containerStyle = {
   width: "100%",
-  height: "350px",
+  height: "60vh", // mobile friendly height
 };
 
 const DriverShipmentCard = ({ shipment }) => {
@@ -11,6 +11,7 @@ const DriverShipmentCard = ({ shipment }) => {
   const [liveLocation, setLiveLocation] = useState(null);
   const [showModal, setShowModal] = useState(true);
   const [watchId, setWatchId] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   /* ===============================
      MEMOIZED COORDINATES
@@ -33,43 +34,65 @@ const DriverShipmentCard = ({ shipment }) => {
   }, [shipment?.deliveryCoords]);
 
   /* ===============================
-     REQUEST LOCATION (BUTTON CLICK)
+     ENABLE LOCATION (MOBILE SAFE)
   ================================ */
 
-  const handleEnableLocation = () => {
+  const handleEnableLocation = async () => {
     if (!navigator.geolocation) {
-      alert("Geolocation not supported");
+      setErrorMessage("Geolocation not supported on this device.");
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const location = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
+    try {
+      const permission = await navigator.permissions.query({
+        name: "geolocation",
+      });
 
-        setLiveLocation(location);
-        setShowModal(false);
+      if (permission.state === "denied") {
+        setErrorMessage(
+          "Location is blocked. Please enable it from browser settings."
+        );
+        return;
+      }
 
-        // Start live tracking after permission granted
-        const id = navigator.geolocation.watchPosition((pos) => {
-          setLiveLocation({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          });
-        });
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
 
-        setWatchId(id);
-      },
-      (error) => {
-        alert("Location permission is required to continue.");
-        console.error(error);
-      },
-      { enableHighAccuracy: true }
-    );
+          setLiveLocation(location);
+          setShowModal(false);
+          setErrorMessage("");
+
+          const id = navigator.geolocation.watchPosition(
+            (pos) => {
+              setLiveLocation({
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+              });
+            },
+            (err) => {
+              console.error(err);
+            },
+            { enableHighAccuracy: true }
+          );
+
+          setWatchId(id);
+        },
+        (error) => {
+          setErrorMessage("Please turn ON location services on your phone.");
+          console.error(error);
+        },
+        { enableHighAccuracy: true }
+      );
+    } catch (err) {
+      console.error(err);
+    }
   };
 
+  /* Cleanup watcher */
   useEffect(() => {
     return () => {
       if (watchId) {
@@ -105,43 +128,52 @@ const DriverShipmentCard = ({ shipment }) => {
 
   return (
     <div className="relative bg-white rounded-lg shadow p-4 mb-6">
+      <h4 className="font-bold mb-3 text-center">
+        {shipment.pickupLocation} → {shipment.deliveryLocation}
+      </h4>
+
+      {/*  LOCATION MODAL */}
       {showModal && (
-        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg text-center shadow-lg w-80">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-lg text-center shadow-lg w-full max-w-sm">
             <h3 className="text-lg font-semibold mb-3">Enable Live Location</h3>
             <p className="text-sm mb-4">
-              To start shipment tracking, please turn on your location.
+              To start shipment tracking, please allow location access.
             </p>
+
+            {errorMessage && (
+              <p className="text-red-500 text-xs mb-3">{errorMessage}</p>
+            )}
+
             <button
               onClick={handleEnableLocation}
-              className="bg-blue-600 text-white px-4 py-2 rounded"
+              className="bg-blue-600 text-white px-4 py-2 rounded w-full"
             >
-              Turn On Location
+              Start Live Tracking
             </button>
           </div>
         </div>
       )}
-      <h4 className="font-bold mb-2">
-        {shipment.pickupLocation} → {shipment.deliveryLocation}
-      </h4>
 
-      {/* 🔒 FORCE LOCATION MODAL */}
-
+      {/*  MAP */}
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={liveLocation || pickup}
         zoom={9}
       >
+        {/* Pickup */}
         <Marker
           position={pickup}
           icon="http://maps.google.com/mapfiles/ms/icons/green-dot.png"
         />
 
+        {/* Delivery */}
         <Marker
           position={delivery}
           icon="http://maps.google.com/mapfiles/ms/icons/red-dot.png"
         />
 
+        {/* Live Driver */}
         {liveLocation && (
           <Marker
             position={liveLocation}
@@ -149,6 +181,7 @@ const DriverShipmentCard = ({ shipment }) => {
           />
         )}
 
+        {/* Route */}
         {directions && (
           <DirectionsRenderer
             directions={directions}
