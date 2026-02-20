@@ -6,7 +6,7 @@ import ConfirmModal from "../../components/common/ConfirmModal";
 import Button from "../../components/common/Button";
 import { useDriverAuth } from "../../contexts/DriverAuthContext";
 import { useNavigate } from "react-router-dom";
-import DriverShipmentCard from "./DriverShipmentCard"; // <-- Import here
+import DriverShipmentCard from "./DriverShipmentCard";
 
 const DriverDashboard = () => {
   const {
@@ -23,6 +23,7 @@ const DriverDashboard = () => {
   const [loadingModal, setLoadingModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null); // ✅ NEW STATE
   const profileInputRef = useRef(null);
 
   if (!driver)
@@ -42,6 +43,7 @@ const DriverDashboard = () => {
   };
 
   const handleDeleteProfile = () => setConfirmDelete(true);
+
   const confirmDeleteProfile = async () => {
     setLoadingModal(true);
     await deleteProfileImage();
@@ -52,6 +54,7 @@ const DriverDashboard = () => {
   };
 
   const handleLogout = () => setConfirmLogout(true);
+
   const confirmLogoutAction = () => {
     logout();
     navigate("/driver/login");
@@ -90,7 +93,6 @@ const DriverDashboard = () => {
         </div>
       </header>
 
-      {/* Spacer */}
       <div className="h-20 sm:h-24"></div>
 
       <div className="px-4 sm:px-6 md:px-10 mt-6 space-y-6">
@@ -133,6 +135,7 @@ const DriverDashboard = () => {
                       {vehicle.vehicleType} ({vehicle.transportType})
                     </h4>
                   </div>
+
                   <p className="text-sm">
                     <strong>Vehicle No:</strong>{" "}
                     {vehicle.vehicleNumber || "N/A"}
@@ -144,13 +147,15 @@ const DriverDashboard = () => {
                     <strong>Stalls:</strong> {vehicle.numberOfStalls} (
                     {vehicle.stallSize})
                   </p>
+
                   <div className="flex gap-2 mt-3 overflow-x-auto hide-scrollbar">
                     {(vehicle.images || []).map((img) => (
                       <img
                         key={img._id}
                         src={img.url}
                         alt={`Truck ${vehicle.vehicleNumber}`}
-                        className="w-20 h-20 object-cover rounded-lg border flex-shrink-0"
+                        onClick={() => setSelectedImage(img.url)} // ✅ CLICK
+                        className="w-20 h-20 object-cover rounded-lg border flex-shrink-0 cursor-pointer hover:scale-105 transition"
                       />
                     ))}
                   </div>
@@ -176,6 +181,26 @@ const DriverDashboard = () => {
           )}
         </div>
       </div>
+
+      {/*  FULL SCREEN IMAGE MODAL */}
+      {selectedImage && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
+          <div className="relative w-full max-w-6xl">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300"
+            >
+              <FiX size={32} />
+            </button>
+
+            <img
+              src={selectedImage}
+              alt="Full Truck"
+              className="w-full max-h-[90vh] object-contain rounded-lg"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Profile Modal */}
       {modalOpen && (
@@ -228,7 +253,6 @@ const DriverDashboard = () => {
         </div>
       )}
 
-      {/* Confirm Delete Modal */}
       <ConfirmModal
         show={confirmDelete}
         title="Delete Profile Image"
@@ -238,7 +262,6 @@ const DriverDashboard = () => {
         confirmText="Delete"
       />
 
-      {/* Confirm Logout Modal */}
       <ConfirmModal
         show={confirmLogout}
         title="Logout"
