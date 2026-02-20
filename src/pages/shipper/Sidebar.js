@@ -102,7 +102,7 @@ const Sidebar = ({
 
   return (
     <div
-      className={`fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300 font-montserrat flex flex-col
+      className={`fixed top-18 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-50 transform transition-transform duration-300 font-montserrat flex flex-col
         ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}
       style={{ width: sidebarWidth }}

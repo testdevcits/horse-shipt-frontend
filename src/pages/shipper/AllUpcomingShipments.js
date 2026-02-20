@@ -86,7 +86,6 @@ const AllUpcomingShipments = () => {
                   {/* Vehicle info */}
                   {quote.vehicle && (
                     <div className="mt-2">
-                      <h3 className="font-semibold">Vehicle Info:</h3>
                       <p>Vehicle Number: {quote.vehicle.vehicleNumber}</p>
                       <p>Transport Type: {quote.vehicle.transportType}</p>
                       <p>Vehicle Type: {quote.vehicle.vehicleType}</p>
@@ -117,30 +116,32 @@ const AllUpcomingShipments = () => {
                         rel="noopener noreferrer"
                         className="text-blue-600 underline"
                       >
-                        View Contract
+                        Download Contract
                       </a>
                     </p>
                   )}
-                  {quote.shipperSignature && (
-                    <div className="mt-2">
-                      <strong>Shipper Signature:</strong>
-                      <img
-                        src={quote.shipperSignature}
-                        alt="Shipper Signature"
-                        className="w-32 h-16 object-contain border mt-1"
-                      />
-                    </div>
-                  )}
-                  {quote.customerSignature && (
-                    <div className="mt-2">
-                      <strong>Customer Signature:</strong>
-                      <img
-                        src={quote.customerSignature}
-                        alt="Customer Signature"
-                        className="w-32 h-16 object-contain border mt-1"
-                      />
-                    </div>
-                  )}
+                  <div className="flex gap-4">
+                    {quote.shipperSignature && (
+                      <div className="mt-2">
+                        <strong>Shipper Signature:</strong>
+                        <img
+                          src={quote.shipperSignature}
+                          alt="Shipper Signature"
+                          className="w-32 h-16 object-contain border mt-1"
+                        />
+                      </div>
+                    )}
+                    {quote.customerSignature && (
+                      <div className="mt-2">
+                        <strong>Customer Signature:</strong>
+                        <img
+                          src={quote.customerSignature}
+                          alt="Customer Signature"
+                          className="w-32 h-16 object-contain border mt-1"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

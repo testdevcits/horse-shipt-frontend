@@ -1,127 +1,161 @@
-import React, { useEffect, useState } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  Polyline,
-} from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import React, { useEffect, useState, useMemo } from "react";
+import { GoogleMap, Marker, DirectionsRenderer } from "@react-google-maps/api";
 
-/* ===============================
-   FIX LEAFLET DEFAULT ICON ISSUE
-================================ */
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
-
-/* ===============================
-   STATIC LOCATIONS (OUTSIDE)
-================================ */
-const PICKUP_COORDS = [22.737848, 75.888239]; // Indore
-const DELIVERY_COORDS = [23.1828, 75.7772]; // Ujjain
+const containerStyle = {
+  width: "100%",
+  height: "350px",
+};
 
 const DriverShipmentCard = ({ shipment }) => {
-  const [routeCoords, setRouteCoords] = useState([]);
-  const [driverLocation, setDriverLocation] = useState(null);
+  const [directions, setDirections] = useState(null);
+  const [liveLocation, setLiveLocation] = useState(null);
+  const [showModal, setShowModal] = useState(true);
+  const [watchId, setWatchId] = useState(null);
 
   /* ===============================
-     FETCH ROAD ROUTE (OSRM)
+     MEMOIZED COORDINATES
   ================================ */
+
+  const pickup = useMemo(() => {
+    if (!shipment?.pickupCoords) return null;
+    return {
+      lat: shipment.pickupCoords.latitude,
+      lng: shipment.pickupCoords.longitude,
+    };
+  }, [shipment?.pickupCoords]);
+
+  const delivery = useMemo(() => {
+    if (!shipment?.deliveryCoords) return null;
+    return {
+      lat: shipment.deliveryCoords.latitude,
+      lng: shipment.deliveryCoords.longitude,
+    };
+  }, [shipment?.deliveryCoords]);
+
+  /* ===============================
+     REQUEST LOCATION (BUTTON CLICK)
+  ================================ */
+
+  const handleEnableLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const location = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+
+        setLiveLocation(location);
+        setShowModal(false);
+
+        // Start live tracking after permission granted
+        const id = navigator.geolocation.watchPosition((pos) => {
+          setLiveLocation({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          });
+        });
+
+        setWatchId(id);
+      },
+      (error) => {
+        alert("Location permission is required to continue.");
+        console.error(error);
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
   useEffect(() => {
-    const fetchRoute = async () => {
-      try {
-        const res = await fetch(
-          `https://router.project-osrm.org/route/v1/driving/${PICKUP_COORDS[1]},${PICKUP_COORDS[0]};${DELIVERY_COORDS[1]},${DELIVERY_COORDS[0]}?overview=full&geometries=geojson`
-        );
-
-        const data = await res.json();
-
-        if (data.routes?.length > 0) {
-          const coords = data.routes[0].geometry.coordinates.map(
-            ([lng, lat]) => [lat, lng]
-          );
-          setRouteCoords(coords);
-        }
-      } catch (error) {
-        console.error("Route fetch error:", error);
+    return () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
       }
     };
-
-    fetchRoute();
-  }, []); // ESLint clean
+  }, [watchId]);
 
   /* ===============================
-     DRIVER LIVE LOCATION (3 sec)
+     FETCH ROAD ROUTE
   ================================ */
+
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!pickup || !delivery || !window.google) return;
 
-    const interval = setInterval(() => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setDriverLocation([
-            position.coords.latitude,
-            position.coords.longitude,
-          ]);
-        },
-        (error) => console.error("GPS error:", error),
-        { enableHighAccuracy: true }
-      );
-    }, 3000);
+    const directionsService = new window.google.maps.DirectionsService();
 
-    return () => clearInterval(interval);
-  }, []);
+    directionsService.route(
+      {
+        origin: pickup,
+        destination: delivery,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === "OK") {
+          setDirections(result);
+        }
+      }
+    );
+  }, [pickup, delivery]);
 
-  if (!shipment) return null;
+  if (!shipment || !pickup || !delivery) return null;
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 mb-4">
+    <div className="relative bg-white rounded-lg shadow p-4 mb-6">
+      {showModal && (
+        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg text-center shadow-lg w-80">
+            <h3 className="text-lg font-semibold mb-3">Enable Live Location</h3>
+            <p className="text-sm mb-4">
+              To start shipment tracking, please turn on your location.
+            </p>
+            <button
+              onClick={handleEnableLocation}
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+            >
+              Turn On Location
+            </button>
+          </div>
+        </div>
+      )}
       <h4 className="font-bold mb-2">
         {shipment.pickupLocation} → {shipment.deliveryLocation}
       </h4>
 
-      <div className="w-full h-72">
-        <MapContainer
-          center={PICKUP_COORDS}
-          zoom={9}
-          style={{ height: "100%", width: "100%" }}
-        >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      {/* 🔒 FORCE LOCATION MODAL */}
 
-          {/* Pickup Location */}
-          <Marker position={PICKUP_COORDS}>
-            <Popup>Pickup Location (Indore)</Popup>
-          </Marker>
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={liveLocation || pickup}
+        zoom={9}
+      >
+        <Marker
+          position={pickup}
+          icon="http://maps.google.com/mapfiles/ms/icons/green-dot.png"
+        />
 
-          {/* Delivery Location */}
-          <Marker position={DELIVERY_COORDS}>
-            <Popup>Drop Location (Ujjain)</Popup>
-          </Marker>
+        <Marker
+          position={delivery}
+          icon="http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+        />
 
-          {/* Driver Live Location */}
-          {driverLocation && (
-            <Marker position={driverLocation}>
-              <Popup>Driver Current Location</Popup>
-            </Marker>
-          )}
+        {liveLocation && (
+          <Marker
+            position={liveLocation}
+            icon="http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+          />
+        )}
 
-          {/* Route Path */}
-          {routeCoords.length > 0 && (
-            <Polyline
-              positions={routeCoords}
-              pathOptions={{ color: "#BF9B53", weight: 5 }}
-            />
-          )}
-        </MapContainer>
-      </div>
+        {directions && (
+          <DirectionsRenderer
+            directions={directions}
+            options={{ suppressMarkers: true }}
+          />
+        )}
+      </GoogleMap>
     </div>
   );
 };
