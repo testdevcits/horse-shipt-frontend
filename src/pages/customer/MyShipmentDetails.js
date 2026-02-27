@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { SlLocationPin } from "react-icons/sl";
 import { LuCalendarDays, LuCircleChevronRight } from "react-icons/lu";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
@@ -18,6 +18,7 @@ const MyShipmentDetails = () => {
   const [searchParams] = useSearchParams();
   const queryId = searchParams.get("shipmentId");
   const shipmentId = paramId || queryId;
+  const navigate = useNavigate();
 
   const {
     fetchShipmentById,
@@ -68,6 +69,19 @@ const MyShipmentDetails = () => {
     }
   };
 
+  const handleReviewNavigate = () => {
+    const shipperId =
+      quotes?.[0]?.shipper?._id ||
+      shipment?.shipperId ||
+      shipment?.shipper?._id;
+
+    if (!shipperId) {
+      alert("Shipper ID not found");
+      return;
+    }
+
+    navigate(`/customer/reviews/${shipperId}`);
+  };
   // ---------------- TAB BUTTON ----------------
   const handleTabClick = (id) => {
     setActiveTab(id);
@@ -318,6 +332,12 @@ const MyShipmentDetails = () => {
                   />
                 </div>
               ))}
+              <button
+                onClick={handleReviewNavigate}
+                className="text-system-primary hover:opacity-80 transition text-sm font-medium bg-transparent border-none p-0 cursor-pointer"
+              >
+                View Shipper Reviews
+              </button>
             </div>
           )}
         </div>

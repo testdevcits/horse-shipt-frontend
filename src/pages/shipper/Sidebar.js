@@ -4,7 +4,7 @@ import axios from "axios";
 
 import { LuArrowLeftFromLine, LuArrowRightFromLine } from "react-icons/lu";
 import { CiCircleQuestion } from "react-icons/ci";
-
+import { IoStarHalf } from "react-icons/io5";
 import { useAuth } from "../../contexts/AuthContext";
 
 // COMMON ICONS
@@ -51,6 +51,11 @@ const navItems = [
       { name: "Customer Chat", path: "/shipper/chat/customer" },
       { name: "Driver Chat", path: "/shipper/chat/driver" },
     ],
+  },
+  {
+    name: "Google Review",
+    path: "/shipper/google-review",
+    icon: <IoStarHalf className="text-[#BF9B53] text-lg" />,
   },
   {
     name: "Settings",

@@ -19,6 +19,8 @@ import ProtectedDriverRoute from "./ProtectedDriverRoute";
 import CustomerChatOverview from "../pages/customer/ChatOverview";
 import ShipperQuotesPage from "../pages/shipper/ShipperQuotesPage";
 import MyHorses from "../pages/customer/MyHorses";
+import GoogleReview from "../pages/shipper/GoogleReview";
+import CustomerShipperReviewPage from "../pages/customer/CustomerShipperReviewPage";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -166,6 +168,7 @@ const AppRoutes = () => {
           <Route path="settings" element={<ShipperSettings />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="quotes" element={<ShipperQuotesPage />} />
+          <Route path="google-review" element={<GoogleReview />} />
 
           {/* LIST PAGE */}
           <Route path="shipments" element={<AllUpcomingShipments />} />
@@ -196,6 +199,10 @@ const AppRoutes = () => {
           <Route path="my-shipments" element={<MyShipmentDetails />} />
           <Route path="chats" element={<CustomerChatOverview />} />
           <Route path="my-horses" element={<MyHorses />} />
+          <Route
+            path="reviews/:shipperId"
+            element={<CustomerShipperReviewPage />}
+          />
         </Route>
 
         {/* ---------- Fallback ---------- */}

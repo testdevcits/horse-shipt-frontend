@@ -18,7 +18,7 @@ const InputField = ({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+        className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-system-primary focus:border-system-primary transition"
       />
     </div>
   );

@@ -42,7 +42,7 @@ export const VehicleProvider = ({ children }) => {
       fetchVehicles();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, user]); // ignore fetchVehicles dependency to prevent loop
+  }, [token]);
 
   // ---------------- ADD VEHICLE ----------------
   const addVehicle = async (formData) => {

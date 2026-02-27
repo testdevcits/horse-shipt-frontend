@@ -19,7 +19,7 @@ const NewOpportunities = () => {
 
   useEffect(() => {
     if (!fetchedOnce.current) {
-      getAvailableShipmentsForMap(); // 🔥 fetch lightweight map shipments
+      getAvailableShipmentsForMap();
       fetchedOnce.current = true;
     }
   }, [getAvailableShipmentsForMap]);

@@ -59,6 +59,8 @@ const VehiclePage = () => {
       .required("Vehicle number is required")
       .max(20, "Vehicle number is too long"),
 
+    vinNumber: Yup.string().nullable(),
+
     trailerType: Yup.string().required("Trailer type is required"),
 
     numberOfStalls: Yup.number()
@@ -73,6 +75,7 @@ const VehiclePage = () => {
     transportType: "Trucking",
     vehicleType: vehicle?.vehicleType || "",
     vehicleNumber: vehicle?.vehicleNumber || "",
+    vinNumber: vehicle?.vinNumber || "",
     trailerType: vehicle?.trailerType || "Stock Trailer",
     numberOfStalls: vehicle?.numberOfStalls || "",
     stallSize: vehicle?.stallSize || "",
@@ -144,17 +147,18 @@ const VehiclePage = () => {
           No vehicles found. Add one to get started!
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
           {vehicles.map((vehicle, index) => (
             <div
               key={vehicle._id}
-              className="bg-white border border-gray-200 rounded-[14px] p-4 shadow-sm hover:shadow-md transition-all flex flex-col gap-4 w-full sm:max-w-[464px] h-auto min-h-[400px] mx-auto"
+              className="bg-white border border-gray-200 rounded-[14px] p-4  hover:shadow-xl transition-all flex flex-col gap-4 w-full min-h-[420px] mx-auto"
             >
               {/* Header */}
               <div className="flex justify-between items-center w-full h-9 px-3">
                 <h2 className="text-[16px] font-semibold text-systemText">
                   Vehicle {index + 1}
                 </h2>
+
                 <button
                   onClick={() => openModal(vehicle)}
                   className="flex items-center gap-1 text-[14px] font-medium bg-gray-100 text-systemText px-3 py-1 rounded-md hover:bg-gray-200 transition"
@@ -163,53 +167,67 @@ const VehiclePage = () => {
                 </button>
               </div>
 
-              {/* Transport & Vehicle Type */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
-                <div className="flex flex-col">
-                  <span className="text-[16px] font-medium text-systemText">
-                    Transport:
-                  </span>
-                  <span className="text-sm text-gray-500">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 px-2 w-full">
+                <div>
+                  <span className="text-[15px] font-medium">Transport:</span>
+                  <p className="text-sm text-gray-500">
                     {vehicle.transportType || "N/A"}
-                  </span>
+                  </p>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[16px] font-medium text-systemText">
-                    Vehicle:
-                  </span>
-                  <span className="text-sm text-gray-500">
+
+                <div>
+                  <span className="text-[15px] font-medium">Vehicle Type:</span>
+                  <p className="text-sm text-gray-500">
                     {vehicle.vehicleType || "N/A"}
-                  </span>
+                  </p>
                 </div>
-              </div>
 
-              {/* Vehicle Number (NEW) */}
-              <div className="flex flex-col px-2">
-                <span className="text-[16px] font-medium text-systemText">
-                  Vehicle Number:
-                </span>
-                <span className="text-sm text-gray-500">
-                  {vehicle.vehicleNumber || "N/A"}
-                </span>
-              </div>
-
-              {/* Stalls & Size */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full px-2 gap-2">
-                <div className="flex flex-col">
-                  <span className="text-[16px] font-medium text-systemText">
-                    Stalls:
+                <div>
+                  <span className="text-[15px] font-medium">
+                    Vehicle Number:
                   </span>
-                  <span className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 uppercase">
+                    {vehicle.vehicleNumber || "N/A"}
+                  </p>
+                </div>
+
+                <div>
+                  <span className="text-[15px] font-medium">VIN Number:</span>
+                  <p className="text-sm text-gray-500 uppercase">
+                    {vehicle.vinNumber || "N/A"}
+                  </p>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <span className="text-[15px] font-medium">
+                    Verification Status:
+                  </span>
+
+                  <p
+                    className={`text-sm font-semibold mt-1 ${
+                      vehicle.verificationStatus === "VERIFIED"
+                        ? "text-green-600"
+                        : vehicle.verificationStatus === "REJECTED"
+                        ? "text-red-600"
+                        : "text-yellow-600"
+                    }`}
+                  >
+                    {vehicle.verificationStatus || "PENDING"}
+                  </p>
+                </div>
+
+                <div>
+                  <span className="text-[15px] font-medium">Stalls:</span>
+                  <p className="text-sm text-gray-500">
                     {vehicle.numberOfStalls || "N/A"}
-                  </span>
+                  </p>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[16px] font-medium text-systemText">
-                    Size:
-                  </span>
-                  <span className="text-sm text-gray-500">
+
+                <div>
+                  <span className="text-[15px] font-medium">Size:</span>
+                  <p className="text-sm text-gray-500">
                     {vehicle.stallSize || "N/A"}
-                  </span>
+                  </p>
                 </div>
               </div>
 
@@ -218,6 +236,7 @@ const VehiclePage = () => {
                 <p className="text-[16px] font-medium text-systemText mb-2">
                   Images:
                 </p>
+
                 <div className="flex flex-wrap gap-2">
                   {vehicle.images?.length > 0 ? (
                     vehicle.images.map((img, i) => (
@@ -243,9 +262,9 @@ const VehiclePage = () => {
                 <span className="text-[16px] font-medium text-systemText">
                   Notes:
                 </span>
-                <span className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500">
                   {vehicle.notes || "N/A"}
-                </span>
+                </p>
               </div>
             </div>
           ))}
@@ -383,6 +402,29 @@ const VehiclePage = () => {
                     />
                     <ErrorMessage
                       name="vehicleNumber"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  {/* VIN Number (Optional Field) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      VIN Number (Optional)
+                    </label>
+
+                    <Field
+                      type="text"
+                      name="vinNumber"
+                      placeholder="Enter VIN number"
+                      className="w-full border border-gray-300 rounded-lg p-2 uppercase"
+                      onChange={(e) =>
+                        setFieldValue("vinNumber", e.target.value.toUpperCase())
+                      }
+                    />
+
+                    <ErrorMessage
+                      name="vinNumber"
                       component="p"
                       className="text-red-500 text-sm mt-1"
                     />
