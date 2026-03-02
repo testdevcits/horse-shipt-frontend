@@ -123,7 +123,9 @@ const ShipmentCard = ({ shipment }) => {
             <div className="flex gap-1 flex-wrap">
               <span className="text-gray-500">Estimated Distance:</span>
               <span className="font-medium">
-                {shipment.estimatedDistance || 200} miles
+                {shipment.estimatedDistance
+                  ? `${shipment.estimatedDistance.miles} miles (${shipment.estimatedDistance.km} km)`
+                  : "200 miles"}
               </span>
             </div>
 

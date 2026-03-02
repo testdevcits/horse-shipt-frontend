@@ -134,9 +134,16 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
               </h3>
               <p className="flex gap-2 items-center text-gray-700">
                 <span className="font-montserrat font-semibold text-[30px] leading-[38px]">
-                  {shipment.estimatedDistance || 200}
+                  {shipment.estimatedDistance
+                    ? shipment.estimatedDistance.miles
+                    : 200}
                 </span>{" "}
                 miles
+                {shipment.estimatedDistance && (
+                  <span className="text-sm text-gray-500 ml-2">
+                    ({shipment.estimatedDistance.km} km)
+                  </span>
+                )}
               </p>
             </div>
 
