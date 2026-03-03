@@ -155,6 +155,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("horseShiptUser");
       localStorage.removeItem("token");
       localStorage.removeItem("role");
+      sessionStorage.removeItem("stripeModalShown");
 
       navigate("/login", { replace: true });
     }

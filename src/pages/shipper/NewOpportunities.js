@@ -12,17 +12,31 @@ const NewOpportunities = () => {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("list");
 
-  const { shipments, mapShipments, getAvailableShipmentsForMap, loading } =
-    useShipperShipment();
+  const {
+    shipments,
+    mapShipments,
+    getAvailableShipments,
+    getAvailableShipmentsForMap,
+    loading,
+  } = useShipperShipment();
 
   const fetchedOnce = useRef(false);
 
+  /* ===============================
+     INITIAL LOAD
+  =================================*/
+
   useEffect(() => {
     if (!fetchedOnce.current) {
-      getAvailableShipmentsForMap();
+      getAvailableShipments(1, 10); // list view
+      getAvailableShipmentsForMap(1, 5); // ⭐ map view = 5 shipment only
       fetchedOnce.current = true;
     }
-  }, [getAvailableShipmentsForMap]);
+  }, [getAvailableShipments, getAvailableShipmentsForMap]);
+
+  /* ===============================
+     SEARCH FILTER
+  =================================*/
 
   const filteredShipments = (shipments || []).filter((shipment) => {
     const searchText = `${shipment.pickupLocation} ${shipment.deliveryLocation}`;
@@ -31,19 +45,20 @@ const NewOpportunities = () => {
 
   return (
     <div className="flex flex-col w-full h-full">
-      {/* HEADER */}
+      {/* ================= HEADER ================= */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
         <h1 className="font-montserrat font-semibold text-3xl text-gray-800">
           New Opportunities for you
         </h1>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-          {/* Search */}
+          {/* SEARCH */}
           <div className="relative w-full sm:w-72">
             <HiSearch
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600"
               size={18}
             />
+
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -53,7 +68,7 @@ const NewOpportunities = () => {
             />
           </div>
 
-          {/* Tabs */}
+          {/* TAB SWITCH */}
           <div className="flex w-full sm:w-auto border border-gray-400 rounded-lg overflow-hidden">
             <button
               onClick={() => setActiveTab("map")}
@@ -82,7 +97,7 @@ const NewOpportunities = () => {
         </div>
       </div>
 
-      {/* CONTENT */}
+      {/* ================= CONTENT ================= */}
       <div className="mt-4 w-full flex-1 min-h-[400px] relative overflow-auto">
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-10">
@@ -110,7 +125,9 @@ const NewOpportunities = () => {
         )}
 
         {/* MAP VIEW */}
-        {activeTab === "map" && <ShipmentMap shipments={mapShipments} />}
+        {activeTab === "map" && (
+          <ShipmentMap shipments={mapShipments.slice(0, 5)} />
+        )}
       </div>
     </div>
   );

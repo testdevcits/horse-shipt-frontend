@@ -128,7 +128,7 @@ const ChatOverview = () => {
   }
 
   return (
-    <div className="flex h-[calc(100vh-120px)] bg-white border shadow font-montserrat overflow-hidden">
+    <div className="flex h-[calc(99vh-120px)] bg-white border shadow font-montserrat overflow-hidden">
       {/* ================= LEFT: CUSTOMER LIST ================= */}
       <div
         className={`w-full lg:w-1/4 border-r overflow-y-auto bg-white

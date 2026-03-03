@@ -36,6 +36,7 @@ import { ShipperQuestionProvider } from "./contexts/shipperContext/ShipperQuesti
 
 // ------------------- Routes -------------------
 import AppRoutes from "./routes/AppRoutes";
+import { ShipperPaymentProvider } from "./contexts/shipperContext/ShipperPaymentContext";
 
 const GOOGLE_LIBRARIES = ["places"];
 
@@ -49,50 +50,52 @@ function App() {
         {/* Shipper & Customer Contexts */}
         <AuthProvider>
           <CustomerPaymentProvider>
-            <CustomerNotificationProvider>
-              <VehicleProvider>
-                <DriverProvider>
-                  <PreferredAreasProvider>
-                    <ShipperSettingsProvider>
-                      <ShipperProfileProvider>
-                        {" "}
-                        <ShipperReviewProvider>
-                          <ShipperLocationProvider>
-                            <ShipperPreferredAreaProvider>
-                              <CustomerShipmentProvider>
-                                <CustomerQuoteProvider>
-                                  <CustomerReviewProvider>
-                                    <ProfileProvider>
-                                      <ShipperContractProvider>
-                                        <ShipperQuoteProvider>
-                                          <ShipperShipmentProvider>
-                                            <DriverAuthProvider>
-                                              <ShipperChatProvider>
-                                                <CustomerChatProvider>
-                                                  <ShipperQuestionProvider>
-                                                    <CustomerQuestionProvider>
-                                                      <AppRoutes />
-                                                    </CustomerQuestionProvider>
-                                                  </ShipperQuestionProvider>
-                                                </CustomerChatProvider>
-                                              </ShipperChatProvider>
-                                            </DriverAuthProvider>
-                                          </ShipperShipmentProvider>
-                                        </ShipperQuoteProvider>
-                                      </ShipperContractProvider>
-                                    </ProfileProvider>
-                                  </CustomerReviewProvider>
-                                </CustomerQuoteProvider>
-                              </CustomerShipmentProvider>
-                            </ShipperPreferredAreaProvider>
-                          </ShipperLocationProvider>
-                        </ShipperReviewProvider>
-                      </ShipperProfileProvider>
-                    </ShipperSettingsProvider>
-                  </PreferredAreasProvider>
-                </DriverProvider>
-              </VehicleProvider>
-            </CustomerNotificationProvider>
+            <ShipperPaymentProvider>
+              <CustomerNotificationProvider>
+                <VehicleProvider>
+                  <DriverProvider>
+                    <PreferredAreasProvider>
+                      <ShipperSettingsProvider>
+                        <ShipperProfileProvider>
+                          {" "}
+                          <ShipperReviewProvider>
+                            <ShipperLocationProvider>
+                              <ShipperPreferredAreaProvider>
+                                <CustomerShipmentProvider>
+                                  <CustomerQuoteProvider>
+                                    <CustomerReviewProvider>
+                                      <ProfileProvider>
+                                        <ShipperContractProvider>
+                                          <ShipperQuoteProvider>
+                                            <ShipperShipmentProvider>
+                                              <DriverAuthProvider>
+                                                <ShipperChatProvider>
+                                                  <CustomerChatProvider>
+                                                    <ShipperQuestionProvider>
+                                                      <CustomerQuestionProvider>
+                                                        <AppRoutes />
+                                                      </CustomerQuestionProvider>
+                                                    </ShipperQuestionProvider>
+                                                  </CustomerChatProvider>
+                                                </ShipperChatProvider>
+                                              </DriverAuthProvider>
+                                            </ShipperShipmentProvider>
+                                          </ShipperQuoteProvider>
+                                        </ShipperContractProvider>
+                                      </ProfileProvider>
+                                    </CustomerReviewProvider>
+                                  </CustomerQuoteProvider>
+                                </CustomerShipmentProvider>
+                              </ShipperPreferredAreaProvider>
+                            </ShipperLocationProvider>
+                          </ShipperReviewProvider>
+                        </ShipperProfileProvider>
+                      </ShipperSettingsProvider>
+                    </PreferredAreasProvider>
+                  </DriverProvider>
+                </VehicleProvider>
+              </CustomerNotificationProvider>
+            </ShipperPaymentProvider>
           </CustomerPaymentProvider>
         </AuthProvider>
       </LoadScript>

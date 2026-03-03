@@ -29,7 +29,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const vehiclesLoading = vehicleContext.loading || false;
 
   const [shipment, setShipment] = useState(null);
-  const [openDetails, setOpenDetails] = useState(false);
+  const [openDetails, setOpenDetails] = useState(true);
   const [isOfferOpen, setIsOfferOpen] = useState(false);
 
   const idToUse = shipmentIdFromQuery || paramId || defaultId;

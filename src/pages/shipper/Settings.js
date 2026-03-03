@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useLocation } from "react-router-dom"; // import useLocation
+import { useLocation, useNavigate } from "react-router-dom";
 import CommentBanner from "../../components/common/CommentBanner";
 import Profile from "./Profile";
 import ShipmentSettings from "./ShipmentSettings";
@@ -7,7 +7,8 @@ import PaymentsComingSoon from "./PaymentsComingSoon";
 import ShipperNotifications from "./ShipperNotifications";
 
 const ShipperSettings = () => {
-  const location = useLocation(); // get location state
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const tabs = [
     { id: "profile", label: "Profile Settings" },
@@ -16,13 +17,18 @@ const ShipperSettings = () => {
     { id: "notification", label: "Notification Settings" },
   ];
 
-  // Set initial tab based on state or default to 'profile'
-  const [activeTab, setActiveTab] = useState(
-    location.state?.activeTab || "profile"
-  );
+  const queryParams = new URLSearchParams(location.search);
+  const initialTab = queryParams.get("tab") || "profile";
+
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   const tabRefs = useRef({});
   const containerRef = useRef(null);
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    navigate(`/shipper/settings?tab=${tabId}`);
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -44,10 +50,8 @@ const ShipperSettings = () => {
     const container = containerRef.current;
 
     if (activeTabElement && container) {
-      const offsetLeft = activeTabElement.offsetLeft;
-
       container.scrollTo({
-        left: offsetLeft - 16,
+        left: activeTabElement.offsetLeft - 16,
         behavior: "smooth",
       });
     }
@@ -56,43 +60,28 @@ const ShipperSettings = () => {
   return (
     <>
       <CommentBanner />
+
       <div className="flex flex-col items-center w-full px-2">
-        {/* Tabs */}
         <div
           ref={containerRef}
-          className="
-            w-full 
-            flex flex-nowrap sm:flex-wrap
-            overflow-x-auto sm:overflow-visible
-            justify-start
-            items-start border-b border-gray-300 mb-6 mt-6
-            scrollbar-hide
-          "
-          style={{ WebkitOverflowScrolling: "touch" }}
+          className="w-full flex flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible border-b border-gray-300 mb-6 mt-6 scrollbar-hide"
         >
           {tabs.map((tab) => (
             <button
               key={tab.id}
               ref={(el) => (tabRefs.current[tab.id] = el)}
-              onClick={() => setActiveTab(tab.id)}
-              className={`
-                flex-shrink-0
-                px-4 py-2 sm:py-3
-                font-montserrat font-semibold text-[14px]
-                border-b-2 transition-colors duration-200
-                ${
-                  activeTab === tab.id
-                    ? "border-system-primary text-system-primary"
-                    : "border-transparent text-gray-600 hover:text-gray-900"
-                }
-              `}
+              onClick={() => handleTabChange(tab.id)}
+              className={`flex-shrink-0 px-4 py-2 sm:py-3 font-montserrat font-semibold text-[14px] border-b-2 transition-colors duration-200 ${
+                activeTab === tab.id
+                  ? "border-system-primary text-system-primary"
+                  : "border-transparent text-gray-600 hover:text-gray-900"
+              }`}
             >
               {tab.label}
             </button>
           ))}
         </div>
 
-        {/* Tab Content */}
         <div className="w-full">{renderTabContent()}</div>
       </div>
     </>

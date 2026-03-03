@@ -1,25 +1,41 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom"; // added useNavigate
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { useShipperProfile } from "../contexts/ShipperProfileContext";
+import { useShipperPayments } from "../contexts/shipperContext/ShipperPaymentContext";
+
+import StripeAlertBanner from "../pages/shipper/common/StripeAlertBanner";
+import StripeVerificationModal from "../pages/shipper/common/StripeVerificationModal";
+
 import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
-import logo from "../assets/images/logo.png";
 import { MdOutlineNotificationsActive } from "react-icons/md";
 import { IoShareSocial } from "react-icons/io5";
+
 import StatusBadge from "../components/common/StatusBadge";
+import logo from "../assets/images/logo.png";
 import defaultProfileImage from "../assets/images/profileImage.png";
 
 const ShipperLayout = () => {
-  const navigate = useNavigate(); // initialize navigate
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const { user, logout } = useAuth();
   const { profile, loading } = useShipperProfile();
+  const { fetchStripeStatus, needsOnboarding } = useShipperPayments();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
+  const [showStripeModal, setShowStripeModal] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+
+  /* ================= Detect Payment Tab (URL Based) ================= */
+  const queryParams = new URLSearchParams(location.search);
+  const isPaymentTab =
+    location.pathname === "/shipper/settings" &&
+    queryParams.get("tab") === "payment";
 
   const profileImage =
     profile?.profileImage ||
@@ -29,17 +45,47 @@ const ShipperLayout = () => {
     defaultProfileImage ||
     null;
 
+  /* ================= Screen Resize ================= */
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  /* ================= Fetch Stripe Status ================= */
+  useEffect(() => {
+    fetchStripeStatus();
+  }, [fetchStripeStatus]);
+
+  /* ================= Auto Modal Once Per Session ================= */
+  useEffect(() => {
+    if (needsOnboarding && !isPaymentTab) {
+      const hasShown = sessionStorage.getItem("stripeModalShown");
+      if (!hasShown) {
+        setShowStripeModal(true);
+        sessionStorage.setItem("stripeModalShown", "true");
+      }
+    }
+  }, [needsOnboarding, isPaymentTab]);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6">
-        {/* Left */}
+      {/* ================= STRIPE ALERT ================= */}
+      {needsOnboarding && (
+        <div className="fixed top-0 left-0 w-full z-50">
+          <StripeAlertBanner
+            onOpenModal={() => setShowStripeModal(true)}
+            hideButton={isPaymentTab}
+          />
+        </div>
+      )}
+
+      {/* ================= HEADER ================= */}
+      <header
+        className={`sticky ${
+          needsOnboarding ? "top-[52px]" : "top-0"
+        } z-40 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6`}
+      >
         <div className="flex items-center gap-4">
           {!mobileOpen ? (
             <button
@@ -56,6 +102,7 @@ const ShipperLayout = () => {
               <IoMdClose size={24} />
             </button>
           )}
+
           <img
             src={logo}
             alt="Logo"
@@ -63,23 +110,17 @@ const ShipperLayout = () => {
           />
         </div>
 
-        {/* Right */}
         <div className="flex items-center gap-4 relative">
-          {/* Share Icon */}
           <IoShareSocial size={20} className="text-gray-500 cursor-pointer" />
 
-          {/* Notification Icon → Navigate */}
           <MdOutlineNotificationsActive
             size={20}
             className="text-gray-500 cursor-pointer hover:text-system-primary transition"
             onClick={() => navigate("/shipper/notifications")}
           />
 
-          {/* Chat Status */}
-          {/* Instead of hardcoded div */}
           <StatusBadge text="Available" />
 
-          {/* Profile */}
           {profileImage ? (
             <div className="relative">
               <img
@@ -91,17 +132,16 @@ const ShipperLayout = () => {
                 onClick={() => !loading && setProfilePopup(!profilePopup)}
               />
 
-              {/* Profile Dropdown */}
               {profilePopup && (
                 <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50">
                   <div className="px-4 py-2 border-b text-gray-700 font-medium">
                     {user?.name || "User"}
                   </div>
                   <div
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                     onClick={logout}
                   >
-                    <span>Logout</span>
+                    Logout
                   </div>
                 </div>
               )}
@@ -112,8 +152,10 @@ const ShipperLayout = () => {
         </div>
       </header>
 
-      {/* Body */}
-      <div className="flex flex-1 relative">
+      {/* ================= BODY ================= */}
+      <div
+        className={`flex flex-1 relative ${needsOnboarding ? "mt-[52px]" : ""}`}
+      >
         <Sidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
@@ -122,14 +164,22 @@ const ShipperLayout = () => {
         />
 
         <main
-          className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300"
+          className="flex-1 overflow-auto transition-all duration-300"
           style={{
             marginLeft: isDesktop ? (sidebarOpen ? 256 : 64) : 0,
           }}
         >
-          <Outlet />
+          <div className="p-4 sm:p-6 md:p-8">
+            <Outlet />
+          </div>
         </main>
       </div>
+
+      {/* ================= STRIPE MODAL ================= */}
+      <StripeVerificationModal
+        isOpen={showStripeModal}
+        onClose={() => setShowStripeModal(false)}
+      />
     </div>
   );
 };

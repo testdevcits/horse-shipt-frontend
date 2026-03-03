@@ -27,21 +27,25 @@ const TruckDriverPage = () => {
   const [editingDriver, setEditingDriver] = useState(null);
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [selectedVehicles, setSelectedVehicles] = useState([]);
-  const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
+  const [confirmDelete, setConfirmDelete] = useState({
+    show: false,
+    id: null,
+  });
 
   useEffect(() => {
-    fetchDrivers();
+    fetchDrivers?.();
   }, [fetchDrivers]);
 
   /* ---------------- Validation ---------------- */
+
   const validationSchema = Yup.object({
     name: Yup.string().required("Name is required"),
-    email: Yup.string().email("Invalid email").required("Email is required"),
-    phone: Yup.string().required("Phone is required"),
-    licenseNumber: Yup.string().required("License number is required"),
+    email: Yup.string().email().required(),
+    phone: Yup.string().required(),
+    licenseNumber: Yup.string().required(),
     password: editingDriver
       ? Yup.string()
-      : Yup.string().required("Password is required"),
+      : Yup.string().required("Password required"),
     notes: Yup.string(),
   });
 
@@ -54,40 +58,60 @@ const TruckDriverPage = () => {
     notes: editingDriver?.notes || "",
   };
 
+  /* ---------------- Submit ---------------- */
+
   const handleSubmit = async (values, { resetForm }) => {
-    if (editingDriver) {
-      await updateDriver(editingDriver._id, values);
-    } else {
-      await addDriver(values);
+    try {
+      if (editingDriver) {
+        await updateDriver(editingDriver._id, values);
+      } else {
+        await addDriver(values);
+      }
+
+      fetchDrivers?.();
+
+      resetForm();
+      setEditingDriver(null);
+      setShowForm(false);
+    } catch (err) {
+      console.log(err);
     }
-    resetForm();
-    setEditingDriver(null);
-    setShowForm(false);
   };
+
+  /* ---------------- Delete ---------------- */
 
   const confirmDeleteDriver = async () => {
     await deleteDriver(confirmDelete.id);
     setConfirmDelete({ show: false, id: null });
+    fetchDrivers?.();
   };
+
+  /* ---------------- Assign Vehicles ---------------- */
 
   const handleAssignVehicles = async () => {
     if (!selectedDriver || !selectedVehicles.length) return;
-    await assignVehicles(selectedDriver._id, selectedVehicles);
+
+    await assignVehicles(selectedDriver._id, {
+      vehicleIds: selectedVehicles,
+    });
+
     setSelectedDriver(null);
     setSelectedVehicles([]);
+    fetchDrivers?.();
   };
+
+  /* ---------------- Status Toggle ---------------- */
 
   const handleToggleStatus = async (driver) => {
     await toggleDriverStatus(driver._id, !driver.isActive);
+    fetchDrivers?.();
   };
 
   return (
-    <div className="w-full font-montserrat ">
-      {/* ---------------- Header ---------------- */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-6 mb-6">
-        <h2 className="text-[16px] font-semibold text-systemText leading-[24px]">
-          Truck Driver Management
-        </h2>
+    <div className="w-full font-montserrat p-4">
+      {/* Header */}
+      <div className="flex justify-between mb-6">
+        <h2 className="font-semibold text-lg">Truck Driver Management</h2>
 
         <Button
           onClick={() => {
@@ -96,7 +120,7 @@ const TruckDriverPage = () => {
           }}
         >
           {showForm ? (
-            <span className="flex items-center gap-1">
+            <span className="flex gap-1 items-center">
               <FiX /> Close
             </span>
           ) : (
@@ -105,16 +129,13 @@ const TruckDriverPage = () => {
         </Button>
       </div>
 
-      {/* ---------------- Loader ---------------- */}
-      {loading && (
-        <div className="flex justify-center items-center h-60">
-          <PageLoader text="Loading drivers..." />
-        </div>
-      )}
+      {/* Loader */}
+      {loading && <PageLoader text="Loading drivers..." />}
 
-      {/* ---------------- FORM ---------------- */}
+      {/* Driver Form */}
+
       {showForm && (
-        <div className="bg-white shadow-lg rounded-xl p-6 mb-10 border border-gray-200">
+        <div className="bg-white shadow rounded-xl p-6 mb-8">
           <Formik
             initialValues={initialValues}
             validationSchema={validationSchema}
@@ -124,7 +145,7 @@ const TruckDriverPage = () => {
             {({ values, handleChange, handleSubmit }) => (
               <form
                 onSubmit={handleSubmit}
-                className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4"
+                className="grid sm:grid-cols-2 gap-4"
               >
                 <InputField
                   label="Name"
@@ -153,12 +174,11 @@ const TruckDriverPage = () => {
                 <InputField
                   label="Password"
                   type="password"
-                  placeholder={
-                    editingDriver ? "Leave blank to keep same password" : ""
-                  }
                   value={values.password}
                   onChange={handleChange("password")}
-                  className="sm:col-span-2"
+                  placeholder={
+                    editingDriver ? "Leave blank if not changing" : ""
+                  }
                 />
 
                 <InputField
@@ -176,8 +196,9 @@ const TruckDriverPage = () => {
                   >
                     Cancel
                   </Button>
+
                   <Button type="submit">
-                    {editingDriver ? "Update Driver" : "Save Driver"}
+                    {editingDriver ? "Update" : "Save"}
                   </Button>
                 </div>
               </form>
@@ -186,61 +207,32 @@ const TruckDriverPage = () => {
         </div>
       )}
 
-      {/* ---------------- DRIVER LIST ---------------- */}
+      {/* Driver List */}
+
       {!showForm && !loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-3 gap-5">
           {drivers.map((driver) => (
             <div
               key={driver._id}
-              className="border rounded-lg p-4 flex flex-col justify-between bg-white shadow-sm hover:shadow-md transition relative"
+              className="border rounded-xl p-4 bg-white shadow-sm relative"
             >
-              {/* Profile Image Top Right */}
-              {driver.profileImage?.url && (
-                <img
-                  src={driver.profileImage.url}
-                  alt={driver.name}
-                  className="w-12 h-12 rounded-full object-cover absolute top-4 right-4 border-2 border-gray-200"
-                />
-              )}
+              <h3 className="font-semibold">{driver.name}</h3>
 
-              {/* Driver Info */}
-              <div className="mt-2">
-                <h3 className="font-semibold">{driver.name}</h3>
-                <p className="text-sm">{driver.email}</p>
-                <p className="text-sm">{driver.phone}</p>
+              <p className="text-sm">{driver.email}</p>
+              <p className="text-sm">{driver.phone}</p>
 
-                {/* Status */}
-                <span
-                  className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${
-                    driver.isActive
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {driver.isActive ? "Active" : "Inactive"}
-                </span>
-
-                {/* Assigned Vehicles */}
-                {driver.assignedVehicles?.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs font-medium text-gray-600 mb-1">
-                      Assigned Vehicles
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {driver.assignedVehicles.map((vehicle) => (
-                        <span
-                          key={vehicle._id}
-                          className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200"
-                        >
-                          {vehicle.vehicleNumber || "N/A"}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <span
+                className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${
+                  driver.isActive
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
+                {driver.isActive ? "Active" : "Inactive"}
+              </span>
 
               {/* Actions */}
+
               <div className="flex gap-2 mt-4 flex-wrap">
                 <Button
                   size="sm"
@@ -256,14 +248,17 @@ const TruckDriverPage = () => {
                   size="sm"
                   variant="secondary"
                   onClick={() =>
-                    setConfirmDelete({ show: true, id: driver._id })
+                    setConfirmDelete({
+                      show: true,
+                      id: driver._id,
+                    })
                   }
                 >
                   <FiTrash2 /> Delete
                 </Button>
 
                 <Button size="sm" onClick={() => setSelectedDriver(driver)}>
-                  Assign
+                  Assign Vehicles
                 </Button>
 
                 <Button
@@ -279,10 +274,11 @@ const TruckDriverPage = () => {
         </div>
       )}
 
-      {/* ---------------- ASSIGN VEHICLES ---------------- */}
+      {/* Vehicle Assignment Modal */}
+
       {selectedDriver && (
-        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50">
-          <div className="bg-white w-full sm:w-96 rounded-t-xl sm:rounded-xl p-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white w-full max-w-sm rounded-xl p-4">
             <h3 className="font-semibold mb-3">
               Assign Vehicles – {selectedDriver.name}
             </h3>
@@ -301,13 +297,14 @@ const TruckDriverPage = () => {
                       )
                     }
                   />
-                  {v.vehicleType}
+                  {v.vehicleNumber || v.vehicleType}
                 </label>
               ))}
             </div>
 
             <div className="flex justify-end gap-2 mt-4">
               <Button onClick={handleAssignVehicles}>Assign</Button>
+
               <Button
                 variant="secondary"
                 onClick={() => {
@@ -322,10 +319,12 @@ const TruckDriverPage = () => {
         </div>
       )}
 
+      {/* Delete Modal */}
+
       <ConfirmModal
         show={confirmDelete.show}
         title="Delete Driver"
-        message="Are you sure you want to delete this driver?"
+        message="Are you sure?"
         onConfirm={confirmDeleteDriver}
         onCancel={() => setConfirmDelete({ show: false, id: null })}
       />

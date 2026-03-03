@@ -10,6 +10,7 @@ import axios from "axios";
 import { useAuth } from "../AuthContext";
 
 const ShipperShipmentContext = createContext();
+
 const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
 export const ShipperShipmentProvider = ({ children }) => {
@@ -17,12 +18,16 @@ export const ShipperShipmentProvider = ({ children }) => {
 
   const [shipments, setShipments] = useState([]);
   const [mapShipments, setMapShipments] = useState([]);
+
   const [shipment, setShipment] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const fetchedOnce = useRef(false);
 
-  // Get Available Shipments (List View)
+  /* ===============================
+     LIST VIEW API
+  =================================*/
+
   const getAvailableShipments = useCallback(async () => {
     if (!token || !isShipper) return;
 
@@ -32,7 +37,9 @@ export const ShipperShipmentProvider = ({ children }) => {
       const res = await axios.get(
         `${API_BASE_URL}/shipper/shipments/available`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -44,34 +51,52 @@ export const ShipperShipmentProvider = ({ children }) => {
     }
   }, [token, isShipper]);
 
-  //   NEW – Get Shipments For Map (Lightweight API)
-  const getAvailableShipmentsForMap = useCallback(async () => {
-    if (!token || !isShipper) return [];
+  /* ===============================
+     MAP VIEW PAGINATION API
+  =================================*/
 
-    try {
-      const res = await axios.get(`${API_BASE_URL}/shipper/shipments/map`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  const getAvailableShipmentsForMap = useCallback(
+    async (page = 1, limit = 10) => {
+      if (!token || !isShipper) return [];
 
-      const data = res.data.shipments || [];
-      setMapShipments(data);
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/shipper/shipments/map?page=${page}&limit=${limit}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-      return data;
-    } catch (err) {
-      console.error("Get Shipments For Map Error:", err);
-      return [];
-    }
-  }, [token, isShipper]);
+        const data = res.data.shipments || [];
 
-  //   Get Single Shipment Detail
+        setMapShipments((prev) => (page === 1 ? data : [...prev, ...data]));
+
+        return data;
+      } catch (err) {
+        console.error("Get Shipments For Map Error:", err);
+        return [];
+      }
+    },
+    [token, isShipper]
+  );
+
+  /* ===============================
+     SINGLE SHIPMENT DETAIL
+  =================================*/
+
   const getShipmentById = useCallback(
     async (id) => {
       if (!token || !id) return;
 
       setLoading(true);
+
       try {
         const res = await axios.get(`${API_BASE_URL}/shipper/shipments/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         setShipment(res.data.shipment);
@@ -86,7 +111,10 @@ export const ShipperShipmentProvider = ({ children }) => {
     [token]
   );
 
-  //  Initial Load (Only List API auto-fetch)
+  /* ===============================
+     AUTO INITIAL LOAD LIST API
+  =================================*/
+
   useEffect(() => {
     if (!token || !isShipper) return;
 
@@ -103,6 +131,7 @@ export const ShipperShipmentProvider = ({ children }) => {
         mapShipments,
         shipment,
         loading,
+
         getAvailableShipments,
         getAvailableShipmentsForMap,
         getShipmentById,
