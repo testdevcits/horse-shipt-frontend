@@ -37,6 +37,7 @@ import { ShipperQuestionProvider } from "./contexts/shipperContext/ShipperQuesti
 // ------------------- Routes -------------------
 import AppRoutes from "./routes/AppRoutes";
 import { ShipperPaymentProvider } from "./contexts/shipperContext/ShipperPaymentContext";
+import { ShipperDeliveryProvider } from "./contexts/shipperContext/ShipperDeliveryContext";
 
 const GOOGLE_LIBRARIES = ["places"];
 
@@ -68,17 +69,19 @@ function App() {
                                         <ShipperContractProvider>
                                           <ShipperQuoteProvider>
                                             <ShipperShipmentProvider>
-                                              <DriverAuthProvider>
-                                                <ShipperChatProvider>
-                                                  <CustomerChatProvider>
-                                                    <ShipperQuestionProvider>
-                                                      <CustomerQuestionProvider>
-                                                        <AppRoutes />
-                                                      </CustomerQuestionProvider>
-                                                    </ShipperQuestionProvider>
-                                                  </CustomerChatProvider>
-                                                </ShipperChatProvider>
-                                              </DriverAuthProvider>
+                                              <ShipperDeliveryProvider>
+                                                <DriverAuthProvider>
+                                                  <ShipperChatProvider>
+                                                    <CustomerChatProvider>
+                                                      <ShipperQuestionProvider>
+                                                        <CustomerQuestionProvider>
+                                                          <AppRoutes />
+                                                        </CustomerQuestionProvider>
+                                                      </ShipperQuestionProvider>
+                                                    </CustomerChatProvider>
+                                                  </ShipperChatProvider>
+                                                </DriverAuthProvider>
+                                              </ShipperDeliveryProvider>
                                             </ShipperShipmentProvider>
                                           </ShipperQuoteProvider>
                                         </ShipperContractProvider>

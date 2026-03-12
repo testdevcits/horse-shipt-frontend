@@ -1,151 +1,122 @@
 import React, { useEffect, useState } from "react";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
+import { useShipperDelivery } from "../../contexts/shipperContext/ShipperDeliveryContext";
+import { useNavigate } from "react-router-dom";
 
 const AllUpcomingShipments = () => {
   const { quotes, loading } = useShipperQuote();
-  const [acceptedQuotes, setAcceptedQuotes] = useState([]);
-  const [selectedQuote, setSelectedQuote] = useState(null); // store selected quote for details
+  const {
+    markDelivered,
+    verifyOtp,
+    loading: deliveryLoading,
+  } = useShipperDelivery();
+  const navigate = useNavigate();
 
-  // Filter accepted quotes whenever quotes change
+  const [acceptedQuotes, setAcceptedQuotes] = useState([]);
+  const [selectedShipment, setSelectedShipment] = useState(null); // shipment clicked
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [otp, setOtp] = useState("");
+
+  // Filter accepted quotes
   useEffect(() => {
-    const accepted = quotes.filter((q) => q.status === "accepted");
-    setAcceptedQuotes(accepted);
+    setAcceptedQuotes(quotes.filter((q) => q.status === "accepted"));
   }, [quotes]);
 
-  if (loading) {
-    return (
-      <div className="text-gray-600 font-[Montserrat] text-lg">
-        Loading shipments...
-      </div>
-    );
-  }
+  // Click handler for a shipment
+  const handleMarkDelivered = async (shipment) => {
+    try {
+      setSelectedShipment(shipment); // set the clicked shipment
+      await markDelivered(shipment._id); // call API only for this shipment
+      setOtpModalOpen(true); // open OTP modal
+    } catch (err) {
+      console.error(err);
+      alert("Failed to mark delivered. Try again.");
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp) return alert("Please enter OTP");
+    try {
+      await verifyOtp(selectedShipment._id, otp);
+      setOtpModalOpen(false);
+      navigate("/shipper/settings?tab=payment");
+    } catch (err) {
+      console.error(err);
+      alert("OTP verification failed. Please try again.");
+    }
+  };
+
+  if (loading) return <div>Loading shipments...</div>;
 
   return (
-    <div className="font-[Montserrat] p-4">
+    <div className="p-4">
       <h1 className="text-2xl font-semibold mb-4">All Accepted Shipments</h1>
 
       {acceptedQuotes.length === 0 ? (
-        <p className="text-gray-500">No accepted shipments found</p>
+        <p>No accepted shipments found</p>
       ) : (
         <div className="flex flex-col gap-4">
           {acceptedQuotes.map((quote) => (
             <div
               key={quote._id}
-              className="border rounded-lg p-4 shadow hover:shadow-lg cursor-pointer transition"
-              onClick={() =>
-                setSelectedQuote(
-                  selectedQuote?._id === quote._id ? null : quote
-                )
-              }
+              className="border rounded-lg p-4 shadow hover:shadow-lg transition"
             >
-              {/* Basic shipment info */}
-              <div className="flex justify-between items-center mb-2">
-                <div>
-                  <h2 className="font-semibold text-lg">
-                    {quote.shipment.pickupLocation} →{" "}
-                    {quote.shipment.deliveryLocation}
-                  </h2>
-                  <p className="text-gray-500">
-                    Pickup Date:{" "}
-                    {new Date(quote.shipment.pickupDate).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="text-green-600 font-semibold">
-                  {quote.status}
-                </div>
-              </div>
+              <h2 className="font-semibold">
+                {quote.shipment.pickupLocation} →{" "}
+                {quote.shipment.deliveryLocation}
+              </h2>
+              <p>
+                Pickup Date:{" "}
+                {new Date(quote.shipment.pickupDate).toLocaleDateString()}
+              </p>
+              <p>Status: {quote.status}</p>
 
-              {/* Show details if selected */}
-              {selectedQuote?._id === quote._id && (
-                <div className="mt-4 border-t pt-4 space-y-2">
-                  <p>
-                    <strong>Delivery Date:</strong>{" "}
-                    {new Date(quote.shipment.deliveryDate).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <strong>Number of Horses:</strong>{" "}
-                    {quote.shipment.numberOfHorses}
-                  </p>
-                  <p>
-                    <strong>Total Price:</strong> {quote.totalPrice}{" "}
-                    {quote.currency}
-                  </p>
-                  <p>
-                    <strong>Payment Method:</strong> {quote.paymentMethod}
-                  </p>
-                  <p>
-                    <strong>Transport Type:</strong> {quote.transportType}
-                  </p>
-                  <p>
-                    <strong>Stalls Required:</strong> {quote.stallsRequired}
-                  </p>
-                  <p>
-                    <strong>Notes:</strong> {quote.notes}
-                  </p>
-
-                  {/* Vehicle info */}
-                  {quote.vehicle && (
-                    <div className="mt-2">
-                      <p>Vehicle Number: {quote.vehicle.vehicleNumber}</p>
-                      <p>Transport Type: {quote.vehicle.transportType}</p>
-                      <p>Vehicle Type: {quote.vehicle.vehicleType}</p>
-                      <p>Trailer Type: {quote.vehicle.trailerType}</p>
-                      <p>Number of Stalls: {quote.vehicle.numberOfStalls}</p>
-                      <p>Stall Size: {quote.vehicle.stallSize}</p>
-                      <p>Notes: {quote.vehicle.notes}</p>
-                      <div className="flex gap-2 mt-2 flex-wrap">
-                        {quote.vehicle.images.map((img) => (
-                          <img
-                            key={img._id}
-                            src={img.url}
-                            alt="vehicle"
-                            className="w-24 h-24 object-cover rounded border"
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Contract and signatures */}
-                  {quote.contract && (
-                    <p className="mt-2">
-                      <strong>Contract:</strong>{" "}
-                      <a
-                        href={quote.contract.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 underline"
-                      >
-                        Download Contract
-                      </a>
-                    </p>
-                  )}
-                  <div className="flex gap-4">
-                    {quote.shipperSignature && (
-                      <div className="mt-2">
-                        <strong>Shipper Signature:</strong>
-                        <img
-                          src={quote.shipperSignature}
-                          alt="Shipper Signature"
-                          className="w-32 h-16 object-contain border mt-1"
-                        />
-                      </div>
-                    )}
-                    {quote.customerSignature && (
-                      <div className="mt-2">
-                        <strong>Customer Signature:</strong>
-                        <img
-                          src={quote.customerSignature}
-                          alt="Customer Signature"
-                          className="w-32 h-16 object-contain border mt-1"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              <button
+                className="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+                disabled={
+                  deliveryLoading &&
+                  selectedShipment?._id === quote.shipment._id
+                }
+                onClick={() => handleMarkDelivered(quote.shipment)}
+              >
+                {deliveryLoading && selectedShipment?._id === quote.shipment._id
+                  ? "Processing..."
+                  : "Mark Delivered"}
+              </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* OTP Modal */}
+      {otpModalOpen && selectedShipment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">
+              Enter OTP for shipment to {selectedShipment.deliveryLocation}
+            </h2>
+            <input
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              placeholder="Enter OTP"
+              className="w-full border p-2 rounded mb-4"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setOtpModalOpen(false)}
+                className="px-4 py-2 rounded border"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleVerifyOtp}
+                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Verify OTP
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
