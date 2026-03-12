@@ -12,8 +12,13 @@ import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 
+// Stripe
+import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+
 const AcceptQuoteModal = ({ quote, onClose }) => {
   const { acceptQuote } = useCustomerQuote();
+  const stripe = useStripe();
+  const elements = useElements();
 
   const [sigPad, setSigPad] = useState(null);
   const [agreed, setAgreed] = useState(false);
@@ -27,11 +32,9 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
   useEffect(() => {
     const updateWidth = () => {
-      if (sigWrapperRef.current) {
+      if (sigWrapperRef.current)
         setCanvasWidth(sigWrapperRef.current.offsetWidth);
-      }
     };
-
     updateWidth();
     window.addEventListener("resize", updateWidth);
     return () => window.removeEventListener("resize", updateWidth);
@@ -51,13 +54,67 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
     const customerSignature = sigPad.toDataURL("image/png");
 
     try {
-      const res = await acceptQuote(quote._id, customerSignature);
-      if (res.success) {
+      // ---------------- CARD PAYMENT ----------------
+      if (quote.paymentMethod === "card" && quote.paymentStatus !== "paid") {
+        if (!stripe || !elements) {
+          showToast("Stripe is not loaded", "error");
+          setSubmitting(false);
+          return;
+        }
+
+        // Correct endpoint
+        const res = await fetch(
+          `https://horse-shipt.vercel.app/api/customer/quotes/${quote._id}/pay`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        const paymentData = await res.json();
+
+        if (!paymentData.clientSecret) {
+          showToast("Failed to create payment intent", "error");
+          setSubmitting(false);
+          return;
+        }
+
+        const result = await stripe.confirmCardPayment(
+          paymentData.clientSecret,
+          {
+            payment_method: {
+              card: elements.getElement(CardElement),
+            },
+          }
+        );
+
+        if (result.error) {
+          showToast(result.error.message, "error");
+          setSubmitting(false);
+          return;
+        }
+
+        if (result.paymentIntent.status !== "succeeded") {
+          showToast("Payment failed", "error");
+          setSubmitting(false);
+          return;
+        }
+
+        showToast("Payment successful", "success");
+      }
+
+      // ---------------- ACCEPT QUOTE ----------------
+      const resAccept = await acceptQuote(quote._id, customerSignature);
+
+      if (resAccept.success) {
         showToast("Quote accepted successfully", "success");
         sigPad.clear();
         onClose();
       } else {
-        showToast(res.message || "Failed to accept quote", "error");
+        showToast(resAccept.message || "Failed to accept quote", "error");
       }
     } catch (error) {
       console.error(error);
@@ -217,13 +274,23 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                 </>
               )}
 
-              {/* TERMS + SIGNATURE */}
+              {/* TERMS + SIGNATURE + CARD */}
               <div className="border rounded-md p-4 space-y-3">
                 <Checkbox
                   checked={agreed}
                   onChange={(e) => setAgreed(e.target.checked)}
                   label="I agree to accept this quote and terms"
                 />
+
+                {quote.paymentMethod === "card" &&
+                  quote.paymentStatus !== "paid" && (
+                    <div className="border rounded-md p-2 mt-2">
+                      <label className="block mb-1 font-medium text-gray-700">
+                        Card Details
+                      </label>
+                      <CardElement options={{ hidePostalCode: true }} />
+                    </div>
+                  )}
 
                 <div>
                   <label className="block mb-1 font-medium text-gray-700">

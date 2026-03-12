@@ -12,7 +12,7 @@ const ConfirmModal = ({
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center  font-montserrat justify-center z-50 px-4">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-sm p-6 relative">
         {/* Close button */}
         <button

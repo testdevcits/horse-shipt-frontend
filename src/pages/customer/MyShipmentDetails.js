@@ -13,6 +13,15 @@ import AcceptQuoteModal from "./AcceptQuoteModal";
 import Toast from "../../components/common/Toast";
 import ShipmentQuestions from "./ShipmentQuestions";
 
+// ---------------- STRIPE ----------------
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+
+// Replace with your Stripe test key
+const stripePromise = loadStripe(
+  "pk_test_51T6oVICVoPk11ijL51FMIuNhin8FIjyoJSOITwlK6AqEutL9Jl4bwdOrhziWtZdaBesLZSJheByHGV5RNHbMrYfH00yf77nS4r"
+);
+
 const MyShipmentDetails = () => {
   const { id: paramId } = useParams();
   const [searchParams] = useSearchParams();
@@ -40,7 +49,7 @@ const MyShipmentDetails = () => {
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
 
-  // ---------------- FETCH SHIPMENT ON PAGE LOAD ----------------
+  // ---------------- FETCH SHIPMENT ----------------
   const fetchData = useCallback(() => {
     if (!shipmentId) return;
     fetchShipmentById(shipmentId);
@@ -82,19 +91,14 @@ const MyShipmentDetails = () => {
 
     navigate(`/customer/reviews/${shipperId}`);
   };
+
   // ---------------- TAB BUTTON ----------------
   const handleTabClick = (id) => {
     setActiveTab(id);
 
-    // Fetch quotes if tab is quotes
-    if (id === "quotes" && shipmentId) {
-      getQuotesByShipment(shipmentId, true); // force fetch
-    }
+    if (id === "quotes" && shipmentId) getQuotesByShipment(shipmentId, true);
 
-    // Fetch questions if tab is questions
-    if (id === "questions" && shipmentId) {
-      fetchQuestions(shipmentId); // fetch from context
-    }
+    if (id === "questions" && shipmentId) fetchQuestions(shipmentId);
   };
 
   const TabButton = ({ id, label, count }) => (
@@ -159,10 +163,9 @@ const MyShipmentDetails = () => {
       {/* ================= OVERVIEW TAB ================= */}
       {activeTab === "overview" && shipment && (
         <div className="flex flex-col gap-6 font-montserrat text-sm">
-          {/* TOP CARD */}
+          {/* ---------------- TOP CARD ---------------- */}
           <div className="bg-white border border-gray-300 rounded-[10px]">
             <div className="flex flex-col md:flex-row gap-4 p-4 md:gap-8">
-              {/* IMAGE */}
               <div className="order-1 md:order-2 w-full md:w-[60%]">
                 <img
                   src={shipment.horses?.[0]?.photo?.url || "/placeholder.png"}
@@ -170,15 +173,12 @@ const MyShipmentDetails = () => {
                   className="w-full h-[220px] sm:h-[280px] md:h-[382px] object-cover rounded-md"
                 />
               </div>
-
-              {/* INFO */}
               <div className="order-2 md:order-1 w-full md:w-[40%] flex flex-col gap-8">
                 {/* PICKUP */}
                 <div className="flex flex-col gap-1">
                   <h4 className="text-gray-500 font-medium">Pickup Info</h4>
                   <p className="flex items-center gap-2 text-gray-700">
-                    <SlLocationPin />
-                    {shipment.pickupLocation}
+                    <SlLocationPin /> {shipment.pickupLocation}
                   </p>
                   <p className="flex items-center gap-2 text-gray-700">
                     <LuCalendarDays />
@@ -190,8 +190,7 @@ const MyShipmentDetails = () => {
                 <div className="flex flex-col gap-1">
                   <h4 className="text-gray-500 font-medium">Delivery Info</h4>
                   <p className="flex items-center gap-2 text-gray-700">
-                    <SlLocationPin />
-                    {shipment.deliveryLocation}
+                    <SlLocationPin /> {shipment.deliveryLocation}
                   </p>
                   <p className="flex items-center gap-2 text-gray-700">
                     <LuCalendarDays />
@@ -219,7 +218,7 @@ const MyShipmentDetails = () => {
             </div>
           </div>
 
-          {/* DETAILS TOGGLE */}
+          {/* ---------------- DETAILS ---------------- */}
           <div className="border border-gray-300 rounded-[10px] p-4">
             <div
               onClick={() => setOpenDetails(!openDetails)}
@@ -350,12 +349,14 @@ const MyShipmentDetails = () => {
         </div>
       )}
 
-      {/* ================= ACCEPT QUOTE MODAL ================= */}
+      {/* ================= ACCEPT QUOTE MODAL WITH STRIPE ================= */}
       {selectedQuote && (
-        <AcceptQuoteModal
-          quote={selectedQuote}
-          onClose={() => setSelectedQuote(null)}
-        />
+        <Elements stripe={stripePromise}>
+          <AcceptQuoteModal
+            quote={selectedQuote}
+            onClose={() => setSelectedQuote(null)}
+          />
+        </Elements>
       )}
     </div>
   );
