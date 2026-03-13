@@ -31,12 +31,14 @@ const ShipperLayout = () => {
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-  /* ================= Detect Payment Tab (URL Based) ================= */
+  /* ================= Detect Payment Tab ================= */
   const queryParams = new URLSearchParams(location.search);
+
   const isPaymentTab =
     location.pathname === "/shipper/settings" &&
     queryParams.get("tab") === "payment";
 
+  /* ================= Profile Image ================= */
   const profileImage =
     profile?.profileImage ||
     user?.profileImage ||
@@ -61,6 +63,7 @@ const ShipperLayout = () => {
   useEffect(() => {
     if (needsOnboarding && !isPaymentTab) {
       const hasShown = sessionStorage.getItem("stripeModalShown");
+
       if (!hasShown) {
         setShowStripeModal(true);
         sessionStorage.setItem("stripeModalShown", "true");
@@ -137,6 +140,7 @@ const ShipperLayout = () => {
                   <div className="px-4 py-2 border-b text-gray-700 font-medium">
                     {user?.name || "User"}
                   </div>
+
                   <div
                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                     onClick={logout}

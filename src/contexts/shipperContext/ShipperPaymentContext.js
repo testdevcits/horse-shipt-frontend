@@ -15,7 +15,6 @@ export const ShipperPaymentProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   // ================= FETCH STRIPE STATUS =================
-
   const fetchStripeStatus = useCallback(async () => {
     if (!token) return;
 
@@ -27,23 +26,29 @@ export const ShipperPaymentProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      // ❌ Stripe account not created
       if (!res.data.success) {
         setStripeStatus(null);
-        setError(res.data.message);
+        setNeedsOnboarding(true); // FIX
+        setError(res.data.message || "Stripe account not created");
         return;
       }
 
       setStripeStatus(res.data);
 
-      // check onboarding state
+      // ✔ Check onboarding completion
       if (!res.data.onboardingCompleted) {
         setNeedsOnboarding(true);
       } else {
         setNeedsOnboarding(false);
       }
     } catch (err) {
+      console.error("Stripe status error:", err);
+
       setStripeStatus(null);
-      setNeedsOnboarding(false);
+
+      // ❗ If error happens assume onboarding needed
+      setNeedsOnboarding(true);
 
       setError(err?.response?.data?.message || "Stripe account not created");
     } finally {
@@ -51,15 +56,15 @@ export const ShipperPaymentProvider = ({ children }) => {
     }
   }, [token]);
 
-  // ================= ENABLE PAYMENTS / COMPLETE VERIFICATION =================
-
+  // ================= ENABLE PAYMENTS =================
   const enablePayments = async () => {
     if (!token) return;
 
     try {
       setLoading(true);
+      setError(null);
 
-      // create account if not exists
+      // Step 1: Create Stripe account
       await axios.post(
         `${API_BASE_URL}/shipper/stripe/create-account`,
         {},
@@ -68,7 +73,7 @@ export const ShipperPaymentProvider = ({ children }) => {
         }
       );
 
-      // generate onboarding link
+      // Step 2: Generate onboarding link
       const res = await axios.post(
         `${API_BASE_URL}/shipper/stripe/onboarding`,
         {},
