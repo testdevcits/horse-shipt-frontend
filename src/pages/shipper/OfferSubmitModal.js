@@ -215,9 +215,9 @@ const OfferSubmitModal = ({
                         className="w-full border rounded-md px-3 py-2 text-sm"
                       >
                         <option value="">Select</option>
-                        <option value="cash">Cash</option>
+                        {/* <option value="cash">Cash</option> */}
                         <option value="card">Card</option>
-                        <option value="bank">Bank Transfer</option>
+                        {/* <option value="bank">Bank Transfer</option> */}
                       </Field>
                     </div>
 
@@ -231,7 +231,7 @@ const OfferSubmitModal = ({
                         className="w-full border rounded-md px-3 py-2 text-sm"
                       >
                         <option value="">Select</option>
-                        <option value="pickup">On Pickup</option>
+                        {/* <option value="pickup">On Pickup</option> */}
                         <option value="delivery">On Delivery</option>
                       </Field>
                     </div>
