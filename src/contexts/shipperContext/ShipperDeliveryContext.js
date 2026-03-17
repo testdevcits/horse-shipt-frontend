@@ -11,6 +11,10 @@ export const ShipperDeliveryProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [deliveryStatus, setDeliveryStatus] = useState(null);
 
+  const [payoutHistory, setPayoutHistory] = useState([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState(null);
+
   // Mark shipment as delivered
   const markDelivered = useCallback(
     async (shipmentId) => {
@@ -33,7 +37,7 @@ export const ShipperDeliveryProvider = ({ children }) => {
     [token]
   );
 
-  // Verify delivery OTP → wallet credit
+  // Verify delivery OTP
   const verifyOtp = useCallback(
     async (shipmentId, otp) => {
       if (!token) return null;
@@ -55,7 +59,7 @@ export const ShipperDeliveryProvider = ({ children }) => {
     [token]
   );
 
-  // Shipper payout request
+  // Request payout
   const requestPayout = useCallback(async () => {
     if (!token) return null;
     setLoading(true);
@@ -74,7 +78,7 @@ export const ShipperDeliveryProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Check shipment delivery status
+  // Get delivery status
   const getDeliveryStatus = useCallback(
     async (shipmentId) => {
       if (!token) return null;
@@ -84,10 +88,49 @@ export const ShipperDeliveryProvider = ({ children }) => {
           `${API_BASE_URL}/shipment/${shipmentId}/delivery-status`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
+
         setDeliveryStatus(res.data);
         return res.data;
       } catch (err) {
         console.error("Get delivery status error:", err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token]
+  );
+
+  // Get payout history with pagination
+  const getPayoutHistory = useCallback(
+    async (limit = 10, cursor = null) => {
+      if (!token) return null;
+
+      setLoading(true);
+
+      try {
+        let url = `${API_BASE_URL}/shipper/payout-history?limit=${limit}`;
+
+        if (cursor) {
+          url += `&starting_after=${cursor}`;
+        }
+
+        const res = await axios.get(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const newTransactions = res.data.transactions || [];
+
+        setPayoutHistory((prev) =>
+          cursor ? [...prev, ...newTransactions] : newTransactions
+        );
+
+        setHasMore(res.data.hasMore);
+        setNextCursor(res.data.nextCursor);
+
+        return res.data;
+      } catch (err) {
+        console.error("Get payout history error:", err);
         throw err;
       } finally {
         setLoading(false);
@@ -101,10 +144,14 @@ export const ShipperDeliveryProvider = ({ children }) => {
       value={{
         loading,
         deliveryStatus,
+        payoutHistory,
+        hasMore,
+        nextCursor,
         markDelivered,
         verifyOtp,
         requestPayout,
         getDeliveryStatus,
+        getPayoutHistory,
       }}
     >
       {children}

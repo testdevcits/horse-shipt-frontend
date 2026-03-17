@@ -263,6 +263,10 @@ const SignupPage = () => {
                   <p className="text-xs font-medium text-gray-700 mt-1">
                     Are you a Customer or Shipper? Please select your role:
                   </p>
+                  <p className="text-xs text-gray-500 mb-1">
+                    Choose 'Customer' if you are an Owner, Barn Manager,
+                    Trainer, or Agent.
+                  </p>
                   <div className="flex gap-2">
                     {["shipper", "customer"].map((r) => (
                       <button
@@ -279,6 +283,11 @@ const SignupPage = () => {
                       </button>
                     ))}
                   </div>
+                  <ErrorMessage
+                    name="role"
+                    component="div"
+                    className="text-xs text-red-500"
+                  />
                   <ErrorMessage
                     name="role"
                     component="div"

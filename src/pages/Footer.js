@@ -30,7 +30,7 @@ const Footer = () => {
             {/* Driver Login Link */}
             <Link
               to="/driver/login"
-              className="text-blue-600 hover:text-blue-800 underline ml-0 md:ml-4"
+              className="text-[#BF9B53] hover:text-blue-600  ml-0 md:ml-4"
             >
               Driver Login
             </Link>

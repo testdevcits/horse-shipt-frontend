@@ -39,7 +39,7 @@ const AskQuestionModal = ({ shipmentId, onClose }) => {
 
   const cleaned = sanitizeInput(question);
 
-  // ✅ button enabled only if question length >= MIN_LENGTH
+  // button enabled only if question length >= MIN_LENGTH
   const canSubmit =
     cleaned.length >= MIN_LENGTH && cleaned.length <= MAX_LENGTH;
 

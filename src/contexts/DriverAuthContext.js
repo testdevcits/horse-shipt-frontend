@@ -69,10 +69,10 @@ export const DriverAuthProvider = ({ children }) => {
         }
       } catch (err) {
         console.error("[FETCH DRIVER]", err.response?.data || err.message);
-        logout(); // ✅ logout included in dependencies
+        logout(); // logout included in dependencies
       }
     },
-    [token, logout] // ✅ added logout here
+    [token, logout] // added logout here
   );
 
   // ------------------ AUTO LOGIN / FETCH DRIVER ON LOAD ------------------
@@ -202,6 +202,36 @@ export const DriverAuthProvider = ({ children }) => {
       };
     }
   };
+  // ------------------ FETCH ASSIGNED SHIPMENTS ------------------
+  const fetchAssignedShipments = useCallback(async () => {
+    if (!token) return;
+
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/driver/assigned-shipments`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data.success) {
+        const shipmentsData = res.data.assignedShipments || [];
+        setShipments(shipmentsData);
+        localStorage.setItem("driverShipments", JSON.stringify(shipmentsData));
+      } else {
+        setShipments([]);
+        localStorage.removeItem("driverShipments");
+        console.info(res.data.message || "No assigned shipments found");
+      }
+    } catch (err) {
+      console.error(
+        "[FETCH ASSIGNED SHIPMENTS]",
+        err.response?.data || err.message
+      );
+      setShipments([]);
+      localStorage.removeItem("driverShipments");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
   return (
     <DriverAuthContext.Provider
@@ -214,6 +244,7 @@ export const DriverAuthProvider = ({ children }) => {
         login,
         fetchDriver,
         uploadProfileImage,
+        fetchAssignedShipments,
         deleteProfileImage,
         logout,
       }}

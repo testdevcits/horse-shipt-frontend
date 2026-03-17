@@ -9,20 +9,16 @@ const Header = () => {
 
   const toggleMenu = () => {
     if (menuOpen) {
-      // start closing animation
       setMenuOpen(false);
-      // hide after animation
       setTimeout(() => setVisible(false), 300);
     } else {
-      // show menu first
       setVisible(true);
-      // then play opening animation
       setTimeout(() => setMenuOpen(true), 10);
     }
   };
 
   return (
-    <header className="bg-header  sticky top-0 z-50 font-montserrat">
+    <header className="bg-header sticky top-0 z-50 font-montserrat">
       <div className="max-w-full mx-auto px-4 py-3 flex justify-between items-center">
         {/* LEFT */}
         <div className="flex items-center space-x-8">
@@ -39,7 +35,7 @@ const Header = () => {
             <NavLink
               to="/solutions"
               className={({ isActive }) =>
-                `text-dark font-medium hover:text-gray-600 transition ${
+                `text-dark font-medium hover:text-gray-600 ${
                   isActive
                     ? "underline underline-offset-4 decoration-system-primary"
                     : ""
@@ -48,10 +44,11 @@ const Header = () => {
             >
               Solutions
             </NavLink>
+
             <NavLink
               to="/features"
               className={({ isActive }) =>
-                `text-dark font-medium hover:text-gray-600 transition ${
+                `text-dark font-medium hover:text-gray-600 ${
                   isActive
                     ? "underline underline-offset-4 decoration-system-primary"
                     : ""
@@ -60,11 +57,44 @@ const Header = () => {
             >
               Features
             </NavLink>
+
+            <NavLink
+              to="/privacy-policy"
+              className={({ isActive }) =>
+                `text-dark font-medium hover:text-gray-600 ${
+                  isActive
+                    ? "underline underline-offset-4 decoration-system-primary"
+                    : ""
+                }`
+              }
+            >
+              Privacy Policy
+            </NavLink>
+
+            <NavLink
+              to="/terms-conditions"
+              className={({ isActive }) =>
+                `text-dark font-medium hover:text-gray-600 ${
+                  isActive
+                    ? "underline underline-offset-4 decoration-system-primary"
+                    : ""
+                }`
+              }
+            >
+              Terms & Conditions
+            </NavLink>
           </nav>
         </div>
 
         {/* RIGHT */}
         <div className="flex items-center space-x-4">
+          <Link
+            to="/login"
+            className="hidden md:inline-block bg-white text-system-primary border border-system-primary px-5 py-2 rounded-full font-medium hover:bg-system-primary hover:text-white transition"
+          >
+            Login
+          </Link>
+
           <Link
             to="/signup"
             className="hidden md:inline-block bg-system-primary text-white px-5 py-2 rounded-full font-medium hover:bg-opacity-90 transition"
@@ -72,10 +102,7 @@ const Header = () => {
             Sign Up
           </Link>
 
-          <button
-            onClick={toggleMenu}
-            className="md:hidden text-dark focus:outline-none text-2xl"
-          >
+          <button onClick={toggleMenu} className="md:hidden text-dark text-2xl">
             {menuOpen ? <CgClose /> : <CgMenu />}
           </button>
         </div>
@@ -84,7 +111,7 @@ const Header = () => {
       {/* MOBILE MENU */}
       {visible && (
         <div
-          className={`md:hidden w-full bg-header shadow-md overflow-hidden transition-all ${
+          className={`md:hidden w-full bg-header shadow-md overflow-hidden ${
             menuOpen ? "animate-slide-fade-in" : "animate-slide-fade-out"
           }`}
         >
@@ -92,21 +119,47 @@ const Header = () => {
             <NavLink
               to="/solutions"
               onClick={toggleMenu}
-              className="w-full py-2 text-dark font-medium hover:text-gray-600 transition"
+              className="py-2 text-dark"
             >
               Solutions
             </NavLink>
+
             <NavLink
               to="/features"
               onClick={toggleMenu}
-              className="w-full py-2 text-dark font-medium hover:text-gray-600 transition"
+              className="py-2 text-dark"
             >
               Features
             </NavLink>
+
+            <NavLink
+              to="/privacy-policy"
+              onClick={toggleMenu}
+              className="py-2 text-dark"
+            >
+              Privacy Policy
+            </NavLink>
+
+            <NavLink
+              to="/terms-conditions"
+              onClick={toggleMenu}
+              className="py-2 text-dark"
+            >
+              Terms & Conditions
+            </NavLink>
+
+            <Link
+              to="/login"
+              onClick={toggleMenu}
+              className="py-2 bg-white text-system-primary text-center rounded-full border border-system-primary hover:bg-system-primary hover:text-white transition"
+            >
+              Login
+            </Link>
+
             <Link
               to="/signup"
               onClick={toggleMenu}
-              className="w-full py-2 bg-system-primary text-white text-center rounded-full font-medium hover:bg-opacity-90 transition"
+              className="py-2 bg-system-primary text-white text-center rounded-full"
             >
               Sign Up
             </Link>

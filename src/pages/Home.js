@@ -5,6 +5,7 @@ import handDrawnUnderline from "../assets/images/Hand-drawn underlines.svg";
 import SecondSection from "./SecondSection";
 import ThirdSection from "./ThirdSection";
 import SignupSection from "./SignupSection";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   const [showLeft, setShowLeft] = useState(false);
@@ -32,7 +33,6 @@ const Home = () => {
                 : "opacity-0 -translate-y-10"
             }`}
           >
-            {/* Heading with relative to place underline */}
             <div className="relative">
               <h1
                 className="text-gray-900 font-montserrat text-3xl sm:text-4xl md:text-5xl leading-[60px] relative inline-block"
@@ -42,7 +42,6 @@ const Home = () => {
                 }}
               >
                 Hassle-Free Horse Shipping Starts Here
-                {/* Underline positioned absolutely relative to heading */}
               </h1>
               <img
                 src={handDrawnUnderline}
@@ -57,9 +56,11 @@ const Home = () => {
             </p>
 
             {/* Sign Up Button */}
-            <button className="mt-4 bg-system-primary text-white px-5 py-3 rounded-full font-medium hover:bg-opacity-90 transition w-max">
-              Sign Up
-            </button>
+            <Link to="/signup">
+              <button className="mt-2 md:mt-2 font-montserrat bg-system-primary text-white px-5 py-3 rounded-full font-medium hover:bg-opacity-60 transition w-max ">
+                Sign Up
+              </button>
+            </Link>
           </div>
 
           {/* RIGHT SIDE */}
@@ -71,14 +72,12 @@ const Home = () => {
             }`}
             style={{ minHeight: "400px" }}
           >
-            {/* Hero Image 1: large (desktop only) */}
             <img
               src={heroSec1}
               alt="Hero 1"
               className="hidden md:block absolute  w-[80%] max-w-[576px] h-auto top-0 left-0"
             />
 
-            {/* Hero Image 2: always visible */}
             <img
               src={heroSec2}
               alt="Hero 2"

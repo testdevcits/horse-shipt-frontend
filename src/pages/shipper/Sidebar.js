@@ -5,6 +5,7 @@ import axios from "axios";
 import { LuArrowLeftFromLine, LuArrowRightFromLine } from "react-icons/lu";
 import { CiCircleQuestion } from "react-icons/ci";
 import { IoStarHalf } from "react-icons/io5";
+import { MdPayments } from "react-icons/md";
 import { useAuth } from "../../contexts/AuthContext";
 
 // COMMON ICONS
@@ -28,10 +29,7 @@ const navItems = [
     name: "Contract",
     path: "/shipper/contract",
     icon: <OrdersIcon />,
-    subPaths: [
-      { name: "Contracts", path: "/shipper/orders/pending" },
-      // { name: "Completed", path: "/shipper/orders/completed" },
-    ],
+    subPaths: [{ name: "Contracts", path: "/shipper/orders/pending" }],
   },
   {
     name: "Vehicles",
@@ -52,6 +50,14 @@ const navItems = [
       { name: "Driver Chat", path: "/shipper/chat/driver" },
     ],
   },
+
+  // NEW PAGE
+  {
+    name: "Earnings",
+    path: "/shipper/earnings",
+    icon: <MdPayments className="text-[#BF9B53] text-lg" />,
+  },
+
   {
     name: "Google Review",
     path: "/shipper/google-review",

@@ -3,6 +3,7 @@ import thirdSecBanner from "../assets/images/thirdSecBanner.jpg";
 import thirdSecImg from "../assets/images/thirdSecImg.jpg"; // replace with your image path
 import { FaPlay } from "react-icons/fa";
 import { CgPlayPause } from "react-icons/cg";
+import { Link } from "react-router-dom";
 
 const ThirdSection = () => {
   return (
@@ -57,9 +58,11 @@ const ThirdSection = () => {
             </p>
 
             {/* Signup Button */}
-            <button className="bg-system-primary text-white px-5 py-3 rounded-full font-medium hover:bg-opacity-90 transition w-max">
-              Sign Up
-            </button>
+            <Link to="/signup">
+              <button className="mt-2 md:mt-2 font-montserrat bg-system-primary text-white px-5 py-3 rounded-full font-medium hover:bg-opacity-60 transition w-max ">
+                Sign Up
+              </button>
+            </Link>
           </div>
         </div>
 

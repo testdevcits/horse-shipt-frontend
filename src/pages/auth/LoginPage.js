@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Button from "../../components/common/Button";
@@ -241,6 +241,14 @@ const LoginPage = () => {
                     >
                       <FcGoogle size={16} /> Continue with Google
                     </Button>
+                  </div>
+                  <div className="mt-4 w-full text-end">
+                    <Link
+                      to="/"
+                      className="text-[#BF9B53] font-medium cursor-pointer px-2 py-1 rounded hover:bg-[#bf9b5360] hover:text-black"
+                    >
+                      Back to Home
+                    </Link>
                   </div>
                 </Form>
               );

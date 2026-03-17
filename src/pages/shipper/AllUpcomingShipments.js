@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
 import { useShipperDelivery } from "../../contexts/shipperContext/ShipperDeliveryContext";
 import { useNavigate } from "react-router-dom";
+import Button from "../../components/common/Button";
 
 const AllUpcomingShipments = () => {
   const { quotes, loading } = useShipperQuote();
@@ -13,43 +14,52 @@ const AllUpcomingShipments = () => {
   const navigate = useNavigate();
 
   const [acceptedQuotes, setAcceptedQuotes] = useState([]);
-  const [selectedShipment, setSelectedShipment] = useState(null); // shipment clicked
+  const [selectedShipment, setSelectedShipment] = useState(null);
   const [otpModalOpen, setOtpModalOpen] = useState(false);
   const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
 
   // Filter accepted quotes
   useEffect(() => {
     setAcceptedQuotes(quotes.filter((q) => q.status === "accepted"));
   }, [quotes]);
 
-  // Click handler for a shipment
+  // Click handler for marking delivered
   const handleMarkDelivered = async (shipment) => {
     try {
-      setSelectedShipment(shipment); // set the clicked shipment
-      await markDelivered(shipment._id); // call API only for this shipment
+      setSelectedShipment(shipment);
+      await markDelivered(shipment._id);
       setOtpModalOpen(true); // open OTP modal
     } catch (err) {
       console.error(err);
-      alert("Failed to mark delivered. Try again.");
+      setOtpError("Failed to mark delivered. Please try again.");
     }
   };
 
+  // OTP verification
   const handleVerifyOtp = async () => {
-    if (!otp) return alert("Please enter OTP");
+    if (!otp) return setOtpError("Please enter OTP");
+
     try {
+      setOtpError(""); // clear previous errors
       await verifyOtp(selectedShipment._id, otp);
       setOtpModalOpen(false);
+      setOtp("");
       navigate("/shipper/settings?tab=payment");
     } catch (err) {
       console.error(err);
-      alert("OTP verification failed. Please try again.");
+      const message =
+        err.response?.data?.message ||
+        err.message ||
+        "OTP verification failed. Please try again.";
+      setOtpError(message);
     }
   };
 
   if (loading) return <div>Loading shipments...</div>;
 
   return (
-    <div className="p-4">
+    <div className="font-montserrat">
       <h1 className="text-2xl font-semibold mb-4">All Accepted Shipments</h1>
 
       {acceptedQuotes.length === 0 ? (
@@ -91,30 +101,43 @@ const AllUpcomingShipments = () => {
       {/* OTP Modal */}
       {otpModalOpen && selectedShipment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-96">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-96">
             <h2 className="text-xl font-semibold mb-4">
               Enter OTP for shipment to {selectedShipment.deliveryLocation}
             </h2>
+
             <input
               type="text"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               placeholder="Enter OTP"
-              className="w-full border p-2 rounded mb-4"
+              className="w-full border p-2 rounded mb-2"
             />
+
+            {/* Show OTP error */}
+            {otpError && (
+              <p className="text-red-500 text-sm mb-2">{otpError}</p>
+            )}
+
             <div className="flex justify-end gap-2">
               <button
-                onClick={() => setOtpModalOpen(false)}
+                onClick={() => {
+                  setOtpModalOpen(false);
+                  setOtp("");
+                  setOtpError("");
+                }}
                 className="px-4 py-2 rounded border"
               >
                 Cancel
               </button>
-              <button
+              <Button
                 onClick={handleVerifyOtp}
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                variant="primary"
+                type="submit"
+                fullWidth
               >
-                Verify OTP
-              </button>
+                {deliveryLoading ? "Verifying..." : "Verify OTP"}
+              </Button>
             </div>
           </div>
         </div>

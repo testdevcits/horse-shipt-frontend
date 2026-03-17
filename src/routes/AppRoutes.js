@@ -26,6 +26,8 @@ import CustomerShipperReviewPage from "../pages/customer/CustomerShipperReviewPa
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 const SignupPage = lazy(() => import("../pages/auth/SignupPage"));
 const OAuthSuccessPage = lazy(() => import("../pages/auth/OAuthSuccessPage"));
+const PrivacyPage = lazy(() => import("../pages/PrivacyPage"));
+const TermsPage = lazy(() => import("../pages/TermsPage"));
 
 // ---------------- Shipper Pages ----------------
 const ShipperLayout = lazy(() => import("../layouts/ShipperLayout"));
@@ -34,6 +36,7 @@ const ShipperContract = lazy(() => import("../pages/shipper/Contract"));
 const ShipperProfile = lazy(() => import("../pages/shipper/Profile"));
 const ShipperSettings = lazy(() => import("../pages/shipper/Settings"));
 const ShipmentDetails = lazy(() => import("../pages/shipper/ShipmentDetails"));
+const ShipperEarnings = lazy(() => import("../pages/shipper/PayoutHistory"));
 const AllUpcomingShipments = lazy(() =>
   import("../pages/shipper/AllUpcomingShipments")
 );
@@ -107,7 +110,9 @@ const AppRoutes = () => {
                 <Home />
               </RedirectIfAuth>
             }
-          />
+          />{" "}
+          <Route path="/privacy-policy" element={<PrivacyPage />} />
+          <Route path="/terms-conditions" element={<TermsPage />} />
         </Route>
 
         {/* ---------- Auth Pages ---------- */}
@@ -168,6 +173,7 @@ const AppRoutes = () => {
           <Route path="settings" element={<ShipperSettings />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="quotes" element={<ShipperQuotesPage />} />
+          <Route path="earnings" element={<ShipperEarnings />} />
           <Route path="google-review" element={<GoogleReview />} />
 
           {/* LIST PAGE */}
