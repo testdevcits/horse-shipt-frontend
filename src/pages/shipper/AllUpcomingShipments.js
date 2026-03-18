@@ -45,7 +45,7 @@ const AllUpcomingShipments = () => {
       await verifyOtp(selectedShipment._id, otp);
       setOtpModalOpen(false);
       setOtp("");
-      navigate("/shipper/settings?tab=payment");
+      navigate("/shipper/earnings");
     } catch (err) {
       console.error(err);
       const message =
