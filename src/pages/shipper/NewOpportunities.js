@@ -12,6 +12,17 @@ const NewOpportunities = () => {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("list");
 
+  // 📍 Location state
+  const [location, setLocation] = useState(null);
+
+  // Filters State
+  const [filters, setFilters] = useState({
+    pickupDistance: "",
+    dropoffDistance: "",
+    stallSize: "",
+    minHorses: "",
+  });
+
   const {
     shipments,
     mapShipments,
@@ -21,27 +32,97 @@ const NewOpportunities = () => {
   } = useShipperShipment();
 
   const fetchedOnce = useRef(false);
+  const lastFiltersRef = useRef("");
 
   /* ===============================
-     INITIAL LOAD
+     GET USER LOCATION
   =================================*/
-
   useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      },
+      (err) => {
+        console.log("Location denied, fallback will be used");
+      }
+    );
+  }, []);
+
+  /* ===============================
+     INITIAL LOAD (WITH LOCATION)
+  =================================*/
+  useEffect(() => {
+    if (!location) return;
+
     if (!fetchedOnce.current) {
-      getAvailableShipments(1, 10); // list view
-      getAvailableShipmentsForMap(1, 5); // ⭐ map view = 5 shipment only
+      getAvailableShipments({
+        lat: location.lat,
+        lng: location.lng,
+      });
+
+      getAvailableShipmentsForMap(1, 5);
       fetchedOnce.current = true;
     }
-  }, [getAvailableShipments, getAvailableShipmentsForMap]);
+  }, [location, getAvailableShipments, getAvailableShipmentsForMap]);
 
   /* ===============================
-     SEARCH FILTER
+     SEARCH FILTER (LOCAL)
   =================================*/
-
   const filteredShipments = (shipments || []).filter((shipment) => {
     const searchText = `${shipment.pickupLocation} ${shipment.deliveryLocation}`;
     return searchText.toLowerCase().includes(search.toLowerCase());
   });
+
+  /* ===============================
+     FILTER HANDLERS
+  =================================*/
+  const handleFilterChange = (e) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value });
+  };
+
+  const applyFilters = () => {
+    const cleanFilters = Object.fromEntries(
+      Object.entries(filters).filter(
+        ([_, value]) => value !== "" && value !== null && value !== undefined
+      )
+    );
+
+    const filterKey = JSON.stringify(cleanFilters);
+
+    // 🚫 prevent duplicate API call
+    if (lastFiltersRef.current === filterKey) {
+      console.log("Same filters → skip API");
+      return;
+    }
+
+    lastFiltersRef.current = filterKey;
+
+    getAvailableShipments({
+      ...cleanFilters,
+      lat: location?.lat,
+      lng: location?.lng,
+    });
+  };
+
+  const resetFilters = () => {
+    const reset = {
+      pickupDistance: "",
+      dropoffDistance: "",
+      stallSize: "",
+      minHorses: "",
+    };
+
+    setFilters(reset);
+    lastFiltersRef.current = "";
+
+    getAvailableShipments({
+      lat: location?.lat,
+      lng: location?.lng,
+    });
+  };
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -95,6 +176,59 @@ const NewOpportunities = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* ================= FILTER BAR ================= */}
+      <div className="flex flex-wrap gap-3 mt-4">
+        <input
+          type="number"
+          name="pickupDistance"
+          placeholder="Pickup Distance (km)"
+          value={filters.pickupDistance}
+          onChange={handleFilterChange}
+          className="border px-3 py-2 rounded-md"
+        />
+
+        <input
+          type="number"
+          name="dropoffDistance"
+          placeholder="Dropoff Distance (km)"
+          value={filters.dropoffDistance}
+          onChange={handleFilterChange}
+          className="border px-3 py-2 rounded-md"
+        />
+
+        <select
+          name="stallSize"
+          value={filters.stallSize}
+          onChange={handleFilterChange}
+          className="border px-3 py-2 rounded-md"
+        >
+          <option value="">All Stall Sizes</option>
+          <option value="Box">Box</option>
+          <option value="1/2 Box">1/2 Box</option>
+          <option value="Single">Single</option>
+        </select>
+
+        <input
+          type="number"
+          name="minHorses"
+          placeholder="Min Horses"
+          value={filters.minHorses}
+          onChange={handleFilterChange}
+          className="border px-3 py-2 rounded-md"
+        />
+
+        <button
+          onClick={applyFilters}
+          className="bg-system-primary text-white px-4 py-2 rounded-md"
+        >
+          Apply
+        </button>
+
+        <button onClick={resetFilters} className="border px-4 py-2 rounded-md">
+          Reset
+        </button>
       </div>
 
       {/* ================= CONTENT ================= */}

@@ -39,6 +39,8 @@ import AppRoutes from "./routes/AppRoutes";
 import { ShipperPaymentProvider } from "./contexts/shipperContext/ShipperPaymentContext";
 import { ShipperDeliveryProvider } from "./contexts/shipperContext/ShipperDeliveryContext";
 import { LegalProvider } from "./contexts/common/LegalContext";
+import { DeliveredShipmentProvider } from "./contexts/customerContext/DeliveredShipmentContext";
+import { ReviewProvider } from "./contexts/customerContext/ReviewContext";
 
 const GOOGLE_LIBRARIES = ["places"];
 
@@ -66,27 +68,31 @@ function App() {
                                   <CustomerShipmentProvider>
                                     <CustomerQuoteProvider>
                                       <CustomerReviewProvider>
-                                        <ProfileProvider>
-                                          <ShipperContractProvider>
-                                            <ShipperQuoteProvider>
-                                              <ShipperShipmentProvider>
-                                                <ShipperDeliveryProvider>
-                                                  <DriverAuthProvider>
-                                                    <ShipperChatProvider>
-                                                      <CustomerChatProvider>
-                                                        <ShipperQuestionProvider>
-                                                          <CustomerQuestionProvider>
-                                                            <AppRoutes />
-                                                          </CustomerQuestionProvider>
-                                                        </ShipperQuestionProvider>
-                                                      </CustomerChatProvider>
-                                                    </ShipperChatProvider>
-                                                  </DriverAuthProvider>
-                                                </ShipperDeliveryProvider>
-                                              </ShipperShipmentProvider>
-                                            </ShipperQuoteProvider>
-                                          </ShipperContractProvider>
-                                        </ProfileProvider>
+                                        <ReviewProvider>
+                                          <ProfileProvider>
+                                            <ShipperContractProvider>
+                                              <ShipperQuoteProvider>
+                                                <ShipperShipmentProvider>
+                                                  <ShipperDeliveryProvider>
+                                                    <DriverAuthProvider>
+                                                      <ShipperChatProvider>
+                                                        <CustomerChatProvider>
+                                                          <ShipperQuestionProvider>
+                                                            <CustomerQuestionProvider>
+                                                              <DeliveredShipmentProvider>
+                                                                <AppRoutes />
+                                                              </DeliveredShipmentProvider>
+                                                            </CustomerQuestionProvider>
+                                                          </ShipperQuestionProvider>
+                                                        </CustomerChatProvider>
+                                                      </ShipperChatProvider>
+                                                    </DriverAuthProvider>
+                                                  </ShipperDeliveryProvider>
+                                                </ShipperShipmentProvider>
+                                              </ShipperQuoteProvider>
+                                            </ShipperContractProvider>
+                                          </ProfileProvider>
+                                        </ReviewProvider>
                                       </CustomerReviewProvider>
                                     </CustomerQuoteProvider>
                                   </CustomerShipmentProvider>

@@ -1,20 +1,34 @@
-import React from "react";
+// src/pages/customer/TopRatedShippers.js
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/common/Button";
 import { MdNavigateNext } from "react-icons/md";
 
 import ShipperReviewCard from "../../components/common/ShipperReviewCard";
-import { topShippers } from "../../data/ShipperReviewData";
+import { useReview } from "../../contexts/customerContext/ReviewContext";
+import PageLoader from "../../components/common/PageLoader";
 
 const TopRatedShippers = () => {
   const navigate = useNavigate();
+  const { topRatedShippers, topShippersLoading, fetchTopRatedShippers } =
+    useReview();
+
+  useEffect(() => {
+    fetchTopRatedShippers();
+  }, [fetchTopRatedShippers]);
 
   // Show only first 3 shippers for preview
-  const shippersToShow = topShippers.slice(0, 3);
+  const shippersToShow = topRatedShippers.slice(0, 3);
 
   const handleSeeAll = () => {
     navigate("/allshippers");
   };
+
+  if (topShippersLoading) {
+    return (
+      <PageLoader text="Loading Top Rated Shippers..." fullScreen={false} />
+    );
+  }
 
   return (
     <div className="w-full flex flex-col gap-4">
@@ -24,13 +38,29 @@ const TopRatedShippers = () => {
 
       {/* Cards Container */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {shippersToShow.map((shipper) => (
-          <ShipperReviewCard key={shipper.id} shipper={shipper} />
-        ))}
+        {shippersToShow.length > 0 ? (
+          shippersToShow.map((shipper) => (
+            <ShipperReviewCard
+              key={shipper.id} // use `id` from API
+              shipper={{
+                id: shipper.id,
+                name: shipper.name,
+                profileImage: shipper.profileImage || "/default-avatar.png",
+                rating: shipper.rating,
+                reviewText: shipper.reviewText,
+                region: shipper.region,
+              }}
+            />
+          ))
+        ) : (
+          <div className="col-span-full text-center text-gray-500 py-10">
+            No top rated shippers found.
+          </div>
+        )}
       </div>
 
       {/* See All Shippers Button */}
-      {topShippers.length > shippersToShow.length && (
+      {topRatedShippers.length > shippersToShow.length && (
         <div className="flex gap-4 mt-2">
           <Button
             variant="custom"

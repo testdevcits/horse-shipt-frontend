@@ -6,6 +6,7 @@ import Button from "../../components/common/Button";
 import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
 import Toast from "../../components/common/Toast";
+import PageLoader from "../../components/common/PageLoader";
 
 const MyUpcomingShipments = () => {
   const navigate = useNavigate();
@@ -45,11 +46,7 @@ const MyUpcomingShipments = () => {
   };
 
   if (loading)
-    return (
-      <p className="text-gray-500 font-montserrat text-center mt-6">
-        Loading shipments...
-      </p>
-    );
+    return <PageLoader text="Loading shipments..." fullScreen={false} />;
 
   return (
     <div className="w-full flex flex-col gap-6">

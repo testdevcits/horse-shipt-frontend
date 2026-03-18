@@ -28,28 +28,40 @@ export const ShipperShipmentProvider = ({ children }) => {
      LIST VIEW API
   =================================*/
 
-  const getAvailableShipments = useCallback(async () => {
-    if (!token || !isShipper) return;
+  const getAvailableShipments = useCallback(
+    async (filters = {}) => {
+      if (!token || !isShipper) return;
 
-    setLoading(true);
+      setLoading(true);
 
-    try {
-      const res = await axios.get(
-        `${API_BASE_URL}/shipper/shipments/available`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      try {
+        const cleanFilters = Object.fromEntries(
+          Object.entries(filters).filter(
+            ([_, value]) =>
+              value !== "" && value !== null && value !== undefined
+          )
+        );
 
-      setShipments(res.data.shipments || []);
-    } catch (err) {
-      console.error("Get Available Shipments Error:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [token, isShipper]);
+        const query = new URLSearchParams(cleanFilters).toString();
+
+        const res = await axios.get(
+          `${API_BASE_URL}/shipper/shipments/available?${query}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setShipments(res.data.shipments || []);
+      } catch (err) {
+        console.error("Get Available Shipments Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token, isShipper]
+  );
 
   /* ===============================
      MAP VIEW PAGINATION API
