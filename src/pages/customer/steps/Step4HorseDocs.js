@@ -1,12 +1,15 @@
 import React from "react";
 import FileInput from "../../../components/common/FileInput";
 import ImageInput from "../../../components/common/ImageInput";
+import Modal from "../common/WarningModal";
 
 const Step4HorseDocuments = ({
   horses,
   handleHorseFileChange,
   errors,
   clearError,
+  showWarning,
+  onCloseWarning,
 }) => {
   const labelStyle = {
     fontFamily: "Montserrat, sans-serif",
@@ -55,66 +58,63 @@ const Step4HorseDocuments = ({
             />
           </div>
 
-          {/* Coggins Document */}
-          <div className="flex flex-col gap-1">
-            <FileInput
-              file={horse.cogins}
-              onChange={(file) => {
-                handleHorseFileChange(idx, "cogins", file);
-                clearError(`cogins${idx}`);
-              }}
-              required
-              accept=".pdf,.jpg,.png"
-              placeholder="Cog-ins"
-              error={errors[`cogins${idx}`]}
-            />
-          </div>
+          {/* Coggins */}
+          <FileInput
+            file={horse.cogins}
+            onChange={(file) => {
+              handleHorseFileChange(idx, "cogins", file);
+              clearError(`cogins${idx}`);
+            }}
+            accept=".pdf,.jpg,.png"
+            placeholder="Cog-ins (Optional)"
+            error={errors[`cogins${idx}`]}
+          />
 
           {/* Health Certificate */}
-          <div className="flex flex-col gap-1">
-            <FileInput
-              file={horse.healthCertificate}
-              onChange={(file) => {
-                handleHorseFileChange(idx, "healthCertificate", file);
-                clearError(`healthCertificate${idx}`);
-              }}
-              required
-              accept=".pdf,.jpg,.png"
-              placeholder="Heath certificate"
-              error={errors[`healthCertificate${idx}`]}
-            />
-          </div>
+          <FileInput
+            file={horse.healthCertificate}
+            onChange={(file) => {
+              handleHorseFileChange(idx, "healthCertificate", file);
+              clearError(`healthCertificate${idx}`);
+            }}
+            accept=".pdf,.jpg,.png"
+            placeholder="Health Certificate (Optional)"
+            error={errors[`healthCertificate${idx}`]}
+          />
 
-          {/* Other Document (optional) */}
-          <div className="flex flex-col gap-1">
-            <FileInput
-              file={horse.otherDocuments}
-              onChange={(file) => {
-                handleHorseFileChange(idx, "otherDocuments", file);
-                clearError(`otherDocuments${idx}`);
-              }}
-              accept=".pdf,.jpg,.png"
-              placeholder="Other Document (Optional)"
-              error={errors[`otherDocuments${idx}`]}
-            />
-          </div>
+          {/* Other */}
+          <FileInput
+            file={horse.otherDocuments}
+            onChange={(file) => {
+              handleHorseFileChange(idx, "otherDocuments", file);
+              clearError(`otherDocuments${idx}`);
+            }}
+            accept=".pdf,.jpg,.png"
+            placeholder="Other Document (Optional)"
+            error={errors[`otherDocuments${idx}`]}
+          />
 
           {/* General Info */}
-          <div className="flex flex-col gap-1">
-            <label style={labelStyle}>General Information</label>
-            <textarea
-              value={horse.generalInfo || ""}
-              onChange={(e) => {
-                handleHorseFileChange(idx, "generalInfo", e.target.value);
-                clearError(`generalInfo${idx}`);
-              }}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
-              rows={3}
-              placeholder="Describe any specific preferences or restrictions you may have for the shipment, such as preferred vehicle types and other relevant details"
-            />
-          </div>
+          <textarea
+            value={horse.generalInfo || ""}
+            onChange={(e) => {
+              handleHorseFileChange(idx, "generalInfo", e.target.value);
+              clearError(`generalInfo${idx}`);
+            }}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+            rows={3}
+            placeholder="Describe shipment details"
+          />
         </div>
       ))}
+
+      {showWarning && (
+        <Modal
+          title="Missing Documents"
+          message="Your Cog-ins or Health Certificate have not been uploaded. It is recommended to upload both before shipment."
+          onClose={onCloseWarning}
+        />
+      )}
     </div>
   );
 };

@@ -60,6 +60,9 @@ const MyShipmentDetails = lazy(() =>
   import("../pages/customer/MyShipmentDetails")
 );
 
+const ShipperProfilePage = lazy(() =>
+  import("../pages/customer/ShipperProfile")
+);
 // ---------------- Driver Pages ----------------
 const DriverLoginPage = lazy(() => import("../pages/Driver/DriverLoginPage"));
 const DriverDashboard = lazy(() => import("../pages/Driver/DriverDashboard"));
@@ -205,6 +208,7 @@ const AppRoutes = () => {
           <Route path="my-shipments" element={<MyShipmentDetails />} />
           <Route path="chats" element={<CustomerChatOverview />} />
           <Route path="my-horses" element={<MyHorses />} />
+          <Route path="shipper-profile/:id" element={<ShipperProfilePage />} />
           <Route
             path="reviews/:shipperId"
             element={<CustomerShipperReviewPage />}

@@ -67,6 +67,7 @@ const NewShipment = () => {
   const [errors, setErrors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showDocWarning, setShowDocWarning] = useState(false);
 
   /* ---------------- Load My Horses ---------------- */
   useEffect(() => {
@@ -166,13 +167,8 @@ const NewShipment = () => {
           stepErrors[`otherBreed${idx}`] = "Specify other breed";
         if (!h.sex) stepErrors[`sex${idx}`] = "Sex required";
       });
-    } else if (currentStep === 4) {
-      horses.forEach((h, idx) => {
-        if (!h.cogins) stepErrors[`cogins${idx}`] = "Coggins document required";
-        if (!h.healthCertificate)
-          stepErrors[`healthCertificate${idx}`] = "Health Certificate required";
-      });
     }
+
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
@@ -180,6 +176,15 @@ const NewShipment = () => {
   /* ---------------- Navigation ---------------- */
   const handleNext = () => {
     if (!validateStep()) return;
+    if (currentStep === 4) {
+      const missingDocs = horses.some((h) => !h.cogins || !h.healthCertificate);
+
+      if (missingDocs) {
+        setShowDocWarning(true); // modal show
+        return; // stop next
+      }
+    }
+
     if (currentStep < steps.length) setCurrentStep((prev) => prev + 1);
     else handleFinish();
   };
@@ -302,6 +307,11 @@ const NewShipment = () => {
             setAdditionalInfo={setAdditionalInfo}
             errors={errors}
             clearError={clearError}
+            showWarning={showDocWarning}
+            onCloseWarning={() => {
+              setShowDocWarning(false);
+              setCurrentStep(5);
+            }}
           />
         );
       case 5:

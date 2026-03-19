@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
-import { useAuth } from "../AuthContext"; // your auth context
+import { useAuth } from "../AuthContext";
 
 const ReviewContext = createContext();
 const API_BASE_URL = "https://horse-shipt.vercel.app/api/customer";
@@ -10,8 +10,11 @@ export const ReviewProvider = ({ children }) => {
 
   const [myReviews, setMyReviews] = useState([]);
   const [topRatedShippers, setTopRatedShippers] = useState([]);
+  const [shipperProfile, setShipperProfile] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [topShippersLoading, setTopShippersLoading] = useState(false);
+  const [shipperProfileLoading, setShipperProfileLoading] = useState(false);
 
   // ================= FETCH CUSTOMER REVIEWS =================
   const fetchMyReviews = useCallback(async () => {
@@ -77,16 +80,38 @@ export const ReviewProvider = ({ children }) => {
     }
   }, []);
 
+  // ================= FETCH SHIPPER PROFILE DETAIL =================
+  const fetchShipperProfile = useCallback(async (shipperId) => {
+    if (!shipperId) return;
+
+    setShipperProfileLoading(true);
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/shipper-profile/${shipperId}`
+      );
+
+      setShipperProfile(res.data?.data || null);
+    } catch (err) {
+      console.error("Fetch shipper profile error", err);
+      setShipperProfile(null);
+    } finally {
+      setShipperProfileLoading(false);
+    }
+  }, []);
+
   return (
     <ReviewContext.Provider
       value={{
         myReviews,
         topRatedShippers,
+        shipperProfile,
         loading,
         topShippersLoading,
+        shipperProfileLoading,
         fetchMyReviews,
         addReview,
         fetchTopRatedShippers,
+        fetchShipperProfile,
       }}
     >
       {children}
