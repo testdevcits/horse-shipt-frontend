@@ -5,6 +5,7 @@ import Button from "../components/common/Button";
 import Toast from "../components/common/Toast";
 import signupBg from "../assets/images/authPage.jpg";
 import { GoogleMap, Marker, DirectionsRenderer } from "@react-google-maps/api";
+import CryptoJS from "crypto-js";
 
 const InviteShipmentPage = () => {
   const { token } = useParams();
@@ -15,6 +16,26 @@ const InviteShipmentPage = () => {
   const [error, setError] = useState("");
   const [toast, setToast] = useState(null);
   const [directions, setDirections] = useState(null);
+  const [recipientEmail, setRecipientEmail] = useState("");
+
+  // Decrypt email from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const encryptedEmail = params.get("e");
+
+    if (encryptedEmail) {
+      try {
+        const bytes = CryptoJS.AES.decrypt(
+          decodeURIComponent(encryptedEmail),
+          process.env.REACT_APP_EMAIL_KEY
+        );
+        const email = bytes.toString(CryptoJS.enc.Utf8);
+        setRecipientEmail(email);
+      } catch (err) {
+        console.error("Failed to decrypt email:", err);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!token) {
@@ -62,9 +83,7 @@ const InviteShipmentPage = () => {
       (result, status) => {
         if (status === window.google.maps.DirectionsStatus.OK) {
           setDirections(result);
-        } else {
-          console.error("Directions request failed:", status);
-        }
+        } else console.error("Directions request failed:", status);
       }
     );
   }, [shipment]);
@@ -174,7 +193,7 @@ const InviteShipmentPage = () => {
           ))}
         </div>
 
-        {/* Google Map with Stable Directions */}
+        {/* Google Map */}
         <div className="mb-6">
           <h2 className="font-semibold text-gray-700 mb-2">Shipment Map</h2>
           <GoogleMap
@@ -195,29 +214,26 @@ const InviteShipmentPage = () => {
                 directions={directions}
                 options={{
                   polylineOptions: {
-                    strokeColor: "#BF9B53", // red color
+                    strokeColor: "#BF9B53",
                     strokeWeight: 5,
                     strokeOpacity: 0.8,
                   },
-                  suppressMarkers: true, // keep your own markers
+                  suppressMarkers: true,
                 }}
               />
             )}
-            {/* Pickup Marker with custom color */}
+
+            {/* Pickup Marker */}
             <Marker
               position={{
                 lat: shipment.pickupCoords.latitude,
                 lng: shipment.pickupCoords.longitude,
               }}
-              label={{
-                text: "Pickup",
-                color: "#fff", // text color
-                fontWeight: "bold",
-              }}
+              label={{ text: "Pickup", color: "#fff", fontWeight: "bold" }}
               icon={{
                 path: window.google.maps.SymbolPath.CIRCLE,
-                scale: 10, // size of the circle
-                fillColor: "#BF9B53", // your custom color
+                scale: 10,
+                fillColor: "#BF9B53",
                 fillOpacity: 1,
                 strokeWeight: 1,
                 strokeColor: "#000",
@@ -230,15 +246,11 @@ const InviteShipmentPage = () => {
                 lat: shipment.deliveryCoords.latitude,
                 lng: shipment.deliveryCoords.longitude,
               }}
-              label={{
-                text: "Delivery",
-                color: "#fff",
-                fontWeight: "bold",
-              }}
+              label={{ text: "Delivery", color: "#fff", fontWeight: "bold" }}
               icon={{
                 path: window.google.maps.SymbolPath.CIRCLE,
                 scale: 10,
-                fillColor: "#007BFF", // blue for delivery
+                fillColor: "#007BFF",
                 fillOpacity: 1,
                 strokeWeight: 1,
                 strokeColor: "#000",
@@ -246,16 +258,6 @@ const InviteShipmentPage = () => {
             />
           </GoogleMap>
         </div>
-
-        {/* Additional Info */}
-        {shipment.additionalInfo && (
-          <div className="mb-6">
-            <h2 className="font-semibold text-gray-700 mb-2">
-              Additional Info
-            </h2>
-            <p>{shipment.additionalInfo}</p>
-          </div>
-        )}
 
         {/* Signup CTA */}
         <div className="text-center mt-6">
@@ -265,7 +267,9 @@ const InviteShipmentPage = () => {
           <Button
             onClick={() =>
               navigate(
-                `/signup?email=${shipment.recipientEmail}&shipment=${shipment._id}`
+                `/signup?email=${encodeURIComponent(recipientEmail)}&shipment=${
+                  shipment._id
+                }`
               )
             }
           >
