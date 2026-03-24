@@ -26,7 +26,6 @@ const OfferSubmitModal = ({
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [sigPad, setSigPad] = useState(null);
 
-  // 🔥 ONLY FOR RESPONSIVE SIGNATURE
   const sigWrapperRef = useRef(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
 
@@ -58,6 +57,7 @@ const OfferSubmitModal = ({
     pickupTime: "",
     arrivalTime: "",
     notes: "",
+    cancellationWindowDays: "",
   };
 
   const validationSchema = Yup.object({
@@ -66,6 +66,9 @@ const OfferSubmitModal = ({
     paymentDue: Yup.string().required("Required"),
     pickupTime: Yup.string().required("Required"),
     arrivalTime: Yup.string().required("Required"),
+    cancellationWindowDays: Yup.number()
+      .required("Required")
+      .min(0, "Must be 0 or more"),
   });
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
@@ -93,6 +96,8 @@ const OfferSubmitModal = ({
       stallsRequired: Number(selectedVehicle?.numberOfStalls || 1),
       notes: values.notes || "",
       shipperSignature: sigPad.toDataURL("image/png"),
+
+      cancellationWindowDays: Number(values.cancellationWindowDays),
     };
 
     const res = await addQuote(payload);
@@ -258,7 +263,30 @@ const OfferSubmitModal = ({
                     rows={3}
                     className="w-full border rounded-md px-3 py-2 text-sm"
                   />
+                  <div>
+                    <label className="block mb-1 font-medium text-gray-700">
+                      Cancellation Window (Days)
+                    </label>
 
+                    <Field
+                      name="cancellationWindowDays"
+                      type="number"
+                      placeholder="e.g. 2"
+                      min="0"
+                      className="w-full border rounded-md px-3 py-2 text-sm"
+                    />
+
+                    <ErrorMessage
+                      name="cancellationWindowDays"
+                      component="div"
+                      className="text-red-500 text-sm mt-1"
+                    />
+
+                    <p className="text-xs text-gray-500 mt-1">
+                      Customers can cancel within this period after booking.
+                      After that, cancellation will be disabled.
+                    </p>
+                  </div>
                   {/* RESPONSIVE SIGNATURE */}
                   <div>
                     <label className="block mb-1 font-medium text-gray-700">

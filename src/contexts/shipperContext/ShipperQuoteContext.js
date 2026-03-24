@@ -94,6 +94,69 @@ export const ShipperQuoteProvider = ({ children }) => {
     [token]
   );
 
+  // ---------------- CANCEL QUOTE ----------------
+  const cancelQuote = async (quoteId) => {
+    if (!token || !quoteId) return;
+
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/shipper/quotes/cancel`,
+        { quoteId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      showToast(res.data.message || "Quote cancelled successfully", "success");
+
+      // Update state locally
+      setQuotes((prev) =>
+        prev.map((q) => (q._id === quoteId ? { ...q, status: "cancelled" } : q))
+      );
+
+      if (acceptedQuote?._id === quoteId) setAcceptedQuote(null);
+
+      return { success: true, cancellationFee: res.data.cancellationFee };
+    } catch (err) {
+      showToast(
+        err.response?.data?.message || err.message || "Failed to cancel quote",
+        "error"
+      );
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ---------------- DELETE QUOTE ----------------
+  const deleteQuote = async (quoteId) => {
+    if (!token || !quoteId) return;
+
+    setLoading(true);
+    try {
+      const res = await axios.delete(
+        `${API_BASE_URL}/shipper/delete/${quoteId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      showToast(res.data.message || "Quote deleted successfully", "success");
+
+      // Remove from state
+      setQuotes((prev) => prev.filter((q) => q._id !== quoteId));
+
+      return { success: true };
+    } catch (err) {
+      showToast(
+        err.response?.data?.message || err.message || "Failed to delete quote",
+        "error"
+      );
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <ShipperQuoteContext.Provider
       value={{
@@ -103,6 +166,8 @@ export const ShipperQuoteProvider = ({ children }) => {
         addQuote,
         getMyQuotes,
         getAcceptedQuoteByShipment,
+        cancelQuote,
+        deleteQuote,
       }}
     >
       {children}

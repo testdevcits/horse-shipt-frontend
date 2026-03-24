@@ -10,6 +10,8 @@ const Step4HorseDocuments = ({
   clearError,
   showWarning,
   onCloseWarning,
+  recipientEmail,
+  setRecipientEmail,
 }) => {
   const labelStyle = {
     fontFamily: "Montserrat, sans-serif",
@@ -108,6 +110,26 @@ const Step4HorseDocuments = ({
         </div>
       ))}
 
+      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+        <h3 className="text-lg font-semibold mb-2">
+          Invite Recipient (Optional)
+        </h3>
+
+        <input
+          type="email"
+          value={recipientEmail || ""}
+          onChange={(e) => setRecipientEmail(e.target.value)}
+          placeholder="Enter recipient email to share tracking"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BF9B53]"
+        />
+
+        <p className="text-sm text-gray-500 mt-1">
+          Recipient will receive an email to track this shipment after it is
+          published.
+        </p>
+      </div>
+
+      {/* Warning Modal */}
       {showWarning && (
         <Modal
           title="Missing Documents"

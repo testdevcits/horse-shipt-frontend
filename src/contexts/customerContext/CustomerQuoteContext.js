@@ -110,7 +110,26 @@ export const CustomerQuoteProvider = ({ children }) => {
       setLoading(false);
     }
   };
+  const cancelQuote = async (quoteId, reason) => {
+    try {
+      const res = await fetch(
+        `https://horse-shipt.vercel.app/api/customer/quotes/${quoteId}/cancel`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ reason }),
+        }
+      );
 
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      return { success: false, message: "Cancel failed" };
+    }
+  };
   return (
     <CustomerQuoteContext.Provider
       value={{
@@ -118,6 +137,7 @@ export const CustomerQuoteProvider = ({ children }) => {
         loading,
         getQuotesByShipment,
         acceptQuote,
+        cancelQuote,
       }}
     >
       {children}

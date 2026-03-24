@@ -13,7 +13,8 @@ const Step5Review = ({
   numberOfHorses,
   horses,
   additionalInfo,
-  onEditStep, // function(stepNumber, horseIndex?) => void
+  recipientEmail,
+  onEditStep,
 }) => {
   return (
     <div className="flex flex-col w-full gap-6">
@@ -33,17 +34,20 @@ const Step5Review = ({
           <IoLocationOutline className="text-gray-500 text-lg" />
           <p>{pickupLocation || "N/A"}</p>
         </div>
+
         <div className="flex items-center gap-2">
           <LuCalendarDays className="text-gray-500 text-lg" />
           <p>
             {pickupDate || "N/A"} ({pickupTimeOption || "N/A"})
           </p>
         </div>
+
         <div className="flex items-center gap-2 mt-2">
           <span className="font-semibold">Delivery:</span>
           <IoLocationOutline className="text-gray-500 text-lg" />
           <p>{deliveryLocation || "N/A"}</p>
         </div>
+
         <div className="flex items-center gap-2">
           <LuCalendarDays className="text-gray-500 text-lg" />
           <p>
@@ -60,7 +64,7 @@ const Step5Review = ({
           <div key={idx} className="rounded-md border p-3 relative">
             <button
               className="absolute top-2 right-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm"
-              onClick={() => onEditStep(3, idx)} // Step 3: Horse Info
+              onClick={() => onEditStep(3, idx)}
             >
               <FiEdit3 /> Edit
             </button>
@@ -68,6 +72,7 @@ const Step5Review = ({
             <p className="font-semibold mb-1">
               Horse {idx + 1}: {h.registeredName || "Unnamed"}
             </p>
+
             <p>
               Barn Name: {h.barnName || "N/A"}, Breed: {h.breed || "N/A"},{" "}
               Colour: {h.colour || "N/A"}, Age: {h.age || "N/A"}, Sex:{" "}
@@ -75,7 +80,7 @@ const Step5Review = ({
               {h.stallType || "N/A"}
             </p>
 
-            {/* Horse Photo */}
+            {/* Photo */}
             {h.photo && (
               <div className="mt-2">
                 <span className="font-semibold">Photo:</span>
@@ -87,7 +92,7 @@ const Step5Review = ({
               </div>
             )}
 
-            {/* Document Previews */}
+            {/* Documents */}
             <div className="mt-2 space-y-1">
               {["cogins", "healthCertificate", "otherDocuments"].map((doc) => (
                 <div key={doc}>
@@ -105,7 +110,6 @@ const Step5Review = ({
           </div>
         ))}
 
-        {/* Edit Step 4 (Documents & Additional Info for horses) */}
         <button
           onClick={() => onEditStep(4)}
           className="mt-3 px-4 py-2 bg-gray-100 rounded-md text-sm text-gray-700 hover:bg-gray-200"
@@ -114,7 +118,7 @@ const Step5Review = ({
         </button>
       </div>
 
-      {/* Additional Info Section */}
+      {/* Additional Info */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm relative">
         <button
           className="absolute top-2 right-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm"
@@ -126,6 +130,16 @@ const Step5Review = ({
         <h3 className="font-semibold mb-1">Additional Info</h3>
         <p>{additionalInfo || "N/A"}</p>
       </div>
+
+      {recipientEmail && (
+        <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+          <h3 className="font-semibold mb-1">Recipient Access</h3>
+          <p className="text-gray-700">{recipientEmail}</p>
+          <p className="text-sm text-gray-500 mt-1">
+            This recipient will receive an email to track this shipment.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

@@ -34,6 +34,7 @@ const MyShipmentDetails = () => {
     currentShipment,
     loading: shipmentLoading,
     publishShipment,
+    deleteShipment,
   } = useCustomerShipments();
 
   const {
@@ -47,6 +48,8 @@ const MyShipmentDetails = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [openDetails, setOpenDetails] = useState(true);
   const [selectedQuote, setSelectedQuote] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedShipmentId, setSelectedShipmentId] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
 
   // ---------------- FETCH SHIPMENT ----------------
@@ -68,6 +71,10 @@ const MyShipmentDetails = () => {
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   };
 
+  const handleDeleteClick = (id) => {
+    setSelectedShipmentId(id);
+    setShowDeleteModal(true);
+  };
   // ---------------- PUBLISH SHIPMENT ----------------
   const handlePublishShipment = async () => {
     try {
@@ -76,6 +83,18 @@ const MyShipmentDetails = () => {
     } catch (err) {
       showToast(err.message || "Failed to publish shipment", "error");
     }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedShipmentId) return;
+
+    await deleteShipment(selectedShipmentId);
+
+    setShowDeleteModal(false);
+    setSelectedShipmentId(null);
+
+    // Optional redirect
+    navigate("/customer/dashboard");
   };
 
   const handleReviewNavigate = () => {
@@ -207,12 +226,23 @@ const MyShipmentDetails = () => {
                 </div>
 
                 {!shipment.publish && shipment.status === "pending" && (
-                  <button
-                    onClick={handlePublishShipment}
-                    className="mt-4 px-6 py-3 bg-system-primary text-white rounded-lg font-medium hover:opacity-90 transition"
-                  >
-                    Publish Shipment
-                  </button>
+                  <div className="flex gap-3 mt-4">
+                    {/* Publish Button */}
+                    <button
+                      onClick={handlePublishShipment}
+                      className="px-6 py-3 bg-system-primary text-white rounded-lg font-medium hover:opacity-90 transition"
+                    >
+                      Publish Shipment
+                    </button>
+
+                    {/* Delete Button */}
+                    <button
+                      onClick={() => handleDeleteClick(shipment._id)}
+                      className="px-6 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition"
+                    >
+                      Delete Shipment
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -233,7 +263,39 @@ const MyShipmentDetails = () => {
                 <FiChevronDown size={20} />
               )}
             </div>
+            {showDeleteModal && (
+              <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
+                <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
+                  {/* Title */}
+                  <h2 className="text-xl font-semibold mb-2">
+                    Delete Shipment
+                  </h2>
 
+                  {/* Message */}
+                  <p className="text-gray-600 mb-4">
+                    Are you sure you want to delete this shipment? This action
+                    cannot be undone.
+                  </p>
+
+                  {/* Buttons */}
+                  <div className="flex gap-3 mt-5">
+                    <button
+                      onClick={() => setShowDeleteModal(false)}
+                      className="w-full px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+
+                    <button
+                      onClick={handleConfirmDelete}
+                      className="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    >
+                      Confirm Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             {openDetails && (
               <div className="p-4 space-y-6">
                 {/* GENERAL */}

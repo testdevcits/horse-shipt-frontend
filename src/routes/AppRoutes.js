@@ -21,6 +21,7 @@ import ShipperQuotesPage from "../pages/shipper/ShipperQuotesPage";
 import MyHorses from "../pages/customer/MyHorses";
 import GoogleReview from "../pages/shipper/GoogleReview";
 import CustomerShipperReviewPage from "../pages/customer/CustomerShipperReviewPage";
+import InviteShipmentPage from "../pages/InviteShipmentPage";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -116,6 +117,7 @@ const AppRoutes = () => {
           />{" "}
           <Route path="/privacy-policy" element={<PrivacyPage />} />
           <Route path="/terms-conditions" element={<TermsPage />} />
+          <Route path="/invite/:token" element={<InviteShipmentPage />} />
         </Route>
 
         {/* ---------- Auth Pages ---------- */}

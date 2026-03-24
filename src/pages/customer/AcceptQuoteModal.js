@@ -16,7 +16,7 @@ import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
 const AcceptQuoteModal = ({ quote, onClose }) => {
-  const { acceptQuote } = useCustomerQuote();
+  const { acceptQuote, cancelQuote } = useCustomerQuote();
   const stripe = useStripe();
   const elements = useElements();
 
@@ -25,10 +25,21 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [showPDF, setShowPDF] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   // RESPONSIVE SIGNATURE ONLY
   const sigWrapperRef = useRef(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
+
+  const isCancellationExpired =
+    quote.cancellationLastDate &&
+    new Date(quote.cancellationLastDate) < new Date();
+
+  const isCancelable =
+    quote?.cancellationLastDate &&
+    new Date() < new Date(quote.cancellationLastDate) &&
+    !quote.isCancelled;
 
   useEffect(() => {
     const updateWidth = () => {
@@ -127,6 +138,26 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
     }
   };
 
+  const handleCancelQuote = async () => {
+    try {
+      if (!cancelReason.trim()) {
+        return showToast("Please enter cancel reason", "error");
+      }
+
+      const res = await cancelQuote(quote._id, cancelReason);
+
+      if (res.success) {
+        showToast("Quote cancelled successfully", "success");
+        setShowCancelModal(false);
+        onClose();
+      } else {
+        showToast(res.message || "Cancel failed", "error");
+      }
+    } catch (err) {
+      showToast("Something went wrong", "error");
+    }
+  };
+
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
   const strongLabelClass = "text-gray-600";
 
@@ -154,8 +185,32 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
             <p className="text-gray-600 mt-1">
               Review the quote details and sign digitally to accept.
             </p>
-          </div>
-
+          </div>{" "}
+          {quote.cancellationLastDate && (
+            <p
+              className={`border-b px-4 sm:px-6 py-1.5 sm:py-3 font-montserrat ${
+                quote.isCancelled
+                  ? "bg-red-100 border-red-300 text-red-600"
+                  : isCancellationExpired
+                  ? "bg-gray-100 border-gray-300 text-gray-600"
+                  : "bg-yellow-100 border-yellow-300 text-yellow-800"
+              }`}
+            >
+              {quote.isCancelled ? (
+                "This shipment has already been cancelled."
+              ) : isCancellationExpired ? (
+                "Cancellation period has expired."
+              ) : (
+                <>
+                  You can cancel this shipment until{" "}
+                  <span className="font-medium">
+                    {new Date(quote.cancellationLastDate).toLocaleString()}
+                  </span>
+                  . After this period, cancellation will not be allowed.
+                </>
+              )}
+            </p>
+          )}
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* LEFT */}
@@ -274,6 +329,53 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                 </>
               )}
 
+              {showCancelModal && (
+                <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center px-4">
+                  <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
+                    {/* Close */}
+                    <button
+                      onClick={() => setShowCancelModal(false)}
+                      className="absolute right-4 top-4 text-gray-500 hover:text-black"
+                    >
+                      <FiX size={20} />
+                    </button>
+
+                    <h2 className="text-xl font-semibold mb-2">Cancel Quote</h2>
+                    <p className="text-gray-600 mb-4">
+                      Please provide a reason for cancellation.
+                    </p>
+
+                    {/* Reason Input */}
+                    <textarea
+                      className="w-full border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                      rows={4}
+                      placeholder="Enter cancel reason..."
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                    />
+
+                    {/* Actions */}
+                    <div className="flex gap-3 mt-5">
+                      <Button
+                        variant="secondary"
+                        fullWidth
+                        onClick={() => setShowCancelModal(false)}
+                      >
+                        Back
+                      </Button>
+
+                      <Button
+                        variant="danger"
+                        fullWidth
+                        onClick={handleCancelQuote}
+                      >
+                        Confirm Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* TERMS + SIGNATURE + CARD */}
               <div className="border rounded-md p-4 space-y-3">
                 <Checkbox
@@ -281,6 +383,12 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                   onChange={(e) => setAgreed(e.target.checked)}
                   label="I agree to accept this quote and terms"
                 />
+                {!isCancellationExpired && (
+                  <p className="text-[11px] text-gray-500">
+                    Note: Cancellation is only allowed within the specified time
+                    window.
+                  </p>
+                )}
 
                 {quote.paymentMethod === "card" &&
                   quote.paymentStatus !== "paid" && (
@@ -330,10 +438,19 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                 <Button variant="secondary" fullWidth onClick={onClose}>
                   Cancel
                 </Button>
+                {isCancelable && (
+                  <Button
+                    variant="danger"
+                    fullWidth
+                    onClick={() => setShowCancelModal(true)}
+                  >
+                    Cancel Quote
+                  </Button>
+                )}
                 <Button
                   variant="primary"
                   fullWidth
-                  disabled={submitting}
+                  disabled={submitting || isCancellationExpired}
                   onClick={handleSubmit}
                 >
                   {submitting ? "Submitting..." : "Accept Quote"}

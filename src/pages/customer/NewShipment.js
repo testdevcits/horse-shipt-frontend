@@ -69,6 +69,8 @@ const NewShipment = () => {
   const [toast, setToast] = useState(null);
   const [showDocWarning, setShowDocWarning] = useState(false);
 
+  const [recipientEmail, setRecipientEmail] = useState("");
+
   /* ---------------- Load My Horses ---------------- */
   useEffect(() => {
     if (typeof getMyHorses === "function") getMyHorses();
@@ -168,6 +170,10 @@ const NewShipment = () => {
         if (!h.sex) stepErrors[`sex${idx}`] = "Sex required";
       });
     }
+    if (recipientEmail && !/\S+@\S+\.\S+/.test(recipientEmail)) {
+      setToast({ message: "Invalid recipient email", type: "error" });
+      return;
+    }
 
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
@@ -206,6 +212,7 @@ const NewShipment = () => {
       formData.append("pickupLng", pickupCoords?.lng || "");
       formData.append("pickupTimeOption", pickupTimeOption);
       formData.append("pickupDate", pickupDate);
+      formData.append("recipientEmail", recipientEmail);
 
       // 🔹 Delivery
       formData.append("deliveryLocation", deliveryLocation);
@@ -312,6 +319,8 @@ const NewShipment = () => {
               setShowDocWarning(false);
               setCurrentStep(5);
             }}
+            recipientEmail={recipientEmail}
+            setRecipientEmail={setRecipientEmail}
           />
         );
       case 5:
@@ -326,6 +335,7 @@ const NewShipment = () => {
             numberOfHorses={numberOfHorses}
             horses={horses}
             additionalInfo={additionalInfo}
+            recipientEmail={recipientEmail}
             onEditStep={setCurrentStep}
           />
         );

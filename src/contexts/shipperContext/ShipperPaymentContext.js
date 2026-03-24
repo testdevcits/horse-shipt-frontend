@@ -3,7 +3,6 @@ import axios from "axios";
 import { useAuth } from "../AuthContext";
 
 const ShipperPaymentContext = createContext();
-
 const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
 export const ShipperPaymentProvider = ({ children }) => {
@@ -11,6 +10,11 @@ export const ShipperPaymentProvider = ({ children }) => {
 
   const [stripeStatus, setStripeStatus] = useState(null);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+
+  const [hasCard, setHasCard] = useState(false);
+  const [paymentCard, setPaymentCard] = useState(null);
+
+  const [clientSecret, setClientSecret] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -18,93 +22,142 @@ export const ShipperPaymentProvider = ({ children }) => {
   const fetchStripeStatus = useCallback(async () => {
     if (!token) return;
 
-    try {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
 
+    try {
       const res = await axios.get(`${API_BASE_URL}/shipper/stripe/status`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      // ❌ Stripe account not created
-      if (!res.data.success) {
-        setStripeStatus(null);
-        setNeedsOnboarding(true); // FIX
-        setError(res.data.message || "Stripe account not created");
-        return;
-      }
-
       setStripeStatus(res.data);
-
-      // ✔ Check onboarding completion
-      if (!res.data.onboardingCompleted) {
-        setNeedsOnboarding(true);
-      } else {
-        setNeedsOnboarding(false);
-      }
+      setNeedsOnboarding(!res.data.onboardingCompleted);
     } catch (err) {
       console.error("Stripe status error:", err);
-
-      setStripeStatus(null);
-
-      // ❗ If error happens assume onboarding needed
       setNeedsOnboarding(true);
-
-      setError(err?.response?.data?.message || "Stripe account not created");
+      setError(err?.response?.data?.message);
     } finally {
       setLoading(false);
     }
   }, [token]);
 
   // ================= ENABLE PAYMENTS =================
-  const enablePayments = async () => {
+  const enablePayments = useCallback(async () => {
     if (!token) return;
-
+    setLoading(true);
     try {
-      setLoading(true);
-      setError(null);
-
-      // Step 1: Create Stripe account
       await axios.post(
         `${API_BASE_URL}/shipper/stripe/create-account`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      // Step 2: Generate onboarding link
       const res = await axios.post(
         `${API_BASE_URL}/shipper/stripe/onboarding`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      if (res.data?.onboardingUrl) {
+      if (res.data?.onboardingUrl)
         window.location.href = res.data.onboardingUrl;
-      }
     } catch (err) {
       console.error("Enable payments error:", err);
-
-      setError(
-        err?.response?.data?.message || "Failed to connect Stripe account"
-      );
+      setError(err?.response?.data?.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  // ================= CREATE CUSTOMER =================
+  const createCustomer = useCallback(async () => {
+    if (!token) return;
+    try {
+      await axios.post(
+        `${API_BASE_URL}/shipper/create-customer`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (err) {
+      console.error("Create customer error:", err);
+    }
+  }, [token]);
+
+  // ================= CREATE SETUP INTENT =================
+  const createSetupIntent = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/shipper/setup-intent`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setClientSecret(res.data.clientSecret);
+      return res.data.clientSecret;
+    } catch (err) {
+      console.error("Setup intent error:", err);
+      setError("Failed to initialize card setup");
+    }
+  }, [token]);
+
+  // ================= SAVE PAYMENT METHOD =================
+  const savePaymentMethod = useCallback(
+    async (paymentMethodId) => {
+      if (!token) return;
+      try {
+        const res = await axios.post(
+          `${API_BASE_URL}/shipper/save-payment-method`,
+          { paymentMethodId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setHasCard(true);
+        if (res.data?.cardBrand && res.data?.cardLast4) {
+          setPaymentCard({
+            cardBrand: res.data.cardBrand,
+            cardLast4: res.data.cardLast4,
+          });
+        }
+      } catch (err) {
+        console.error("Save payment method error:", err);
+        setError("Failed to save card");
+      }
+    },
+    [token]
+  );
+
+  // ================= FETCH PAYMENT STATUS =================
+  const fetchPaymentStatus = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await axios.get(`${API_BASE_URL}/shipper/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setHasCard(res.data.hasCard || false);
+      if (res.data.hasCard && res.data.cardBrand && res.data.cardLast4) {
+        setPaymentCard({
+          cardBrand: res.data.cardBrand,
+          cardLast4: res.data.cardLast4,
+        });
+      } else {
+        setPaymentCard(null);
+      }
+    } catch (err) {
+      console.error("Payment status error:", err);
+    }
+  }, [token]);
 
   return (
     <ShipperPaymentContext.Provider
       value={{
         stripeStatus,
         needsOnboarding,
+        enablePayments,
+        fetchStripeStatus,
+        createCustomer,
+        createSetupIntent,
+        savePaymentMethod,
+        fetchPaymentStatus,
+        hasCard,
+        paymentCard,
+        clientSecret,
         loading,
         error,
-        fetchStripeStatus,
-        enablePayments,
       }}
     >
       {children}
