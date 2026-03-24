@@ -24,7 +24,7 @@ const InviteShipmentPage = () => {
     const fetchShipment = async () => {
       try {
         const res = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/shipment/invite/${token}`
+          `${process.env.REACT_APP_API_BASE_URL}/customer/shipment/invite/${token}`
         );
         console.log("Shipment fetched:", res.data.shipment);
         setShipment(res.data.shipment);
