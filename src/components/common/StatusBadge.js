@@ -13,7 +13,7 @@ const StatusBadge = ({
 }) => {
   return (
     <div
-      className={`flex items-center gap-2 ${paddingX} ${paddingY} rounded-full ${bgColor} border ${borderColor} ${className}`}
+      className={`flex items-center gap-2 font-montserrat ${paddingX} ${paddingY} rounded-full ${bgColor} border ${borderColor} ${className}`}
     >
       {/* DOT (conditional) */}
       {showDot && <span className={`w-2 h-2 rounded-full ${dotColor}`} />}

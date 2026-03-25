@@ -122,7 +122,7 @@ const ShipperLayout = () => {
             onClick={() => navigate("/shipper/notifications")}
           />
 
-          <StatusBadge text="Available" />
+          <StatusBadge text="Shipper accunt" />
 
           {profileImage ? (
             <div className="relative">

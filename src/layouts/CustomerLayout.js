@@ -9,6 +9,7 @@ import logo from "../assets/images/logo.png";
 import { MdOutlineNotificationsActive } from "react-icons/md";
 import { useProfile } from "../contexts/customerContext/ProfileContext";
 import defaultProfileImage from "../assets/images/profileImage.png";
+import StatusBadge from "../components/common/StatusBadge";
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ const CustomerLayout = () => {
               </span>
             )}
           </div>
-
+          <StatusBadge text="Customer accunt" />
           {/* Profile */}
           <div className="relative">
             <img

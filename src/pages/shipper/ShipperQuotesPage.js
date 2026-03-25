@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Worker, Viewer } from "@react-pdf-viewer/core";
 import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
-
+import { TbLocationSearch } from "react-icons/tb";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
 import Toast from "../../components/common/Toast";
 import PageLoader from "../../components/common/PageLoader";
@@ -15,13 +15,14 @@ const ShipperQuotesPage = () => {
 
   const [visibleContractId, setVisibleContractId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
-
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const tabsContainerRef = useRef(null);
+  // TAB STATE: all | accepted | cancelled | pending
+  const [activeTab, setActiveTab] = useState("all");
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
@@ -36,10 +37,24 @@ const ShipperQuotesPage = () => {
 
   if (loading) return <PageLoader />;
 
-  const filteredQuotes = quotes.filter((quote) => {
-    const code = quote.shipment?.shipmentCode || "";
-    return code.slice(-6).toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  // FILTERED BY SEARCH + TAB
+  const filteredQuotes = quotes
+    .filter((quote) => {
+      const code = quote.shipment?.shipmentCode || "";
+      return code.slice(-6).toLowerCase().includes(searchTerm.toLowerCase());
+    })
+    .filter((quote) => {
+      switch (activeTab) {
+        case "accepted":
+          return quote.status === "accepted" && !quote.isCancelled;
+        case "cancelled":
+          return quote.isCancelled;
+        case "pending":
+          return quote.status === "pending";
+        default:
+          return true; // all
+      }
+    });
 
   const openModal = (quote, type) => {
     setSelectedQuote(quote);
@@ -54,16 +69,11 @@ const ShipperQuotesPage = () => {
 
   const handleAction = async () => {
     if (!selectedQuote) return;
-
     setActionLoading(true);
 
     let res;
-
-    if (modalType === "cancel") {
-      res = await cancelQuote(selectedQuote._id);
-    } else if (modalType === "delete") {
-      res = await deleteQuote(selectedQuote._id);
-    }
+    if (modalType === "cancel") res = await cancelQuote(selectedQuote._id);
+    else if (modalType === "delete") res = await deleteQuote(selectedQuote._id);
 
     if (res?.success) {
       showToast(
@@ -81,220 +91,269 @@ const ShipperQuotesPage = () => {
     closeModal();
   };
 
+  // COUNT TAB DATA
+  const tabData = [
+    { key: "all", label: "All Quotes", count: quotes.length },
+    {
+      key: "accepted",
+      label: "Accepted",
+      count: quotes.filter((q) => q.status === "accepted" && !q.isCancelled)
+        .length,
+    },
+    {
+      key: "cancelled",
+      label: "Cancelled",
+      count: quotes.filter((q) => q.isCancelled).length,
+    },
+    {
+      key: "pending",
+      label: "Pending",
+      count: quotes.filter((q) => q.status === "pending").length,
+    },
+  ];
+
   return (
     <div className="w-full mx-auto font-[Montserrat]">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between mb-6 gap-4">
+      <div className="flex flex-col md:flex-row justify-between mb-4 gap-4">
         <h2 className="text-2xl font-semibold text-gray-800 uppercase">
           My Quotes
         </h2>
 
-        <input
-          type="text"
-          placeholder="Search shipment ID"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#997C42]"
-        />
+        <div className="relative w-full md:w-1/3">
+          <input
+            type="text"
+            placeholder="Search by last 6 characters of shipment ID"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-2 pl-10 border rounded-lg focus:ring-2 focus:ring-[#997C42] placeholder-gray-400"
+          />
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <TbLocationSearch size={20} color="#997C42" />
+          </span>
+        </div>
       </div>
 
-      {filteredQuotes.length === 0 && <NotFound />}
+      {/* TABS */}
+      <div
+        ref={tabsContainerRef}
+        className="flex gap-4 mb-6 border-b border-gray-200 overflow-x-auto scrollbar-hide"
+      >
+        {tabData.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => {
+              setActiveTab(tab.key);
 
-      {/* LIST */}
-      <div className="grid gap-6">
-        {filteredQuotes.map((quote) => {
-          const isExpired =
-            quote.cancellationLastDate &&
-            new Date() > new Date(quote.cancellationLastDate);
+              // Auto-scroll selected tab into view
+              const tabButton = document.getElementById(`tab-${tab.key}`);
+              tabButton?.scrollIntoView({
+                behavior: "smooth",
+                inline: "start",
+              });
+            }}
+            id={`tab-${tab.key}`}
+            className={`flex-shrink-0 px-4 py-2 font-semibold rounded-t-lg transition whitespace-nowrap ${
+              activeTab === tab.key
+                ? "bg-[#997C42] text-white border-b-2 border-[#997C42]"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            {`${tab.label} (${tab.count})`}
+          </button>
+        ))}
+      </div>
 
-          const canDelete = !quote.contractAccepted;
+      {/* QUOTES LIST */}
+      {filteredQuotes.length === 0 ? (
+        <NotFound />
+      ) : (
+        <div className="grid gap-6">
+          {filteredQuotes.map((quote) => {
+            const isExpired =
+              quote.cancellationLastDate &&
+              new Date() > new Date(quote.cancellationLastDate);
+            const canDelete = !quote.contractAccepted;
 
-          return (
-            <div
-              key={quote._id}
-              className="bg-white rounded-2xl shadow-lg p-6 space-y-4 border hover:shadow-xl transition"
-            >
-              {/* TOP */}
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-[#BF9B53]">
-                  {quote.shipment?.shipmentCode}
-                </h2>
-
-                <span
-                  className={`text-sm px-3 py-1 rounded-full text-white ${
-                    quote.isCancelled
-                      ? "bg-red-500"
-                      : quote.status === "accepted"
-                      ? "bg-green-500"
-                      : "bg-gray-400"
-                  }`}
-                >
-                  {quote.isCancelled ? "Cancelled" : quote.status}
-                </span>
-              </div>
-
-              {/* DETAILS GRID */}
-              <div className="grid md:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <p>
-                    <b>Price:</b> ${quote.totalPrice}
-                  </p>
-                  <p>
-                    <b>Currency:</b> {quote.currency}
-                  </p>
-                  <p>
-                    <b>Payment:</b> {quote.paymentMethod}
-                  </p>
+            return (
+              <div
+                key={quote._id}
+                className="bg-white rounded-2xl shadow-lg p-6 space-y-4 border hover:shadow-xl transition"
+              >
+                {/* TOP */}
+                <div className="flex justify-between items-center">
+                  <h2 className="text-lg font-semibold text-[#BF9B53]">
+                    {quote.shipment?.shipmentCode}
+                  </h2>
+                  <span
+                    className={`text-sm px-3 py-1 rounded-full text-white ${
+                      quote.isCancelled
+                        ? "bg-red-500"
+                        : quote.status === "accepted"
+                        ? "bg-green-500"
+                        : "bg-gray-400"
+                    }`}
+                  >
+                    {quote.isCancelled ? "Cancelled" : quote.status}
+                  </span>
                 </div>
 
-                <div>
-                  <p>
-                    <b>Pickup:</b> {quote.pickupTime}
-                  </p>
-                  <p>
-                    <b>Arrival:</b> {quote.estimatedArrivalTime}
-                  </p>
-                  <p>
-                    <b>Transport:</b> {quote.transportType}
-                  </p>
-                </div>
-
-                <div>
-                  <p>
-                    <b>Stalls:</b> {quote.stallsRequired}
-                  </p>
-                  <p>
-                    <b>Payment Status:</b> {quote.paymentStatus}
-                  </p>
-                  <p>
-                    <b>Refund:</b> {quote.refundStatus}
-                  </p>
-                </div>
-              </div>
-
-              {/* NOTES */}
-              {quote.notes && (
-                <div className="bg-gray-50 p-3 rounded text-sm">
-                  <b>Notes:</b> {quote.notes}
-                </div>
-              )}
-
-              {/* VEHICLE */}
-              {quote.vehicle && (
-                <div className="bg-gray-50 p-3 rounded text-sm">
-                  <p>
-                    <b>Vehicle:</b> {quote.vehicle.vehicleNumber}
-                  </p>
-                  <p>
-                    <b>Type:</b> {quote.vehicle.vehicleType}
-                  </p>
-                  <p>
-                    <b>Stalls:</b> {quote.vehicle.numberOfStalls}
-                  </p>
-                </div>
-              )}
-
-              {/* CANCELLATION DETAILS */}
-              {quote.isCancelled && (
-                <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-sm space-y-1">
-                  <p className="text-red-600 font-semibold">
-                    Shipment Cancelled
-                  </p>
-
-                  <p>
-                    <b>Cancelled At:</b>{" "}
-                    {quote.cancelledAt
-                      ? new Date(quote.cancelledAt).toLocaleString()
-                      : "N/A"}
-                  </p>
-
-                  <p>
-                    <b>Reason:</b> {quote.cancelReason || "N/A"}
-                  </p>
-
-                  <p>
-                    <b>Refund Amount:</b> ${quote.refundAmount || 0}
-                  </p>
-
-                  <p>
-                    <b>Refund Status:</b> {quote.refundStatus}
-                  </p>
-
-                  {quote.cancellationFee && (
+                {/* DETAILS GRID */}
+                <div className="grid md:grid-cols-3 gap-4 text-sm">
+                  <div>
                     <p>
-                      <b>Cancellation Fee Charged:</b> ${quote.cancellationFee}
+                      <b>Price:</b> ${quote.totalPrice}
                     </p>
+                    <p>
+                      <b>Currency:</b> {quote.currency}
+                    </p>
+                    <p>
+                      <b>Payment:</b> {quote.paymentMethod}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p>
+                      <b>Pickup:</b> {quote.pickupTime}
+                    </p>
+                    <p>
+                      <b>Arrival:</b> {quote.estimatedArrivalTime}
+                    </p>
+                    <p>
+                      <b>Transport:</b> {quote.transportType}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p>
+                      <b>Stalls:</b> {quote.stallsRequired}
+                    </p>
+                    <p>
+                      <b>Payment Status:</b> {quote.paymentStatus}
+                    </p>
+                    <p>
+                      <b>Refund:</b> {quote.refundStatus}
+                    </p>
+                  </div>
+                </div>
+
+                {/* NOTES */}
+                {quote.notes && (
+                  <div className="bg-gray-50 p-3 rounded text-sm">
+                    <b>Notes:</b> {quote.notes}
+                  </div>
+                )}
+
+                {/* VEHICLE */}
+                {quote.vehicle && (
+                  <div className="bg-gray-50 p-3 rounded text-sm">
+                    <p>
+                      <b>Vehicle:</b> {quote.vehicle.vehicleNumber}
+                    </p>
+                    <p>
+                      <b>Type:</b> {quote.vehicle.vehicleType}
+                    </p>
+                    <p>
+                      <b>Stalls:</b> {quote.vehicle.numberOfStalls}
+                    </p>
+                  </div>
+                )}
+
+                {/* CANCELLATION DETAILS */}
+                {quote.isCancelled && (
+                  <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-sm space-y-1">
+                    <p className="text-red-600 font-semibold">
+                      Shipment Cancelled
+                    </p>
+                    <p>
+                      <b>Cancelled At:</b>{" "}
+                      {quote.cancelledAt
+                        ? new Date(quote.cancelledAt).toLocaleString()
+                        : "N/A"}
+                    </p>
+                    <p>
+                      <b>Reason:</b> {quote.cancelReason || "N/A"}
+                    </p>
+                    <p>
+                      <b>Refund Amount:</b> ${quote.refundAmount || 0}
+                    </p>
+                    <p>
+                      <b>Refund Status:</b> {quote.refundStatus}
+                    </p>
+                    {quote.cancellationFee && (
+                      <p>
+                        <b>Cancellation Fee Charged:</b> $
+                        {quote.cancellationFee}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* CANCELLATION WINDOW */}
+                {!quote.isCancelled && quote.cancellationLastDate && (
+                  <p
+                    className={`text-sm ${
+                      isExpired ? "text-red-500" : "text-yellow-600"
+                    }`}
+                  >
+                    {isExpired
+                      ? "Cancellation expired"
+                      : `Cancel before: ${new Date(
+                          quote.cancellationLastDate
+                        ).toLocaleString()}`}
+                  </p>
+                )}
+
+                {/* BUTTONS */}
+                <div className="flex flex-wrap gap-3">
+                  {quote.contract?.url && (
+                    <button
+                      onClick={() =>
+                        setVisibleContractId(
+                          visibleContractId === quote._id ? null : quote._id
+                        )
+                      }
+                      className="px-4 py-2 bg-[#997C42] text-white rounded"
+                    >
+                      View Contract
+                    </button>
+                  )}
+
+                  {!isExpired && !quote.isCancelled && (
+                    <button
+                      onClick={() => openModal(quote, "cancel")}
+                      className="px-4 py-2 bg-red-500 text-white rounded"
+                    >
+                      Cancel
+                    </button>
+                  )}
+
+                  {canDelete && (
+                    <button
+                      onClick={() => openModal(quote, "delete")}
+                      className="px-4 py-2 bg-black text-white rounded"
+                    >
+                      Delete Quote
+                    </button>
                   )}
                 </div>
-              )}
 
-              {/* CANCELLATION WINDOW */}
-              {!quote.isCancelled && quote.cancellationLastDate && (
-                <p
-                  className={`text-sm ${
-                    isExpired ? "text-red-500" : "text-yellow-600"
-                  }`}
-                >
-                  {isExpired
-                    ? "Cancellation expired"
-                    : `Cancel before: ${new Date(
-                        quote.cancellationLastDate
-                      ).toLocaleString()}`}
-                </p>
-              )}
-
-              {/* BUTTONS */}
-              <div className="flex flex-wrap gap-3">
-                {/* CONTRACT */}
-                {quote.contract?.url && (
-                  <button
-                    onClick={() =>
-                      setVisibleContractId(
-                        visibleContractId === quote._id ? null : quote._id
-                      )
-                    }
-                    className="px-4 py-2 bg-[#997C42] text-white rounded"
-                  >
-                    View Contract
-                  </button>
-                )}
-
-                {/* CANCEL */}
-                {!isExpired && !quote.isCancelled && (
-                  <button
-                    onClick={() => openModal(quote, "cancel")}
-                    className="px-4 py-2 bg-red-500 text-white rounded"
-                  >
-                    Cancel
-                  </button>
-                )}
-
-                {/* DELETE */}
-                {canDelete && (
-                  <button
-                    onClick={() => openModal(quote, "delete")}
-                    className="px-4 py-2 bg-black text-white rounded"
-                  >
-                    Delete Quote
-                  </button>
+                {/* PDF */}
+                {visibleContractId === quote._id && (
+                  <div className="mt-4 border rounded h-[400px]">
+                    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                      <Viewer
+                        fileUrl={quote.contract.url}
+                        plugins={[defaultLayoutPluginInstance]}
+                      />
+                    </Worker>
+                  </div>
                 )}
               </div>
-
-              {/* PDF */}
-              {visibleContractId === quote._id && (
-                <div className="mt-4 border rounded h-[400px]">
-                  <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                    <Viewer
-                      fileUrl={quote.contract.url}
-                      plugins={[defaultLayoutPluginInstance]}
-                    />
-                  </Worker>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* MODAL */}
       {showModal && (

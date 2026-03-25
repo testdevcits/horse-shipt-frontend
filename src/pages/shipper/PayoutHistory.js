@@ -140,7 +140,7 @@ const PayoutAndCardPage = () => {
       <PageLoader
         text="Loading data..."
         fullScreen={false}
-        size={32}
+        size={20}
         color="#BF9B53"
       />
     );

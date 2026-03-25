@@ -4,15 +4,17 @@ const Button = ({
   children,
   onClick,
   type = "button",
-  variant = "primary", // primary, secondary, google, custom
+  variant = "primary",
   fullWidth = false,
   rounded = false,
   disabled = false,
   className = "",
-  bgColor, // optional background color
-  borderColor, // optional border color
-  textColor, // optional text color
-  icon, // optional React icon component
+  bgColor,
+  borderColor,
+  textColor,
+  hoverBgColor,
+  hoverTextColor,
+  icon,
 }) => {
   const baseStyles =
     "px-4 py-3 text-base font-medium transition-all duration-200 flex items-center justify-center gap-2 min-h-[44px]";
@@ -22,15 +24,13 @@ const Button = ({
   const focus = "focus:outline-none focus:ring-2 focus:ring-[#BF9B53]";
 
   const variantStyles = {
-    primary: "bg-[#BF9B53] hover:bg-[#a6813f] text-white border-none ",
+    primary: "bg-[#BF9B53] hover:bg-[#a6813f] text-white border-none",
     secondary:
-      "bg-[#F3F4F6] hover:bg-gray-200 text-gray-700 border-2 border-[#D1D5DB] rounded-md",
-
+      "bg-[#F3F4F6] hover:bg-gray-200 text-gray-700 border-2 border-[#D1D5DB]",
     google: "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
-    custom: "", // empty, will use bgColor/borderColor/textColor
+    custom: "",
   };
 
-  // Build inline styles for custom variant
   const customStyles =
     variant === "custom"
       ? {
@@ -39,6 +39,22 @@ const Button = ({
           color: textColor || "#000",
         }
       : {};
+
+  const handleMouseEnter = (e) => {
+    if (variant === "custom" && hoverBgColor) {
+      e.currentTarget.style.backgroundColor = hoverBgColor;
+    }
+    if (variant === "custom" && hoverTextColor) {
+      e.currentTarget.style.color = hoverTextColor;
+    }
+  };
+
+  const handleMouseLeave = (e) => {
+    if (variant === "custom") {
+      e.currentTarget.style.backgroundColor = bgColor || "transparent";
+      e.currentTarget.style.color = textColor || "#000";
+    }
+  };
 
   const finalStyles = `${baseStyles} ${width} ${borderRadius} ${focus} ${
     disabled
@@ -53,6 +69,8 @@ const Button = ({
       disabled={disabled}
       className={finalStyles}
       style={customStyles}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {icon && <span className="flex items-center">{icon}</span>}
       {children}
