@@ -91,7 +91,7 @@ const ShipmentCard = ({
 
   return (
     <div
-      className={`flex flex-col gap-4 bg-white border rounded-2xl p-5 shadow-sm transition
+      className={`flex flex-col gap-4 bg-white border rounded-md p-5 shadow-sm transition
       ${
         isCancelled
           ? "border-red-100 opacity-75"

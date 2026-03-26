@@ -54,7 +54,7 @@ const Dashboard = () => {
         </div>
 
         {/* DATE BADGE */}
-        <div className="flex items-center gap-2 w-full sm:w-auto bg-[#BF9B53]/10 border border-[#BF9B53]/20 rounded-xl px-4 py-2.5">
+        <div className="flex items-center gap-2 w-full sm:w-auto bg-[#BF9B53]/10 border border-[#BF9B53]/20 rounded-md px-4 py-2.5">
           <TbCalendarTime size={18} className="text-[#BF9B53]" />
 
           <div className="flex flex-row sm:flex-col items-center sm:items-start gap-1 sm:gap-0 leading-tight">
@@ -67,7 +67,7 @@ const Dashboard = () => {
       {/* ================= CARDS ================= */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* UPCOMING SHIPMENTS */}
-        <div className="flex flex-col justify-between p-5 rounded-md border border-gray-200 shadow-sm hover:shadow-md transition bg-white">
+        <div className="flex flex-col justify-between p-5 rounded-md border-2 border-[#BF9B53] shadow-sm hover:shadow-md  transition bg-white">
           <div className="flex justify-between items-center">
             <div className="p-2 bg-[#BF9B53]/10 rounded-lg text-[#BF9B53]">
               <TbCalendarTime size={20} />
@@ -99,7 +99,7 @@ const Dashboard = () => {
         </div>
 
         {/* SUBMITTED QUOTES */}
-        <div className="flex flex-col justify-between p-5 rounded-md border border-gray-200 shadow-sm hover:shadow-md transition bg-white">
+        <div className="flex flex-col justify-between p-5 rounded-md border-2 border-[#BF9B53] shadow-sm hover:shadow-md transition bg-white">
           <div className="flex justify-between items-center">
             <div className="p-2 bg-[#BF9B53]/10 rounded-lg text-[#BF9B53]">
               <FiZap size={20} />

@@ -8,6 +8,14 @@ import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteConte
 import Toast from "../../components/common/Toast";
 import PageLoader from "../../components/common/PageLoader";
 import NotFound from "../../components/common/NoData";
+import {
+  RiMoneyDollarCircleLine,
+  RiTimeLine,
+  RiTruckLine,
+  RiFileTextLine,
+  RiCloseCircleLine,
+  RiDeleteBinLine,
+} from "react-icons/ri";
 
 const ShipperQuotesPage = () => {
   const { quotes, loading, getMyQuotes, cancelQuote, deleteQuote } =
@@ -178,124 +186,173 @@ const ShipperQuotesPage = () => {
             return (
               <div
                 key={quote._id}
-                className="bg-white rounded-2xl shadow-lg p-6 space-y-4 border hover:shadow-xl transition"
+                className="bg-white rounded-md shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-[#BF9B53] space-y-5"
               >
-                {/* TOP */}
+                {/* HEADER */}
                 <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold text-[#BF9B53]">
-                    {quote.shipment?.shipmentCode}
+                  <h2 className="text-lg font-semibold text-[#BF9B53] flex items-center gap-2">
+                    <RiFileTextLine /> {quote.shipment?.shipmentCode}
                   </h2>
+
                   <span
-                    className={`text-sm px-3 py-1 rounded-full text-white ${
+                    className={`text-xs px-3 py-1 rounded-full font-medium ${
                       quote.isCancelled
-                        ? "bg-red-500"
-                        : quote.status === "accepted"
-                        ? "bg-green-500"
-                        : "bg-gray-400"
+                        ? "bg-red-600 text-[#fff]"
+                        : "bg-green-600 text-white"
                     }`}
                   >
                     {quote.isCancelled ? "Cancelled" : quote.status}
                   </span>
                 </div>
 
-                {/* DETAILS GRID */}
-                <div className="grid md:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <p>
-                      <b>Price:</b> ${quote.totalPrice}
+                {/* GRID */}
+                <div className="grid md:grid-cols-3 gap-6 text-sm">
+                  {/* PRICE */}
+                  <div className="space-y-2">
+                    <p className="flex items-center gap-2">
+                      <RiMoneyDollarCircleLine className="text-[#BF9B53]" />
+                      <span className="text-gray-500">Price:</span>
+                      <span className="font-semibold text-[#BF9B53]">
+                        ${quote.totalPrice}
+                      </span>
                     </p>
+
                     <p>
-                      <b>Currency:</b> {quote.currency}
+                      <span className="text-gray-500">Currency:</span>{" "}
+                      <span className="font-medium text-gray-800">
+                        {quote.currency}
+                      </span>
                     </p>
+
                     <p>
-                      <b>Payment:</b> {quote.paymentMethod}
+                      <span className="text-gray-500">Payment:</span>{" "}
+                      <span className="font-medium text-[#BF9B53]">
+                        {quote.paymentMethod}
+                      </span>
                     </p>
                   </div>
 
-                  <div>
-                    <p>
-                      <b>Pickup:</b> {quote.pickupTime}
+                  {/* TIME */}
+                  <div className="space-y-2">
+                    <p className="flex items-center gap-2">
+                      <RiTimeLine className="text-[#BF9B53]" />
+                      <span className="text-gray-500">Pickup:</span>
+                      <span className="font-medium text-[#BF9B53]">
+                        {quote.pickupTime}
+                      </span>
                     </p>
+
                     <p>
-                      <b>Arrival:</b> {quote.estimatedArrivalTime}
+                      <span className="text-gray-500">Arrival:</span>{" "}
+                      <span className="font-medium text-[#BF9B53]">
+                        {quote.estimatedArrivalTime}
+                      </span>
                     </p>
+
                     <p>
-                      <b>Transport:</b> {quote.transportType}
+                      <span className="text-gray-500">Transport:</span>{" "}
+                      <span className="text-gray-800">
+                        {quote.transportType}
+                      </span>
                     </p>
                   </div>
 
-                  <div>
-                    <p>
-                      <b>Stalls:</b> {quote.stallsRequired}
+                  {/* EXTRA */}
+                  <div className="space-y-2">
+                    <p className="flex items-center gap-2">
+                      <RiTruckLine className="text-[#BF9B53]" />
+                      <span className="text-gray-500">Stalls:</span>
+                      <span className="text-gray-800">
+                        {quote.stallsRequired}
+                      </span>
                     </p>
+
                     <p>
-                      <b>Payment Status:</b> {quote.paymentStatus}
+                      <span className="text-gray-500">Payment Status:</span>{" "}
+                      <span className="font-medium text-[#BF9B53]">
+                        {quote.paymentStatus}
+                      </span>
                     </p>
+
                     <p>
-                      <b>Refund:</b> {quote.refundStatus}
+                      <span className="text-gray-500">Refund:</span>{" "}
+                      <span className="font-medium text-[#BF9B53]">
+                        {quote.refundStatus}
+                      </span>
                     </p>
                   </div>
                 </div>
 
                 {/* NOTES */}
                 {quote.notes && (
-                  <div className="bg-gray-50 p-3 rounded text-sm">
-                    <b>Notes:</b> {quote.notes}
+                  <div className="bg-[#BF9B53]/10 border border-[#BF9B53]/30 p-3 rounded-lg text-sm">
+                    <span className="font-semibold text-[#BF9B53]">Notes:</span>{" "}
+                    <span className="text-gray-700">{quote.notes}</span>
                   </div>
                 )}
 
                 {/* VEHICLE */}
                 {quote.vehicle && (
-                  <div className="bg-gray-50 p-3 rounded text-sm">
-                    <p>
-                      <b>Vehicle:</b> {quote.vehicle.vehicleNumber}
+                  <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
+                    <p className="flex items-center gap-2">
+                      <RiTruckLine className="text-[#BF9B53]" />
+                      <span className="text-gray-500">Vehicle:</span>
+                      <span className="text-gray-800">
+                        {quote.vehicle.vehicleNumber}
+                      </span>
                     </p>
+
                     <p>
-                      <b>Type:</b> {quote.vehicle.vehicleType}
+                      <span className="text-gray-500">Type:</span>{" "}
+                      <span className="text-gray-800">
+                        {quote.vehicle.vehicleType}
+                      </span>
                     </p>
+
                     <p>
-                      <b>Stalls:</b> {quote.vehicle.numberOfStalls}
+                      <span className="text-gray-500">Stalls:</span>{" "}
+                      <span className="text-gray-800">
+                        {quote.vehicle.numberOfStalls}
+                      </span>
                     </p>
                   </div>
                 )}
 
-                {/* CANCELLATION DETAILS */}
+                {/* CANCELLED */}
                 {quote.isCancelled && (
-                  <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-sm space-y-1">
-                    <p className="text-red-600 font-semibold">
-                      Shipment Cancelled
+                  <div className="bg-[#BF9B53]/10 border border-[#BF9B53]/30 p-4 rounded-xl text-sm space-y-1">
+                    <p className="text-[#BF9B53] font-semibold flex items-center gap-2">
+                      <RiCloseCircleLine /> Shipment Cancelled
                     </p>
+
                     <p>
-                      <b>Cancelled At:</b>{" "}
-                      {quote.cancelledAt
-                        ? new Date(quote.cancelledAt).toLocaleString()
-                        : "N/A"}
+                      <span className="text-gray-500">Cancelled At:</span>{" "}
+                      <span className="text-gray-800">
+                        {quote.cancelledAt
+                          ? new Date(quote.cancelledAt).toLocaleString()
+                          : "N/A"}
+                      </span>
                     </p>
+
                     <p>
-                      <b>Reason:</b> {quote.cancelReason || "N/A"}
+                      <span className="text-gray-500">Reason:</span>{" "}
+                      <span className="text-gray-800">
+                        {quote.cancelReason || "N/A"}
+                      </span>
                     </p>
+
                     <p>
-                      <b>Refund Amount:</b> ${quote.refundAmount || 0}
+                      <span className="text-gray-500">Refund:</span>{" "}
+                      <span className="text-[#BF9B53]">
+                        ${quote.refundAmount || 0}
+                      </span>
                     </p>
-                    <p>
-                      <b>Refund Status:</b> {quote.refundStatus}
-                    </p>
-                    {quote.cancellationFee && (
-                      <p>
-                        <b>Cancellation Fee Charged:</b> $
-                        {quote.cancellationFee}
-                      </p>
-                    )}
                   </div>
                 )}
 
-                {/* CANCELLATION WINDOW */}
+                {/* CANCEL WINDOW */}
                 {!quote.isCancelled && quote.cancellationLastDate && (
-                  <p
-                    className={`text-sm ${
-                      isExpired ? "text-red-500" : "text-yellow-600"
-                    }`}
-                  >
+                  <p className="text-sm text-[#BF9B53] font-medium">
                     {isExpired
                       ? "Cancellation expired"
                       : `Cancel before: ${new Date(
@@ -304,8 +361,8 @@ const ShipperQuotesPage = () => {
                   </p>
                 )}
 
-                {/* BUTTONS */}
-                <div className="flex flex-wrap gap-3">
+                {/* ACTIONS */}
+                <div className="flex flex-wrap gap-3 pt-2">
                   {quote.contract?.url && (
                     <button
                       onClick={() =>
@@ -313,7 +370,7 @@ const ShipperQuotesPage = () => {
                           visibleContractId === quote._id ? null : quote._id
                         )
                       }
-                      className="px-4 py-2 bg-[#997C42] text-white rounded"
+                      className="px-4 py-2 bg-[#BF9B53] hover:bg-[#a5843f] text-white rounded-lg text-sm"
                     >
                       View Contract
                     </button>
@@ -322,25 +379,25 @@ const ShipperQuotesPage = () => {
                   {!isExpired && !quote.isCancelled && (
                     <button
                       onClick={() => openModal(quote, "cancel")}
-                      className="px-4 py-2 bg-red-500 text-white rounded"
+                      className="px-4 py-2 border border-[#BF9B53] text-[#BF9B53] hover:bg-[#BF9B53]/10 rounded-lg text-sm flex items-center gap-1"
                     >
-                      Cancel
+                      <RiCloseCircleLine /> Cancel
                     </button>
                   )}
 
                   {canDelete && (
                     <button
                       onClick={() => openModal(quote, "delete")}
-                      className="px-4 py-2 bg-black text-white rounded"
+                      className="px-4 py-2 border border-[#BF9B53] text-[#BF9B53] hover:bg-[#BF9B53]/10 rounded-lg text-sm flex items-center gap-1"
                     >
-                      Delete Quote
+                      <RiDeleteBinLine /> Delete
                     </button>
                   )}
                 </div>
 
                 {/* PDF */}
                 {visibleContractId === quote._id && (
-                  <div className="mt-4 border rounded h-[400px]">
+                  <div className="mt-4 border rounded-xl overflow-hidden h-[400px]">
                     <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
                       <Viewer
                         fileUrl={quote.contract.url}

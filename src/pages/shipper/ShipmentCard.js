@@ -24,7 +24,7 @@ const ShipmentCard = ({ shipment }) => {
     new Date(shipment.pickupDate).toDateString() === new Date().toDateString();
 
   return (
-    <div className="relative bg-white border border-gray-200 rounded-lg p-4 md:p-6 font-montserrat shadow-sm hover:shadow-md w-full overflow-hidden break-words">
+    <div className="relative bg-white border border-[#BF9B53] rounded-lg p-4 md:p-6 font-montserrat shadow-sm hover:shadow-md w-full overflow-hidden break-words">
       {/* TOP-RIGHT ARROW (fixed for all screens) */}
       <div
         onClick={handleNavigateWithQuery}

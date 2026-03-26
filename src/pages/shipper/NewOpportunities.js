@@ -14,7 +14,7 @@ const NewOpportunities = () => {
   const [activeTab, setActiveTab] = useState("list");
   const [showFilters, setShowFilters] = useState(false);
 
-  // 📍 Location state
+  // Location state
   const [location, setLocation] = useState(null);
 
   // Filters State

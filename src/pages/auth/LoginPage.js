@@ -216,12 +216,13 @@ const LoginPage = () => {
                     className="text-xs text-red-500"
                   />
 
-                  {/* Submit button */}
-                  <div className="flex justify-end mt-2">
+                  {/* ACTION SECTION */}
+                  <div className="flex flex-col gap-3 mt-4">
+                    {/* Submit button */}
                     <Button
                       type="submit"
                       disabled={!canSubmit}
-                      className={`px-4 py-1.5 text-xs rounded-md ${
+                      className={`w-full px-4 py-2 text-sm rounded-lg transition ${
                         canSubmit
                           ? "bg-[#BF9B53] text-white hover:bg-[#a6813f]"
                           : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -229,23 +230,31 @@ const LoginPage = () => {
                     >
                       {loading ? "Logging in..." : "Login"}
                     </Button>
-                  </div>
 
-                  {/* Google login */}
-                  <div className="flex flex-col gap-2 mt-3">
+                    {/* OR Divider */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-px bg-gray-300" />
+                      <span className="text-xs text-gray-500 font-medium">
+                        OR
+                      </span>
+                      <div className="flex-1 h-px bg-gray-300" />
+                    </div>
+
+                    {/* Google login */}
                     <Button
                       type="button"
-                      className="w-full flex items-center justify-center border border-gray-300 text-black gap-2 rounded-full text-xs py-1.5"
                       onClick={() => handleGoogleLogin(values.role)}
                       disabled={!values.role}
+                      className="w-full flex items-center bg-gray-500 justify-center gap-2 px-4 py-2 text-sm rounded-lg border border-gray-300 transition disabled:opacity-50"
                     >
-                      <FcGoogle size={16} /> Continue with Google
+                      <FcGoogle size={18} />
+                      Continue with Google
                     </Button>
                   </div>
-                  <div className="mt-4 w-full text-end">
+                  <div className="mt-2 w-full text-end">
                     <Link
                       to="/"
-                      className="text-[#BF9B53] font-medium cursor-pointer px-2 py-1 rounded hover:bg-[#bf9b5360] hover:text-black"
+                      className="text-[#BF9B53] cursor-pointer hover:text-black"
                     >
                       Back to Home
                     </Link>
