@@ -4,24 +4,58 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/HorseShipt192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using React and ready for production with Google OAuth"
-    />
+    <meta name="theme-color" content="#BF9B53" />
+    <meta name="description" content="Horse Shipt - Ship your horses safely with premium tracking and care." />
+    
+    <!-- SEO: Title -->
+    <title>Horse Shipt | Horse Shipment Tracker</title>
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="Horse Shipt | Premium Horse Shipping" />
+    <meta property="og:description" content="Track and manage your horse shipments securely and easily." />
+    <meta property="og:image" content="%PUBLIC_URL%/HorseShipt192.png" />
+    <meta property="og:url" content="https://horse-shipt-frontend.vercel.app/" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Horse Shipt | Premium Horse Shipping" />
+    <meta name="twitter:description" content="Track and manage your horse shipments securely and easily." />
+    <meta name="twitter:image" content="%PUBLIC_URL%/HorseShipt192.png" />
+
+    <!-- Additional SEO / Social Tags -->
+    <meta name="keywords" content="Horse Shipment, Horse Transport, Horse Tracking, Horse Logistics, Horse Shipt" />
+    <meta name="robots" content="index, follow" />
+
     <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/HorseShipt192.png" />
-    <!-- Manifest -->
+
+    <!-- PWA Manifest -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Fallback favicon for older browsers -->
+    <link rel="shortcut icon" href="%PUBLIC_URL%/HorseShipt192.png" type="image/png" />
+
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <title>Horse Shipt</title>
+
+    <!-- Schema.org JSON-LD for SEO -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Horse Shipt",
+        "url": "https://horse-shipt-frontend.vercel.app/",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://horse-shipt-frontend.vercel.app/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-
-    <!-- Optional: Google Sign-in callback container -->
-    <div id="googleSignInDiv" style="display: none;"></div>
   </body>
 </html>
