@@ -160,7 +160,7 @@ const ShipmentSettings = () => {
       ) : (
         <div className="flex flex-col gap-6 w-full">
           {/* ---- GPS Tracking Card ---- */}
-          <div className="w-full flex items-center justify-between px-4 sm:px-6 py-4 border border-gray-300 rounded-[14px] bg-white transition-all duration-200">
+          <div className="w-full flex items-center justify-between px-4 sm:px-6 py-4 border border-[#BF9B53] rounded-[14px] bg-white transition-all duration-200">
             <div className="flex flex-col gap-1">
               <h3 className="font-[Montserrat] font-medium text-[16px] sm:text-[17px] text-gray-800 leading-[24px]">
                 GPS Tracking
@@ -189,7 +189,7 @@ const ShipmentSettings = () => {
           </div>
 
           {/* ---- Credentials Card ---- */}
-          <div className="w-full flex items-center justify-between px-4 sm:px-6 py-4 border border-gray-300 rounded-[14px] bg-white transition-all duration-200">
+          <div className="w-full flex items-center justify-between px-4 sm:px-6 py-4 border border-[#BF9B53] rounded-[14px] bg-white transition-all duration-200">
             <div className="flex flex-col gap-1">
               <h3 className="font-[Montserrat] font-medium text-[16px] sm:text-[17px] text-gray-800 leading-[24px]">
                 Credentials
@@ -212,7 +212,7 @@ const ShipmentSettings = () => {
             <div
               key={tab.id}
               onClick={() => handleOpenTab(tab.id)}
-              className="w-full flex items-center justify-between px-4 sm:px-6 py-4 border border-gray-300 rounded-[14px] bg-white cursor-pointer hover:shadow-lg hover:border-system-primary transition-all duration-200"
+              className="w-full flex items-center justify-between px-4 sm:px-6 py-4 border border-[#BF9B53] rounded-[14px] bg-white cursor-pointer hover:shadow-lg hover:border-system-primary transition-all duration-200"
             >
               <div className="flex flex-col gap-1">
                 <h3 className="font-[Montserrat] font-medium text-[16px] sm:text-[17px] text-gray-800 leading-[24px]">

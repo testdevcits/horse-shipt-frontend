@@ -37,7 +37,7 @@ const ModalOfferPublished = ({
         <div className="flex flex-col gap-2 mt-4">
           <button
             onClick={onViewShipments}
-            className="w-full py-2 bg-[#BF9B53] text-white rounded-md hover:bg-blue-700 transition"
+            className="w-full py-2 bg-[#BF9B53] text-white rounded-md hover:bg-green-700 transition"
           >
             Go to My Shipments
           </button>

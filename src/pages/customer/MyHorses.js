@@ -138,7 +138,7 @@ const MyHorses = () => {
   };
 
   return (
-    <div className="w-full flex flex-col gap-6">
+    <div className="w-full flex flex-col gap-6 font-montserrat">
       {/* Heading + Add Button */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-systemText uppercase">
@@ -231,7 +231,7 @@ const MyHorses = () => {
           {({ values, handleChange, handleSubmit, errors, touched }) => (
             <Form
               onSubmit={handleSubmit}
-              className="mb-6 border p-4 sm:p-6 rounded-2xl shadow-sm bg-white"
+              className="mb-6 border p-4 sm:p-6 rounded-md shadow-sm bg-white"
             >
               <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-4">
                 {editingHorse ? "Edit Horse" : "Add New Horse"}
@@ -343,74 +343,78 @@ const MyHorses = () => {
               description="You haven't added any horses yet. Click 'Horse +' to get started!"
             />
           ) : (
-            <div className="grid grid-cols-1  gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {horses.map((horse) => (
                 <div
                   key={horse._id}
-                  className="border rounded-2xl p-5 shadow-md bg-white hover:shadow-lg transition flex flex-col"
+                  className="relative border border-[#BF9B53]/40 rounded-md p-5 bg-white shadow-sm hover:shadow-lg transition duration-300 flex flex-col"
                 >
-                  {/* Header */}
+                  {/* TOP ACCENT LINE */}
+
+                  {/* HEADER */}
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
                     <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
                       {horse.registeredName}
                     </h3>
 
-                    {/* Action Buttons */}
+                    {/* ACTION BUTTONS */}
                     <div className="flex gap-2 flex-shrink-0">
                       <Button
                         variant="custom"
-                        icon={<CiEdit size={22} />}
+                        icon={<CiEdit size={20} />}
                         onClick={() => {
                           setEditingHorse(horse);
                           setShowForm(true);
                         }}
                         rounded
-                        bgColor="#F3F4F6"
-                        textColor="#374151"
-                        borderColor="#D1D5DB"
+                        textColor="#BF9B53"
                       />
+
                       <Button
                         variant="custom"
-                        icon={<CiTrash size={22} />}
+                        icon={<CiTrash size={20} />}
                         onClick={() => setDeleteHorseId(horse._id)}
                         rounded
-                        bgColor="#FEE2E2"
                         textColor="#B91C1C"
-                        borderColor="#FCA5A5"
                       />
                     </div>
                   </div>
 
-                  {/* Horse Info */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-gray-700 text-sm sm:text-base md:text-[15px]">
+                  {/* INFO GRID */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm sm:text-base">
                     <p>
-                      <span className="font-semibold text-gray-800">
+                      <span className="font-semibold text-[#BF9B53]">
                         Barn Name:
                       </span>{" "}
                       <span className="text-gray-700">{horse.barnName}</span>
                     </p>
+
                     <p>
-                      <span className="font-semibold text-gray-800">
+                      <span className="font-semibold text-[#BF9B53]">
                         Breed:
                       </span>{" "}
                       <span className="text-gray-700">{horse.breed}</span>
                     </p>
+
                     <p>
-                      <span className="font-semibold text-gray-800">
+                      <span className="font-semibold text-[#BF9B53]">
                         Colour:
                       </span>{" "}
                       <span className="text-gray-700">{horse.colour}</span>
                     </p>
+
                     <p>
-                      <span className="font-semibold text-gray-800">Age:</span>{" "}
+                      <span className="font-semibold text-[#BF9B53]">Age:</span>{" "}
                       <span className="text-gray-700">{horse.age}</span>
                     </p>
+
                     <p>
-                      <span className="font-semibold text-gray-800">Sex:</span>{" "}
+                      <span className="font-semibold text-[#BF9B53]">Sex:</span>{" "}
                       <span className="text-gray-700">{horse.sex}</span>
                     </p>
+
                     <p>
-                      <span className="font-semibold text-gray-800">
+                      <span className="font-semibold text-[#BF9B53]">
                         Stall:
                       </span>{" "}
                       <span className="text-gray-700">
@@ -419,14 +423,16 @@ const MyHorses = () => {
                     </p>
                   </div>
 
-                  {/* Notes */}
+                  {/* NOTES */}
                   {horse.notes && (
-                    <p className="mt-3 text-gray-600 text-sm sm:text-base break-words">
-                      <span className="font-semibold text-gray-800">
-                        Notes:
-                      </span>{" "}
-                      <span className="text-gray-700">{horse.notes}</span>
-                    </p>
+                    <div className="mt-4 p-3 rounded-md bg-[#BF9B53]/10 border border-[#BF9B53]/20">
+                      <p className="text-sm sm:text-base text-gray-700">
+                        <span className="font-semibold text-[#BF9B53]">
+                          Notes:
+                        </span>{" "}
+                        {horse.notes}
+                      </p>
+                    </div>
                   )}
                 </div>
               ))}

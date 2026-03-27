@@ -18,7 +18,7 @@ const PaymentsSettings = () => {
   const needsVerification = stripeStatus?.needsVerification === true;
 
   return (
-    <div className="w-full max-w-3xl mx-auto font-[Montserrat] animate-slide-fade-in">
+    <div className="w-full max-w-full mx-auto font-[Montserrat] animate-slide-fade-in">
       {/* PAGE HEADER */}
       <div className="mb-6">
         <h2 className="text-[20px] font-semibold text-gray-800">
@@ -31,9 +31,9 @@ const PaymentsSettings = () => {
       </div>
 
       {/* MAIN CARD */}
-      <div className="bg-white shadow-md border border-gray-200 rounded-xl p-6 space-y-6">
+      <div className="bg-white shadow-md border border-[#BF9B53] rounded-xl p-6 space-y-6">
         {/* SECURITY BADGE */}
-        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-md px-4 py-3">
+        <div className="flex items-center gap-3 bg-gray-50 border border-[#BF9B53] rounded-md px-4 py-3">
           <span className="text-green-600 text-lg">🔒</span>
           <p className="text-sm text-gray-600">
             All payments are securely processed via Stripe.

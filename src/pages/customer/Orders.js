@@ -4,7 +4,7 @@ import { useDeliveredShipments } from "../../contexts/customerContext/DeliveredS
 import PageLoader from "../../components/common/PageLoader";
 import ReviewModal from "./common/ReviewModal";
 import { useReview } from "../../contexts/customerContext/ReviewContext";
-import Toast from "../../components/common/Toast"; // Import your Toast component
+import Toast from "../../components/common/Toast";
 
 const AllShipments = () => {
   const { shipments, loading, fetchCompletedShipments } =
@@ -14,9 +14,8 @@ const AllShipments = () => {
   const [selectedShipment, setSelectedShipment] = useState(null);
   const [open, setOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
-
-  // Toast state
   const [toast, setToast] = useState(null);
+  const [tab, setTab] = useState("completed"); // "pending" or "completed"
 
   useEffect(() => {
     fetchCompletedShipments();
@@ -45,14 +44,12 @@ const AllShipments = () => {
     try {
       const res = await addReview(reviewData);
       if (res?.success) {
-        // Show success toast
         setToast({
           message: "Review submitted successfully!",
           type: "success",
         });
       }
     } catch (err) {
-      // Show error toast
       setToast({
         message: err.message || "Failed to submit review",
         type: "error",
@@ -62,30 +59,20 @@ const AllShipments = () => {
     }
   };
 
-  // Check if customer already reviewed this shipment
   const hasReviewed = (shipmentId) =>
     myReviews.some((r) => r.shipmentId === shipmentId);
 
-  // 🔹 Loading
   if (loading) {
-    return (
-      <PageLoader text="Loading completed shipments..." fullScreen={false} />
-    );
+    return <PageLoader text="Loading shipments..." fullScreen={false} />;
   }
 
-  // 🔹 Empty
-  if (!shipments.length) {
-    return (
-      <div className="text-center py-16">
-        <FaShippingFast className="text-4xl mx-auto mb-4 text-gray-400" />
-        <h2 className="text-xl font-semibold">No Completed Shipments</h2>
-      </div>
-    );
-  }
+  const filteredShipments =
+    tab === "completed"
+      ? shipments.filter((s) => s.status === "delivered")
+      : shipments.filter((s) => s.status !== "delivered");
 
   return (
     <div className="relative font-montserrat">
-      {/* ================= TOAST ================= */}
       {toast && (
         <Toast
           message={toast.message}
@@ -94,7 +81,6 @@ const AllShipments = () => {
         />
       )}
 
-      {/* ================= REVIEW MODAL ================= */}
       <ReviewModal
         open={reviewOpen}
         onClose={() => setReviewOpen(false)}
@@ -102,12 +88,11 @@ const AllShipments = () => {
         onSubmit={handleReviewSubmit}
       />
 
-      {/* ================= OVERLAY ================= */}
       {open && (
         <div onClick={handleClose} className="fixed inset-0 bg-black/20 z-40" />
       )}
 
-      {/* ================= DRAWER ================= */}
+      {/* DRAWER */}
       <div
         className={`fixed top-0 right-0 h-full bg-white z-50 transform transition-transform duration-300 ease-in-out mt-16
         w-full sm:w-[420px]
@@ -115,7 +100,6 @@ const AllShipments = () => {
       >
         {selectedShipment && (
           <div className="flex flex-col h-full">
-            {/* HEADER */}
             <div className="p-4 border-b flex justify-between items-center">
               <h2 className="font-semibold text-lg">
                 {selectedShipment.shipmentCode}
@@ -124,10 +108,7 @@ const AllShipments = () => {
                 ✕
               </button>
             </div>
-
-            {/* CONTENT */}
             <div className="flex-1 overflow-y-auto p-4 space-y-5 hide-scrollbar">
-              {/* ROUTE */}
               <div className="bg-light p-3 rounded-xl">
                 <p className="text-sm text-gray-600">
                   📍 {selectedShipment.pickupLocation}
@@ -138,7 +119,6 @@ const AllShipments = () => {
                 </p>
               </div>
 
-              {/* DATES */}
               <div>
                 <h3 className="font-semibold mb-1">Schedule</h3>
                 <p className="text-sm">
@@ -151,7 +131,6 @@ const AllShipments = () => {
                 </p>
               </div>
 
-              {/* SHIPPER */}
               <div>
                 <h3 className="font-semibold mb-1">Shipper</h3>
                 <p className="text-sm font-medium">
@@ -162,7 +141,6 @@ const AllShipments = () => {
                 </p>
               </div>
 
-              {/* HORSES */}
               <div>
                 <h3 className="font-semibold mb-2">Horse Details</h3>
                 {selectedShipment.horses.map((h, i) => (
@@ -177,19 +155,15 @@ const AllShipments = () => {
                         className="w-full h-40 object-cover rounded-lg mb-2"
                       />
                     )}
-
                     <p className="font-medium">
                       {h.registeredName} ({h.barnName})
                     </p>
-
                     <p className="text-xs text-gray-500">
                       {h.breed} • {h.age} yrs • {h.colour} • {h.sex}
                     </p>
-
                     <p className="text-xs mt-1">
                       Stall: {h.requestedStallSize}
                     </p>
-
                     <div className="mt-2 space-x-3">
                       {h.documents?.coggins?.url && (
                         <a
@@ -201,7 +175,6 @@ const AllShipments = () => {
                           Coggins
                         </a>
                       )}
-
                       {h.documents?.healthCertificate?.url && (
                         <a
                           href={h.documents.healthCertificate.url}
@@ -217,7 +190,6 @@ const AllShipments = () => {
                 ))}
               </div>
 
-              {/* RATE BUTTON */}
               <div className="p-4 border-t">
                 <button
                   onClick={() => setReviewOpen(true)}
@@ -234,7 +206,6 @@ const AllShipments = () => {
                 </button>
               </div>
 
-              {/* EXTRA INFO */}
               {selectedShipment.additionalInfo && (
                 <div>
                   <h3 className="font-semibold mb-1">Additional Info</h3>
@@ -250,41 +221,77 @@ const AllShipments = () => {
 
       {/* ================= MAIN LIST ================= */}
       <div>
-        <h1 className="text-2xl font-bold mb-6 text-systemText">
-          Completed Shipments
-        </h1>
+        <h1 className="text-2xl font-bold mb-4 text-systemText">Shipments</h1>
 
-        <div className="grid gap-4">
-          {shipments.map((s) => (
-            <div
-              key={s._id}
-              className="bg-white shadow-md rounded-md p-4 border flex justify-between items-center hover:shadow-lg transition"
-            >
-              <div>
-                <h2 className="font-semibold text-lg">{s.shipmentCode}</h2>
-
-                <p className="text-sm text-gray-600">
-                  {s.pickupLocation} → {s.deliveryLocation}
-                </p>
-
-                <p className="text-xs text-gray-500">
-                  {new Date(s.pickupDate).toLocaleDateString()}
-                </p>
-
-                <p className="text-xs text-success-600 font-medium">
-                  Delivered
-                </p>
-              </div>
-
-              <button
-                onClick={() => handleOpen(s)}
-                className="px-4 py-2 bg-system-primary text-white rounded-lg text-sm hover:opacity-90 transition"
-              >
-                View
-              </button>
-            </div>
-          ))}
+        {/* TABS */}
+        <div className="flex gap-2 mb-6">
+          <button
+            className={`px-4 py-2 rounded-md ${
+              tab === "pending" ? "bg-system-primary text-white" : "bg-gray-200"
+            }`}
+            onClick={() => setTab("pending")}
+          >
+            Pending
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md ${
+              tab === "completed"
+                ? "bg-system-primary text-white"
+                : "bg-gray-200"
+            }`}
+            onClick={() => setTab("completed")}
+          >
+            Completed
+          </button>
         </div>
+
+        {/* SHIPMENTS LIST */}
+        {filteredShipments.length === 0 ? (
+          <div className="text-center py-16">
+            <FaShippingFast className="text-4xl mx-auto mb-4 text-gray-400" />
+            <h2 className="text-xl font-semibold">
+              {tab === "completed"
+                ? "No Completed Shipments"
+                : "No Pending Shipments"}
+            </h2>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {filteredShipments.map((s) => (
+              <div
+                key={s._id}
+                className="bg-white shadow-md rounded-md p-4 border flex justify-between items-center hover:shadow-lg transition"
+              >
+                <div>
+                  <h2 className="font-semibold text-lg">{s.shipmentCode}</h2>
+                  <p className="text-sm text-gray-600">
+                    {s.pickupLocation} → {s.deliveryLocation}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(s.pickupDate).toLocaleDateString()}
+                  </p>
+                  {s.status === "delivered" && (
+                    <p className="text-xs text-success-600 font-medium">
+                      Delivered
+                    </p>
+                  )}
+                  {s.status !== "delivered" && (
+                    <p className="text-xs text-warning-600 font-medium">
+                      Pending
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => handleOpen(s)}
+                  className="px-4 py-2 bg-system-primary text-white rounded-lg text-sm hover:opacity-90 transition"
+                >
+                  View
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

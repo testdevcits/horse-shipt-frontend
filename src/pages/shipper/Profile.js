@@ -80,7 +80,7 @@ const Profile = () => {
 
   return (
     <div className="w-full mx-auto font-[Montserrat] animate-slide-fade-in">
-      <div className="mx-auto bg-white rounded-lg border-2 border-gray-300 p-6 relative mb-4">
+      <div className="mx-auto bg-white rounded-lg border-2 border-[#BF9B53] p-6 relative mb-4">
         {/* Edit Button */}
         {!isEditing && (
           <div className="flex justify-end mb-6">
@@ -191,7 +191,7 @@ const Profile = () => {
       </div>
 
       {/* Reviews Section */}
-      <div className="mx-auto bg-white rounded-lg border-2 border-gray-300 p-6 relative mb-4">
+      <div className="mx-auto bg-white rounded-lg border-2 border-[#BF9B53] p-6 relative mb-4">
         {/* Header Row */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl text-gray-700 font-[Montserrat]">

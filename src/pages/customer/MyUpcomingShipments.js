@@ -55,7 +55,7 @@ const MyUpcomingShipments = () => {
           <h2 className="font-montserrat font-semibold text-lg text-systemText">
             My Upcoming Shipments
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-4">
             {shipmentsToShow.map((shipment) => (
               <CustomerShipmentCard key={shipment._id} shipment={shipment} />
             ))}

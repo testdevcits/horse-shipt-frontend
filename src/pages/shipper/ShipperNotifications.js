@@ -43,9 +43,9 @@ const ShipperNotifications = () => {
       </div>
 
       {/* ---------- Notification Settings Box ---------- */}
-      <div className="w-full border border-gray-300 rounded-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 bg-white shadow-sm">
+      <div className="w-full border border-[#BF9B53] rounded-xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 bg-white shadow-sm">
         {/* ---------- Section Header ---------- */}
-        <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
+        <div className="flex items-center justify-between border-b border-[#BF9B53] pb-3 mb-4">
           <h3 className="text-[15px] sm:text-[16px] lg:text-[17px] font-medium text-gray-800">
             Shipment Notifications
           </h3>

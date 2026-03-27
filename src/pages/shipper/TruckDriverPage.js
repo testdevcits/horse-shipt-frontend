@@ -272,7 +272,7 @@ const TruckDriverPage = () => {
 
               {/* ================= STATUS ================= */}
               <div className="mb-4">
-                <div className="w-[100px]">
+                <div className="w-[80px]">
                   <StatusBadge
                     text={driver.isActive ? "Active" : "Inactive"}
                     type={driver.isActive ? "success" : "danger"}
