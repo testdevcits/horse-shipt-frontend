@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
-import { RiImageAddLine, RiEdit2Line } from "react-icons/ri";
+import { RiImageAddLine } from "react-icons/ri";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useVehicle } from "../../contexts/shipperContext/VehicleContext";
@@ -124,9 +124,9 @@ const VehiclePage = () => {
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
-        <h2 className="text-[16px] font-semibold text-systemText leading-[24px]">
+        <h1 className="font-montserrat font-semibold text-2xl text-gray-800">
           My Registered Vehicles
-        </h2>
+        </h1>
         <button
           onClick={() => openModal()}
           className="flex items-center justify-center gap-2 bg-[#bf9b53] text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition w-full sm:w-auto"
@@ -147,125 +147,127 @@ const VehiclePage = () => {
           No vehicles found. Add one to get started!
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+        <div className="grid grid-cols-1 gap-6 w-full">
           {vehicles.map((vehicle, index) => (
             <div
               key={vehicle._id}
-              className="bg-white border border-gray-200 rounded-[14px] p-4  hover:shadow-xl transition-all flex flex-col gap-4 w-full min-h-[420px] mx-auto"
+              className="w-full bg-white border border-2 border-[#BF9B53] rounded-md p-5 shadow-sm hover:shadow-xl transition-all"
             >
-              {/* Header */}
-              <div className="flex justify-between items-center w-full h-9 px-3">
-                <h2 className="text-[16px] font-semibold text-systemText">
+              {/* HEADER */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <h2 className="text-lg font-semibold text-gray-800">
                   Vehicle {index + 1}
                 </h2>
 
-                <button
-                  onClick={() => openModal(vehicle)}
-                  className="flex items-center gap-1 text-[14px] font-medium bg-gray-100 text-systemText px-3 py-1 rounded-md hover:bg-gray-200 transition"
-                >
-                  <RiEdit2Line className="text-base" /> Edit
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => openModal(vehicle)}
+                    className="px-3 py-1.5 rounded-lg text-white bg-[#BF9B53] hover:opacity-90 text-sm"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setConfirmData({ show: true, id: vehicle._id })
+                    }
+                    className="px-3 py-1.5 rounded-lg border border-red-300 text-red-500 hover:bg-red-50 text-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 px-2 w-full">
-                <div>
-                  <span className="text-[15px] font-medium">Transport:</span>
-                  <p className="text-sm text-gray-500">
-                    {vehicle.transportType || "N/A"}
-                  </p>
-                </div>
+              {/* STATUS */}
+              <div className="mb-4">
+                <span
+                  className={`px-3 py-1 text-xs font-semibold rounded-full
+                  ${
+                    vehicle.verificationStatus === "VERIFIED"
+                      ? "bg-green-100 text-green-700"
+                      : vehicle.verificationStatus === "REJECTED"
+                      ? "bg-red-100 text-red-600"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {vehicle.verificationStatus || "PENDING"}
+                </span>
+              </div>
 
-                <div>
-                  <span className="text-[15px] font-medium">Vehicle Type:</span>
-                  <p className="text-sm text-gray-500">
+              {/* DETAILS */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                <div className="flex gap-2">
+                  <p>Vehicle Type:</p>
+                  <p className="font-semibold text-[#BF9B53]">
                     {vehicle.vehicleType || "N/A"}
                   </p>
                 </div>
 
-                <div>
-                  <span className="text-[15px] font-medium">
-                    Vehicle Number:
-                  </span>
-                  <p className="text-sm text-gray-500 uppercase">
+                <div className="flex gap-2">
+                  <p>Transport:</p>
+                  <p className="font-semibold text-[#BF9B53]">
+                    {vehicle.transportType || "N/A"}
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <p>Vehicle No.:</p>
+                  <p className="font-semibold text-[#BF9B53] uppercase">
                     {vehicle.vehicleNumber || "N/A"}
                   </p>
                 </div>
 
-                <div>
-                  <span className="text-[15px] font-medium">VIN Number:</span>
-                  <p className="text-sm text-gray-500 uppercase">
+                <div className="flex gap-2">
+                  <p>VIN:</p>
+                  <p className="font-semibold text-[#BF9B53] uppercase">
                     {vehicle.vinNumber || "N/A"}
                   </p>
                 </div>
 
-                <div className="sm:col-span-2">
-                  <span className="text-[15px] font-medium">
-                    Verification Status:
-                  </span>
-
-                  <p
-                    className={`text-sm font-semibold mt-1 ${
-                      vehicle.verificationStatus === "VERIFIED"
-                        ? "text-green-600"
-                        : vehicle.verificationStatus === "REJECTED"
-                        ? "text-red-600"
-                        : "text-yellow-600"
-                    }`}
-                  >
-                    {vehicle.verificationStatus || "PENDING"}
-                  </p>
-                </div>
-
-                <div>
-                  <span className="text-[15px] font-medium">Stalls:</span>
-                  <p className="text-sm text-gray-500">
+                <div className="flex gap-2">
+                  <p>Stalls:</p>
+                  <p className="font-semibold text-[#BF9B53]">
                     {vehicle.numberOfStalls || "N/A"}
                   </p>
                 </div>
 
-                <div>
-                  <span className="text-[15px] font-medium">Size:</span>
-                  <p className="text-sm text-gray-500">
+                <div className="flex gap-2">
+                  <p>Size:</p>
+                  <p className="font-semibold text-[#BF9B53]">
                     {vehicle.stallSize || "N/A"}
                   </p>
                 </div>
               </div>
 
-              {/* Images */}
-              <div className="px-2">
-                <p className="text-[16px] font-medium text-systemText mb-2">
-                  Images:
-                </p>
+              {/* IMAGES */}
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-600 mb-2">Images</p>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {vehicle.images?.length > 0 ? (
                     vehicle.images.map((img, i) => (
                       <img
                         key={i}
                         src={img.url}
-                        alt={`Vehicle ${index + 1} preview ${i + 1}`}
-                        className="w-[80px] h-[80px] object-cover rounded-[16px] border border-dashed border-gray-300 p-[2px]"
+                        alt="vehicle"
+                        className="w-16 h-16 rounded-lg object-cover border"
                       />
                     ))
                   ) : (
-                    <img
-                      src="https://via.placeholder.com/80"
-                      alt="Vehicle placeholder"
-                      className="w-[80px] h-[80px] object-cover rounded-[16px] border border-dashed border-gray-300 p-[2px]"
-                    />
+                    <div className="w-16 h-16 flex items-center justify-center border rounded-lg text-gray-400">
+                      <RiImageAddLine />
+                    </div>
                   )}
                 </div>
               </div>
 
-              {/* Notes */}
-              <div className="px-2">
-                <span className="text-[16px] font-medium text-systemText">
-                  Notes:
-                </span>
-                <p className="text-sm text-gray-500">
-                  {vehicle.notes || "N/A"}
-                </p>
-              </div>
+              {/* NOTES */}
+              {vehicle.notes && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-400">Notes:</p>
+                  <p className="text-sm text-gray-700">{vehicle.notes}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>

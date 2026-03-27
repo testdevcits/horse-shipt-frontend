@@ -23,7 +23,7 @@ const DriverDashboard = () => {
   const [loadingModal, setLoadingModal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null); // ✅ NEW STATE
+  const [selectedImage, setSelectedImage] = useState(null);
   const profileInputRef = useRef(null);
 
   if (!driver)
@@ -117,7 +117,7 @@ const DriverDashboard = () => {
 
         {/* Assigned Vehicles */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">Assigned Truck(s)</h3>
+          <h3 className="text-lg font-semibold mb-4">Assigned Truck</h3>
           {assignedVehicles.length === 0 ? (
             <div className="bg-white rounded-2xl shadow p-5 text-center text-gray-500">
               No truck assigned yet.
@@ -154,7 +154,7 @@ const DriverDashboard = () => {
                         key={img._id}
                         src={img.url}
                         alt={`Truck ${vehicle.vehicleNumber}`}
-                        onClick={() => setSelectedImage(img.url)} // ✅ CLICK
+                        onClick={() => setSelectedImage(img.url)}
                         className="w-20 h-20 object-cover rounded-lg border flex-shrink-0 cursor-pointer hover:scale-105 transition"
                       />
                     ))}
@@ -205,7 +205,7 @@ const DriverDashboard = () => {
       {/* Profile Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-xs relative">
+          <div className="bg-white rounded-md p-6 w-full max-w-xs relative">
             <button
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
               onClick={() => setModalOpen(false)}
