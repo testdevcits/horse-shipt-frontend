@@ -71,6 +71,26 @@ const ShipperLayout = () => {
     }
   }, [needsOnboarding, isPaymentTab]);
 
+  const handleShare = async () => {
+    const shareData = {
+      title: "Check this shipment app",
+      text: "Track and manage shipments easily 🚚",
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // fallback (desktop)
+        await navigator.clipboard.writeText(shareData.url);
+        alert("Link copied to clipboard!");
+      }
+    } catch (error) {
+      console.error("Share failed:", error);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* ================= STRIPE ALERT ================= */}
@@ -114,7 +134,11 @@ const ShipperLayout = () => {
         </div>
 
         <div className="flex items-center gap-4 relative">
-          <IoShareSocial size={20} className="text-gray-500 cursor-pointer" />
+          <IoShareSocial
+            size={20}
+            className="text-gray-500 cursor-pointer hover:text-system-primary transition"
+            onClick={handleShare}
+          />
 
           <MdOutlineNotificationsActive
             size={20}
