@@ -157,6 +157,54 @@ export const ShipperQuoteProvider = ({ children }) => {
     }
   };
 
+  // ---------------- ASSIGN VEHICLE ----------------
+  const assignVehicleToQuote = async (quoteId, vehicleId) => {
+    if (!token || !quoteId || !vehicleId) return;
+
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/shipper/quotes/assign-vehicle`,
+        { quoteId, vehicleId },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      showToast(res.data.message || "Vehicle assigned successfully", "success");
+
+      setQuotes((prev) =>
+        prev.map((q) =>
+          q._id === quoteId
+            ? {
+                ...q,
+                vehicle: vehicleId,
+                transportType: res.data.quote.transportType,
+                stallsRequired: res.data.quote.stallsRequired,
+              }
+            : q
+        )
+      );
+
+      // If accepted quote same hai
+      if (acceptedQuote?._id === quoteId) {
+        setAcceptedQuote(res.data.quote);
+      }
+
+      return { success: true, data: res.data.quote };
+    } catch (err) {
+      showToast(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to assign vehicle",
+        "error"
+      );
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <ShipperQuoteContext.Provider
       value={{
@@ -164,6 +212,7 @@ export const ShipperQuoteProvider = ({ children }) => {
         acceptedQuote,
         loading,
         addQuote,
+        assignVehicleToQuote,
         getMyQuotes,
         getAcceptedQuoteByShipment,
         cancelQuote,

@@ -8,6 +8,8 @@ import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteConte
 import Toast from "../../components/common/Toast";
 import PageLoader from "../../components/common/PageLoader";
 import NotFound from "../../components/common/NoData";
+import { IoArrowBack } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
 import {
   RiMoneyDollarCircleLine,
   RiTimeLine,
@@ -20,7 +22,7 @@ import {
 const ShipperQuotesPage = () => {
   const { quotes, loading, getMyQuotes, cancelQuote, deleteQuote } =
     useShipperQuote();
-
+  const navigate = useNavigate();
   const [visibleContractId, setVisibleContractId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
@@ -127,7 +129,6 @@ const ShipperQuotesPage = () => {
         <h2 className="text-2xl font-semibold text-gray-800 uppercase">
           My Quotes
         </h2>
-
         <div className="relative w-full md:w-1/3">
           <input
             type="text"
@@ -139,7 +140,13 @@ const ShipperQuotesPage = () => {
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
             <TbLocationSearch size={20} color="#997C42" />
           </span>
-        </div>
+        </div>{" "}
+        <button
+          onClick={() => navigate(-1)}
+          className="fixed bottom-6 right-6 bg-gray-600 text-white p-3 rounded-full shadow-lg hover:bg-[#BF9B53] transition"
+        >
+          <IoArrowBack className="w-5 h-5" />
+        </button>
       </div>
 
       {/* TABS */}

@@ -108,16 +108,44 @@ const InviteShipmentPage = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="bg-red-50 rounded-2xl p-8 max-w-lg text-center border border-red-200 shadow">
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Access Error</h2>
-          <p className="text-gray-700 mb-6">{error}</p>
+      <div className="min-h-screen font-montserrat flex items-center justify-center px-4">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-red-100 p-8 text-center relative overflow-hidden">
+          {/* Decorative top blur */}
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-200 rounded-full blur-3xl opacity-40"></div>
+
+          {/* Icon */}
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 flex items-center justify-center rounded-full bg-red-100 text-red-600 text-3xl shadow-inner">
+              ⚠️
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-2xl font-bold text-red-600 mb-2">
+            Access Denied
+          </h2>
+
+          {/* Message */}
+          <p className="text-gray-600 mb-6 leading-relaxed">{error}</p>
+
+          {/* Button */}
           <Button
             onClick={() => navigate("/signup")}
-            className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-500 text-white font-semibold rounded-xl shadow hover:scale-105 transition"
+            className="w-full py-3 bg-gradient-to-r from-red-500 to-rose-500 text-white font-semibold rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
           >
-            Sign Up
+            Create Account
           </Button>
+
+          {/* Optional secondary action */}
+          <p className="text-sm text-gray-400 mt-4">
+            Already have an account?{" "}
+            <span
+              onClick={() => navigate("/login")}
+              className="text-red-500 font-medium cursor-pointer hover:underline"
+            >
+              Login
+            </span>
+          </p>
         </div>
       </div>
     );

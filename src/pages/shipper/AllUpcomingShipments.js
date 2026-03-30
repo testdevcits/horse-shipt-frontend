@@ -15,6 +15,7 @@ import {
   FiAlertCircle,
 } from "react-icons/fi";
 import { MdClose } from "react-icons/md";
+import { IoArrowBack } from "react-icons/io5";
 import PageLoader from "../../components/common/PageLoader";
 
 /* ─────────────────────────────────────────
@@ -570,6 +571,13 @@ const AllUpcomingShipments = () => {
           </div>
         </div>
       )}
+
+      <button
+        onClick={() => navigate(-1)}
+        className="fixed bottom-6 right-6 bg-gray-600 text-white p-3 rounded-full shadow-lg hover:bg-[#BF9B53] transition"
+      >
+        <IoArrowBack className="w-5 h-5" />
+      </button>
     </div>
   );
 };

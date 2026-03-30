@@ -44,7 +44,7 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [token, showToast]); // ✅ include dependencies
+  }, [token, showToast]);
 
   // ---------------- AUTO FETCH WHEN TOKEN AVAILABLE ----------------
   useEffect(() => {
@@ -53,7 +53,7 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
     } else {
       setPreferredAreas([]);
     }
-  }, [token, user, fetchPreferredAreas]); // ✅ all dependencies included
+  }, [token, user, fetchPreferredAreas]);
 
   // ---------------- ADD PREFERRED AREA ----------------
   const addPreferredArea = async (areaData) => {

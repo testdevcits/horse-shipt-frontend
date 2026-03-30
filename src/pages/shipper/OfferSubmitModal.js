@@ -3,33 +3,18 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Button from "../../components/common/Button";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
-import { useVehicle } from "../../contexts/shipperContext/VehicleContext";
 import SignatureCanvas from "react-signature-canvas";
 import Toast from "../../components/common/Toast";
 import { FiX } from "react-icons/fi";
 
-const OfferSubmitModal = ({
-  shipment,
-  onClose,
-  vehicles: propVehicles = [],
-}) => {
+const OfferSubmitModal = ({ shipment, onClose }) => {
   const { addQuote } = useShipperQuote();
 
-  // SAFE CONTEXT FALLBACK
-  const vehicleContext = useVehicle() || {
-    vehicles: propVehicles,
-    loading: false,
-  };
-  const { vehicles, loading: vehiclesLoading } = vehicleContext;
-
-  const [selectedVehicleId, setSelectedVehicleId] = useState("");
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [sigPad, setSigPad] = useState(null);
 
   const sigWrapperRef = useRef(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
-
-  const selectedVehicle = vehicles.find((v) => v._id === selectedVehicleId);
 
   useEffect(() => {
     const updateWidth = () => {
@@ -67,16 +52,13 @@ const OfferSubmitModal = ({
     pickupTime: Yup.string().required("Required"),
     arrivalTime: Yup.string().required("Required"),
     cancellationWindowDays: Yup.number()
+      .typeError("Must be a number")
       .required("Required")
       .min(0, "Must be 0 or more"),
   });
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    if (!selectedVehicleId) {
-      showToast("Please select a vehicle", "error");
-      setSubmitting(false);
-      return;
-    }
+    // VEHICLE VALIDATION REMOVED
 
     if (!sigPad || sigPad.isEmpty()) {
       showToast("Please provide your digital signature", "error");
@@ -86,18 +68,16 @@ const OfferSubmitModal = ({
 
     const payload = {
       shipment: shipment._id,
-      vehicle: selectedVehicleId,
       totalPrice: Number(values.totalPrice),
       paymentMethod: values.paymentMethod,
       paymentDue: values.paymentDue,
       pickupTime: values.pickupTime,
       estimatedArrivalTime: values.arrivalTime,
-      transportType: selectedVehicle?.transportType || "",
-      stallsRequired: Number(selectedVehicle?.numberOfStalls || 1),
       notes: values.notes || "",
       shipperSignature: sigPad.toDataURL("image/png"),
-
-      cancellationWindowDays: Number(values.cancellationWindowDays),
+      cancellationWindowDays: values.cancellationWindowDays
+        ? Number(values.cancellationWindowDays)
+        : null,
     };
 
     const res = await addQuote(payload);
@@ -105,7 +85,6 @@ const OfferSubmitModal = ({
     if (res?.success) {
       showToast("Quote submitted successfully", "success");
       resetForm();
-      setSelectedVehicleId("");
       sigPad.clear();
       onClose();
     }
@@ -148,49 +127,6 @@ const OfferSubmitModal = ({
             >
               {({ isSubmitting }) => (
                 <Form className="flex flex-col gap-4">
-                  {/* VEHICLE SELECTION */}
-                  <div>
-                    <label className="block mb-1 font-medium text-gray-700">
-                      Select Vehicle
-                    </label>
-                    {vehiclesLoading ? (
-                      <p className="text-sm text-gray-500">
-                        Loading vehicles...
-                      </p>
-                    ) : (
-                      <select
-                        className="w-full border rounded-md px-3 py-2 text-sm"
-                        value={selectedVehicleId}
-                        onChange={(e) => setSelectedVehicleId(e.target.value)}
-                      >
-                        <option value="">Select a Vehicle</option>
-                        {vehicles.map((v) => (
-                          <option key={v._id} value={v._id}>
-                            {v.transportType} - {v.vehicleNumber}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-
-                  {/* VEHICLE PREVIEW */}
-                  {selectedVehicle && (
-                    <div className="p-3 border rounded-md bg-gray-50 text-sm">
-                      <p>
-                        <strong>Transport Type:</strong>{" "}
-                        {selectedVehicle.transportType}
-                      </p>
-                      <p>
-                        <strong>Number of Stalls:</strong>{" "}
-                        {selectedVehicle.numberOfStalls}
-                      </p>
-                      <p>
-                        <strong>Vehicle Number:</strong>{" "}
-                        {selectedVehicle.vehicleNumber}
-                      </p>
-                    </div>
-                  )}
-
                   {/* TOTAL PRICE */}
                   <div>
                     <label className="block mb-1 font-medium text-gray-700">
@@ -220,9 +156,7 @@ const OfferSubmitModal = ({
                         className="w-full border rounded-md px-3 py-2 text-sm"
                       >
                         <option value="">Select</option>
-                        {/* <option value="cash">Cash</option> */}
                         <option value="card">Card</option>
-                        {/* <option value="bank">Bank Transfer</option> */}
                       </Field>
                     </div>
 
@@ -236,7 +170,6 @@ const OfferSubmitModal = ({
                         className="w-full border rounded-md px-3 py-2 text-sm"
                       >
                         <option value="">Select</option>
-                        {/* <option value="pickup">On Pickup</option> */}
                         <option value="delivery">On Delivery</option>
                       </Field>
                     </div>
@@ -263,6 +196,8 @@ const OfferSubmitModal = ({
                     rows={3}
                     className="w-full border rounded-md px-3 py-2 text-sm"
                   />
+
+                  {/* CANCELLATION */}
                   <div>
                     <label className="block mb-1 font-medium text-gray-700">
                       Cancellation Window (Days)
@@ -271,8 +206,8 @@ const OfferSubmitModal = ({
                     <Field
                       name="cancellationWindowDays"
                       type="number"
-                      placeholder="e.g. 2"
                       min="0"
+                      placeholder="e.g. 2"
                       className="w-full border rounded-md px-3 py-2 text-sm"
                     />
 
@@ -281,13 +216,9 @@ const OfferSubmitModal = ({
                       component="div"
                       className="text-red-500 text-sm mt-1"
                     />
-
-                    <p className="text-xs text-gray-500 mt-1">
-                      Customers can cancel within this period after booking.
-                      After that, cancellation will be disabled.
-                    </p>
                   </div>
-                  {/* RESPONSIVE SIGNATURE */}
+
+                  {/* SIGNATURE */}
                   <div>
                     <label className="block mb-1 font-medium text-gray-700">
                       Your Signature

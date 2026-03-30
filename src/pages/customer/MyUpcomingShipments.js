@@ -39,7 +39,7 @@ const MyUpcomingShipments = () => {
     fetchShipments();
   }, [token]);
 
-  const shipmentsToShow = shipments.slice(0, 3); // Show only 3 cards on dashboard
+  const shipmentsToShow = shipments.slice(0, 2); // Show only 3 cards on dashboard
 
   const handleSeeAll = () => {
     navigate("/customer/my-shipments"); // Navigate to full shipments page

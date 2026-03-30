@@ -12,6 +12,12 @@ const CustomerShipmentCard = ({ shipment }) => {
 
   const horse = shipment.horses[0];
 
+  // ✅ Truncate function
+  const truncateText = (text, maxLength = 30) => {
+    if (!text) return "";
+    return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+  };
+
   const handleNavigateWithQuery = () => {
     const token = createShipmentQueryToken(shipment._id);
     const params = new URLSearchParams({
@@ -60,6 +66,7 @@ const CustomerShipmentCard = ({ shipment }) => {
             {shipment.numberOfHorses} Horse
             {shipment.numberOfHorses > 1 ? "s" : ""} Shipment
           </h3>
+
           <div className="flex items-center gap-2">
             {isPickupToday && (
               <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
@@ -84,10 +91,14 @@ const CustomerShipmentCard = ({ shipment }) => {
             {/* PICKUP */}
             <div>
               <p className="text-xs text-gray-500 mb-1">Pickup</p>
-              <div className="flex items-center gap-2 text-sm text-gray-800 truncate">
+
+              <div className="flex items-center gap-2 text-sm text-gray-800">
                 <IoLocationOutline size={16} />
-                <span>{shipment.pickupLocation}</span>
+                <span title={shipment.pickupLocation}>
+                  {truncateText(shipment.pickupLocation, 30)}
+                </span>
               </div>
+
               <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                 <LuCalendarDays size={14} />
                 <span>{formatDate(shipment.pickupDate)}</span>
@@ -97,10 +108,14 @@ const CustomerShipmentCard = ({ shipment }) => {
             {/* DELIVERY */}
             <div>
               <p className="text-xs text-gray-500 mb-1">Delivery</p>
-              <div className="flex items-center gap-2 text-sm text-gray-800 truncate">
+
+              <div className="flex items-center gap-2 text-sm text-gray-800">
                 <IoLocationOutline size={16} />
-                <span>{shipment.deliveryLocation}</span>
+                <span title={shipment.deliveryLocation}>
+                  {truncateText(shipment.deliveryLocation, 30)}
+                </span>
               </div>
+
               <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                 <LuCalendarDays size={14} />
                 <span>{formatDate(shipment.deliveryDate)}</span>
