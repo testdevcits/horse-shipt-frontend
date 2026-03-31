@@ -24,15 +24,27 @@ export const ShipperProfileProvider = ({ children }) => {
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
   }, []);
 
-  // 👉 Convert backend profile to frontend-safe profile
+  // Normalize backend data → frontend safe
   const normalizeProfile = (data) => ({
     ...data,
+
     profileImage: data?.profileImage?.url || data?.profileImage || "",
     bannerImage: data?.bannerImage?.url || data?.bannerImage || "",
+    mobile: data?.mobile || "",
+    description: data?.description || "",
+    locale: {
+      address: data?.locale?.address || "",
+      latitude: data?.locale?.latitude || null,
+      longitude: data?.locale?.longitude || null,
+    },
   });
 
+  // -------------------------
+  // Fetch Profile
+  // -------------------------
   const fetchProfile = useCallback(async () => {
     if (!token) return;
+
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/profile`, {
@@ -51,11 +63,15 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   }, [token, showToast]);
 
+  // -------------------------
+  // Update Profile
+  // -------------------------
   const updateProfile = async (updatedData) => {
     if (!token) {
       showToast("Unauthorized. Please log in again.", "error");
       return { success: false };
     }
+
     setLoading(true);
     try {
       const res = await axios.put(
@@ -66,10 +82,8 @@ export const ShipperProfileProvider = ({ children }) => {
         }
       );
 
-      setProfile((prev) => ({
-        ...prev,
-        ...normalizeProfile(res.data.data),
-      }));
+      // safer update
+      setProfile(normalizeProfile(res.data.data));
 
       showToast("Profile updated successfully", "success");
       return { success: true };
@@ -85,8 +99,12 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   };
 
+  // -------------------------
+  // Update Profile Image
+  // -------------------------
   const updateProfileImage = async (file) => {
     if (!token || !file) return { success: false };
+
     const formData = new FormData();
     formData.append("image", file);
 
@@ -105,7 +123,6 @@ export const ShipperProfileProvider = ({ children }) => {
 
       const image = res.data?.profileImage || res.data?.data?.profileImage;
       const url = image?.url || image;
-
       const finalUrl = `${url}?t=${Date.now()}`;
 
       setProfile((prev) => ({ ...prev, profileImage: finalUrl }));
@@ -121,8 +138,12 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   };
 
+  // -------------------------
+  // Update Banner Image
+  // -------------------------
   const updateBannerImage = async (file) => {
     if (!token || !file) return { success: false };
+
     const formData = new FormData();
     formData.append("image", file);
 
@@ -141,7 +162,6 @@ export const ShipperProfileProvider = ({ children }) => {
 
       const image = res.data?.bannerImage || res.data?.data?.bannerImage;
       const url = image?.url || image;
-
       const finalUrl = `${url}?t=${Date.now()}`;
 
       setProfile((prev) => ({ ...prev, bannerImage: finalUrl }));
@@ -157,9 +177,15 @@ export const ShipperProfileProvider = ({ children }) => {
     }
   };
 
+  // -------------------------
+  // Auto Fetch
+  // -------------------------
   useEffect(() => {
-    if (token && user?.role === "shipper") fetchProfile();
-    else setProfile(null);
+    if (token && user?.role === "shipper") {
+      fetchProfile();
+    } else {
+      setProfile(null);
+    }
   }, [token, user, fetchProfile]);
 
   return (
@@ -174,6 +200,7 @@ export const ShipperProfileProvider = ({ children }) => {
       }}
     >
       {children}
+
       {toast.visible && (
         <Toast
           message={toast.message}

@@ -180,7 +180,7 @@ const Sidebar = ({
         </div>
 
         {/* ===================== NAVIGATION ===================== */}
-        <nav className="flex-1 overflow-y-auto px-2 py-4">
+        <nav className="flex-1 overflow-y-auto px-2 py-4 vehicle-scroll">
           <ul className="space-y-2">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);

@@ -215,7 +215,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
           <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* LEFT */}
             <div className="space-y-4">
-              <div className="border rounded-md p-4 bg-gray-50 space-y-2">
+              <div className="border border-[#BF9B53] rounded-md p-4 bg-gray-50 space-y-2">
                 <p>
                   <strong className={strongLabelClass}>Shipper:</strong>{" "}
                   {quote.shipper?.companyName || quote.shipper?.name}
@@ -377,7 +377,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
               )}
 
               {/* TERMS + SIGNATURE + CARD */}
-              <div className="border rounded-md p-4 space-y-3">
+              <div className="border border-[#BF9B53] rounded-md p-4 space-y-3">
                 <Checkbox
                   checked={agreed}
                   onChange={(e) => setAgreed(e.target.checked)}
@@ -435,12 +435,12 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
               {/* ACTIONS */}
               <div className="flex gap-3 mt-auto">
-                <Button variant="secondary" fullWidth onClick={onClose}>
+                <Button variant="google" fullWidth onClick={onClose}>
                   Cancel
                 </Button>
                 {isCancelable && (
                   <Button
-                    variant="danger"
+                    variant="google"
                     fullWidth
                     onClick={() => setShowCancelModal(true)}
                   >

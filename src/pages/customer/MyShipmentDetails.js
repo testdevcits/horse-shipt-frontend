@@ -183,7 +183,7 @@ const MyShipmentDetails = () => {
       {activeTab === "overview" && shipment && (
         <div className="flex flex-col gap-6 font-montserrat text-sm">
           {/* ---------------- TOP CARD ---------------- */}
-          <div className="bg-white border border-gray-300 rounded-[10px]">
+          <div className="bg-white border border-[#BF9B53] rounded-[10px]">
             <div className="flex flex-col md:flex-row gap-4 p-4 md:gap-8">
               <div className="order-1 md:order-2 w-full md:w-[60%]">
                 <img
@@ -249,7 +249,7 @@ const MyShipmentDetails = () => {
           </div>
 
           {/* ---------------- DETAILS ---------------- */}
-          <div className="border border-gray-300 rounded-[10px] p-4">
+          <div className="border border-[#BF9B53] rounded-[10px] p-4">
             <div
               onClick={() => setOpenDetails(!openDetails)}
               className="flex items-center justify-between h-[44px] p-[14px] bg-[#F2EBDD] rounded-[8px] cursor-pointer"
@@ -366,7 +366,7 @@ const MyShipmentDetails = () => {
 
       {/* ================= QUOTES TAB ================= */}
       {activeTab === "quotes" && (
-        <div className="bg-white border rounded-lg p-6 relative">
+        <div className="bg-white border border-[#BF9B53] rounded-lg p-6 relative">
           <h3 className="font-medium mb-4">Total Quotes: {quotes.length}</h3>
           {quotes.length === 0 ? (
             <p className="text-gray-500 text-center">No quotes received yet.</p>

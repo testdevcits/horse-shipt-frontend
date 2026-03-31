@@ -27,7 +27,7 @@ const ReviewModal = ({ open, onClose, shipment, onSubmit }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+    <div className="fixed inset-0 z-150 flex items-center justify-center bg-black/30 px-4">
       <div className="bg-white w-full max-w-md rounded-2xl p-5 shadow-lg animate-slide-fade-in">
         {/* Header */}
         <h2 className="text-lg font-semibold mb-1">Rate Shipper</h2>

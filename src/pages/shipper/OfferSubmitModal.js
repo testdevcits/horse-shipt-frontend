@@ -102,7 +102,7 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
         />
       )}
 
-      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-3">
+      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center ">
         <div className="bg-white w-full max-w-[95%] xl:max-w-[1400px] max-h-[90vh] rounded-[14px] flex flex-col overflow-hidden">
           {/* HEADER */}
           <div className="relative p-5 border-b">
@@ -119,7 +119,7 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
           </div>
 
           {/* BODY */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <div className="flex-1 overflow-y-auto p-5 space-y-4 vehicle-scroll">
             <Formik
               initialValues={initialValues}
               validationSchema={validationSchema}

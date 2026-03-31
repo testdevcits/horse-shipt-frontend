@@ -12,7 +12,6 @@ const CustomerShipmentCard = ({ shipment }) => {
 
   const horse = shipment.horses[0];
 
-  // ✅ Truncate function
   const truncateText = (text, maxLength = 30) => {
     if (!text) return "";
     return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
