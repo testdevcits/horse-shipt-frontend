@@ -37,8 +37,8 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
 
   const initialValues = {
     totalPrice: "",
-    paymentMethod: "",
-    paymentDue: "",
+    paymentMethod: "card",
+    paymentDue: "delivery",
     pickupTime: "",
     arrivalTime: "",
     notes: "",
@@ -47,8 +47,6 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
 
   const validationSchema = Yup.object({
     totalPrice: Yup.number().required("Required"),
-    paymentMethod: Yup.string().required("Required"),
-    paymentDue: Yup.string().required("Required"),
     pickupTime: Yup.string().required("Required"),
     arrivalTime: Yup.string().required("Required"),
     cancellationWindowDays: Yup.number()
@@ -58,8 +56,6 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
   });
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    // VEHICLE VALIDATION REMOVED
-
     if (!sigPad || sigPad.isEmpty()) {
       showToast("Please provide your digital signature", "error");
       setSubmitting(false);
@@ -102,141 +98,173 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
         />
       )}
 
-      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center ">
-        <div className="bg-white w-full max-w-[95%] xl:max-w-[1400px] max-h-[90vh] rounded-[14px] flex flex-col overflow-hidden">
+      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-2 sm:p-4">
+        <div className="bg-white w-full max-w-7xl max-h-[90vh] rounded-md flex flex-col overflow-hidden shadow-md">
           {/* HEADER */}
-          <div className="relative p-5 border-b">
+          <div className="relative px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-indigo-50">
             <button
               onClick={onClose}
-              className="absolute right-4 top-4 text-gray-500"
+              className="absolute right-3 sm:right-6 top-3 sm:top-5 text-gray-400 hover:text-gray-600 transition-colors"
             >
-              <FiX size={22} />
+              <FiX size={24} />
             </button>
-            <h2 className="text-lg font-semibold">Submit an Offer</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Fill out your information and sign digitally to send the offer.
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 pr-8">
+              Submit Shipping Offer
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">
+              Complete the form and provide your digital signature
             </p>
           </div>
 
-          {/* BODY */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-4 vehicle-scroll">
+          {/* DEFAULT FIELDS AT TOP - SMALL TEXT */}
+          <div className="px-4 sm:px-6 py-3 bg-blue-50 border-b border-blue-200">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
+              <div>
+                <p className="text-xs text-gray-600 font-medium">
+                  Payment Method
+                </p>
+                <p className="text-sm sm:text-base font-semibold text-gray-900">
+                  💳 Card
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-600 font-medium">Payment Due</p>
+                <p className="text-sm sm:text-base font-semibold text-gray-900">
+                  📦 On Delivery
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* SCROLLABLE FORM BODY */}
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 sm:py-6 vehicle-scroll">
             <Formik
               initialValues={initialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
             >
-              {({ isSubmitting }) => (
-                <Form className="flex flex-col gap-4">
+              {({ isSubmitting, errors, touched }) => (
+                <Form className="flex flex-col gap-5">
                   {/* TOTAL PRICE */}
                   <div>
-                    <label className="block mb-1 font-medium text-gray-700">
-                      Total Price
+                    <label className="block mb-2 font-semibold text-gray-800 text-sm sm:text-base">
+                      Total Price *
                     </label>
-                    <Field
-                      name="totalPrice"
-                      type="number"
-                      className="w-full border rounded-md px-3 py-2 text-sm"
-                    />
-                    <ErrorMessage
-                      name="totalPrice"
-                      component="div"
-                      className="text-red-500 text-sm mt-1"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-3 text-gray-600 text-lg">
+                        ₹
+                      </span>
+                      <Field
+                        name="totalPrice"
+                        type="number"
+                        placeholder="Enter total price"
+                        step="0.01"
+                        className="w-full pl-8 pr-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm sm:text-base transition-colors"
+                      />
+                    </div>
+                    {errors.totalPrice && touched.totalPrice && (
+                      <ErrorMessage
+                        name="totalPrice"
+                        component="div"
+                        className="text-red-500 text-xs sm:text-sm mt-1.5"
+                      />
+                    )}
                   </div>
 
-                  {/* PAYMENT */}
+                  {/* TIMING */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block mb-1 font-medium text-gray-700">
-                        Payment Method
+                      <label className="block mb-2 font-semibold text-gray-800 text-sm sm:text-base">
+                        Pickup Time *
                       </label>
                       <Field
-                        as="select"
-                        name="paymentMethod"
-                        className="w-full border rounded-md px-3 py-2 text-sm"
-                      >
-                        <option value="">Select</option>
-                        <option value="card">Card</option>
-                      </Field>
+                        name="pickupTime"
+                        type="time"
+                        className="w-full px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm sm:text-base transition-colors"
+                      />
+                      {errors.pickupTime && touched.pickupTime && (
+                        <ErrorMessage
+                          name="pickupTime"
+                          component="div"
+                          className="text-red-500 text-xs sm:text-sm mt-1.5"
+                        />
+                      )}
                     </div>
 
                     <div>
-                      <label className="block mb-1 font-medium text-gray-700">
-                        Payment Due
+                      <label className="block mb-2 font-semibold text-gray-800 text-sm sm:text-base">
+                        Arrival Time *
                       </label>
                       <Field
-                        as="select"
-                        name="paymentDue"
-                        className="w-full border rounded-md px-3 py-2 text-sm"
-                      >
-                        <option value="">Select</option>
-                        <option value="delivery">On Delivery</option>
-                      </Field>
+                        name="arrivalTime"
+                        type="time"
+                        className="w-full px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm sm:text-base transition-colors"
+                      />
+                      {errors.arrivalTime && touched.arrivalTime && (
+                        <ErrorMessage
+                          name="arrivalTime"
+                          component="div"
+                          className="text-red-500 text-xs sm:text-sm mt-1.5"
+                        />
+                      )}
                     </div>
-                  </div>
-
-                  {/* TIME */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Field
-                      name="pickupTime"
-                      type="time"
-                      className="w-full border rounded-md px-3 py-2 text-sm"
-                    />
-                    <Field
-                      name="arrivalTime"
-                      type="time"
-                      className="w-full border rounded-md px-3 py-2 text-sm"
-                    />
                   </div>
 
                   {/* NOTES */}
-                  <Field
-                    as="textarea"
-                    name="notes"
-                    rows={3}
-                    className="w-full border rounded-md px-3 py-2 text-sm"
-                  />
-
-                  {/* CANCELLATION */}
                   <div>
-                    <label className="block mb-1 font-medium text-gray-700">
-                      Cancellation Window (Days)
+                    <label className="block mb-2 font-semibold text-gray-800 text-sm sm:text-base">
+                      Notes
                     </label>
+                    <Field
+                      as="textarea"
+                      name="notes"
+                      rows={3}
+                      placeholder="Add any special instructions..."
+                      className="w-full px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm sm:text-base resize-none transition-colors"
+                    />
+                  </div>
 
+                  {/* CANCELLATION WINDOW */}
+                  <div>
+                    <label className="block mb-2 font-semibold text-gray-800 text-sm sm:text-base">
+                      Cancellation Window (Days) *
+                    </label>
                     <Field
                       name="cancellationWindowDays"
                       type="number"
                       min="0"
-                      placeholder="e.g. 2"
-                      className="w-full border rounded-md px-3 py-2 text-sm"
+                      placeholder="e.g., 2"
+                      className="w-full px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm sm:text-base transition-colors"
                     />
-
-                    <ErrorMessage
-                      name="cancellationWindowDays"
-                      component="div"
-                      className="text-red-500 text-sm mt-1"
-                    />
+                    {errors.cancellationWindowDays &&
+                      touched.cancellationWindowDays && (
+                        <ErrorMessage
+                          name="cancellationWindowDays"
+                          component="div"
+                          className="text-red-500 text-xs sm:text-sm mt-1.5"
+                        />
+                      )}
                   </div>
 
                   {/* SIGNATURE */}
-                  <div>
-                    <label className="block mb-1 font-medium text-gray-700">
-                      Your Signature
+                  <div className="border-t-2 border-gray-200 pt-5">
+                    <label className="block mb-3 font-semibold text-gray-800 text-sm sm:text-base">
+                      Digital Signature *
                     </label>
 
                     <div
                       ref={sigWrapperRef}
-                      className="w-full border rounded-md overflow-hidden"
+                      className="w-full border-3 border-dashed border-gray-300 rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 hover:border-blue-400 transition-colors"
                     >
                       {canvasWidth > 0 && (
                         <SignatureCanvas
                           ref={(ref) => setSigPad(ref)}
-                          penColor="#22c55e"
+                          penColor="#2563eb"
                           backgroundColor="#ffffff"
                           canvasProps={{
                             width: canvasWidth,
                             height: 150,
-                            className: "w-full",
+                            className: "w-full cursor-crosshair",
                           }}
                         />
                       )}
@@ -244,30 +272,44 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
 
                     <button
                       type="button"
-                      onClick={() => sigPad.clear()}
-                      className="mt-2 text-sm text-system-primary hover:text-[#22c55e]"
+                      onClick={() => sigPad && sigPad.clear()}
+                      className="mt-2 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
                     >
-                      Clear Signature
+                      ↺ Clear Signature
                     </button>
                   </div>
 
-                  {/* ACTIONS */}
-                  <div className="p-4 border-t flex gap-3">
-                    <Button variant="secondary" fullWidth onClick={onClose}>
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="primary"
-                      type="submit"
-                      fullWidth
-                      disabled={isSubmitting}
-                    >
-                      Submit Offer
-                    </Button>
-                  </div>
+                  {/* HIDDEN FIELDS */}
+                  <Field name="paymentMethod" type="hidden" value="card" />
+                  <Field name="paymentDue" type="hidden" value="delivery" />
                 </Form>
               )}
             </Formik>
+          </div>
+
+          {/* ACTIONS - STICKY FOOTER */}
+          <div className="px-4 sm:px-6 py-4 border-t-2 border-gray-200 bg-white flex gap-3">
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={onClose}
+              className="py-2.5 sm:py-3 font-semibold text-sm sm:text-base"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              fullWidth
+              className="py-2.5 sm:py-3 font-semibold text-sm sm:text-base"
+              onClick={() => {
+                document
+                  .querySelector("form")
+                  ?.dispatchEvent(new Event("submit", { bubbles: true }));
+              }}
+            >
+              Submit Offer
+            </Button>
           </div>
         </div>
       </div>

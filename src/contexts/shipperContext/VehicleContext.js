@@ -105,7 +105,38 @@ export const VehicleProvider = ({ children }) => {
       setLoading(false);
     }
   };
+  // ---------------- ASSIGN DRIVER ----------------
+  const assignDriverToVehicle = async (vehicleId, driverId) => {
+    if (!token) return showToast("Unauthorized. Please log in again.", "error");
 
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/vehicles/assign-driver`, // 👈 ye route add karna hoga backend me
+        { vehicleId, driverId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // update vehicle locally
+      setVehicles((prev) =>
+        prev.map((v) => (v._id === vehicleId ? res.data.vehicle : v))
+      );
+
+      showToast("Driver assigned successfully", "success");
+    } catch (err) {
+      console.error("Assign Driver Error:", err);
+      showToast(
+        err.response?.data?.message || "Failed to assign driver",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <VehicleContext.Provider
       value={{
@@ -115,6 +146,7 @@ export const VehicleProvider = ({ children }) => {
         addVehicle,
         updateVehicle,
         deleteVehicle,
+        assignDriverToVehicle,
       }}
     >
       {children}

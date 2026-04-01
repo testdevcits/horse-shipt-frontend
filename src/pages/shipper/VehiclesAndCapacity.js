@@ -3,7 +3,10 @@ import { FiPlus, FiX } from "react-icons/fi";
 import { RiImageAddLine } from "react-icons/ri";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+
 import { useVehicle } from "../../contexts/shipperContext/VehicleContext";
+import { useDriver } from "../../contexts/shipperContext/DriverContext";
+
 import ConfirmModal from "../../components/common/ConfirmModal";
 import PageLoader from "../../components/common/PageLoader";
 
@@ -15,14 +18,19 @@ const VehiclePage = () => {
     updateVehicle,
     deleteVehicle,
     fetchVehicles,
+    assignDriverToVehicle,
     loading = false,
   } = useVehicle() || {};
+
+  // --------- Driver Context ---------
+  const { drivers = [] } = useDriver();
 
   // --------- State ---------
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [confirmData, setConfirmData] = useState({ show: false, id: null });
   const [fetched, setFetched] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState({});
 
   // --------- Fetch vehicles on mount ---------
   useEffect(() => {
@@ -32,11 +40,28 @@ const VehiclePage = () => {
     }
   }, [fetched, fetchVehicles]);
 
+  // --------- Assign Driver ---------
+  const handleAssignDriver = async (vehicleId) => {
+    const driverId = selectedDriver[vehicleId];
+
+    if (!driverId) {
+      alert("Please select a driver");
+      return;
+    }
+
+    await assignDriverToVehicle(vehicleId, driverId);
+    setSelectedDriver((prev) => ({
+      ...prev,
+      [vehicleId]: "",
+    }));
+  };
+
   // --------- Modal handlers ---------
   const openModal = (vehicle = null) => {
     setEditingVehicle(vehicle);
     setShowModal(true);
   };
+
   const closeModal = () => {
     setShowModal(false);
     setEditingVehicle(null);
@@ -49,6 +74,7 @@ const VehiclePage = () => {
       setConfirmData({ show: false, id: null });
     }
   };
+
   const cancelDelete = () => setConfirmData({ show: false, id: null });
 
   // --------- Form validation schema ---------
@@ -86,6 +112,7 @@ const VehiclePage = () => {
   // --------- Form submit handler ---------
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     const formData = new FormData();
+
     Object.keys(values).forEach((key) => {
       if (key === "images") {
         values.images.forEach((img) => {
@@ -195,7 +222,7 @@ const VehiclePage = () => {
               </div>
 
               {/* DETAILS */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm mb-4">
                 <div className="flex gap-2">
                   <p>Vehicle Type:</p>
                   <p className="font-semibold text-[#BF9B53]">
@@ -240,7 +267,7 @@ const VehiclePage = () => {
               </div>
 
               {/* IMAGES */}
-              <div className="mt-4">
+              <div className="mt-4 mb-4">
                 <p className="text-sm font-medium text-gray-600 mb-2">Images</p>
 
                 <div className="flex gap-2 flex-wrap">
@@ -263,11 +290,54 @@ const VehiclePage = () => {
 
               {/* NOTES */}
               {vehicle.notes && (
-                <div className="mt-4">
+                <div className="mt-4 mb-4">
                   <p className="text-sm text-gray-400">Notes:</p>
                   <p className="text-sm text-gray-700">{vehicle.notes}</p>
                 </div>
               )}
+
+              {/* DRIVER ASSIGNMENT */}
+              <div className="border-t pt-4">
+                <p className="text-sm font-medium text-gray-600 mb-3">
+                  Assign Driver
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <select
+                    value={selectedDriver[vehicle._id] || ""}
+                    onChange={(e) =>
+                      setSelectedDriver((prev) => ({
+                        ...prev,
+                        [vehicle._id]: e.target.value,
+                      }))
+                    }
+                    className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
+                  >
+                    <option value="">Select Driver</option>
+                    {drivers
+                      .filter((d) => d.isActive)
+                      .map((driver) => (
+                        <option key={driver._id} value={driver._id}>
+                          {driver.name}
+                        </option>
+                      ))}
+                  </select>
+
+                  <button
+                    onClick={() => handleAssignDriver(vehicle._id)}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm whitespace-nowrap"
+                  >
+                    Assign
+                  </button>
+                </div>
+
+                {/* SHOW ASSIGNED */}
+                {vehicle.driver && (
+                  <p className="text-green-600 mt-3 text-sm font-medium">
+                    ✓ Assigned Driver: {vehicle.driver?.name || "Assigned"}
+                  </p>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -331,60 +401,6 @@ const VehiclePage = () => {
                     />
                   </div>
 
-                  {/* Number of Stalls */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Number of Stalls
-                    </label>
-                    <Field
-                      type="number"
-                      name="numberOfStalls"
-                      className="w-full border border-gray-300 rounded-lg p-2"
-                    />
-                  </div>
-
-                  {/* Trailer Type */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Stall Type
-                    </label>
-                    <Field
-                      as="select"
-                      name="trailerType"
-                      className="w-full border border-gray-300 rounded-lg p-2"
-                    >
-                      {[
-                        "Stock Trailer",
-                        "Slant Load",
-                        "Head to Head",
-                        "Semi",
-                        "Other",
-                      ].map((opt) => (
-                        <option key={opt}>{opt}</option>
-                      ))}
-                    </Field>
-                  </div>
-
-                  {/* Stall Size */}
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Stall Size
-                    </label>
-                    <Field
-                      as="select"
-                      name="stallSize"
-                      className="w-full border border-gray-300 rounded-lg p-2"
-                    >
-                      {[
-                        "Single Stall",
-                        "Stall and a Half",
-                        "Box Stall",
-                        "Other",
-                      ].map((opt) => (
-                        <option key={opt}>{opt}</option>
-                      ))}
-                    </Field>
-                  </div>
                   {/* Vehicle Number */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -427,6 +443,78 @@ const VehiclePage = () => {
 
                     <ErrorMessage
                       name="vinNumber"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  {/* Number of Stalls */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Number of Stalls
+                    </label>
+                    <Field
+                      type="number"
+                      name="numberOfStalls"
+                      className="w-full border border-gray-300 rounded-lg p-2"
+                    />
+                    <ErrorMessage
+                      name="numberOfStalls"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  {/* Trailer Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Stall Type
+                    </label>
+                    <Field
+                      as="select"
+                      name="trailerType"
+                      className="w-full border border-gray-300 rounded-lg p-2"
+                    >
+                      <option value="">Select Stall Type</option>
+                      {[
+                        "Stock Trailer",
+                        "Slant Load",
+                        "Head to Head",
+                        "Semi",
+                        "Other",
+                      ].map((opt) => (
+                        <option key={opt}>{opt}</option>
+                      ))}
+                    </Field>
+                    <ErrorMessage
+                      name="trailerType"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  {/* Stall Size */}
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Stall Size
+                    </label>
+                    <Field
+                      as="select"
+                      name="stallSize"
+                      className="w-full border border-gray-300 rounded-lg p-2"
+                    >
+                      <option value="">Select Stall Size</option>
+                      {[
+                        "Single Stall",
+                        "Stall and a Half",
+                        "Box Stall",
+                        "Other",
+                      ].map((opt) => (
+                        <option key={opt}>{opt}</option>
+                      ))}
+                    </Field>
+                    <ErrorMessage
+                      name="stallSize"
                       component="p"
                       className="text-red-500 text-sm mt-1"
                     />
@@ -482,6 +570,7 @@ const VehiclePage = () => {
                       as="textarea"
                       name="notes"
                       rows="3"
+                      placeholder="Add any additional notes about this vehicle"
                       className="w-full border border-gray-300 rounded-lg p-2"
                     />
                   </div>
@@ -491,14 +580,14 @@ const VehiclePage = () => {
                     <button
                       type="button"
                       onClick={closeModal}
-                      className="px-5 py-2 border border-gray-400 rounded-lg"
+                      className="px-5 py-2 border border-gray-400 rounded-lg hover:bg-gray-50 transition"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="px-5 py-2 bg-[#bf9b53] text-white rounded-lg"
+                      className="px-5 py-2 bg-[#bf9b53] text-white rounded-lg hover:opacity-90 transition disabled:opacity-50"
                     >
                       {editingVehicle ? "Update" : "Save"}
                     </button>

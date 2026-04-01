@@ -18,11 +18,23 @@ import {
   RiCloseCircleLine,
   RiDeleteBinLine,
 } from "react-icons/ri";
+import axios from "axios";
+import { useAuth } from "../../contexts/AuthContext";
+
+const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
 const ShipperQuotesPage = () => {
-  const { quotes, loading, getMyQuotes, cancelQuote, deleteQuote } =
-    useShipperQuote();
+  const { token } = useAuth();
+  const {
+    quotes,
+    loading,
+    getMyQuotes,
+    cancelQuote,
+    deleteQuote,
+    assignVehicleToQuote,
+  } = useShipperQuote();
   const navigate = useNavigate();
+
   const [visibleContractId, setVisibleContractId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
@@ -30,8 +42,13 @@ const ShipperQuotesPage = () => {
   const [modalType, setModalType] = useState("");
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Vehicle assign
+  const [vehicles, setVehicles] = useState([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
+  const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
+
   const tabsContainerRef = useRef(null);
-  // TAB STATE: all | accepted | cancelled | pending
   const [activeTab, setActiveTab] = useState("all");
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
@@ -40,6 +57,21 @@ const ShipperQuotesPage = () => {
     getMyQuotes();
   }, [getMyQuotes]);
 
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      if (!token) return;
+      try {
+        const res = await axios.get(`${API_BASE_URL}/shipper/vehicles`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setVehicles(res.data.vehicles || []);
+      } catch (err) {
+        showToast("Failed to fetch vehicles", "error");
+      }
+    };
+    fetchVehicles();
+  }, [token]);
+
   const showToast = (message, type = "info") => {
     setToast({ message, type, visible: true });
     setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
@@ -47,7 +79,6 @@ const ShipperQuotesPage = () => {
 
   if (loading) return <PageLoader />;
 
-  // FILTERED BY SEARCH + TAB
   const filteredQuotes = quotes
     .filter((quote) => {
       const code = quote.shipment?.shipmentCode || "";
@@ -62,7 +93,7 @@ const ShipperQuotesPage = () => {
         case "pending":
           return quote.status === "pending";
         default:
-          return true; // all
+          return true;
       }
     });
 
@@ -101,7 +132,6 @@ const ShipperQuotesPage = () => {
     closeModal();
   };
 
-  // COUNT TAB DATA
   const tabData = [
     { key: "all", label: "All Quotes", count: quotes.length },
     {
@@ -159,8 +189,6 @@ const ShipperQuotesPage = () => {
             key={tab.key}
             onClick={() => {
               setActiveTab(tab.key);
-
-              // Auto-scroll selected tab into view
               const tabButton = document.getElementById(`tab-${tab.key}`);
               tabButton?.scrollIntoView({
                 behavior: "smooth",
@@ -214,7 +242,6 @@ const ShipperQuotesPage = () => {
 
                 {/* GRID */}
                 <div className="grid md:grid-cols-3 gap-6 text-sm">
-                  {/* PRICE */}
                   <div className="space-y-2">
                     <p className="flex items-center gap-2">
                       <RiMoneyDollarCircleLine className="text-[#BF9B53]" />
@@ -223,14 +250,12 @@ const ShipperQuotesPage = () => {
                         ${quote.totalPrice}
                       </span>
                     </p>
-
                     <p>
                       <span className="text-gray-500">Currency:</span>{" "}
                       <span className="font-medium text-gray-800">
                         {quote.currency}
                       </span>
                     </p>
-
                     <p>
                       <span className="text-gray-500">Payment:</span>{" "}
                       <span className="font-medium text-[#BF9B53]">
@@ -238,8 +263,6 @@ const ShipperQuotesPage = () => {
                       </span>
                     </p>
                   </div>
-
-                  {/* TIME */}
                   <div className="space-y-2">
                     <p className="flex items-center gap-2">
                       <RiTimeLine className="text-[#BF9B53]" />
@@ -248,14 +271,12 @@ const ShipperQuotesPage = () => {
                         {quote.pickupTime}
                       </span>
                     </p>
-
                     <p>
                       <span className="text-gray-500">Arrival:</span>{" "}
                       <span className="font-medium text-[#BF9B53]">
                         {quote.estimatedArrivalTime}
                       </span>
                     </p>
-
                     <p>
                       <span className="text-gray-500">Transport:</span>{" "}
                       <span className="text-gray-800">
@@ -263,8 +284,6 @@ const ShipperQuotesPage = () => {
                       </span>
                     </p>
                   </div>
-
-                  {/* EXTRA */}
                   <div className="space-y-2">
                     <p className="flex items-center gap-2">
                       <RiTruckLine className="text-[#BF9B53]" />
@@ -273,14 +292,12 @@ const ShipperQuotesPage = () => {
                         {quote.stallsRequired}
                       </span>
                     </p>
-
                     <p>
                       <span className="text-gray-500">Payment Status:</span>{" "}
                       <span className="font-medium text-[#BF9B53]">
                         {quote.paymentStatus}
                       </span>
                     </p>
-
                     <p>
                       <span className="text-gray-500">Refund:</span>{" "}
                       <span className="font-medium text-[#BF9B53]">
@@ -299,7 +316,7 @@ const ShipperQuotesPage = () => {
                 )}
 
                 {/* VEHICLE */}
-                {quote.vehicle && (
+                {quote.vehicle ? (
                   <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
                     <p className="flex items-center gap-2">
                       <RiTruckLine className="text-[#BF9B53]" />
@@ -308,14 +325,12 @@ const ShipperQuotesPage = () => {
                         {quote.vehicle.vehicleNumber}
                       </span>
                     </p>
-
                     <p>
                       <span className="text-gray-500">Type:</span>{" "}
                       <span className="text-gray-800">
                         {quote.vehicle.vehicleType}
                       </span>
                     </p>
-
                     <p>
                       <span className="text-gray-500">Stalls:</span>{" "}
                       <span className="text-gray-800">
@@ -323,6 +338,19 @@ const ShipperQuotesPage = () => {
                       </span>
                     </p>
                   </div>
+                ) : (
+                  quote.status === "accepted" &&
+                  !quote.isCancelled && (
+                    <button
+                      onClick={() => {
+                        setSelectedQuote(quote);
+                        setVehicleModalOpen(true);
+                      }}
+                      className="px-4 py-2 bg-[#997C42] text-white rounded-lg text-sm"
+                    >
+                      Assign Vehicle
+                    </button>
+                  )
                 )}
 
                 {/* CANCELLED */}
@@ -331,7 +359,6 @@ const ShipperQuotesPage = () => {
                     <p className="text-[#BF9B53] font-semibold flex items-center gap-2">
                       <RiCloseCircleLine /> Shipment Cancelled
                     </p>
-
                     <p>
                       <span className="text-gray-500">Cancelled At:</span>{" "}
                       <span className="text-gray-800">
@@ -340,14 +367,12 @@ const ShipperQuotesPage = () => {
                           : "N/A"}
                       </span>
                     </p>
-
                     <p>
                       <span className="text-gray-500">Reason:</span>{" "}
                       <span className="text-gray-800">
                         {quote.cancelReason || "N/A"}
                       </span>
                     </p>
-
                     <p>
                       <span className="text-gray-500">Refund:</span>{" "}
                       <span className="text-[#BF9B53]">
@@ -357,7 +382,6 @@ const ShipperQuotesPage = () => {
                   </div>
                 )}
 
-                {/* CANCEL WINDOW */}
                 {!quote.isCancelled && quote.cancellationLastDate && (
                   <p className="text-sm text-[#BF9B53] font-medium">
                     {isExpired
@@ -419,20 +443,18 @@ const ShipperQuotesPage = () => {
         </div>
       )}
 
-      {/* MODAL */}
+      {/* CANCEL / DELETE MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-xl w-[90%] max-w-md">
             <h3 className="text-lg font-semibold mb-3">
               {modalType === "cancel" ? "Cancel Shipment" : "Delete Quote"}
             </h3>
-
             <p className="text-sm text-gray-600 mb-4">
               {modalType === "cancel"
                 ? "Are you sure you want to cancel this shipment?"
                 : "This quote is not accepted. Do you want to delete it?"}
             </p>
-
             <div className="flex justify-end gap-3">
               <button
                 onClick={closeModal}
@@ -440,7 +462,6 @@ const ShipperQuotesPage = () => {
               >
                 No
               </button>
-
               <button
                 onClick={handleAction}
                 disabled={actionLoading}
@@ -453,14 +474,57 @@ const ShipperQuotesPage = () => {
         </div>
       )}
 
-      {/* TOAST */}
-      {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ message: "", type: "", visible: false })}
-        />
+      {/* VEHICLE ASSIGN MODAL */}
+      {vehicleModalOpen && selectedQuote && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-xl w-[90%] max-w-md">
+            <h3 className="text-lg font-semibold mb-3">Assign Vehicle</h3>
+            <select
+              value={selectedVehicleId || ""}
+              onChange={(e) => setSelectedVehicleId(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+            >
+              <option value="">Select vehicle</option>
+              {vehicles.map((v) => (
+                <option key={v._id} value={v._id}>
+                  {v.vehicleNumber} - {v.vehicleType} ({v.numberOfStalls}{" "}
+                  stalls)
+                </option>
+              ))}
+            </select>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setVehicleModalOpen(false)}
+                className="px-4 py-2 bg-gray-200 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!selectedVehicleId)
+                    return showToast("Select a vehicle", "error");
+                  const res = await assignVehicleToQuote(
+                    selectedQuote._id,
+                    selectedVehicleId
+                  );
+                  if (res?.success) {
+                    showToast("Vehicle assigned", "success");
+                    setVehicleModalOpen(false);
+                    setSelectedVehicleId(null);
+                    getMyQuotes();
+                  } else showToast("Failed to assign vehicle", "error");
+                }}
+                className="px-4 py-2 bg-[#997C42] text-white rounded"
+              >
+                Assign
+              </button>
+            </div>
+          </div>
+        </div>
       )}
+
+      {/* TOAST */}
+      {toast.visible && <Toast message={toast.message} type={toast.type} />}
     </div>
   );
 };
