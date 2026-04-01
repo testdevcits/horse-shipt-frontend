@@ -264,6 +264,15 @@ const VehiclePage = () => {
                     {vehicle.stallSize || "N/A"}
                   </p>
                 </div>
+
+                {vehicle.driver && (
+                  <div className="flex gap-2">
+                    <p>Assigned Driver:</p>
+                    <p className="font-semibold text-green-600">
+                      ✓ {vehicle.driver.name}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* IMAGES */}
@@ -325,7 +334,7 @@ const VehiclePage = () => {
 
                   <button
                     onClick={() => handleAssignDriver(vehicle._id)}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm whitespace-nowrap"
+                    className="bg-[#BF9B53] text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm whitespace-nowrap"
                   >
                     Assign
                   </button>
@@ -334,7 +343,7 @@ const VehiclePage = () => {
                 {/* SHOW ASSIGNED */}
                 {vehicle.driver && (
                   <p className="text-green-600 mt-3 text-sm font-medium">
-                    ✓ Assigned Driver: {vehicle.driver?.name || "Assigned"}
+                    ✓ Assigned Driver: {vehicle.driver.name}
                   </p>
                 )}
               </div>
