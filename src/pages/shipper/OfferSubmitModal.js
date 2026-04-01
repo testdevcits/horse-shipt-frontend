@@ -152,7 +152,7 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
                     </label>
                     <div className="relative">
                       <span className="absolute left-3 top-3 text-gray-600 text-lg">
-                        ₹
+                        $
                       </span>
                       <Field
                         name="totalPrice"
