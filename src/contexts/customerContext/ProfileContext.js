@@ -9,18 +9,19 @@ import axios from "axios";
 import { useAuth } from "../AuthContext";
 
 const ProfileContext = createContext();
-const API_BASE_URL = "https://horse-shipt.vercel.app/api"; // absolute backend URL
+const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
 export const ProfileProvider = ({ children }) => {
-  const { token } = useAuth(); // get JWT from AuthContext
+  const { token } = useAuth();
+
+  const [profile, setProfile] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
-  const [bannerImage, setBannerImage] = useState(null); // optional
+  const [bannerImage, setBannerImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [profile, setProfile] = useState(null); // full profile
 
   // ===============================
-  // Fetch customer profile on mount
+  // Fetch Profile
   // ===============================
   const fetchProfile = useCallback(async () => {
     if (!token) return;
@@ -36,9 +37,11 @@ export const ProfileProvider = ({ children }) => {
       });
 
       const data = res.data.data;
+
       setProfile(data);
       setProfileImage(data.profileImage);
       setBannerImage(data.bannerImage || null);
+
       setLoading(false);
     } catch (err) {
       console.error("Fetch Profile Error:", err.response || err);
@@ -52,7 +55,47 @@ export const ProfileProvider = ({ children }) => {
   }, [fetchProfile]);
 
   // ===============================
-  // Update Customer Profile Image
+  // ✅ Update Profile Details (NO IMAGE)
+  // ===============================
+  const updateProfileDetails = useCallback(
+    async ({ firstName, lastName, phone, locale }) => {
+      if (!token) {
+        setError("Unauthorized");
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const res = await axios.put(
+          `${API_BASE_URL}/customer/profile-details`,
+          { firstName, lastName, phone, locale },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const updated = res.data.data;
+
+        setProfile(updated);
+
+        setLoading(false);
+        return updated;
+      } catch (err) {
+        console.error("Update Profile Error:", err.response || err);
+        setError(err.response?.data?.message || "Failed to update profile");
+        setLoading(false);
+        throw err;
+      }
+    },
+    [token]
+  );
+
+  // ===============================
+  // ✅ Update Profile Image (SEPARATE API)
   // ===============================
   const updateProfileImage = useCallback(
     async (file) => {
@@ -68,7 +111,7 @@ export const ProfileProvider = ({ children }) => {
         const formData = new FormData();
         formData.append("image", file);
 
-        const response = await axios.put(
+        const res = await axios.put(
           `${API_BASE_URL}/customer/profile-image`,
           formData,
           {
@@ -79,19 +122,21 @@ export const ProfileProvider = ({ children }) => {
           }
         );
 
-        setProfileImage(response.data.profileImage);
-        // also update profile object
+        const image = res.data.profileImage;
+
+        setProfileImage(image);
+
+        // sync profile also
         setProfile((prev) => ({
           ...prev,
-          profileImage: response.data.profileImage,
+          profileImage: image,
         }));
+
         setLoading(false);
-        return response.data;
+        return res.data;
       } catch (err) {
-        console.error("Profile Update Error:", err.response || err);
-        setError(
-          err.response?.data?.message || "Failed to update profile image"
-        );
+        console.error("Image Update Error:", err.response || err);
+        setError(err.response?.data?.message || "Failed to update image");
         setLoading(false);
         throw err;
       }
@@ -108,7 +153,8 @@ export const ProfileProvider = ({ children }) => {
         loading,
         error,
         fetchProfile,
-        updateProfileImage,
+        updateProfileDetails, // only text
+        updateProfileImage, // only image
       }}
     >
       {children}
@@ -116,5 +162,4 @@ export const ProfileProvider = ({ children }) => {
   );
 };
 
-// Hook to use the context
 export const useProfile = () => useContext(ProfileContext);

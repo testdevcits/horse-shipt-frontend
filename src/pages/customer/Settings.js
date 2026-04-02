@@ -35,9 +35,9 @@ const CustomerSettings = () => {
   };
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col">
       {/* Tabs */}
-      <div className="w-full border-b border-gray-300">
+      <div className="border-b border-gray-300">
         <div className="flex">
           {tabs.map((tab) => (
             <button
@@ -60,7 +60,7 @@ const CustomerSettings = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="w-full mt-4 text-sm sm:text-base md:text-lg lg:text-xl">
+      <div className="mt-4 text-sm sm:text-base md:text-lg lg:text-xl">
         {renderTabContent()}
       </div>
     </div>
