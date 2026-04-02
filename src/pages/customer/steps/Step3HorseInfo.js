@@ -204,7 +204,7 @@ const Step3HorseInfo = ({
   };
 
   return (
-    <div className="flex flex-col w-full gap-6 px-2 md:px-4">
+    <div className="flex flex-col w-full gap-6 px-2 md:px-4 font-montserrat">
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
 
       {/* Number of Horses */}

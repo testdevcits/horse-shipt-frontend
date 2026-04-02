@@ -17,7 +17,7 @@ const Step5Review = ({
   onEditStep,
 }) => {
   return (
-    <div className="flex flex-col w-full gap-6">
+    <div className="flex flex-col w-full gap-6 font-montserrat">
       {/* Pickup & Delivery Info */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm relative">
         <button
@@ -94,12 +94,23 @@ const Step5Review = ({
 
             {/* Documents */}
             <div className="mt-2 space-y-1">
-              {["cogins", "healthCertificate", "otherDocuments"].map((doc) => (
-                <div key={doc}>
-                  <span className="font-semibold">{doc}:</span>{" "}
-                  {h[doc] ? h[doc].name || "Uploaded" : "N/A"}
-                </div>
-              ))}
+              {["cogins", "healthCertificate", "otherDocuments"].map((doc) => {
+                const isUploaded = h[doc]; // check if document exists
+                return (
+                  <div key={doc}>
+                    <span className="font-semibold">{doc}:</span>{" "}
+                    <span
+                      className={
+                        isUploaded
+                          ? "text-gray-700"
+                          : "text-red-500 font-semibold"
+                      }
+                    >
+                      {isUploaded ? h[doc].name || "Uploaded" : "Not Uploaded"}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
 
             {/* General Info */}
@@ -116,19 +127,6 @@ const Step5Review = ({
         >
           Edit Horse Documents & Info
         </button>
-      </div>
-
-      {/* Additional Info */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm relative">
-        <button
-          className="absolute top-2 right-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm"
-          onClick={() => onEditStep(4)}
-        >
-          <FiEdit3 /> Edit
-        </button>
-
-        <h3 className="font-semibold mb-1">Additional Info</h3>
-        <p>{additionalInfo || "N/A"}</p>
       </div>
 
       {recipientEmail && (

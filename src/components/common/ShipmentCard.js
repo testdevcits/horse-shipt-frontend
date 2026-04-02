@@ -133,7 +133,7 @@ const CustomerShipmentCard = ({ shipment }) => {
           </span>
 
           <span
-            className={`px-2 py-0.5 rounded-full font-medium ${
+            className={`px-2 py-0.5 rounded-full font-medium uppercase ${
               shipment.status === "delivered"
                 ? "bg-green-100 text-green-700"
                 : shipment.status === "assigned"

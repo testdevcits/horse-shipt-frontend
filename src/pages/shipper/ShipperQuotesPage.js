@@ -230,7 +230,7 @@ const ShipperQuotesPage = () => {
                   </h2>
 
                   <span
-                    className={`text-xs px-3 py-1 rounded-full font-medium ${
+                    className={`text-xs px-3 py-1 rounded-full font-medium uppercase ${
                       quote.isCancelled
                         ? "bg-red-600 text-[#fff]"
                         : "bg-green-600 text-white"

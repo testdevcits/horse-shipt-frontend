@@ -50,6 +50,7 @@ const MyShipmentDetails = () => {
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedShipmentId, setSelectedShipmentId] = useState(null);
+  const [showPublishModal, setShowPublishModal] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
 
   // ---------------- FETCH SHIPMENT ----------------
@@ -229,7 +230,7 @@ const MyShipmentDetails = () => {
                   <div className="flex gap-3 mt-4">
                     {/* Publish Button */}
                     <button
-                      onClick={handlePublishShipment}
+                      onClick={() => setShowPublishModal(true)}
                       className="px-6 py-3 bg-system-primary text-white rounded-lg font-medium hover:opacity-90 transition"
                     >
                       Publish Shipment
@@ -419,6 +420,38 @@ const MyShipmentDetails = () => {
             onClose={() => setSelectedQuote(null)}
           />
         </Elements>
+      )}
+
+      {showPublishModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
+            <h2 className="text-xl font-semibold mb-2">Confirm Publish</h2>
+            <p className="text-gray-600 mb-4">
+              Once you publish this shipment, you{" "}
+              <strong>cannot delete or edit</strong> it. Are you sure you want
+              to proceed?
+            </p>
+
+            <div className="flex gap-3 mt-5">
+              <button
+                onClick={() => setShowPublishModal(false)}
+                className="w-full px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={async () => {
+                  await handlePublishShipment();
+                  setShowPublishModal(false);
+                }}
+                className="w-full px-4 py-2 bg-system-primary text-white rounded-md hover:opacity-90 transition"
+              >
+                Yes, Publish
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

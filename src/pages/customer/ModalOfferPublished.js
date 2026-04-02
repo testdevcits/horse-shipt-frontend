@@ -24,28 +24,29 @@ const ModalOfferPublished = ({
 
         {/* Heading */}
         <h2 className="text-center text-lg font-semibold mt-2">
-          Your shipment request has been published
+          Your Shipment is in Draft
         </h2>
 
         {/* Paragraph */}
         <p className="text-center text-sm text-gray-600 mt-2">
-          To view detailed information about the shipment and quotes received,
-          please visit “My Shipments” page.
+          You have successfully added a new shipment, but it is still in draft.
+          Please review the details and publish it to make it active and visible
+          to service providers.
         </p>
 
         {/* Buttons */}
         <div className="flex flex-col gap-2 mt-4">
           <button
             onClick={onViewShipments}
-            className="w-full py-2 bg-[#BF9B53] text-white rounded-md hover:bg-green-700 transition"
+            className="w-full py-2 bg-[#BF9B53] text-white rounded-md hover:bg-[#a7863e] transition"
           >
-            Go to My Shipments
+            Review & Publish
           </button>
           <button
             onClick={onAnotherAction}
             className="w-full py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
           >
-            Close
+            Go to Dashboard
           </button>
         </div>
       </div>

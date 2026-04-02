@@ -13,6 +13,7 @@ import ModalOfferPublished from "./ModalOfferPublished";
 import logoMobile from "../../assets/images/mobileLogo.png";
 import Toast from "../../components/common/Toast";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
+import PageLoader from "../../components/common/PageLoader";
 
 const steps = [
   { id: 1, title: "Pickup" },
@@ -47,7 +48,7 @@ const NewShipment = () => {
     useCustomerShipments();
 
   const [currentStep, setCurrentStep] = useState(1);
-
+  const [isLoading, setIsLoading] = useState(false);
   // Step 1: Pickup
   const [pickupLocation, setPickupLocation] = useState("");
   const [pickupTimeOption, setPickupTimeOption] = useState("on");
@@ -204,6 +205,7 @@ const NewShipment = () => {
     if (!validateStep()) return;
 
     try {
+      setIsLoading(true);
       const formData = new FormData();
 
       // 🔹 Pickup
@@ -256,6 +258,8 @@ const NewShipment = () => {
     } catch (error) {
       console.error(error);
       setToast({ message: "Failed to create shipment", type: "error" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -348,7 +352,9 @@ const NewShipment = () => {
   return (
     <div className="w-full flex flex-col items-center relative py-10">
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-
+      {isLoading && (
+        <PageLoader text="Processing shipment..." fullScreen={true} />
+      )}
       {/* Stepper */}
       <div className="w-full max-w-4xl flex gap-2 relative mb-10 px-4 items-center">
         {steps.map((step, index) => {
@@ -421,6 +427,7 @@ const NewShipment = () => {
             currentStep === steps.length ? handleFinish() : handleNext()
           }
           className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e]"
+          disabled={isLoading} // still disable while loading
         >
           {currentStep === steps.length ? "Finish" : "Next"}
         </button>
@@ -433,7 +440,7 @@ const NewShipment = () => {
           onClose={() => setIsModalOpen(false)}
           onViewShipments={() => {
             setIsModalOpen(false);
-            navigate("/customer/dashboard");
+            navigate("/customer/orders");
           }}
           onAnotherAction={() => setIsModalOpen(false)}
         />

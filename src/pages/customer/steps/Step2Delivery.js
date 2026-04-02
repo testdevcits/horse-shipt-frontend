@@ -64,7 +64,7 @@ const Step2Delivery = ({
   };
 
   return (
-    <div className="flex flex-col w-full gap-4 bg-gray-50 p-4 rounded-lg">
+    <div className="flex flex-col w-full gap-4 bg-gray-50 p-4 rounded-lg font-montserrat">
       {/* Delivery Location */}
       <div>
         <label className="block text-sm font-semibold mb-1 text-gray-500">

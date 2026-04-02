@@ -30,7 +30,7 @@ const Step4HorseDocuments = ({
   };
 
   return (
-    <div className="flex flex-col w-full gap-6">
+    <div className="flex flex-col w-full gap-6 font-montserrat">
       {horses.map((horse, idx) => (
         <div
           key={idx}
@@ -135,6 +135,7 @@ const Step4HorseDocuments = ({
           title="Missing Documents"
           message="Your Cog-ins or Health Certificate have not been uploaded. It is recommended to upload both before shipment."
           onClose={onCloseWarning}
+          buttonText="Continue to Shipment"
         />
       )}
     </div>

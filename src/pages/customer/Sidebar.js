@@ -32,7 +32,7 @@ const navItems = [
     icon: <CustomerDashboardIcon />,
   },
   {
-    name: "Orders",
+    name: "My Shipments",
     path: "/customer/orders",
     icon: <CustomerOrdersIcon />,
     subPaths: [
