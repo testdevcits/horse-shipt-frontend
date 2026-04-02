@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiTruck, FiFileText, FiZap } from "react-icons/fi";
 import { TbCalendarTime } from "react-icons/tb";
 
 import { useShipperProfile } from "../../contexts/ShipperProfileContext";
 import { useAuth } from "../../contexts/AuthContext";
+import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
 
 import Button from "../../components/common/Button";
 import NewOpportunities from "./NewOpportunities";
@@ -13,21 +14,35 @@ import PageLoader from "../../components/common/PageLoader";
 const Dashboard = () => {
   const { profile, loading } = useShipperProfile();
   const { user } = useAuth();
+  const { quotes, getMyQuotes } = useShipperQuote();
+
   const navigate = useNavigate();
 
-  const upcomingShipmentsCount = 1;
-  const submittedQuotesCount = 1;
+  // ---------------- FETCH QUOTES ----------------
+  useEffect(() => {
+    getMyQuotes();
+  }, [getMyQuotes]);
+
+  // ---------------- COUNTS ----------------
+  const submittedQuotesCount = quotes.length;
+
+  // (Temporary static - replace when shipment context ready)
+  const upcomingShipmentsCount = 0;
 
   const formatCount = (count) => String(count).padStart(2, "0");
 
-  // Date helpers
+  // ---------------- DATE ----------------
   const now = new Date();
-  const dayName = now.toLocaleDateString("en-US", { weekday: "long" }); // e.g. "Monday"
+
+  const dayName = now.toLocaleDateString("en-US", {
+    weekday: "long",
+  });
+
   const fullDate = now.toLocaleDateString("en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }); // e.g. "25 March 2026"
+  });
 
   const getGreeting = () => {
     const hour = now.getHours();
@@ -36,6 +51,7 @@ const Dashboard = () => {
     return "Good evening";
   };
 
+  // ---------------- LOADING ----------------
   if (loading) {
     return <PageLoader text="" fullScreen={false} size={28} color="#BF9B53" />;
   }
@@ -67,7 +83,7 @@ const Dashboard = () => {
       {/* ================= CARDS ================= */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* UPCOMING SHIPMENTS */}
-        <div className="flex flex-col justify-between p-5 rounded-md border-2 border-[#BF9B53] shadow-sm hover:shadow-md  transition bg-white">
+        <div className="flex flex-col justify-between p-5 rounded-md border-2 border-[#BF9B53] shadow-sm hover:shadow-md transition bg-white">
           <div className="flex justify-between items-center">
             <div className="p-2 bg-[#BF9B53]/10 rounded-lg text-[#BF9B53]">
               <TbCalendarTime size={20} />
