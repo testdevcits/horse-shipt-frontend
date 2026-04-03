@@ -1,4 +1,3 @@
-// pages/NewsletterVerificationPage.js
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useNewsletter } from "../contexts/NewsletterContext";
@@ -6,7 +5,7 @@ import { useNewsletter } from "../contexts/NewsletterContext";
 const NewsletterVerificationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { subscribe } = useNewsletter(); // Use the context
+  const { verify } = useNewsletter(); // use verify, not subscribe
   const [message, setMessage] = useState("Verifying...");
 
   useEffect(() => {
@@ -19,19 +18,15 @@ const NewsletterVerificationPage = () => {
       return;
     }
 
-    // Call the newsletter subscribe/verify function from context
     const verifyEmail = async () => {
       try {
-        // Using your context's subscribe method as an example
-        // If you have a dedicated verify API, you can add it to the context
-        const res = await subscribe(token); // pass token as email for now (or modify context)
+        const res = await verify(token); // call verify from context
 
-        // Check if the response contains success
-        if (res?.success || res?.status === "success") {
+        if (res.success) {
           setMessage("Email verified successfully!");
           setTimeout(() => navigate("/newsletter-success"), 2000);
         } else {
-          setMessage(res?.message || "Verification failed.");
+          setMessage(res.message || "Verification failed.");
           setTimeout(() => navigate("/newsletter-error"), 2000);
         }
       } catch (err) {
@@ -41,7 +36,7 @@ const NewsletterVerificationPage = () => {
     };
 
     verifyEmail();
-  }, [location.search, navigate, subscribe]);
+  }, [location.search, navigate, verify]);
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen text-gray-600">
