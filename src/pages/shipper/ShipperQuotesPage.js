@@ -5,7 +5,6 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { TbLocationSearch } from "react-icons/tb";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
-import Toast from "../../components/common/Toast";
 import PageLoader from "../../components/common/PageLoader";
 import NotFound from "../../components/common/NoData";
 import { IoArrowBack } from "react-icons/io5";
@@ -20,6 +19,7 @@ import {
 } from "react-icons/ri";
 import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
+import { toast } from "react-toastify"; // ✅ NEW
 
 const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
@@ -33,17 +33,16 @@ const ShipperQuotesPage = () => {
     deleteQuote,
     assignVehicleToQuote,
   } = useShipperQuote();
+
   const navigate = useNavigate();
 
   const [visibleContractId, setVisibleContractId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Vehicle assign
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
@@ -52,6 +51,11 @@ const ShipperQuotesPage = () => {
   const [activeTab, setActiveTab] = useState("all");
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
+
+  // ✅ FIXED TOAST
+  const showToast = (message, type = "info") => {
+    toast[type](message);
+  };
 
   useEffect(() => {
     getMyQuotes();
@@ -71,11 +75,6 @@ const ShipperQuotesPage = () => {
     };
     fetchVehicles();
   }, [token]);
-
-  const showToast = (message, type = "info") => {
-    setToast({ message, type, visible: true });
-    setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
-  };
 
   if (loading) return <PageLoader />;
 
@@ -522,9 +521,6 @@ const ShipperQuotesPage = () => {
           </div>
         </div>
       )}
-
-      {/* TOAST */}
-      {toast.visible && <Toast message={toast.message} type={toast.type} />}
     </div>
   );
 };

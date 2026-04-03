@@ -35,6 +35,7 @@ export const DriverAuthProvider = ({ children }) => {
     () => localStorage.getItem("driverRole") || "driver"
   );
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
   // ------------------ LOGOUT ------------------
   const logout = useCallback(() => {
@@ -331,6 +332,60 @@ export const DriverAuthProvider = ({ children }) => {
     }
   };
 
+  // ------------------ SEND DELIVERY OTP ------------------
+  const sendDeliveryOtp = async (shipmentId) => {
+    if (!token) return;
+
+    setActionLoading(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/driver/driver/shipment/${shipmentId}/send-delivery-otp`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      return res.data;
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message,
+      };
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ------------------ VERIFY DELIVERY OTP ------------------
+  const verifyDeliveryOtp = async (shipmentId, otp) => {
+    if (!token) return;
+
+    setActionLoading(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/driver/driver/shipment/${shipmentId}/verify-delivery-otp`,
+        { otp },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // refresh shipments after delivery
+      if (res.data.success) {
+        await fetchAssignedShipments();
+      }
+
+      return res.data;
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message,
+      };
+    } finally {
+      setActionLoading(false);
+    }
+  };
   return (
     <DriverAuthContext.Provider
       value={{
@@ -341,6 +396,7 @@ export const DriverAuthProvider = ({ children }) => {
         token,
         role,
         loading,
+        actionLoading,
         login,
         fetchDriver,
         uploadProfileImage,
@@ -350,6 +406,8 @@ export const DriverAuthProvider = ({ children }) => {
         startTrip,
         updateLocation,
         completeShipment,
+        sendDeliveryOtp,
+        verifyDeliveryOtp,
       }}
     >
       {children}

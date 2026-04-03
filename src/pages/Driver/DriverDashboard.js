@@ -5,6 +5,7 @@ import PageLoader from "../../components/common/PageLoader";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import { useDriverAuth } from "../../contexts/DriverAuthContext";
 import RouteMapModal from "./Routemapmodal";
+import { useNavigate } from "react-router-dom";
 
 const DriverDashboard = () => {
   const {
@@ -21,6 +22,7 @@ const DriverDashboard = () => {
   const [mapModalOpen, setMapModalOpen] = useState(false);
   const [driverLocation, setDriverLocation] = useState(null);
   const [locationError, setLocationError] = useState(false);
+  const navigate = useNavigate();
 
   // Fetch driver data on mount
   useEffect(() => {
@@ -548,6 +550,15 @@ const DriverDashboard = () => {
               >
                 <FaMapLocationDot size={16} />
                 View Route
+              </button>
+
+              <button
+                onClick={() =>
+                  navigate(`/driver/delivery/${currentShipment.shipment?._id}`)
+                }
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-bold text-sm rounded-lg hover:bg-green-700 transition"
+              >
+                Deliver
               </button>
             </div>
           </div>

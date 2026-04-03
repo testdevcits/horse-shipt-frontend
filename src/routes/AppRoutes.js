@@ -13,6 +13,9 @@ import MainLayout from "../layouts/MainLayout";
 import NotificationsPage from "../pages/shipper/NotificationsPage";
 import TruckDriverPage from "../pages/shipper/TruckDriverPage";
 
+import NewsletterSuccess from "../pages/NewsletterSuccess";
+import NewsletterError from "../pages/NewsletterError";
+
 // ---------------- Driver Auth ----------------
 import { DriverAuthProvider } from "../contexts/DriverAuthContext";
 import ProtectedDriverRoute from "./ProtectedDriverRoute";
@@ -22,6 +25,7 @@ import MyHorses from "../pages/customer/MyHorses";
 import GoogleReview from "../pages/shipper/GoogleReview";
 import CustomerShipperReviewPage from "../pages/customer/CustomerShipperReviewPage";
 import InviteShipmentPage from "../pages/InviteShipmentPage";
+import NewsletterVerificationPage from "../pages/NewsletterVerificationPage";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -67,6 +71,9 @@ const ShipperProfilePage = lazy(() =>
 // ---------------- Driver Pages ----------------
 const DriverLoginPage = lazy(() => import("../pages/Driver/DriverLoginPage"));
 const DriverDashboard = lazy(() => import("../pages/Driver/DriverDashboard"));
+const DriverDeliveryPage = lazy(() =>
+  import("../pages/Driver/DriverDeliveryPage")
+);
 
 // ---------------- Common Pages ----------------
 const Home = lazy(() => import("../pages/Home"));
@@ -118,6 +125,9 @@ const AppRoutes = () => {
           <Route path="/privacy-policy" element={<PrivacyPage />} />
           <Route path="/terms-conditions" element={<TermsPage />} />
           <Route path="/invite/:token" element={<InviteShipmentPage />} />
+          <Route path="/verify" element={<NewsletterVerificationPage />} />
+          <Route path="/newsletter-success" element={<NewsletterSuccess />} />
+          <Route path="/newsletter-error" element={<NewsletterError />} />
         </Route>
 
         {/* ---------- Auth Pages ---------- */}
@@ -146,11 +156,22 @@ const AppRoutes = () => {
             <DriverAuthProvider>
               <Routes>
                 <Route path="login" element={<DriverLoginPage />} />
+
                 <Route
                   path="dashboard"
                   element={
                     <ProtectedDriverRoute>
                       <DriverDashboard />
+                    </ProtectedDriverRoute>
+                  }
+                />
+
+                {/* NEW DELIVERY PAGE */}
+                <Route
+                  path="delivery/:shipmentId"
+                  element={
+                    <ProtectedDriverRoute>
+                      <DriverDeliveryPage />
                     </ProtectedDriverRoute>
                   }
                 />

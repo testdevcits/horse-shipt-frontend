@@ -55,7 +55,7 @@ export const ProfileProvider = ({ children }) => {
   }, [fetchProfile]);
 
   // ===============================
-  // ✅ Update Profile Details (NO IMAGE)
+  //  Update Profile Details (NO IMAGE)
   // ===============================
   const updateProfileDetails = useCallback(
     async ({ firstName, lastName, phone, locale }) => {
@@ -95,7 +95,7 @@ export const ProfileProvider = ({ children }) => {
   );
 
   // ===============================
-  // ✅ Update Profile Image (SEPARATE API)
+  //  Update Profile Image (SEPARATE API)
   // ===============================
   const updateProfileImage = useCallback(
     async (file) => {

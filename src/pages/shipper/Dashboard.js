@@ -27,7 +27,7 @@ const Dashboard = () => {
   const submittedQuotesCount = quotes.length;
 
   // (Temporary static - replace when shipment context ready)
-  const upcomingShipmentsCount = 0;
+  const upcomingShipmentsCount = quotes.length;
 
   const formatCount = (count) => String(count).padStart(2, "0");
 

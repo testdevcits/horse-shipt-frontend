@@ -1,18 +1,20 @@
-import React, { useEffect, useState } from "react";
+// src/components/common/Toast.js
+import React, { useState, useEffect } from "react";
+import { createRoot } from "react-dom/client";
 
-const Toast = ({ message, type = "info", duration = 3000, onClose }) => {
+const ToastComponent = ({
+  message,
+  type = "info",
+  duration = 3000,
+  onClose,
+}) => {
   const [show, setShow] = useState(true);
-  const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setLeaving(true);
-      setTimeout(() => {
-        setShow(false);
-        onClose && onClose();
-      }, 300); // matches slide-out duration
+      setShow(false);
+      onClose && onClose();
     }, duration);
-
     return () => clearTimeout(timer);
   }, [duration, onClose]);
 
@@ -27,20 +29,38 @@ const Toast = ({ message, type = "info", duration = 3000, onClose }) => {
 
   return (
     <div
-      className={`fixed top-4 right-4 sm:top-5 sm:right-5 z-[9999] max-w-xs w-[90%] sm:w-auto px-4 py-2 rounded-md text-white shadow-lg break-words ${bgColor} ${
-        leaving ? "animate-slide-out-right" : "animate-slide-in-right"
-      }`}
+      className={`fixed top-4 right-4 z-[9999] px-4 py-2 rounded-md text-white shadow-lg ${bgColor}`}
     >
-      <div className="flex justify-between items-center">
-        <span className="text-sm sm:text-base">{message}</span>
-        <button
-          onClick={() => setLeaving(true)}
-          className="ml-2 text-white font-bold px-2 py-1 rounded hover:bg-white/20"
-        >
-          ×
-        </button>
-      </div>
+      {message}
     </div>
+  );
+};
+
+// Callable API
+const Toast = {
+  success: (msg, duration) => renderToast(msg, "success", duration),
+  error: (msg, duration) => renderToast(msg, "error", duration),
+  info: (msg, duration) => renderToast(msg, "info", duration),
+  warning: (msg, duration) => renderToast(msg, "warning", duration),
+};
+
+const renderToast = (message, type, duration = 3000) => {
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+
+  const cleanup = () => {
+    root.unmount();
+    document.body.removeChild(container);
+  };
+
+  root.render(
+    <ToastComponent
+      message={message}
+      type={type}
+      duration={duration}
+      onClose={cleanup}
+    />
   );
 };
 

@@ -10,15 +10,8 @@ export const ShipperQuoteProvider = ({ children }) => {
   const { token } = useAuth();
 
   const [quotes, setQuotes] = useState([]);
-  const [acceptedQuote, setAcceptedQuote] = useState(null);
+  const [acceptedQuote] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  const [toast, setToast] = useState({ message: "", type: "", visible: false });
-
-  const showToast = (message, type = "info") => {
-    setToast({ message, type, visible: true });
-    setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
-  };
 
   // ---------------- ADD QUOTE ----------------
   const addQuote = async (data) => {
@@ -30,12 +23,11 @@ export const ShipperQuoteProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      showToast("Quote sent successfully", "success");
+      Toast.success("Quote sent successfully");
       return { success: true, data: res.data.quote };
     } catch (err) {
-      showToast(
-        err.response?.data?.message || err.message || "Failed to send quote",
-        "error"
+      Toast.error(
+        err.response?.data?.message || err.message || "Failed to send quote"
       );
       return { success: false };
     } finally {
@@ -55,44 +47,14 @@ export const ShipperQuoteProvider = ({ children }) => {
       setQuotes(res.data.quotes || []);
       return res.data.quotes || [];
     } catch (err) {
-      showToast(
-        err.response?.data?.message || err.message || "Failed to fetch quotes",
-        "error"
+      Toast.error(
+        err.response?.data?.message || err.message || "Failed to fetch quotes"
       );
       return [];
     } finally {
       setLoading(false);
     }
   }, [token]);
-
-  // ---------------- GET ACCEPTED QUOTE BY SHIPMENT ----------------
-  const getAcceptedQuoteByShipment = useCallback(
-    async (shipmentId) => {
-      if (!token || !shipmentId) return null;
-
-      setLoading(true);
-      try {
-        const res = await axios.get(
-          `${API_BASE_URL}/shipper/quotes/accepted/${shipmentId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setAcceptedQuote(res.data.quote || null);
-        return res.data.quote || null;
-      } catch (err) {
-        setAcceptedQuote(null);
-        showToast(
-          err.response?.data?.message ||
-            err.message ||
-            "No accepted quote found",
-          "error"
-        );
-        return null;
-      } finally {
-        setLoading(false);
-      }
-    },
-    [token]
-  );
 
   // ---------------- CANCEL QUOTE ----------------
   const cancelQuote = async (quoteId) => {
@@ -106,20 +68,16 @@ export const ShipperQuoteProvider = ({ children }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      showToast(res.data.message || "Quote cancelled successfully", "success");
+      Toast.success(res.data.message || "Quote cancelled successfully");
 
-      // Update state locally
       setQuotes((prev) =>
         prev.map((q) => (q._id === quoteId ? { ...q, status: "cancelled" } : q))
       );
 
-      if (acceptedQuote?._id === quoteId) setAcceptedQuote(null);
-
-      return { success: true, cancellationFee: res.data.cancellationFee };
+      return { success: true };
     } catch (err) {
-      showToast(
-        err.response?.data?.message || err.message || "Failed to cancel quote",
-        "error"
+      Toast.error(
+        err.response?.data?.message || err.message || "Failed to cancel quote"
       );
       return { success: false };
     } finally {
@@ -140,16 +98,14 @@ export const ShipperQuoteProvider = ({ children }) => {
         }
       );
 
-      showToast(res.data.message || "Quote deleted successfully", "success");
+      Toast.success(res.data.message || "Quote deleted successfully");
 
-      // Remove from state
       setQuotes((prev) => prev.filter((q) => q._id !== quoteId));
 
       return { success: true };
     } catch (err) {
-      showToast(
-        err.response?.data?.message || err.message || "Failed to delete quote",
-        "error"
+      Toast.error(
+        err.response?.data?.message || err.message || "Failed to delete quote"
       );
       return { success: false };
     } finally {
@@ -171,33 +127,18 @@ export const ShipperQuoteProvider = ({ children }) => {
         }
       );
 
-      showToast(res.data.message || "Vehicle assigned successfully", "success");
+      Toast.success(res.data.message || "Vehicle assigned successfully");
 
       setQuotes((prev) =>
         prev.map((q) =>
-          q._id === quoteId
-            ? {
-                ...q,
-                vehicle: vehicleId,
-                transportType: res.data.quote.transportType,
-                stallsRequired: res.data.quote.stallsRequired,
-              }
-            : q
+          q._id === quoteId ? { ...q, vehicle: res.data.quote.vehicle } : q
         )
       );
 
-      // If accepted quote same hai
-      if (acceptedQuote?._id === quoteId) {
-        setAcceptedQuote(res.data.quote);
-      }
-
-      return { success: true, data: res.data.quote };
+      return { success: true };
     } catch (err) {
-      showToast(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to assign vehicle",
-        "error"
+      Toast.error(
+        err.response?.data?.message || err.message || "Failed to assign vehicle"
       );
       return { success: false };
     } finally {
@@ -214,20 +155,11 @@ export const ShipperQuoteProvider = ({ children }) => {
         addQuote,
         assignVehicleToQuote,
         getMyQuotes,
-        getAcceptedQuoteByShipment,
         cancelQuote,
         deleteQuote,
       }}
     >
       {children}
-
-      {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ message: "", type: "", visible: false })}
-        />
-      )}
     </ShipperQuoteContext.Provider>
   );
 };

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 import Toast from "../../components/common/Toast";
@@ -11,15 +17,9 @@ export const VehicleProvider = ({ children }) => {
 
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ message: "", type: "", visible: false });
-
-  const showToast = (message, type = "info") => {
-    setToast({ message, type, visible: true });
-    setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
-  };
 
   // ---------------- GET VEHICLES ----------------
-  const fetchVehicles = async () => {
+  const fetchVehicles = useCallback(async () => {
     if (!token || user?.role !== "shipper") return;
 
     setLoading(true);
@@ -30,23 +30,23 @@ export const VehicleProvider = ({ children }) => {
       setVehicles(res.data.vehicles || []);
     } catch (err) {
       console.error("Fetch Vehicles Error:", err);
-      showToast("Failed to fetch vehicles", "error");
+      Toast.error("Failed to fetch vehicles");
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, user?.role]);
 
-  // ---------------- AUTO FETCH ON LOGIN (ONLY ONCE) ----------------
+  // ---------------- AUTO FETCH ----------------
   useEffect(() => {
-    if (token && user?.role === "shipper" && vehicles.length === 0) {
+    if (vehicles.length === 0) {
       fetchVehicles();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [fetchVehicles, vehicles.length]);
 
   // ---------------- ADD VEHICLE ----------------
   const addVehicle = async (formData) => {
-    if (!token) return showToast("Unauthorized. Please log in again.", "error");
+    if (!token) return Toast.error("Unauthorized. Please log in again.");
+
     setLoading(true);
     try {
       const res = await axios.post(`${API_BASE_URL}/vehicles`, formData, {
@@ -55,11 +55,12 @@ export const VehicleProvider = ({ children }) => {
           "Content-Type": "multipart/form-data",
         },
       });
+
       setVehicles((prev) => [...prev, res.data.vehicle]);
-      showToast("Vehicle added successfully", "success");
+      Toast.success("Vehicle added successfully");
     } catch (err) {
       console.error("Add Vehicle Error:", err);
-      showToast("Failed to add vehicle", "error");
+      Toast.error("Failed to add vehicle");
     } finally {
       setLoading(false);
     }
@@ -67,7 +68,8 @@ export const VehicleProvider = ({ children }) => {
 
   // ---------------- UPDATE VEHICLE ----------------
   const updateVehicle = async (id, formData) => {
-    if (!token) return showToast("Unauthorized. Please log in again.", "error");
+    if (!token) return Toast.error("Unauthorized. Please log in again.");
+
     setLoading(true);
     try {
       const res = await axios.put(`${API_BASE_URL}/vehicles/${id}`, formData, {
@@ -76,13 +78,15 @@ export const VehicleProvider = ({ children }) => {
           "Content-Type": "multipart/form-data",
         },
       });
+
       setVehicles((prev) =>
         prev.map((v) => (v._id === id ? res.data.vehicle : v))
       );
-      showToast("Vehicle updated successfully", "success");
+
+      Toast.success("Vehicle updated successfully");
     } catch (err) {
       console.error("Update Vehicle Error:", err);
-      showToast("Failed to update vehicle", "error");
+      Toast.error("Failed to update vehicle");
     } finally {
       setLoading(false);
     }
@@ -90,29 +94,32 @@ export const VehicleProvider = ({ children }) => {
 
   // ---------------- DELETE VEHICLE ----------------
   const deleteVehicle = async (id) => {
-    if (!token) return showToast("Unauthorized. Please log in again.", "error");
+    if (!token) return Toast.error("Unauthorized. Please log in again.");
+
     setLoading(true);
     try {
       await axios.delete(`${API_BASE_URL}/vehicles/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setVehicles((prev) => prev.filter((v) => v._id !== id));
-      showToast("Vehicle deleted successfully", "success");
+      Toast.success("Vehicle deleted successfully");
     } catch (err) {
       console.error("Delete Vehicle Error:", err);
-      showToast("Failed to delete vehicle", "error");
+      Toast.error("Failed to delete vehicle");
     } finally {
       setLoading(false);
     }
   };
+
   // ---------------- ASSIGN DRIVER ----------------
   const assignDriverToVehicle = async (vehicleId, driverId) => {
-    if (!token) return showToast("Unauthorized. Please log in again.", "error");
+    if (!token) return Toast.error("Unauthorized. Please log in again.");
 
     setLoading(true);
     try {
       const res = await axios.post(
-        `${API_BASE_URL}/vehicles/assign-driver`, // 👈 ye route add karna hoga backend me
+        `${API_BASE_URL}/vehicles/assign-driver`,
         { vehicleId, driverId },
         {
           headers: {
@@ -121,22 +128,19 @@ export const VehicleProvider = ({ children }) => {
         }
       );
 
-      // update vehicle locally
       setVehicles((prev) =>
         prev.map((v) => (v._id === vehicleId ? res.data.vehicle : v))
       );
 
-      showToast("Driver assigned successfully", "success");
+      Toast.success("Driver assigned successfully");
     } catch (err) {
       console.error("Assign Driver Error:", err);
-      showToast(
-        err.response?.data?.message || "Failed to assign driver",
-        "error"
-      );
+      Toast.error(err.response?.data?.message || "Failed to assign driver");
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <VehicleContext.Provider
       value={{
@@ -150,14 +154,6 @@ export const VehicleProvider = ({ children }) => {
       }}
     >
       {children}
-
-      {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ message: "", type: "", visible: false })}
-        />
-      )}
     </VehicleContext.Provider>
   );
 };

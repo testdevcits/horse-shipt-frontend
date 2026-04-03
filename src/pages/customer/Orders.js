@@ -1,10 +1,18 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDeliveredShipments } from "../../contexts/customerContext/DeliveredShipmentContext";
+import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import PageLoader from "../../components/common/PageLoader";
 import ReviewModal from "./common/ReviewModal";
 import { useReview } from "../../contexts/customerContext/ReviewContext";
 import Toast from "../../components/common/Toast";
+import ConfirmModal from "../../components/common/ConfirmModal";
+import { createShipmentQueryToken } from "../../utils/createQueryToken";
 import { LiaHorseHeadSolid } from "react-icons/lia";
+import { FiTrash2, FiShare2, FiEye, FiEdit2 } from "react-icons/fi";
+import { GiCardPickup } from "react-icons/gi";
+import { MdOutlineLocationOn } from "react-icons/md";
+import { CiUser } from "react-icons/ci";
 
 /* ─────────────────────────────────────────
    StatusChip — handles all statuses
@@ -13,30 +21,37 @@ const StatusChip = ({ status }) => {
   switch (status) {
     case "delivered":
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide bg-[#BF9B53] text-white">
-          <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold uppercase bg-[#BF9B53] text-white">
+          <span className="w-1 h-1 rounded-full bg-white shrink-0" />
           Delivered
         </span>
       );
     case "cancelled":
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide bg-red-100 text-red-600">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold uppercase bg-red-100 text-red-600">
+          <span className="w-1 h-1 rounded-full bg-red-500 shrink-0" />
           Cancelled
         </span>
       );
     case "assigned":
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide bg-blue-100 text-blue-700">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-          In Progress
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold uppercase bg-blue-100 text-blue-700">
+          <span className="w-1 h-1 rounded-full bg-blue-500 shrink-0" />
+          Assigned
+        </span>
+      );
+    case "open_for_offers":
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold uppercase bg-purple-100 text-purple-700">
+          <span className="w-1 h-1 rounded-full bg-purple-500 shrink-0" />
+          Open
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide bg-yellow-100 text-yellow-700">
-          <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 shrink-0" />
-          Pending
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold uppercase bg-gray-100 text-gray-700">
+          <span className="w-1 h-1 rounded-full bg-gray-500 shrink-0" />
+          Draft
         </span>
       );
   }
@@ -46,31 +61,31 @@ const StatusChip = ({ status }) => {
    HorseCard (inside drawer)
 ───────────────────────────────────────── */
 const HorseCard = ({ horse, idx }) => (
-  <div className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50 mb-3 font-montserrat">
+  <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50 mb-2">
     {horse.photo?.url && (
       <div className="relative">
         <img
           src={horse.photo.url}
           alt={horse.registeredName}
-          className="w-full h-48 object-cover"
+          className="w-full h-32 object-cover"
         />
-        <span className="absolute top-2 left-2 bg-black/55 text-white text-xs font-bold px-2 py-0.5 rounded">
+        <span className="absolute top-1 left-1 bg-black/55 text-white text-xs font-bold px-2 py-0.5 rounded">
           Horse #{idx + 1}
         </span>
       </div>
     )}
-    <div className="p-4">
+    <div className="p-3">
       <div className="flex items-center justify-between mb-2">
-        <p className="font-bold text-gray-900 text-sm">
+        <p className="font-bold text-gray-900 text-xs">
           {horse.registeredName}{" "}
           <span className="font-normal text-gray-500">({horse.barnName})</span>
         </p>
-        <span className="text-xs font-semibold bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
+        <span className="text-xs font-semibold bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
           {horse.sex}
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-1.5 mb-3">
+      <div className="flex flex-wrap gap-1 mb-2">
         {[
           horse.breed,
           `${horse.age} yrs`,
@@ -79,7 +94,7 @@ const HorseCard = ({ horse, idx }) => (
         ].map((tag, i) => (
           <span
             key={i}
-            className="text-xs bg-white border border-gray-200 text-gray-600 font-medium px-2 py-0.5 rounded"
+            className="text-xs bg-white border border-gray-200 text-gray-600 font-medium px-1.5 py-0.5 rounded"
           >
             {tag}
           </span>
@@ -87,18 +102,18 @@ const HorseCard = ({ horse, idx }) => (
       </div>
 
       {horse.generalInfo && (
-        <p className="text-xs text-gray-500 bg-white border border-gray-200 rounded-lg px-3 py-2 mb-3 leading-relaxed">
+        <p className="text-xs text-gray-500 bg-white border border-gray-200 rounded px-2 py-1 mb-2 leading-tight">
           💬 {horse.generalInfo}
         </p>
       )}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1">
         {horse.documents?.coggins?.url && (
           <a
             href={horse.documents.coggins.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg no-underline hover:bg-blue-100 transition-colors"
+            className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded hover:bg-blue-100 transition-colors"
           >
             📄 Coggins
           </a>
@@ -108,7 +123,7 @@ const HorseCard = ({ horse, idx }) => (
             href={horse.documents.healthCertificate.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg no-underline hover:bg-blue-100 transition-colors"
+            className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded hover:bg-blue-100 transition-colors"
           >
             📋 Health Cert
           </a>
@@ -121,7 +136,18 @@ const HorseCard = ({ horse, idx }) => (
 /* ─────────────────────────────────────────
    Full-Screen Side Drawer
 ───────────────────────────────────────── */
-const ShipmentDrawer = ({ shipment, onClose, onReview, alreadyReviewed }) => {
+const ShipmentDrawer = ({
+  shipment,
+  onClose,
+  onReview,
+  alreadyReviewed,
+  isDraft = false,
+  onPublish,
+  onDelete,
+  isInProgress = false,
+  onNavigate,
+  onEdit,
+}) => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -167,7 +193,6 @@ const ShipmentDrawer = ({ shipment, onClose, onReview, alreadyReviewed }) => {
         })
       : "—";
 
-  /* icon bg color by status */
   const iconBg = isDelivered
     ? "bg-[#BF9B53]"
     : isCancelled
@@ -197,7 +222,7 @@ const ShipmentDrawer = ({ shipment, onClose, onReview, alreadyReviewed }) => {
         }`}
       >
         {/* ── Sticky Header ── */}
-        <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
+        <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-2">
           <div
             className={`w-10 h-10 rounded-md flex items-center justify-center text-xl shrink-0 ${iconBg} ${iconColor}`}
           >
@@ -207,27 +232,27 @@ const ShipmentDrawer = ({ shipment, onClose, onReview, alreadyReviewed }) => {
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
               Shipment Detail
             </p>
-            <h2 className="text-base font-extrabold text-gray-900 font-mono tracking-wide truncate">
+            <h2 className="text-sm font-bold text-gray-900 font-mono tracking-wide truncate">
               {shipment.shipmentCode}
             </h2>
           </div>
           <StatusChip status={shipment.status} />
           <button
             onClick={close}
-            className="w-9 h-9 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors shrink-0 text-base"
+            className="w-8 h-8 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors shrink-0"
           >
             ✕
           </button>
         </div>
 
         {/* ── Scrollable Body ── */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 vehicle-scroll">
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
           {/* Cancelled Banner */}
           {isCancelled && (
-            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
-              <span className="text-red-500 text-lg">🚫</span>
+            <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center gap-2">
+              <span className="text-red-500">🚫</span>
               <div>
-                <p className="text-sm font-bold text-red-700">
+                <p className="text-xs font-bold text-red-700">
                   Shipment Cancelled
                 </p>
                 <p className="text-xs text-red-500">
@@ -238,27 +263,27 @@ const ShipmentDrawer = ({ shipment, onClose, onReview, alreadyReviewed }) => {
           )}
 
           {/* Route */}
-          <div className="bg-gray-50 border border-gray-200 rounded-md p-5">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
               Route
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <div className="flex flex-col items-center pt-1">
-                <span className="w-3 h-3 rounded-sm bg-green-500 ring-2 ring-white ring-offset-1 ring-offset-green-500 shrink-0" />
-                <div className="w-0.5 flex-1 min-h-6 my-1 border-l-2 border-dashed border-gray-300" />
-                <span className="w-3 h-3 rounded-sm bg-red-500 ring-2 ring-white ring-offset-1 ring-offset-red-500 shrink-0" />
+                <span className="w-2 h-2 rounded-sm bg-green-500 ring-2 ring-white ring-offset-1 ring-offset-green-500 shrink-0" />
+                <div className="w-0.5 flex-1 min-h-4 my-0.5 border-l-2 border-dashed border-gray-300" />
+                <span className="w-2 h-2 rounded-sm bg-red-500 ring-2 ring-white ring-offset-1 ring-offset-red-500 shrink-0" />
               </div>
               <div className="flex-1">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                   Pickup
                 </p>
-                <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                <p className="text-sm text-gray-700 leading-tight mb-2">
                   {shipment.pickupLocation}
                 </p>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                   Delivery
                 </p>
-                <p className="text-sm text-gray-700 leading-relaxed">
+                <p className="text-sm text-gray-700 leading-tight">
                   {shipment.deliveryLocation}
                 </p>
               </div>
@@ -266,7 +291,7 @@ const ShipmentDrawer = ({ shipment, onClose, onReview, alreadyReviewed }) => {
           </div>
 
           {/* Info Grid */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             {[
               {
                 icon: "📅",
@@ -283,25 +308,23 @@ const ShipmentDrawer = ({ shipment, onClose, onReview, alreadyReviewed }) => {
               {
                 icon: "🐎",
                 label: "Horses",
-                value: `${shipment.numberOfHorses} Horse${
-                  shipment.numberOfHorses > 1 ? "s" : ""
-                }`,
+                value: `${shipment.numberOfHorses}`,
               },
               {
                 icon: "💳",
-                label: "Payment",
-                value: shipment.paymentStatus,
+                label: "Status",
+                value: shipment.status,
                 highlight:
-                  shipment.paymentStatus === "paid"
+                  shipment.status === "delivered"
                     ? "text-green-600"
-                    : "text-yellow-600",
+                    : "text-gray-600",
               },
             ].map((item, i) => (
               <div
                 key={i}
-                className="bg-gray-50 border border-gray-200 rounded-md p-3"
+                className="bg-gray-50 border border-gray-200 rounded-md p-2"
               >
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                   {item.icon} {item.label}
                 </p>
                 <p
@@ -315,30 +338,30 @@ const ShipmentDrawer = ({ shipment, onClose, onReview, alreadyReviewed }) => {
             ))}
           </div>
 
-          {/* Shipper — show only if assigned */}
+          {/* Shipper */}
           {shipment.shipper ? (
-            <div className="border border-gray-200 rounded-md p-4 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-[#BF9B53]/10 border-2 border-[#BF9B53]/30 flex items-center justify-center text-lg font-extrabold text-[#BF9B53] shrink-0">
+            <div className="border border-gray-200 rounded-md p-3 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#BF9B53]/10 border-2 border-[#BF9B53]/30 flex items-center justify-center text-sm font-bold text-[#BF9B53] shrink-0">
                 {shipment.shipper.name?.[0]?.toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-gray-900 text-sm">
+                <p className="font-bold text-gray-900 text-xs">
                   {shipment.shipper.name}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
                   {shipment.shipper.email}
                 </p>
               </div>
-              <span className="text-xs font-bold uppercase tracking-wide bg-green-100 text-green-700 border border-green-200 px-2.5 py-1 rounded-lg shrink-0">
+              <span className="text-xs font-bold uppercase tracking-wide bg-green-100 text-green-700 border border-green-200 px-2 py-0.5 rounded shrink-0">
                 Shipper
               </span>
             </div>
           ) : (
-            <div className="border border-dashed border-gray-200 rounded-md p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 shrink-0">
+            <div className="border border-dashed border-gray-200 rounded-md p-3 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 text-sm">
                 👤
               </div>
-              <p className="text-sm text-gray-400 italic">
+              <p className="text-xs text-gray-400 italic">
                 No shipper assigned yet
               </p>
             </div>
@@ -346,17 +369,17 @@ const ShipmentDrawer = ({ shipment, onClose, onReview, alreadyReviewed }) => {
 
           {/* Horses */}
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
               Horse Details ({shipment.numberOfHorses})
             </p>
-            {shipment.horses.map((h, i) => (
+            {shipment.horses?.map((h, i) => (
               <HorseCard key={i} horse={h} idx={i} />
             ))}
           </div>
 
           {/* Additional Info */}
           {shipment.additionalInfo && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
               <p className="text-xs font-bold text-yellow-800 uppercase tracking-wider mb-1">
                 Additional Info
               </p>
@@ -368,42 +391,72 @@ const ShipmentDrawer = ({ shipment, onClose, onReview, alreadyReviewed }) => {
         </div>
 
         {/* ── Sticky Footer ── */}
-        <div className="shrink-0 border-t border-gray-200 bg-white px-6 py-4 flex gap-3">
+        <div className="shrink-0 border-t border-gray-200 bg-white px-4 py-3 flex gap-2">
           <button
             onClick={close}
-            className="px-5 py-3 rounded-xl border border-gray-300 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-xs font-bold hover:bg-gray-50 transition-colors"
           >
             Close
           </button>
 
-          {/* Only show Rate button for delivered shipments */}
+          {/* Draft Actions */}
+          {isDraft && (
+            <>
+              <button
+                onClick={onEdit}
+                className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-gray-600 hover:bg-[#BF9B53] text-white transition-colors"
+              >
+                <FiEdit2 size={14} />
+                Edit
+              </button>
+              <button
+                onClick={onPublish}
+                className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-[#BF9B53] hover:bg-[#a8863e] text-white transition-colors"
+              >
+                <FiShare2 size={14} />
+                Publish
+              </button>
+              <button
+                onClick={onDelete}
+                className="px-4 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-red-100 hover:bg-red-200 text-red-700 transition-colors"
+              >
+                <FiTrash2 size={14} />
+              </button>
+            </>
+          )}
+
+          {/* In Progress Actions */}
+          {isInProgress && (
+            <button
+              onClick={onNavigate}
+              className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+            >
+              <FiEye size={14} />
+              View Shipment
+            </button>
+          )}
+
+          {/* Delivered Action */}
           {isDelivered && (
             <button
               onClick={() => {
                 if (!alreadyReviewed) onReview();
               }}
               disabled={alreadyReviewed}
-              className={`flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
+              className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors ${
                 alreadyReviewed
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
                   : "bg-[#BF9B53] hover:bg-[#a8863e] text-white cursor-pointer"
               }`}
             >
-              {alreadyReviewed ? "Already Reviewed" : "Rate This Shipper"}
+              {alreadyReviewed ? "Already Reviewed" : "Rate Shipper"}
             </button>
           )}
 
-          {/* Cancelled shipment — no action */}
-          {isCancelled && (
-            <div className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 bg-red-50 text-red-400 border border-red-200 cursor-not-allowed">
-              🚫 Shipment Cancelled
-            </div>
-          )}
-
-          {/* In-progress / pending shipment */}
-          {!isDelivered && !isCancelled && (
-            <div className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 bg-blue-50 text-blue-500 border border-blue-200 cursor-not-allowed">
-              🚚 Shipment In Progress
+          {/* Cancelled or Published */}
+          {(isCancelled || (!isDelivered && !isDraft && !isInProgress)) && (
+            <div className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed">
+              {isCancelled ? "🚫 Cancelled" : "📢 Published"}
             </div>
           )}
         </div>
@@ -425,6 +478,11 @@ const ShipmentRow = ({ s, onView }) => {
         })
       : "—";
 
+  const truncateText = (text, maxLength = 30) => {
+    if (!text) return "";
+    return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+  };
+
   const isDelivered = s.status === "delivered";
   const isCancelled = s.status === "cancelled";
 
@@ -432,49 +490,60 @@ const ShipmentRow = ({ s, onView }) => {
     ? "bg-[#BF9B53]"
     : isCancelled
     ? "bg-red-100"
-    : "bg-blue-100";
+    : "bg-[#BF9B53]/100";
 
   const iconColor = isDelivered
     ? "text-white"
     : isCancelled
     ? "text-red-500"
-    : "text-blue-600";
+    : "text-white";
 
   const hoverBorder = isCancelled
     ? "hover:border-red-300"
     : isDelivered
     ? "hover:border-[#BF9B53]"
-    : "hover:border-blue-300";
+    : "hover:border-[#BF9B53] border-2";
 
   return (
     <div
-      className={`bg-white font-montserrat border border-gray-200 rounded-md px-5 py-4 flex items-center gap-4 ${hoverBorder} hover:shadow-md transition-all duration-200 w-full`}
+      className={`bg-white font-montserrat border border-gray-200 rounded-lg px-4 py-3 flex items-center gap-3 ${hoverBorder} hover:shadow-md transition-all duration-200 w-full`}
     >
       {/* Icon */}
       <div
-        className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${iconBg} ${iconColor}`}
+        className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0 ${iconBg} ${iconColor}`}
       >
         <LiaHorseHeadSolid />
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <span className="font-extrabold text-sm text-gray-900 font-mono tracking-wide">
+        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+          <span className="font-bold text-xs text-gray-900 font-mono">
             {s.shipmentCode}
           </span>
           <StatusChip status={s.status} />
         </div>
-        <p className="text-sm text-gray-500 truncate mb-1.5">
-          📍 {s.pickupLocation} &nbsp;→&nbsp; {s.deliveryLocation}
+        <p className="text-xs text-gray-500 truncate mb-1 flex gap-1">
+          {" "}
+          <MdOutlineLocationOn color="#BF9B53" size={16} />{" "}
+          {truncateText(s.pickupLocation)}→ {truncateText(s.deliveryLocation)}
         </p>
-        <div className="flex flex-wrap gap-3">
-          <span className="text-xs text-gray-400">🗓 {fmt(s.pickupDate)}</span>
-          <span className="text-xs text-gray-400">
-            🐎 {s.numberOfHorses} horse{s.numberOfHorses > 1 ? "s" : ""}
+        <div className="flex flex-wrap gap-2 text-xs">
+          <span className="text-gray-400 flex gap-1">
+            <GiCardPickup color="#BF9B53" size={16} />
+            {fmt(s.pickupDate)}
+          </span>
+          <span className="text-gray-400 flex gap-1">
+            {" "}
+            <LiaHorseHeadSolid color="#BF9B53" size={16} /> {s.numberOfHorses}{" "}
+            horse
+            {s.numberOfHorses > 1 ? "s" : ""}
           </span>
           {s.shipper?.name && (
-            <span className="text-xs text-gray-400">👤 {s.shipper.name}</span>
+            <span className="text-gray-400 flex gap-1">
+              <CiUser color="#BF9B53" size={16} />{" "}
+              {truncateText(s.shipper.name)}
+            </span>
           )}
         </div>
       </div>
@@ -482,7 +551,7 @@ const ShipmentRow = ({ s, onView }) => {
       {/* View Button */}
       <button
         onClick={() => onView(s)}
-        className="shrink-0 px-5 py-2.5 bg-[#BF9B53] hover:bg-[#a8863e] text-white text-sm font-bold rounded-lg transition-colors whitespace-nowrap"
+        className="shrink-0 px-4 py-2 bg-[#BF9B53] hover:bg-[#a8863e] text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap"
       >
         View
       </button>
@@ -494,14 +563,22 @@ const ShipmentRow = ({ s, onView }) => {
    Main Page
 ───────────────────────────────────────── */
 const AllShipments = () => {
+  const navigate = useNavigate();
   const { shipments, loading, fetchCompletedShipments } =
     useDeliveredShipments();
+  const { publishShipment, deleteShipment, fetchShipmentById } =
+    useCustomerShipments();
   const { addReview, myReviews } = useReview();
 
   const [selected, setSelected] = useState(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [toast, setToast] = useState(null);
-  const [tab, setTab] = useState("completed");
+  const [tab, setTab] = useState("draft");
+  const [confirmModal, setConfirmModal] = useState({
+    open: false,
+    action: null,
+    shipmentId: null,
+  });
 
   useEffect(() => {
     fetchCompletedShipments();
@@ -531,52 +608,170 @@ const AllShipments = () => {
     }
   };
 
+  const handlePublish = async () => {
+    if (!selected) return;
+    try {
+      const res = await publishShipment(selected._id);
+      if (res?.success) {
+        setToast({
+          message: "Shipment published successfully!",
+          type: "success",
+        });
+        setSelected(null);
+        fetchCompletedShipments();
+      }
+    } catch (err) {
+      setToast({
+        message: err.message || "Failed to publish shipment",
+        type: "error",
+      });
+    } finally {
+      setConfirmModal({ open: false, action: null, shipmentId: null });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selected) return;
+    try {
+      const res = await deleteShipment(selected._id);
+      if (res?.success) {
+        setToast({
+          message: "Shipment deleted successfully!",
+          type: "success",
+        });
+        setSelected(null);
+        fetchCompletedShipments();
+      }
+    } catch (err) {
+      setToast({
+        message: err.message || "Failed to delete shipment",
+        type: "error",
+      });
+    } finally {
+      setConfirmModal({ open: false, action: null, shipmentId: null });
+    }
+  };
+
+  const handleNavigateWithQuery = () => {
+    const token = createShipmentQueryToken(selected._id);
+    const params = new URLSearchParams({
+      shipmentId: selected._id,
+      ref: token,
+    });
+    navigate(`/customer/my-shipments?${params.toString()}`);
+    setSelected(null);
+  };
+
+  const handleEditShipment = async () => {
+    if (!selected) return;
+    try {
+      // Fetch full shipment details
+      await fetchShipmentById(selected._id);
+
+      // Navigate to create shipment page with edit mode
+      navigate(`/customer/new-shipment/${selected._id}`, {
+        state: {
+          editMode: true,
+          shipment: selected,
+        },
+      });
+      setSelected(null);
+    } catch (err) {
+      setToast({
+        message: err.message || "Failed to load shipment for editing",
+        type: "error",
+      });
+    }
+  };
+
+  const confirmAction = () => {
+    if (confirmModal.action === "publish") {
+      handlePublish();
+    } else if (confirmModal.action === "delete") {
+      handleDelete();
+    }
+  };
+
   const hasReviewed = (id) => myReviews.some((r) => r.shipmentId === id);
 
   if (loading)
     return <PageLoader text="Loading shipments..." fullScreen={false} />;
 
-  const completed = shipments.filter((s) => s.status === "delivered");
-  const active = shipments.filter(
-    (s) => s.status !== "delivered" && s.status !== "cancelled"
+  // Filter shipments
+  const draft = shipments.filter((s) => !s.publish && !s.publishedAt);
+  const inProgress = shipments.filter(
+    (s) => s.status === "assigned" && s.publish
   );
+  const published = shipments.filter(
+    (s) =>
+      s.publish &&
+      s.publishedAt &&
+      s.status !== "delivered" &&
+      s.status !== "assigned" &&
+      s.status !== "cancelled"
+  );
+  const completed = shipments.filter((s) => s.status === "delivered");
   const cancelled = shipments.filter((s) => s.status === "cancelled");
 
   const tabMap = {
+    draft,
+    inProgress,
+    published,
     completed,
-    active,
     cancelled,
   };
 
   const shown = tabMap[tab] || [];
 
   const TABS = [
-    { key: "completed", label: "Completed", count: completed.length },
-    { key: "active", label: "Active", count: active.length },
-    { key: "cancelled", label: "Cancelled", count: cancelled.length },
+    { key: "draft", label: "Draft", count: draft.length, icon: "" },
+    {
+      key: "inProgress",
+      label: "In Progress",
+      count: inProgress.length,
+      icon: "",
+    },
+    {
+      key: "published",
+      label: "Published",
+      count: published.length,
+      icon: "",
+    },
+    {
+      key: "completed",
+      label: "Completed",
+      count: completed.length,
+      icon: "",
+    },
+    {
+      key: "cancelled",
+      label: "Cancelled",
+      count: cancelled.length,
+      icon: "",
+    },
   ];
 
   const activeTabColor = {
+    draft: "border-gray-600 text-gray-700",
+    inProgress: "border-blue-600 text-blue-600",
+    published: "border-purple-600 text-purple-600",
     completed: "border-[#BF9B53] text-[#BF9B53]",
-    active: "border-blue-600 text-blue-600",
     cancelled: "border-red-500 text-red-500",
   };
 
   const activeBadgeColor = {
+    draft: "bg-gray-600 text-white",
+    inProgress: "bg-blue-600 text-white",
+    published: "bg-purple-600 text-white",
     completed: "bg-[#BF9B53] text-white",
-    active: "bg-blue-600 text-white",
     cancelled: "bg-red-500 text-white",
   };
 
-  const emptyIcon = {
-    completed: "📭",
-    active: "🚚",
-    cancelled: "🚫",
-  };
-
   const emptyMsg = {
+    draft: "No draft shipments. Create one to get started!",
+    inProgress: "No shipments in progress.",
+    published: "No published shipments.",
     completed: "No completed shipments yet.",
-    active: "No active shipments at the moment.",
     cancelled: "No cancelled shipments.",
   };
 
@@ -591,13 +786,36 @@ const AllShipments = () => {
         />
       )}
 
-      {/* Review Modal */}
-      <ReviewModal
-        open={reviewOpen}
-        onClose={() => setReviewOpen(false)}
-        shipment={selected}
-        onSubmit={handleReviewSubmit}
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        show={confirmModal.open}
+        title={
+          confirmModal.action === "publish"
+            ? "Publish Shipment"
+            : "Delete Shipment"
+        }
+        message={
+          confirmModal.action === "publish"
+            ? "Are you sure you want to publish this shipment? It will be visible to shippers."
+            : "Are you sure you want to delete this shipment? This action cannot be undone."
+        }
+        onConfirm={confirmAction}
+        onCancel={() =>
+          setConfirmModal({ open: false, action: null, shipmentId: null })
+        }
+        confirmText={confirmModal.action === "publish" ? "Publish" : "Delete"}
+        confirmColor={confirmModal.action === "publish" ? "blue" : "red"}
       />
+
+      {/* Review Modal */}
+      {reviewOpen && selected && (
+        <ReviewModal
+          open={reviewOpen}
+          onClose={() => setReviewOpen(false)}
+          shipment={selected}
+          onSubmit={handleReviewSubmit}
+        />
+      )}
 
       {/* Drawer */}
       {selected && (
@@ -606,49 +824,79 @@ const AllShipments = () => {
           onClose={() => setSelected(null)}
           onReview={() => setReviewOpen(true)}
           alreadyReviewed={hasReviewed(selected._id)}
+          isDraft={tab === "draft"}
+          isInProgress={tab === "inProgress"}
+          onPublish={() =>
+            setConfirmModal({
+              open: true,
+              action: "publish",
+              shipmentId: selected._id,
+            })
+          }
+          onDelete={() =>
+            setConfirmModal({
+              open: true,
+              action: "delete",
+              shipmentId: selected._id,
+            })
+          }
+          onNavigate={handleNavigateWithQuery}
+          onEdit={handleEditShipment}
         />
       )}
 
       {/* ── Page Content ── */}
-      <div className="w-full pb-5">
+      <div className="w-full max-w-7xl mx-auto">
         {/* Page Header */}
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-7">
+        <div className="flex flex-col gap-2 mb-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-              My Shipments
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-2xl font-bold text-gray-900">My Shipments</h1>
+            <p className="text-xs text-gray-500 mt-0.5">
               Manage and track all your horse transport requests
             </p>
           </div>
 
           {/* Stat Pills */}
-          <div className="flex gap-3 flex-wrap">
-            <div className="bg-[#BF9B53] rounded-xl px-4 py-2.5 text-center min-w-16">
-              <p className="text-xl font-extrabold text-white leading-none">
+          <div className="flex gap-2 flex-wrap">
+            <div className="bg-[#BF9B53] rounded-lg px-3 py-2 text-center min-w-14">
+              <p className="text-lg font-bold text-white leading-none">
                 {shipments.length}
               </p>
-              <p className="text-xs text-white font-medium mt-1">Total</p>
+              <p className="text-xs text-white font-medium mt-0.5">Total</p>
             </div>
-            <div className="bg-green-50 rounded-xl px-4 py-2.5 text-center min-w-16">
-              <p className="text-xl font-extrabold text-green-600 leading-none">
+            <div className="bg-gray-100 rounded-lg px-3 py-2 text-center min-w-14">
+              <p className="text-lg font-bold text-gray-700 leading-none">
+                {draft.length}
+              </p>
+              <p className="text-xs text-gray-600 font-medium mt-0.5">Draft</p>
+            </div>
+            <div className="bg-blue-50 rounded-lg px-3 py-2 text-center min-w-14">
+              <p className="text-lg font-bold text-blue-600 leading-none">
+                {inProgress.length}
+              </p>
+              <p className="text-xs text-gray-600 font-medium mt-0.5">
+                In Progress
+              </p>
+            </div>
+            <div className="bg-purple-50 rounded-lg px-3 py-2 text-center min-w-14">
+              <p className="text-lg font-bold text-purple-600 leading-none">
+                {published.length}
+              </p>
+              <p className="text-xs text-gray-600 font-medium mt-0.5">
+                Published
+              </p>
+            </div>
+            <div className="bg-green-50 rounded-lg px-3 py-2 text-center min-w-14">
+              <p className="text-lg font-bold text-green-600 leading-none">
                 {completed.length}
               </p>
-              <p className="text-xs text-gray-500 font-medium mt-1">
-                Delivered
-              </p>
+              <p className="text-xs text-gray-600 font-medium mt-0.5">Done</p>
             </div>
-            <div className="bg-blue-50 rounded-xl px-4 py-2.5 text-center min-w-16">
-              <p className="text-xl font-extrabold text-blue-600 leading-none">
-                {active.length}
-              </p>
-              <p className="text-xs text-gray-500 font-medium mt-1">Active</p>
-            </div>
-            <div className="bg-red-50 rounded-xl px-4 py-2.5 text-center min-w-16">
-              <p className="text-xl font-extrabold text-red-500 leading-none">
+            <div className="bg-red-50 rounded-lg px-3 py-2 text-center min-w-14">
+              <p className="text-lg font-bold text-red-600 leading-none">
                 {cancelled.length}
               </p>
-              <p className="text-xs text-gray-500 font-medium mt-1">
+              <p className="text-xs text-gray-600 font-medium mt-0.5">
                 Cancelled
               </p>
             </div>
@@ -656,26 +904,27 @@ const AllShipments = () => {
         </div>
 
         {/* ── Tabs ── */}
-        <div className="flex border-b-2 border-gray-200 mb-5 overflow-x-auto">
+        <div className="flex border-b-2 border-gray-300 mb-3 overflow-x-auto pb-0">
           {TABS.map((t) => {
             const active = tab === t.key;
             return (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2  transition-colors duration-150 bg-transparent whitespace-nowrap
+                className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-bold border-b-2 transition-colors duration-150 bg-transparent whitespace-nowrap
                   ${
                     active
-                      ? activeTabColor[t.key]
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      ? `${activeTabColor[t.key]} border-b-2`
+                      : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}
               >
+                <span>{t.icon}</span>
                 {t.label}
                 <span
-                  className={`text-xs font-bold px-2 py-0.5 rounded-full leading-none ${
+                  className={`text-xs font-bold px-1.5 py-0.5 rounded-full leading-none ml-1 ${
                     active
                       ? activeBadgeColor[t.key]
-                      : "bg-gray-200 text-gray-500"
+                      : "bg-gray-200 text-gray-600"
                   }`}
                 >
                   {t.count}
@@ -687,19 +936,23 @@ const AllShipments = () => {
 
         {/* ── List ── */}
         {shown.length === 0 ? (
-          <div className="text-center py-20 bg-white border-2 border-dashed border-gray-200 rounded-2xl">
-            <div className="text-5xl mb-4">{emptyIcon[tab]}</div>
-            <h2 className="text-lg font-bold text-gray-800 mb-2">
-              {tab === "completed"
+          <div className="text-center py-12 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
+            <div className="text-3xl mb-2">📦</div>
+            <h2 className="text-base font-bold text-gray-800 mb-1">
+              {tab === "draft"
+                ? "No Draft Shipments"
+                : tab === "inProgress"
+                ? "No In Progress Shipments"
+                : tab === "published"
+                ? "No Published Shipments"
+                : tab === "completed"
                 ? "No Completed Shipments"
-                : tab === "active"
-                ? "No Active Shipments"
                 : "No Cancelled Shipments"}
             </h2>
-            <p className="text-sm text-gray-400">{emptyMsg[tab]}</p>
+            <p className="text-xs text-gray-400">{emptyMsg[tab]}</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             {shown.map((s) => (
               <ShipmentRow key={s._id} s={s} onView={setSelected} />
             ))}

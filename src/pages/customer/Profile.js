@@ -196,8 +196,8 @@ const CustomerProfile = () => {
                 {/* Online Status */}
                 <div className="flex items-center gap-2 justify-center sm:justify-start mt-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-[#8B7043] font-semibold">
-                    Active Member
+                  <span className="text-xs text-green-500 font-semibold">
+                    Active
                   </span>
                 </div>
 
@@ -364,7 +364,6 @@ const CustomerProfile = () => {
                       : "Not set"}
                   </p>
                 </div>
-                <div className="text-xl">👤</div>
               </div>
 
               {/* Email */}
@@ -375,7 +374,6 @@ const CustomerProfile = () => {
                     {profile?.email || user?.email || "Not set"}
                   </p>
                 </div>
-                <div className="text-xl">✉️</div>
               </div>
 
               {/* Phone */}
@@ -386,7 +384,6 @@ const CustomerProfile = () => {
                     {profile?.phone || "Not set"}
                   </p>
                 </div>
-                <div className="text-xl">📱</div>
               </div>
             </div>
           </div>

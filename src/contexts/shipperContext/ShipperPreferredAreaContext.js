@@ -13,7 +13,6 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ================= FETCH PREFERRED AREAS =================
   const fetchPreferredAreas = useCallback(async () => {
     if (!token) return;
 
@@ -25,7 +24,7 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setPreferredAreas(res.data.areas || []);
+      setPreferredAreas(res.data?.areas || []);
     } catch (err) {
       console.error("Fetch preferred areas error:", err);
       setError(
@@ -36,7 +35,6 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
     }
   }, [token]);
 
-  // ================= ADD PREFERRED AREA =================
   const addPreferredArea = async (area) => {
     if (!token) return;
 
@@ -49,7 +47,7 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setPreferredAreas((prev) => [...prev, res.data.area]);
+      setPreferredAreas((prev) => [...prev, res.data?.area]);
     } catch (err) {
       console.error("Add preferred area error:", err);
       setError(err?.response?.data?.message || "Failed to add preferred area");
@@ -58,7 +56,6 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
     }
   };
 
-  // ================= REMOVE PREFERRED AREA =================
   const removePreferredArea = async (areaId) => {
     if (!token) return;
 
@@ -69,7 +66,9 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setPreferredAreas((prev) => prev.filter((a) => a.id !== areaId));
+      setPreferredAreas(
+        (prev) => prev.filter((a) => a._id !== areaId) // ✅ FIX (_id instead of id)
+      );
     } catch (err) {
       console.error("Remove preferred area error:", err);
       setError(
@@ -96,6 +95,12 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
   );
 };
 
-// Custom hook for using the context
-export const useShipperPreferredArea = () =>
-  useContext(ShipperPreferredAreaContext);
+export const useShipperPreferredArea = () => {
+  const context = useContext(ShipperPreferredAreaContext);
+  if (!context) {
+    throw new Error(
+      "useShipperPreferredArea must be used within ShipperPreferredAreaProvider"
+    );
+  }
+  return context;
+};
