@@ -44,15 +44,13 @@ const NewsletterContext = createContext();
 export const NewsletterProvider = ({ children }) => {
   const [state, dispatch] = useReducer(newsletterReducer, initialState);
 
-  // Subscribe function
+  // ------------------- Subscribe Function -------------------
   const subscribe = async (email) => {
     dispatch({ type: ACTIONS.SUBSCRIBE_REQUEST });
     try {
       const { data } = await axios.post(
         `${API_BASE_URL}/horse-newsletter/subscribe`,
-        {
-          email,
-        }
+        { email }
       );
       dispatch({ type: ACTIONS.SUBSCRIBE_SUCCESS, payload: data.message });
     } catch (error) {
@@ -65,14 +63,32 @@ export const NewsletterProvider = ({ children }) => {
     }
   };
 
-  // Reset function
+  // ------------------- Verify Function -------------------
+  const verify = async (token) => {
+    try {
+      console.log("[DEBUG] Calling verify API with token:", token);
+      const { data } = await axios.get(
+        `${API_BASE_URL}/horse-newsletter/verify?token=${token}`
+      );
+      console.log("[DEBUG] Verify API response:", data);
+      return data; // expects { success: true/false, message: "..." }
+    } catch (error) {
+      console.error(
+        "[ERROR] Verify API:",
+        error.response?.data || error.message
+      );
+      return { success: false, message: "Something went wrong." };
+    }
+  };
+
+  // ------------------- Reset Function -------------------
   const resetNewsletter = () => {
     dispatch({ type: ACTIONS.RESET });
   };
 
   return (
     <NewsletterContext.Provider
-      value={{ ...state, subscribe, resetNewsletter }}
+      value={{ ...state, subscribe, verify, resetNewsletter }}
     >
       {children}
     </NewsletterContext.Provider>
