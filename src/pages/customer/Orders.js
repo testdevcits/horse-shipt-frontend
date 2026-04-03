@@ -206,7 +206,7 @@ const ShipmentDrawer = ({
     : "text-blue-600";
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end font-montserrat">
+    <div className="fixed inset-0 z-40 flex justify-end font-montserrat">
       {/* Backdrop */}
       <div
         onClick={close}
@@ -846,7 +846,7 @@ const AllShipments = () => {
       )}
 
       {/* ── Page Content ── */}
-      <div className="w-full max-w-7xl mx-auto">
+      <div className="w-full max-w-full mx-auto">
         {/* Page Header */}
         <div className="flex flex-col gap-2 mb-4">
           <div>
