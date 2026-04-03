@@ -1,43 +1,50 @@
+// pages/NewsletterVerificationPage.js
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useNewsletter } from "../contexts/NewsletterContext";
 
-const NewsletterSuccess = () => {
-  const navigate = useNavigate();
+const NewsletterVerificationPage = () => {
   const location = useLocation();
-  const [showMessage, setShowMessage] = useState("");
+  const navigate = useNavigate();
+  const { verify } = useNewsletter(); // using verify method from context
+  const [message, setMessage] = useState("Verifying...");
 
   useEffect(() => {
-    // token query param check
-    const query = new URLSearchParams(location.search);
-    const token = query.get("token");
+    const params = new URLSearchParams(location.search);
+    const token = params.get("token");
 
     if (!token) {
-      // token missing: show message and redirect after 3 sec
-      setShowMessage("Invalid access. Redirecting to Home...");
-      setTimeout(() => navigate("/"), 3000);
-    } else {
-      // valid token: show success message and redirect after 5 sec
-      setShowMessage(
-        "Email Verified! You will be redirected to Home shortly..."
-      );
-      setTimeout(() => navigate("/"), 5000);
+      setMessage("Token missing.");
+      setTimeout(() => navigate("/newsletter-error"), 2000);
+      return;
     }
-  }, [location, navigate]);
+
+    const verifyEmail = async () => {
+      try {
+        const res = await verify(token); // call verify from context
+
+        if (res.success) {
+          setMessage("Email verified successfully!");
+          setTimeout(() => navigate("/newsletter-success"), 2000);
+        } else {
+          // handle invalid or expired token
+          setMessage(res.message || "Verification failed.");
+          setTimeout(() => navigate("/newsletter-error"), 2000);
+        }
+      } catch (err) {
+        setMessage("Something went wrong.");
+        setTimeout(() => navigate("/newsletter-error"), 2000);
+      }
+    };
+
+    verifyEmail();
+  }, [location.search, navigate, verify]);
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-50 p-4">
-      <div className="bg-white shadow-md rounded-lg p-8 text-center max-w-md">
-        <h1 className="text-3xl font-bold text-green-600 mb-4">Newsletter</h1>
-        <p className="text-gray-700 mb-6">{showMessage}</p>
-        <a
-          href="/"
-          className="bg-[#BF9B53] text-white px-6 py-2 rounded font-semibold hover:bg-[#a67f46]"
-        >
-          Go to Home
-        </a>
-      </div>
+    <div className="flex flex-col justify-center items-center min-h-screen text-gray-600">
+      <p className="text-lg font-semibold">{message}</p>
     </div>
   );
 };
 
-export default NewsletterSuccess;
+export default NewsletterVerificationPage;
