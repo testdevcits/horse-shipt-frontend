@@ -278,7 +278,7 @@ const PayoutAndCardPage = () => {
               )}
 
               {paymentError && (
-                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                <div className="p-4 mt-4 bg-red-50 rounded-lg border border-red-200">
                   <p className="text-sm text-red-700 font-medium">
                     {paymentError}
                   </p>
