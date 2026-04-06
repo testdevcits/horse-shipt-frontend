@@ -55,12 +55,11 @@ export const AuthProvider = ({ children }) => {
      LOGIN
   ================================ */
   const login = async (payload) => {
-    const { email, password, role, deviceId, location } = payload;
+    const { email, password, role, deviceId, location: loc } = payload;
 
     if (!role) return { success: false, errors: ["Role is required"] };
 
     setLoading(true);
-
     try {
       const res = await axios.post(
         `${API_BASE_URL}/auth/login`,
@@ -69,16 +68,15 @@ export const AuthProvider = ({ children }) => {
           password,
           role,
           deviceId: deviceId || "web",
-          location: location || "India",
+          location: loc || "India",
         },
         { withCredentials: true }
       );
 
       const userData = res.data?.data;
 
-      if (!userData?.token) {
+      if (!userData?.token)
         return { success: false, errors: ["Invalid server response"] };
-      }
 
       setUser(userData);
       setToken(userData.token);
@@ -227,7 +225,8 @@ export const AuthProvider = ({ children }) => {
     const error = query.get("error");
 
     if (error) {
-      setOauthError(error); // Show frontend error
+      // show OAuth error in UI
+      setOauthError(error);
       return;
     }
 
@@ -247,6 +246,7 @@ export const AuthProvider = ({ children }) => {
         providerId: query.get("providerId"),
       });
 
+      // remove query params from URL after login
       navigate(location.pathname, { replace: true });
     }
   }, [location.search, location.pathname, navigate]);

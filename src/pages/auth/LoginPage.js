@@ -65,8 +65,6 @@ const LoginPage = () => {
   useEffect(() => {
     if (oauthError) {
       setToast({ message: oauthError, type: "error" });
-
-      // remove error from URL
       navigate(location.pathname, { replace: true });
       return;
     }
@@ -105,7 +103,6 @@ const LoginPage = () => {
   // ----------------- Handle normal login -----------------
   const handleLogin = async (values, { setSubmitting, setFieldError }) => {
     setLoading(true);
-
     try {
       const result = await login({ ...values, action: "login" });
 

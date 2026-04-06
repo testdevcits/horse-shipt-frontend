@@ -93,6 +93,7 @@ const SignupPage = () => {
 
       if (res.success) {
         resetForm();
+        // login the user immediately after signup
         oauthLogin(
           res.data.token ? { token: res.data.token, ...res.data } : res.data
         );
@@ -122,6 +123,7 @@ const SignupPage = () => {
     }
   };
 
+  // ----------------- Google OAuth signup -----------------
   const handleGoogleSignup = (role) => {
     if (!role) {
       setToast({
@@ -172,73 +174,32 @@ const SignupPage = () => {
                 isValid && values.role && !isSubmitting && !loading;
               return (
                 <Form className="flex flex-col gap-3">
-                  <div>
-                    <label className="text-xs font-medium text-gray-700">
-                      Name
-                    </label>
-                    <Field
-                      name="name"
-                      type="text"
-                      placeholder="Enter your name"
-                      className="w-full border rounded p-2 text-xs mt-1"
-                    />
-                    <ErrorMessage
-                      name="name"
-                      component="div"
-                      className="text-xs text-red-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-gray-700">
-                      Email
-                    </label>
-                    <Field
-                      name="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      className="w-full border rounded p-2 text-xs mt-1"
-                    />
-                    <ErrorMessage
-                      name="email"
-                      component="div"
-                      className="text-xs text-red-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-gray-700">
-                      Password
-                    </label>
-                    <Field
-                      name="password"
-                      type="password"
-                      placeholder="Enter password"
-                      className="w-full border rounded p-2 text-xs mt-1"
-                    />
-                    <ErrorMessage
-                      name="password"
-                      component="div"
-                      className="text-xs text-red-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-gray-700">
-                      Confirm Password
-                    </label>
-                    <Field
-                      name="confirmPassword"
-                      type="password"
-                      placeholder="Confirm password"
-                      className="w-full border rounded p-2 text-xs mt-1"
-                    />
-                    <ErrorMessage
-                      name="confirmPassword"
-                      component="div"
-                      className="text-xs text-red-500"
-                    />
-                  </div>
+                  {["name", "email", "password", "confirmPassword"].map(
+                    (field) => (
+                      <div key={field}>
+                        <label className="text-xs font-medium text-gray-700">
+                          {field === "confirmPassword"
+                            ? "Confirm Password"
+                            : field.charAt(0).toUpperCase() + field.slice(1)}
+                        </label>
+                        <Field
+                          name={field}
+                          type={
+                            field.toLowerCase().includes("password")
+                              ? "password"
+                              : "text"
+                          }
+                          placeholder={`Enter your ${field}`}
+                          className="w-full border rounded p-2 text-xs mt-1"
+                        />
+                        <ErrorMessage
+                          name={field}
+                          component="div"
+                          className="text-xs text-red-500"
+                        />
+                      </div>
+                    )
+                  )}
 
                   <p className="text-xs font-medium text-gray-700 mt-1">
                     Select your role:
