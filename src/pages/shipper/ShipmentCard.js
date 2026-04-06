@@ -64,7 +64,7 @@ const ShipmentCard = ({ shipment }) => {
         {/* ======================= LEFT SECTION ======================= */}
         <div className="flex-1 min-w-0">
           {/* TITLE */}
-          <h3 className="mb-4 text-gray-900 font-semibold text-[15px] md:text-[16px] leading-[22px] md:leading-[24px] break-words">
+          <h3 className="mb-4 text-[#BF9B53] font-semibold text-[15px] md:text-[16px] leading-[22px] md:leading-[24px] break-words">
             <span className="text-[#BF9B53] font-bold">
               {shipment.numberOfHorses}
             </span>{" "}
@@ -75,7 +75,7 @@ const ShipmentCard = ({ shipment }) => {
             <span className="font-bold text-gray-900">
               {shipment.pickupLocation}
             </span>{" "}
-            to{" "}
+            To{" "}
             <span className="font-bold text-gray-900">
               {shipment.deliveryLocation}
             </span>
@@ -104,8 +104,7 @@ const ShipmentCard = ({ shipment }) => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    <span className="text-gray-700 font-semibold text-sm md:text-[15px]">
+                    <span className="text-[#BF9B53] font-semibold text-sm md:text-[15px]">
                       Pickup
                     </span>
                   </div>
@@ -152,8 +151,7 @@ const ShipmentCard = ({ shipment }) => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span className="text-gray-700 font-semibold text-sm md:text-[15px]">
+                    <span className="text-[#BF9B53] font-semibold text-sm md:text-[15px]">
                       Delivery
                     </span>
                   </div>
@@ -193,7 +191,7 @@ const ShipmentCard = ({ shipment }) => {
 
         {/* ======================= RIGHT SECTION ======================= */}
         <div className="flex flex-col md:min-w-[240px] gap-3">
-          <h4 className="text-gray-900 font-semibold text-sm md:text-[15px] flex items-center gap-2">
+          <h4 className="text-[#BF9B53] font-semibold text-sm md:text-[15px] flex items-center gap-2">
             <FiTruck size={16} className="text-[#BF9B53]" />
             Shipment Details
           </h4>

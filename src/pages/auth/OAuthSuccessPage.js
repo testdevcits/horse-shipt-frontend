@@ -8,7 +8,6 @@ const OAuthSuccessPage = () => {
   const location = useLocation();
   const { oauthLogin } = useAuth();
   const [toast, setToast] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -22,9 +21,7 @@ const OAuthSuccessPage = () => {
     const error = params.get("error");
 
     if (error) {
-      // Show error toast and stop redirect
       setToast({ message: decodeURIComponent(error), type: "error" });
-      setLoading(false);
       return;
     }
 
@@ -38,7 +35,6 @@ const OAuthSuccessPage = () => {
         email,
         name,
         photo,
-        id: params.get("id") || "", // ensure _id exists
       });
 
       // Redirect to dashboard
@@ -49,7 +45,7 @@ const OAuthSuccessPage = () => {
         message: "Role not found. Please login manually.",
         type: "error",
       });
-      setLoading(false);
+      navigate("/login", { replace: true });
     } else {
       // No token
       navigate("/login", { replace: true });
@@ -58,22 +54,14 @@ const OAuthSuccessPage = () => {
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen text-gray-600">
-      {loading && (
-        <>
-          <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
-          <p className="mt-3 text-sm">Logging in...</p>
-        </>
-      )}
+      <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
+      <p className="mt-3 text-sm">Logging in...</p>
 
       {toast && (
         <Toast
           message={toast.message}
           type={toast.type}
-          onClose={() => {
-            setToast(null);
-            // Optionally redirect user to login page after closing error
-            navigate("/login", { replace: true });
-          }}
+          onClose={() => setToast(null)}
         />
       )}
     </div>
