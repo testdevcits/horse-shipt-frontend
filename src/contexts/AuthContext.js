@@ -235,26 +235,28 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const query = new URLSearchParams(location.search);
 
+    const error = query.get("error");
+
+    // If error exists → do nothing here (LoginPage handle karega)
+    if (error) return;
+
     const tokenParam = query.get("token");
     const id = query.get("id");
     const roleParam = query.get("role");
-    const name = query.get("name");
-    const email = query.get("email");
-    const photo = query.get("photo");
-    const providerId = query.get("providerId");
 
     if (tokenParam && id && roleParam) {
       oauthLogin({
         token: tokenParam,
         id,
         role: roleParam,
-        name,
-        email,
-        photo,
+        name: query.get("name"),
+        email: query.get("email"),
+        photo: query.get("photo"),
         provider: "google",
-        providerId,
+        providerId: query.get("providerId"),
       });
 
+      //  clean URL
       navigate(location.pathname, { replace: true });
     }
   }, [location.search, location.pathname, navigate]);

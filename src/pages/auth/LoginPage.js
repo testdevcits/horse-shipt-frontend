@@ -72,13 +72,18 @@ const LoginPage = () => {
     // HANDLE ERROR FROM GOOGLE
     const error = params.get("error");
     if (error) {
+      const decodedError = decodeURIComponent(error);
+
       setToast({
-        message: decodeURIComponent(error),
+        message: decodedError,
         type: "error",
       });
 
-      // Clean URL after showing error
-      navigate("/login", { replace: true });
+      // small delay so toast visible rahe
+      setTimeout(() => {
+        navigate("/login", { replace: true });
+      }, 100);
+
       return;
     }
 
