@@ -45,7 +45,7 @@ const EyeOffIcon = () => (
 );
 
 const LoginPage = () => {
-  const { login, oauthLogin } = useAuth();
+  const { login, oauthLogin, oauthError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [toast, setToast] = useState(null);
@@ -63,10 +63,19 @@ const LoginPage = () => {
 
   // ----------------- Handle OAuth redirect -----------------
   useEffect(() => {
+    if (oauthError) {
+      setToast({ message: oauthError, type: "error" });
+
+      // remove error from URL
+      navigate(location.pathname, { replace: true });
+      return;
+    }
+
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
     if (error) {
       setToast({ message: decodeURIComponent(error), type: "error" });
+      navigate(location.pathname, { replace: true });
       return;
     }
 
@@ -91,14 +100,14 @@ const LoginPage = () => {
         { replace: true }
       );
     }
-  }, [location.search, oauthLogin, navigate]);
+  }, [location.search, oauthError, oauthLogin, navigate, location.pathname]);
 
   // ----------------- Handle normal login -----------------
   const handleLogin = async (values, { setSubmitting, setFieldError }) => {
     setLoading(true);
 
     try {
-      const result = await login({ ...values, action: "login" }); // specify action=login
+      const result = await login({ ...values, action: "login" });
 
       if (result.success) {
         navigate(

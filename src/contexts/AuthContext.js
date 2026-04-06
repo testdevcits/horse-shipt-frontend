@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [oauthError, setOauthError] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,7 +32,6 @@ export const AuthProvider = ({ children }) => {
       setToken(storedToken);
       setRole(storedRole);
 
-      // 🔹 Socket connect on refresh
       socket.auth = {
         userId: parsedUser._id,
         role: storedRole,
@@ -80,7 +80,6 @@ export const AuthProvider = ({ children }) => {
         return { success: false, errors: ["Invalid server response"] };
       }
 
-      // Save user data locally
       setUser(userData);
       setToken(userData.token);
       setRole(userData.role);
@@ -89,7 +88,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
 
-      // Connect socket if not already connected
       if (!socket.connected) {
         socket.auth = { userId: userData._id, role: userData.role };
         socket.connect();
@@ -98,13 +96,11 @@ export const AuthProvider = ({ children }) => {
       return { success: true, data: userData };
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
-
       const backendErrors =
         err.response?.data?.errors ||
         (err.response?.data?.message
           ? [err.response.data.message]
           : ["Invalid credentials"]);
-
       return { success: false, errors: backendErrors };
     } finally {
       setLoading(false);
@@ -119,16 +115,14 @@ export const AuthProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      // Make POST request to signup endpoint
       const res = await axios.post(
         `${API_BASE_URL}/auth/signup`,
-        { name, email, password, role }, // Only required fields
+        { name, email, password, role },
         { withCredentials: true }
       );
 
       const newUser = res.data.data;
 
-      // Save user data locally
       setUser(newUser);
       setToken(newUser.token);
       setRole(newUser.role);
@@ -137,21 +131,17 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", newUser.token);
       localStorage.setItem("role", newUser.role);
 
-      // Connect socket after signup
       socket.auth = { userId: newUser._id, role: newUser.role };
       socket.connect();
 
       return { success: true, data: newUser };
     } catch (err) {
       console.error("Signup Error:", err.response?.data || err.message);
-
-      // Merge errors and message
       const backendErrors =
         err.response?.data?.errors ||
         (err.response?.data?.message
           ? [err.response.data.message]
           : ["Server Error"]);
-
       return { success: false, errors: backendErrors };
     } finally {
       setLoading(false);
@@ -178,6 +168,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setToken(null);
       setRole(null);
+      setOauthError(null);
 
       localStorage.removeItem("horseShiptUser");
       localStorage.removeItem("token");
@@ -218,12 +209,12 @@ export const AuthProvider = ({ children }) => {
     setUser(oauthUser);
     setToken(token);
     setRole(role);
+    setOauthError(null);
 
     localStorage.setItem("horseShiptUser", JSON.stringify(oauthUser));
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
 
-    // 🔹 Socket connect for OAuth
     socket.auth = { userId: oauthUser._id, role: oauthUser.role };
     socket.connect();
   };
@@ -233,11 +224,12 @@ export const AuthProvider = ({ children }) => {
   ================================ */
   useEffect(() => {
     const query = new URLSearchParams(location.search);
-
     const error = query.get("error");
 
-    // If error exists → do nothing here (LoginPage handle karega)
-    if (error) return;
+    if (error) {
+      setOauthError(error); // Show frontend error
+      return;
+    }
 
     const tokenParam = query.get("token");
     const id = query.get("id");
@@ -255,7 +247,6 @@ export const AuthProvider = ({ children }) => {
         providerId: query.get("providerId"),
       });
 
-      //  clean URL
       navigate(location.pathname, { replace: true });
     }
   }, [location.search, location.pathname, navigate]);
@@ -275,6 +266,7 @@ export const AuthProvider = ({ children }) => {
         isCustomer,
         isShipper,
         loading,
+        oauthError, // expose error to frontend
         login,
         signup,
         logout,

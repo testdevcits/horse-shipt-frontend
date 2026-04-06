@@ -15,11 +15,10 @@ const API_BASE_URL =
 const SignupPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signup, oauthLogin } = useAuth();
+  const { signup, oauthLogin, oauthError } = useAuth();
 
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [backendError, setBackendError] = useState("");
 
   const initialValues = {
     name: "",
@@ -47,11 +46,21 @@ const SignupPage = () => {
       .required("Please select a role"),
   });
 
-  // Handle redirect from OAuth
+  // ----------------- Handle OAuth redirect -----------------
   useEffect(() => {
+    if (oauthError) {
+      setToast({ message: oauthError, type: "error" });
+      navigate(location.pathname, { replace: true });
+      return;
+    }
+
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
-    if (error) setToast({ message: decodeURIComponent(error), type: "error" });
+    if (error) {
+      setToast({ message: decodeURIComponent(error), type: "error" });
+      navigate(location.pathname, { replace: true });
+      return;
+    }
 
     const token = params.get("token");
     if (token) {
@@ -70,14 +79,15 @@ const SignupPage = () => {
       navigate(
         userData.role === "shipper"
           ? "/shipper/dashboard"
-          : "/customer/dashboard"
+          : "/customer/dashboard",
+        { replace: true }
       );
     }
-  }, [location.search, oauthLogin, navigate]);
+  }, [location.search, oauthError, oauthLogin, navigate, location.pathname]);
 
+  // ----------------- Handle normal signup -----------------
   const handleSignup = async (values, { setSubmitting, resetForm }) => {
     setLoading(true);
-    setBackendError("");
     try {
       const res = await signup({ ...values, action: "signup" });
 
@@ -89,17 +99,23 @@ const SignupPage = () => {
         navigate(
           res.data.role === "shipper"
             ? "/shipper/dashboard"
-            : "/customer/dashboard"
+            : "/customer/dashboard",
+          { replace: true }
         );
       } else {
-        setBackendError(res.errors?.[0] || res.message || "Signup failed");
+        setToast({
+          message: res.errors?.join(", ") || "Signup failed",
+          type: "error",
+        });
       }
     } catch (err) {
-      setBackendError(
-        err.response?.data?.errors?.[0] ||
+      setToast({
+        message:
+          err.response?.data?.errors?.[0] ||
           err.response?.data?.message ||
-          "Signup error"
-      );
+          "Signup error",
+        type: "error",
+      });
     } finally {
       setLoading(false);
       setSubmitting(false);
@@ -142,12 +158,6 @@ const SignupPage = () => {
               Login
             </span>
           </p>
-
-          {backendError && (
-            <div className="text-red-500 text-xs font-medium">
-              {backendError}
-            </div>
-          )}
 
           <Formik
             initialValues={initialValues}
@@ -231,19 +241,19 @@ const SignupPage = () => {
                   </div>
 
                   <p className="text-xs font-medium text-gray-700 mt-1">
-                    Are you a Customer or Shipper? Please select your role:
+                    Select your role:
                   </p>
                   <div className="flex gap-2">
                     {["shipper", "customer"].map((r) => (
                       <button
                         key={r}
                         type="button"
-                        onClick={() => setFieldValue("role", r, true)}
                         className={`flex-1 py-1 text-xs font-medium rounded ${
                           values.role === r
                             ? "bg-[#BF9B53] text-white"
                             : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                         }`}
+                        onClick={() => setFieldValue("role", r, true)}
                       >
                         {r.charAt(0).toUpperCase() + r.slice(1)}
                       </button>
