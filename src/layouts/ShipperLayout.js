@@ -15,6 +15,8 @@ import { IoShareSocial } from "react-icons/io5";
 
 import StatusBadge from "../components/common/StatusBadge";
 import logo from "../assets/images/logo.png";
+import logo1 from "../assets/images/profileImage.png";
+
 import defaultProfileImage from "../assets/images/profileImage.png";
 
 const ShipperLayout = () => {
@@ -33,7 +35,6 @@ const ShipperLayout = () => {
 
   /* ================= Detect Payment Tab ================= */
   const queryParams = new URLSearchParams(location.search);
-
   const isPaymentTab =
     location.pathname === "/shipper/settings" &&
     queryParams.get("tab") === "payment";
@@ -45,7 +46,7 @@ const ShipperLayout = () => {
     profile?.profilePicture ||
     user?.profilePicture ||
     defaultProfileImage ||
-    null;
+    logo; // fallback to logo if nothing else
 
   /* ================= Screen Resize ================= */
   useEffect(() => {
@@ -63,7 +64,6 @@ const ShipperLayout = () => {
   useEffect(() => {
     if (needsOnboarding && !isPaymentTab) {
       const hasShown = sessionStorage.getItem("stripeModalShown");
-
       if (!hasShown) {
         setShowStripeModal(true);
         sessionStorage.setItem("stripeModalShown", "true");
@@ -146,17 +146,20 @@ const ShipperLayout = () => {
             onClick={() => navigate("/shipper/notifications")}
           />
 
-          <StatusBadge text="Shipper accunt" />
+          <StatusBadge text="Shipper account" />
 
           {profileImage ? (
             <div className="relative">
               <img
                 src={profileImage}
-                alt="Profile"
+                alt={user?.name?.[0] || "U"}
                 className={`w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300 ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 onClick={() => !loading && setProfilePopup(!profilePopup)}
+                onError={(e) => {
+                  e.target.src = logo1; // fallback if broken URL
+                }}
               />
 
               {profilePopup && (

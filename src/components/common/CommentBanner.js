@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import { HiPencil } from "react-icons/hi";
 import { useAuth } from "../../contexts/AuthContext";
 import { useShipperProfile } from "../../contexts/ShipperProfileContext";
+import logo from "../../assets/images/profileImage.png"; // default fallback
 
 const CommentBanner = () => {
   const { user } = useAuth();
@@ -12,7 +13,7 @@ const CommentBanner = () => {
   const profileInputRef = useRef(null);
 
   const bannerImage = profile?.bannerImage || "/default-banner.jpg";
-  const profileImage = profile?.profileImage || "/default-profile.png";
+  const profileImage = profile?.profileImage || logo; // fallback to logo
 
   const handleBannerChange = async (e) => {
     const file = e.target.files[0];
@@ -67,10 +68,13 @@ const CommentBanner = () => {
           <div className="relative w-16 h-16 rounded-full flex-shrink-0">
             <img
               src={profileImage}
-              alt="Profile"
+              alt={user?.name?.[0] || "U"}
               className={`w-16 h-16 object-cover rounded-full border ${
                 loading ? "opacity-50" : ""
               }`}
+              onError={(e) => {
+                e.target.src = logo; // fallback to logo if image URL is broken
+              }}
             />
             <button
               disabled={loading}
@@ -89,18 +93,14 @@ const CommentBanner = () => {
           </div>
 
           {/* User Info */}
-          <div className="flex flex-col justify-center gap-2 font-montserrat  truncate">
+          <div className="flex flex-col justify-center gap-2 font-montserrat truncate">
             <h2
               className="text-gray-900 truncate"
-              style={{
-                fontWeight: 600,
-                fontSize: "30px",
-                lineHeight: "38px",
-              }}
+              style={{ fontWeight: 600, fontSize: "30px", lineHeight: "38px" }}
             >
               {user?.name || "User Name"}
             </h2>
-            <span className="px-3 py-1 text-sm  rounded-md bg-gray-100 text-gray-700 w-max uppercase">
+            <span className="px-3 py-1 text-sm rounded-md bg-gray-100 text-gray-700 w-max uppercase">
               {user?.role || "Role"} Account
             </span>
           </div>
