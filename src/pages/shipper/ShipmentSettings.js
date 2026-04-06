@@ -14,7 +14,7 @@ const ShipmentSettings = () => {
   const locationIntervalRef = useRef(null);
 
   // ============================================================
-  // START GPS TRACKING
+  // START GPS TRACKING (ONLY FIX APPLIED)
   // ============================================================
   const startTracking = () => {
     if (!navigator.geolocation) {
@@ -34,13 +34,14 @@ const ShipmentSettings = () => {
               const { latitude, longitude } = position.coords;
               updateLocation({ latitude, longitude });
             },
-            (err) => console.error("Error updating location:", err),
+            (error) => {
+              console.error("Error getting location:", error);
+            },
             { enableHighAccuracy: true }
           );
         }, 5000);
       },
       (error) => {
-        console.error("Location access denied or error:", error);
         alert("Please allow location access for GPS tracking.");
         setGpsTrackingEnabled(false);
       },
@@ -110,7 +111,7 @@ const ShipmentSettings = () => {
         return (
           <div className="flex flex-col items-center justify-center h-full p-6 text-center">
             <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-              Coming Soon 🚀
+              Coming Soon
             </h2>
             <p className="text-gray-600 max-w-md">
               Stay tuned for the latest enhancements coming soon to the
@@ -118,8 +119,6 @@ const ShipmentSettings = () => {
             </p>
           </div>
         );
-
-      // <PreferredAreas handleBack={handleBack} />;
       default:
         return null;
     }
@@ -247,26 +246,10 @@ const ShipmentSettings = () => {
             </div>
 
             <p className="text-gray-600 text-[14px] leading-[20px]">
-              Lorem ipsum dolor sit amet consectetur. Nulla varius risus est
-              congue sit aliquet.
+              Lorem ipsum dolor sit amet consectetur.
             </p>
 
-            <div className="flex flex-col gap-[12px]">
-              <div className="border-b border-gray-300 pb-2">
-                <h3 className="font-medium text-gray-800 text-[15px]">
-                  DOT Number
-                </h3>
-                <p className="text-gray-600 text-[13px]">123456789</p>
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-800 text-[15px]">
-                  MC Number
-                </h3>
-                <p className="text-gray-600 text-[13px]">ABC12345</p>
-              </div>
-            </div>
-
-            <button className="mt-auto bg-system-primary text-white font-medium py-2 rounded-lg hover:opacity-90 transition">
+            <button className="mt-auto bg-system-primary text-white py-2 rounded-lg">
               Upload New Credential
             </button>
           </div>

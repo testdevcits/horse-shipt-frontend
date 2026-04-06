@@ -61,7 +61,7 @@ const ShipperSettings = () => {
     <>
       <CommentBanner />
 
-      <div className="flex flex-col items-center w-full px-2">
+      <div className="flex flex-col items-center w-full px-2 font-[Montserrat]">
         <div
           ref={containerRef}
           className="w-full flex flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible border-b border-gray-300 mb-6 mt-6 scrollbar-hide"

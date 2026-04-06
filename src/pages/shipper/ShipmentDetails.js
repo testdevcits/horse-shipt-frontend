@@ -12,11 +12,12 @@ import { getPublishedTime } from "../../utils/timeAgo";
 import AskQuestionModal from "./AskQuestionModal";
 import RouteMap from "./common/RouteMap";
 import { IoArrowBack } from "react-icons/io5";
+import { Clock, AlertTriangle } from "lucide-react";
 
 /**
  * ============================================================
- * COMPLETE MODERN SHIPMENT DETAILS PAGE
- * With image carousel, full responsiveness, all features
+ * SHIPMENT DETAILS PAGE WITH COUNTDOWN TIMER
+ * Shows session expiration time and auto-navigates after timeout
  * ============================================================
  */
 
@@ -36,6 +37,10 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const [expandedHorse, setExpandedHorse] = useState(null);
   const [horseImageIndex, setHorseImageIndex] = useState({});
 
+  // ============ TIMER STATE ============
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [isExpired, setIsExpired] = useState(false);
+
   const idToUse = shipmentIdFromQuery || paramId || defaultId;
 
   /**
@@ -49,15 +54,29 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
     try {
       const decoded = JSON.parse(atob(tokenFromQuery));
-      const timeLeft = decoded.exp - Date.now();
+      const remaining = decoded.exp - Date.now();
 
-      if (timeLeft > 0) {
-        const timer = setTimeout(() => {
-          navigate("/shipper/dashboard", { replace: true });
-        }, timeLeft);
+      if (remaining > 0) {
+        setTimeLeft(remaining);
 
-        return () => clearTimeout(timer);
+        // Update timer every second
+        const timerInterval = setInterval(() => {
+          setTimeLeft((prev) => {
+            if (prev <= 1000) {
+              clearInterval(timerInterval);
+              setIsExpired(true);
+              setTimeout(() => {
+                navigate("/shipper/dashboard", { replace: true });
+              }, 2000);
+              return 0;
+            }
+            return prev - 1000;
+          });
+        }, 1000);
+
+        return () => clearInterval(timerInterval);
       } else {
+        setIsExpired(true);
         navigate("/shipper/dashboard", { replace: true });
       }
     } catch (error) {
@@ -85,6 +104,23 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       setExpandedHorse(0);
     }
   }, [idToUse, shipments]);
+
+  /**
+   * ================= FORMAT TIME =================
+   */
+  const formatTimeRemaining = (ms) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return {
+      minutes,
+      seconds,
+      totalSeconds,
+    };
+  };
+
+  const timeData = timeLeft ? formatTimeRemaining(timeLeft) : null;
+  const progressPercent = timeLeft ? (timeLeft / (5 * 60 * 1000)) * 100 : 0;
 
   /**
    * ================= IMAGE CAROUSEL HANDLERS =================
@@ -170,7 +206,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
    */
   if (loading) {
     return (
-      <div className="flex items-center font-montserrat justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="flex items-center font-montserrat justify-center h-screen ">
         <div className="text-center">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] flex items-center justify-center">
             <div className="text-4xl animate-bounce">🏇</div>
@@ -216,28 +252,112 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
    */
   return (
     <div className="font-montserrat w-full min-h-screen">
+      {/* ===================== COUNTDOWN TIMER BAR ===================== */}
+      {timeLeft !== null && !isExpired && (
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-gray-500 via-gray-500 to-gray-500  shadow-lg">
+          <div className="w-full h-2 bg-white">
+            <div
+              className="h-full bg-[#BF9B53] rounded-r backdrop-blur-sm transition-all duration-1000 ease-linear"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+
+          <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-4 py-2 sm:py-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              {/* Left: Timer Display */}
+              <div className="flex items-center gap-3 flex-1">
+                <div className="p-2 bg-white/20 backdrop-blur rounded-lg flex-shrink-0">
+                  <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs sm:text-sm text-white/80 font-medium">
+                    Session Expires In
+                  </p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl sm:text-3xl font-black text-white tabular-nums">
+                      {String(timeData.minutes).padStart(2, "0")}:
+                      {String(timeData.seconds).padStart(2, "0")}
+                    </span>
+                    <span className="text-xs sm:text-sm text-white/70 font-semibold">
+                      remaining
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Status Message */}
+              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/15 backdrop-blur rounded-lg border border-white/20 flex-shrink-0">
+                <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" />
+                <p className="text-xs sm:text-sm text-white font-semibold">
+                  {timeData.totalSeconds < 60
+                    ? "Hurry! Saving soon"
+                    : "Auto-save your work"}
+                </p>
+              </div>
+            </div>
+
+            {/* Warning Message for Low Time */}
+            {timeData.totalSeconds < 60 && (
+              <div className="mt-2 p-1 bg-[#BF9B53] rounded-md border border-[#BF9B53]">
+                <p className="text-xs sm:text-sm text-white font-semibold">
+                  Less than 1 minute remaining. You will be redirected to
+                  dashboard when time expires.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ===================== EXPIRED STATE ===================== */}
+      {isExpired && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 text-center space-y-4">
+            <div className="text-6xl mb-4"></div>
+            <h2 className="text-2xl sm:text-3xl font-black text-gray-900">
+              Session Expired
+            </h2>
+            <p className="text-gray-600 font-semibold text-sm sm:text-base">
+              Your viewing session has expired. You are being redirected to the
+              dashboard.
+            </p>
+            <div className="flex gap-2 justify-center">
+              <div className="animate-spin w-2 h-2 bg-[#BF9B53] rounded-full" />
+              <div
+                className="animate-spin w-2 h-2 bg-[#BF9B53] rounded-full"
+                style={{ animationDelay: "0.2s" }}
+              />
+              <div
+                className="animate-spin w-2 h-2 bg-[#BF9B53] rounded-full"
+                style={{ animationDelay: "0.4s" }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ===================== HEADER SECTION ===================== */}
       <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
-        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-4 py-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-black text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2 uppercase">
                 Shipment Details
               </h1>
-              <div className="inline-block bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-4 py-1.5 rounded-sm text-sm font-bold">
+              <div className="inline-block bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-2 rounded-sm text-sm font-bold">
                 {shipment.shipmentCode}
               </div>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-600">
                 Listed{" "}
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-[#BF9B53]">
                   {getPublishedTime(shipment.publishedAt)}
                 </span>
               </p>
               <p className="text-sm text-gray-600">
                 by{" "}
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-[#BF9B53]">
                   {shipment.customer?.name}
                 </span>
               </p>
@@ -294,17 +414,17 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
           {/* MIDDLE & RIGHT: Route & Info */}
           <div className="lg:col-span-2 flex flex-col gap-6">
             {/* ===================== ROUTE CARD ===================== */}
-            <div className="bg-white rounded-md border-2 border-yellow-200 p-6 sm:p-8 shadow-md hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white rounded-md border-2 border-yellow-200 p-4 sm:p-6 shadow-md hover:shadow-xl transition-shadow duration-300">
               <h2 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-2">
                 <BiMapPin className="text-[#BF9B53]" size={28} />
                 Route Information
               </h2>
 
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {/* Pickup */}
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-100 to-yellow-200 border-2 border-yellow-300">
+                    <div className="flex items-center justify-center w-14 h-14 rounded-md bg-gradient-to-br from-yellow-100 to-yellow-200 border-2 border-yellow-300">
                       <SlLocationPin size={24} className="text-yellow-600" />
                     </div>
                   </div>
@@ -323,14 +443,14 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 </div>
 
                 {/* Arrow */}
-                <div className="flex justify-center py-2">
+                <div className="flex justify-start px-6">
                   <div className="w-1 h-12 bg-gradient-to-b from-gray-300 to-transparent rounded-full" />
                 </div>
 
                 {/* Delivery */}
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-100 to-yellow-200 border-2 border-yellow-300">
+                    <div className="flex items-center justify-center w-14 h-14 rounded-md bg-gradient-to-br from-yellow-100 to-yellow-200 border-2 border-yellow-300">
                       <BiRocket size={24} className="text-yellow-600" />
                     </div>
                   </div>
@@ -419,10 +539,11 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
             </div>
           </div>
         </div>
+
         {/* ===================== HORSES DETAILS ACCORDION ===================== */}
         <div className="bg-white rounded-md border-2 border-gray-200 shadow-md overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent p-6 sm:p-8 border-b-2 border-gray-200">
+          <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent p-6 sm:p-4 border-b-2 border-gray-200">
             <h2 className="text-2xl sm:text-3xl font-black text-gray-900 flex items-center gap-2">
               Horse Details
               <span className="text-lg bg-[#BF9B53] text-white px-3 py-1 rounded-full">
@@ -440,10 +561,10 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                   onClick={() =>
                     setExpandedHorse(expandedHorse === index ? null : index)
                   }
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 sm:p-8 bg-gray-50 hover:bg-[#BF9B53]/5 cursor-pointer transition-all duration-300 group"
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-4 bg-gray-50 hover:bg-[#BF9B53]/5 cursor-pointer transition-all duration-300 group"
                 >
                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-gray-200 group-hover:border-[#BF9B53] transition-colors shadow-md">
+                    <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border-2 border-gray-200 group-hover:border-[#BF9B53] transition-colors shadow-md">
                       <img
                         src={
                           horse.photo?.url || "https://via.placeholder.com/80"
@@ -492,7 +613,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
                 {/* Horse Details - Expandable */}
                 {expandedHorse === index && (
-                  <div className="p-6 sm:p-8 bg-white space-y-8">
+                  <div className="p-6 sm:p-4 bg-white space-y-8">
                     {/* Image Carousel */}
                     <div className="space-y-4">
                       <h4 className="text-sm font-black text-gray-500 uppercase tracking-wider">
@@ -633,7 +754,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
                       {/* General Info */}
                       {horse.generalInfo && (
-                        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-md p-6">
+                        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-md p-4">
                           <p className="text-xs font-black text-gray-700 uppercase tracking-wider mb-2">
                             General Information :-
                           </p>
@@ -649,6 +770,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
             ))}
           </div>
         </div>
+
         {/* ===================== ACTION BUTTONS ===================== */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button
@@ -682,6 +804,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         {/* ===================== SPACER ===================== */}
         <div className="h-8" />
       </div>
+
       <button
         onClick={() => navigate(-1)}
         className="fixed bottom-6 right-6 bg-gray-600 text-white p-3 rounded-full shadow-lg hover:bg-[#BF9B53] transition"

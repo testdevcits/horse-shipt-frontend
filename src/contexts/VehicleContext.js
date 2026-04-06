@@ -19,34 +19,35 @@ export const VehicleProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
 
-  // ---------------- TOAST STATE ----------------
-  const [toast, setToast] = useState({
-    message: "",
-    type: "",
-    visible: false,
-  });
-
+  // ---------------- TOAST HANDLER ----------------
   const showToast = (message, type = "info") => {
-    setToast({ message, type, visible: true });
-    setTimeout(() => {
-      setToast({ message: "", type: "", visible: false });
-    }, 3000);
+    if (Toast[type]) {
+      Toast[type](message);
+    } else {
+      Toast.info(message);
+    }
   };
 
   // ---------------- FETCH VEHICLES ----------------
   const fetchVehicles = useCallback(async () => {
     if (!token || fetched) return;
+
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/vehicles`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setVehicles(res.data.vehicles || []);
+
+      setVehicles(res?.data?.vehicles || []);
       setFetched(true);
     } catch (err) {
-      console.error("Fetch Vehicles Error:", err.response?.data || err.message);
+      console.error(
+        "Fetch Vehicles Error:",
+        err?.response?.data || err.message
+      );
+
       showToast(
-        err.response?.data?.message || "Failed to fetch vehicles",
+        err?.response?.data?.message || "Failed to fetch vehicles",
         "error"
       );
     } finally {
@@ -70,14 +71,17 @@ export const VehicleProvider = ({ children }) => {
             "Content-Type": "multipart/form-data",
           },
         });
-        setFetched(false); // re-fetch after add
+
+        setFetched(false);
         await fetchVehicles();
+
         showToast("Vehicle added successfully", "success");
         return { success: true };
       } catch (err) {
-        console.error("Add Vehicle Error:", err.response?.data || err.message);
+        console.error("Add Vehicle Error:", err?.response?.data || err.message);
+
         showToast(
-          err.response?.data?.message || "Failed to add vehicle",
+          err?.response?.data?.message || "Failed to add vehicle",
           "error"
         );
         return { success: false };
@@ -104,17 +108,20 @@ export const VehicleProvider = ({ children }) => {
             "Content-Type": "multipart/form-data",
           },
         });
+
         setFetched(false);
         await fetchVehicles();
+
         showToast("Vehicle updated successfully", "success");
         return { success: true };
       } catch (err) {
         console.error(
           "Update Vehicle Error:",
-          err.response?.data || err.message
+          err?.response?.data || err.message
         );
+
         showToast(
-          err.response?.data?.message || "Failed to update vehicle",
+          err?.response?.data?.message || "Failed to update vehicle",
           "error"
         );
         return { success: false };
@@ -138,17 +145,20 @@ export const VehicleProvider = ({ children }) => {
         await axios.delete(`${API_BASE_URL}/vehicles/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         setFetched(false);
         await fetchVehicles();
+
         showToast("Vehicle deleted successfully", "success");
         return { success: true };
       } catch (err) {
         console.error(
           "Delete Vehicle Error:",
-          err.response?.data || err.message
+          err?.response?.data || err.message
         );
+
         showToast(
-          err.response?.data?.message || "Failed to delete vehicle",
+          err?.response?.data?.message || "Failed to delete vehicle",
           "error"
         );
         return { success: false };
@@ -167,7 +177,7 @@ export const VehicleProvider = ({ children }) => {
       setVehicles([]);
       setFetched(false);
     }
-  }, [token, user, fetchVehicles]); // all dependencies included
+  }, [token, user, fetchVehicles]);
 
   return (
     <VehicleContext.Provider
@@ -181,15 +191,6 @@ export const VehicleProvider = ({ children }) => {
       }}
     >
       {children}
-
-      {/* Toast Component */}
-      {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ message: "", type: "", visible: false })}
-        />
-      )}
     </VehicleContext.Provider>
   );
 };

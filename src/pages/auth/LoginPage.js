@@ -8,17 +8,53 @@ import Toast from "../../components/common/Toast";
 import loginBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
 import loginLogo from "../../assets/images/loginLogo.png";
+
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+
+const EyeIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EyeOffIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+    <line x1="1" y1="1" x2="23" y2="23" />
+  </svg>
+);
 
 const LoginPage = () => {
   const { login, oauthLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const initialValues = { email: "", password: "", role: "" };
+
   const validationSchema = Yup.object({
     email: Yup.string().email("Invalid email").required("Required"),
     password: Yup.string().required("Required"),
@@ -27,15 +63,26 @@ const LoginPage = () => {
       .required("Required"),
   });
 
-  // ----------------- Handle OAuth redirect -----------------
+  /* ===============================
+     HANDLE GOOGLE REDIRECT
+  ================================ */
   useEffect(() => {
     const params = new URLSearchParams(location.search);
+
+    // HANDLE ERROR FROM GOOGLE
     const error = params.get("error");
     if (error) {
-      setToast({ message: decodeURIComponent(error), type: "error" });
+      setToast({
+        message: decodeURIComponent(error),
+        type: "error",
+      });
+
+      // Clean URL after showing error
+      navigate("/login", { replace: true });
       return;
     }
 
+    // HANDLE SUCCESS LOGIN
     const token = params.get("token");
     if (token) {
       const oauthUser = {
@@ -59,16 +106,16 @@ const LoginPage = () => {
     }
   }, [location.search, oauthLogin, navigate]);
 
-  // ----------------- Handle normal login -----------------
+  /* ===============================
+     NORMAL LOGIN
+  ================================ */
   const handleLogin = async (values, { setSubmitting, setFieldError }) => {
     setLoading(true);
 
     try {
-      // Call AuthContext login function (it handles API request)
-      const result = await login(values); // <-- only one API call
+      const result = await login(values);
 
       if (result.success) {
-        // Navigate based on role
         navigate(
           values.role === "shipper"
             ? "/shipper/dashboard"
@@ -76,29 +123,38 @@ const LoginPage = () => {
           { replace: true }
         );
       } else {
-        // Handle validation errors from backend
         if (result.errors?.length > 0) {
           const emailError = result.errors.find((e) =>
             e.toLowerCase().includes("email")
           );
           if (emailError) setFieldError("email", emailError);
 
-          // Show toast for all errors
-          setToast({ message: result.errors.join(", "), type: "error" });
+          setToast({
+            message: result.errors.join(", "),
+            type: "error",
+          });
         } else {
-          setToast({ message: "Login failed", type: "error" });
+          setToast({
+            message: "Login failed",
+            type: "error",
+          });
         }
       }
     } catch (err) {
       console.error("[LOGIN FRONTEND ERROR]", err);
-      setToast({ message: "Login error", type: "error" });
+      setToast({
+        message: "Login error",
+        type: "error",
+      });
     } finally {
       setSubmitting(false);
       setLoading(false);
     }
   };
 
-  // ----------------- Google OAuth login -----------------
+  /* ===============================
+     GOOGLE LOGIN
+  ================================ */
   const handleGoogleLogin = (role) => {
     if (!role) {
       setToast({
@@ -107,6 +163,7 @@ const LoginPage = () => {
       });
       return;
     }
+
     window.location.href = `${API_BASE_URL}/auth/google?role=${encodeURIComponent(
       role
     )}`;
@@ -120,12 +177,7 @@ const LoginPage = () => {
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-20">
         {/* Logo */}
         <div className="flex items-center justify-center w-full md:w-[1168px] h-[64px] gap-4 opacity-100">
-          {/* Logo Image */}
-          <img
-            src={loginLogo} // import your logo at the top: import logo from '../assets/images/logo.png';
-            alt="Logo"
-            className="h-full object-contain"
-          />
+          <img src={loginLogo} alt="Logo" className="h-full object-contain" />
         </div>
 
         {/* Login form */}
@@ -152,6 +204,7 @@ const LoginPage = () => {
             {({ values, setFieldValue, isValid, isSubmitting, dirty }) => {
               const canSubmit =
                 isValid && dirty && values.role && !isSubmitting && !loading;
+
               return (
                 <Form className="flex flex-col gap-3">
                   {/* Email */}
@@ -177,12 +230,22 @@ const LoginPage = () => {
                     <label className="text-xs font-medium text-gray-700">
                       Password
                     </label>
-                    <Field
-                      name="password"
-                      type="password"
-                      placeholder="Enter your password"
-                      className="w-full border rounded p-2 text-xs mt-1"
-                    />
+                    <div className="relative mt-1">
+                      <Field
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        className="w-full border rounded p-2 text-xs pr-8"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                      </button>
+                    </div>
                     <ErrorMessage
                       name="password"
                       component="div"
@@ -218,20 +281,10 @@ const LoginPage = () => {
 
                   {/* ACTION SECTION */}
                   <div className="flex flex-col gap-3 mt-4">
-                    {/* Submit button */}
-                    <Button
-                      type="submit"
-                      disabled={!canSubmit}
-                      className={`w-full px-4 py-2 text-sm rounded-lg transition ${
-                        canSubmit
-                          ? "bg-[#BF9B53] text-white hover:bg-[#a6813f]"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}
-                    >
+                    <Button type="submit" disabled={!canSubmit}>
                       {loading ? "Logging in..." : "Login"}
                     </Button>
 
-                    {/* OR Divider */}
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-px bg-gray-300" />
                       <span className="text-xs text-gray-500 font-medium">
@@ -240,17 +293,17 @@ const LoginPage = () => {
                       <div className="flex-1 h-px bg-gray-300" />
                     </div>
 
-                    {/* Google login */}
                     <Button
                       type="button"
                       onClick={() => handleGoogleLogin(values.role)}
                       disabled={!values.role}
-                      className="w-full flex items-center bg-gray-500 justify-center gap-2 px-4 py-2 text-sm rounded-lg border border-gray-300 transition disabled:opacity-50"
+                      className="w-full flex items-center justify-center gap-2"
                     >
                       <FcGoogle size={18} />
                       Continue with Google
                     </Button>
                   </div>
+
                   <div className="mt-2 w-full text-end">
                     <Link
                       to="/"

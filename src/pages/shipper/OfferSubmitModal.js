@@ -6,12 +6,23 @@ import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteConte
 import SignatureCanvas from "react-signature-canvas";
 import Toast from "../../components/common/Toast";
 import { FiX } from "react-icons/fi";
+import {
+  DollarSign,
+  Clock,
+  FileText,
+  PenTool,
+  CreditCard,
+  Package,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 
 const OfferSubmitModal = ({ shipment, onClose }) => {
   const { addQuote } = useShipperQuote();
 
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [sigPad, setSigPad] = useState(null);
+  const [isSignatureDirty, setIsSignatureDirty] = useState(false);
 
   const sigWrapperRef = useRef(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
@@ -82,6 +93,7 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
       showToast("Quote submitted successfully", "success");
       resetForm();
       sigPad.clear();
+      setIsSignatureDirty(false);
       onClose();
     }
 
@@ -98,185 +110,271 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
         />
       )}
 
-      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-2 sm:p-4">
-        <div className="bg-white w-full max-w-7xl max-h-[90vh] rounded-md flex flex-col overflow-hidden shadow-md">
-          {/* HEADER */}
-          <div className="relative px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-indigo-50">
+      <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
+        <div className="bg-white w-full max-w-5xl max-h-[95vh] rounded-md flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+          {/* ============ HEADER ============ */}
+          <div className="relative px-4 sm:px-4 py-4 sm:py-4 border-b border-slate-200 bg-gradient-to-r from-gray-50  to-gray-50">
             <button
               onClick={onClose}
-              className="absolute right-3 sm:right-6 top-3 sm:top-5 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-4 sm:right-8 top-4 sm:top-4 text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-lg transition-all duration-200"
             >
-              <FiX size={24} />
+              <FiX size={20} />
             </button>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 pr-8">
-              Submit Shipping Offer
-            </h2>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1">
-              Complete the form and provide your digital signature
-            </p>
+            <div className="pr-10 space-y-1">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#BF9B53] rounded-lg">
+                  <FileText className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                  Submit Shipping Offer
+                </h2>
+              </div>
+              <p className="text-sm text-slate-600 ml-11">
+                Complete the form below and sign to confirm your offer
+              </p>
+            </div>
           </div>
 
-          {/* DEFAULT FIELDS AT TOP - SMALL TEXT */}
-          <div className="px-4 sm:px-6 py-3 bg-blue-50 border-b border-blue-200">
-            <div className="grid grid-cols-2 gap-2 sm:gap-4">
-              <div>
-                <p className="text-xs text-gray-600 font-medium">
-                  Payment Method
-                </p>
-                <p className="text-sm sm:text-base font-semibold text-gray-900">
-                  💳 Card
-                </p>
+          {/* ============ QUICK INFO BAR ============ */}
+          <div className="px-4 sm:px-8 py-4 bg-gray-200 border-b border-[#BF9B53]">
+            <div className="grid grid-cols-2 gap-4 sm:gap-8">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#BF9B53] rounded-md">
+                  <CreditCard className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-600 font-medium uppercase tracking-wider">
+                    Payment Method
+                  </p>
+                  <p className="text-sm sm:text-base font-semibold text-slate-900 mt-0.5">
+                    Credit Card
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-gray-600 font-medium">Payment Due</p>
-                <p className="text-sm sm:text-base font-semibold text-gray-900">
-                  📦 On Delivery
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#BF9B53] rounded-sm">
+                  <Package className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-600 font-medium uppercase tracking-wider">
+                    Payment Due
+                  </p>
+                  <p className="text-sm sm:text-base font-semibold text-slate-900 mt-0.5">
+                    On Delivery
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* SCROLLABLE FORM BODY */}
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 sm:py-6 vehicle-scroll">
+          {/* ============ SCROLLABLE FORM BODY ============ */}
+          <div className="flex-1 overflow-y-auto px-4 sm:px-4 py-6 sm:py-4 vehicle-scroll">
             <Formik
               initialValues={initialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
             >
-              {({ isSubmitting, errors, touched }) => (
-                <Form className="flex flex-col gap-5">
-                  {/* TOTAL PRICE */}
-                  <div>
-                    <label className="block mb-2 font-semibold text-gray-800 text-sm sm:text-base">
-                      Total Price *
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-3 text-gray-600 text-lg">
-                        $
-                      </span>
-                      <Field
-                        name="totalPrice"
-                        type="number"
-                        placeholder="Enter total price"
-                        step="0.01"
-                        className="w-full pl-8 pr-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm sm:text-base transition-colors"
-                      />
+              {({ isSubmitting, errors, touched, values }) => (
+                <Form className="space-y-6 sm:space-y-8">
+                  {/* ---- PRICING SECTION ---- */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1 bg-[#BF9B53] rounded-sm">
+                        <DollarSign className="w-4 h-4 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-slate-900">
+                        Pricing
+                      </h3>
                     </div>
-                    {errors.totalPrice && touched.totalPrice && (
-                      <ErrorMessage
-                        name="totalPrice"
-                        component="div"
-                        className="text-red-500 text-xs sm:text-sm mt-1.5"
-                      />
-                    )}
+                    <div>
+                      <label className="block mb-2 font-semibold text-slate-900 text-sm sm:text-base">
+                        Total Price <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-3.5 text-slate-500 text-lg font-semibold">
+                          $
+                        </span>
+                        <Field
+                          name="totalPrice"
+                          type="number"
+                          placeholder="0.00"
+                          step="0.01"
+                          className="w-full pl-10 pr-4 py-3 sm:py-3.5 border-2 border-slate-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm sm:text-base transition-all duration-200 font-semibold"
+                        />
+                      </div>
+                      {errors.totalPrice && touched.totalPrice && (
+                        <div className="flex items-center gap-2 mt-2 text-red-500 text-xs sm:text-sm">
+                          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                          <ErrorMessage name="totalPrice" />
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* TIMING */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block mb-2 font-semibold text-gray-800 text-sm sm:text-base">
-                        Pickup Time *
-                      </label>
-                      <Field
-                        name="pickupTime"
-                        type="time"
-                        className="w-full px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm sm:text-base transition-colors"
-                      />
-                      {errors.pickupTime && touched.pickupTime && (
-                        <ErrorMessage
+                  {/* ---- TIMING SECTION ---- */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1 bg-[#BF9B53] rounded-sm">
+                        <Clock className="w-4 h-4 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-slate-900">
+                        Timing
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-4">
+                      <div>
+                        <label className="block mb-2 font-semibold text-slate-900 text-sm sm:text-base">
+                          Pickup Time <span className="text-red-500">*</span>
+                        </label>
+                        <Field
                           name="pickupTime"
-                          component="div"
-                          className="text-red-500 text-xs sm:text-sm mt-1.5"
+                          type="time"
+                          className="w-full px-4 py-3 sm:py-3.5 border-2 border-slate-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm sm:text-base transition-all duration-200"
                         />
-                      )}
-                    </div>
+                        {errors.pickupTime && touched.pickupTime && (
+                          <div className="flex items-center gap-2 mt-2 text-red-500 text-xs sm:text-sm">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                            <ErrorMessage name="pickupTime" />
+                          </div>
+                        )}
+                      </div>
 
-                    <div>
-                      <label className="block mb-2 font-semibold text-gray-800 text-sm sm:text-base">
-                        Arrival Time *
-                      </label>
-                      <Field
-                        name="arrivalTime"
-                        type="time"
-                        className="w-full px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm sm:text-base transition-colors"
-                      />
-                      {errors.arrivalTime && touched.arrivalTime && (
-                        <ErrorMessage
+                      <div>
+                        <label className="block mb-2 font-semibold text-slate-900 text-sm sm:text-base">
+                          Arrival Time <span className="text-red-500">*</span>
+                        </label>
+                        <Field
                           name="arrivalTime"
-                          component="div"
-                          className="text-red-500 text-xs sm:text-sm mt-1.5"
+                          type="time"
+                          className="w-full px-4 py-3 sm:py-3.5 border-2 border-slate-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm sm:text-base transition-all duration-200"
                         />
-                      )}
+                        {errors.arrivalTime && touched.arrivalTime && (
+                          <div className="flex items-center gap-2 mt-2 text-red-500 text-xs sm:text-sm">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                            <ErrorMessage name="arrivalTime" />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* NOTES */}
-                  <div>
-                    <label className="block mb-2 font-semibold text-gray-800 text-sm sm:text-base">
-                      Notes
-                    </label>
+                  {/* ---- CANCELLATION SECTION ---- */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="p-1.5 bg-[#BF9B53] rounded-sm">
+                        <AlertCircle className="w-4 h-4 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-slate-900">
+                        Cancellation Policy
+                      </h3>
+                    </div>
+                    <div>
+                      <label className="block mb-2 font-semibold text-slate-900 text-sm sm:text-base">
+                        Cancellation Window (Days){" "}
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <Field
+                        name="cancellationWindowDays"
+                        type="number"
+                        min="0"
+                        placeholder="e.g., 2"
+                        className="w-full px-4 py-3 sm:py-3.5 border-2 border-slate-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm sm:text-base transition-all duration-200"
+                      />
+                      {errors.cancellationWindowDays &&
+                        touched.cancellationWindowDays && (
+                          <div className="flex items-center gap-2 mt-2 text-red-500 text-xs sm:text-sm">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                            <ErrorMessage name="cancellationWindowDays" />
+                          </div>
+                        )}
+                      <p className="text-xs text-slate-500 mt-2 ml-1">
+                        Number of days customer can cancel this shipment
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* ---- NOTES SECTION ---- */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="p-1.5 bg-[#BF9B53] rounded-sm">
+                        <FileText className="w-4 h-4 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-slate-900">
+                        Additional Notes
+                      </h3>
+                    </div>
                     <Field
                       as="textarea"
                       name="notes"
                       rows={3}
-                      placeholder="Add any special instructions..."
-                      className="w-full px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm sm:text-base resize-none transition-colors"
+                      placeholder="Add any special instructions or notes..."
+                      className="w-full px-4 py-3 sm:py-3.5 border-2 border-slate-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm sm:text-base resize-none transition-all duration-200"
                     />
                   </div>
 
-                  {/* CANCELLATION WINDOW */}
-                  <div>
-                    <label className="block mb-2 font-semibold text-gray-800 text-sm sm:text-base">
-                      Cancellation Window (Days) *
-                    </label>
-                    <Field
-                      name="cancellationWindowDays"
-                      type="number"
-                      min="0"
-                      placeholder="e.g., 2"
-                      className="w-full px-4 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-sm sm:text-base transition-colors"
-                    />
-                    {errors.cancellationWindowDays &&
-                      touched.cancellationWindowDays && (
-                        <ErrorMessage
-                          name="cancellationWindowDays"
-                          component="div"
-                          className="text-red-500 text-xs sm:text-sm mt-1.5"
-                        />
-                      )}
-                  </div>
+                  {/* ---- SIGNATURE SECTION ---- */}
+                  <div className="border-t-2 border-slate-200 pt-6 sm:pt-8">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="p-1.5 bg-[#BF9B53] rounded-sm">
+                        <PenTool className="w-4 h-4 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-slate-900">
+                        Digital Signature
+                      </h3>
+                      <span className="text-red-500 font-bold">*</span>
+                    </div>
 
-                  {/* SIGNATURE */}
-                  <div className="border-t-2 border-gray-200 pt-5">
-                    <label className="block mb-3 font-semibold text-gray-800 text-sm sm:text-base">
-                      Digital Signature *
-                    </label>
+                    <p className="text-xs sm:text-sm text-slate-600 mb-4 ml-1">
+                      Sign below to confirm your shipping offer
+                    </p>
 
                     <div
                       ref={sigWrapperRef}
-                      className="w-full border-3 border-dashed border-gray-300 rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 hover:border-blue-400 transition-colors"
+                      className="w-full border-3 border-dashed border-slate-400 rounded-md overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50 hover:border-blue-500 transition-all duration-300 shadow-inner"
                     >
                       {canvasWidth > 0 && (
                         <SignatureCanvas
-                          ref={(ref) => setSigPad(ref)}
-                          penColor="#2563eb"
-                          backgroundColor="#ffffff"
+                          ref={(ref) => {
+                            setSigPad(ref);
+                          }}
+                          penColor="#000000"
+                          backgroundColor="transparent"
                           canvasProps={{
                             width: canvasWidth,
-                            height: 150,
-                            className: "w-full cursor-crosshair",
+                            height: 180,
+                            className: "w-full cursor-crosshair block",
                           }}
+                          onEnd={() => setIsSignatureDirty(true)}
+                          velocityFilterWeight={0.7}
+                          minWidth={1.5}
+                          maxWidth={2.5}
+                          throttle={16}
                         />
                       )}
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => sigPad && sigPad.clear()}
-                      className="mt-2 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-                    >
-                      ↺ Clear Signature
-                    </button>
+                    <div className="flex items-center justify-between mt-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (sigPad) {
+                            sigPad.clear();
+                            setIsSignatureDirty(false);
+                          }
+                        }}
+                        className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-all duration-200"
+                      >
+                        ↺ Clear Signature
+                      </button>
+                      {isSignatureDirty && (
+                        <div className="flex items-center gap-1.5 text-green-600">
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span className="text-xs sm:text-sm font-medium">
+                            Signature captured
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* HIDDEN FIELDS */}
@@ -287,13 +385,13 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
             </Formik>
           </div>
 
-          {/* ACTIONS - STICKY FOOTER */}
-          <div className="px-4 sm:px-6 py-4 border-t-2 border-gray-200 bg-white flex gap-3">
+          {/* ============ STICKY FOOTER ============ */}
+          <div className="px-4 sm:px-8 py-4 border-t-2 border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 flex gap-3 sm:gap-4">
             <Button
               variant="secondary"
               fullWidth
               onClick={onClose}
-              className="py-2.5 sm:py-3 font-semibold text-sm sm:text-base"
+              className="py-3 sm:py-3.5 font-semibold text-sm sm:text-base"
             >
               Cancel
             </Button>
@@ -301,7 +399,7 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
               variant="primary"
               type="submit"
               fullWidth
-              className="py-2.5 sm:py-3 font-semibold text-sm sm:text-base"
+              className="py-3 sm:py-3.5 font-semibold text-sm sm:text-base"
               onClick={() => {
                 document
                   .querySelector("form")

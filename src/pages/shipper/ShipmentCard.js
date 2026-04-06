@@ -46,7 +46,7 @@ const ShipmentCard = ({ shipment }) => {
   return (
     <div
       onClick={handleNavigateWithQuery}
-      className="group relative bg-white border border-gray-200 hover:border-[#BF9B53] rounded-xl p-4 md:p-6 font-montserrat shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer w-full overflow-hidden"
+      className="group relative bg-white border border-gray-200 hover:border-[#BF9B53] rounded-md p-4 md:p-6 font-montserrat shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer w-full overflow-hidden"
     >
       {/* BACKGROUND ACCENT */}
       <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#BF9B53] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

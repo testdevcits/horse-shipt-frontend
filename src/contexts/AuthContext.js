@@ -54,18 +54,36 @@ export const AuthProvider = ({ children }) => {
   /* ===============================
      LOGIN
   ================================ */
-  const login = async ({ email, password, role, deviceId, location }) => {
-    if (!role) return { success: false, errors: ["Role is required"] };
+  const login = async (payload) => {
+    const { email, password, role, deviceId, location } = payload;
+
+    if (!role) {
+      return { success: false, errors: ["Role is required"] };
+    }
 
     setLoading(true);
+
     try {
       const res = await axios.post(
         `${API_BASE_URL}/auth/login`,
-        { email, password, role, deviceId, location },
+        {
+          email,
+          password,
+          role,
+          deviceId: deviceId || "web",
+          location: location || "India",
+        },
         { withCredentials: true }
       );
 
-      const userData = res.data.data;
+      const userData = res.data?.data;
+
+      if (!userData?.token) {
+        return {
+          success: false,
+          errors: ["Invalid server response"],
+        };
+      }
 
       setUser(userData);
       setToken(userData.token);
@@ -75,16 +93,26 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
 
-      // 🔹 Socket connect after login
-      socket.auth = { userId: userData._id, role: userData.role };
-      socket.connect();
+      if (!socket.connected) {
+        socket.auth = {
+          userId: userData._id,
+          role: userData.role,
+        };
+        socket.connect();
+      }
 
       return { success: true };
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
+
+      const backendData = err.response?.data;
+
       return {
         success: false,
-        errors: err.response?.data?.errors || ["Server Error"],
+        errors: backendData?.errors ||
+          (backendData?.message ? [backendData.message] : null) || [
+            "Invalid credentials",
+          ],
       };
     } finally {
       setLoading(false);

@@ -10,7 +10,7 @@ import React, {
 } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
-import Toast from "../components/common/Toast";
+import Toast from "../components/common/Toast"; // ✅ correct usage
 
 // ---------------------------------------------
 // Context setup
@@ -38,13 +38,15 @@ export const ShipperSettingsProvider = ({ children }) => {
   const [fetched, setFetched] = useState(false);
 
   // ---------------- TOAST HANDLER ----------------
-  const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const showToast = (message, type = "info") => {
-    setToast({ message, type, visible: true });
-    setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
+    if (Toast[type]) {
+      Toast[type](message);
+    } else {
+      Toast.info(message);
+    }
   };
 
-  // ---------------- FETCH SETTINGS (Logged-in Shipper) ----------------
+  // ---------------- FETCH SETTINGS ----------------
   const fetchSettings = useCallback(async () => {
     if (!token || fetched) return;
 
@@ -54,12 +56,16 @@ export const ShipperSettingsProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setSettings(res.data.data || {});
+      setSettings(res?.data?.data || {});
       setFetched(true);
     } catch (err) {
-      console.error("Fetch Settings Error:", err.response?.data || err.message);
+      console.error(
+        "Fetch Settings Error:",
+        err?.response?.data || err.message
+      );
+
       showToast(
-        err.response?.data?.message || "Failed to fetch settings",
+        err?.response?.data?.message || "Failed to fetch settings",
         "error"
       );
     } finally {
@@ -67,7 +73,7 @@ export const ShipperSettingsProvider = ({ children }) => {
     }
   }, [token, fetched]);
 
-  // ---------------- FETCH SETTINGS BY ID (Admin Access) ----------------
+  // ---------------- FETCH SETTINGS BY ID ----------------
   const fetchSettingsById = async (shipperId) => {
     if (!token || !shipperId) return;
 
@@ -77,18 +83,22 @@ export const ShipperSettingsProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setSettings(res.data.data || {});
+      setSettings(res?.data?.data || {});
       showToast("Settings fetched successfully", "success");
-      return { success: true, data: res.data.data };
+
+      return { success: true, data: res?.data?.data };
     } catch (err) {
       console.error(
         "Fetch Settings by ID Error:",
-        err.response?.data || err.message
+        err?.response?.data || err.message
       );
+
       showToast(
-        err.response?.data?.message || "Failed to fetch shipper settings by ID",
+        err?.response?.data?.message ||
+          "Failed to fetch shipper settings by ID",
         "error"
       );
+
       return { success: false };
     } finally {
       setLoading(false);
@@ -112,18 +122,21 @@ export const ShipperSettingsProvider = ({ children }) => {
         }
       );
 
-      setSettings(res.data.data || updatedData);
+      setSettings(res?.data?.data || updatedData);
+
       showToast("Settings updated successfully", "success");
       return { success: true };
     } catch (err) {
       console.error(
         "Update Settings Error:",
-        err.response?.data || err.message
+        err?.response?.data || err.message
       );
+
       showToast(
-        err.response?.data?.message || "Failed to update settings",
+        err?.response?.data?.message || "Failed to update settings",
         "error"
       );
+
       return { success: false };
     } finally {
       setLoading(false);
@@ -152,14 +165,6 @@ export const ShipperSettingsProvider = ({ children }) => {
       }}
     >
       {children}
-
-      {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ message: "", type: "", visible: false })}
-        />
-      )}
     </ShipperSettingsContext.Provider>
   );
 };

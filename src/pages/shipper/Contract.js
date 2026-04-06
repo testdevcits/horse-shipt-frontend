@@ -1,28 +1,584 @@
-import React from "react";
-import comingSoonImg from "../../assets/images/defultlogo.png";
+import React, { useEffect, useState } from "react";
+import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
+import { useShipperDelivery } from "../../contexts/shipperContext/ShipperDeliveryContext";
+import { useNavigate } from "react-router-dom";
+import {
+  FiTruck,
+  FiMapPin,
+  FiCalendar,
+  FiCheckCircle,
+  FiXCircle,
+  FiClock,
+  FiHash,
+  FiUsers,
+  FiNavigation,
+  FiAlertCircle,
+} from "react-icons/fi";
+import { MdClose } from "react-icons/md";
+import { IoArrowBack } from "react-icons/io5";
+import PageLoader from "../../components/common/PageLoader";
 
-const ContractsComingSoon = () => {
+/* ─────────────────────────────────────────
+   STATUS BADGE
+───────────────────────────────────────────*/
+const StatusBadge = ({ state }) => {
+  const map = {
+    accepted: {
+      label: "Accepted",
+      icon: <FiCheckCircle size={11} />,
+      cls: "bg-green-50 text-green-700 border-green-200",
+    },
+    completed: {
+      label: "Delivered & Verified",
+      icon: <FiCheckCircle size={11} />,
+      cls: "bg-blue-50 text-blue-700 border-blue-200",
+    },
+    cancelled: {
+      label: "Cancelled",
+      icon: <FiXCircle size={11} />,
+      cls: "bg-red-50 text-red-600 border-red-200",
+    },
+    pending: {
+      label: "Pending",
+      icon: <FiClock size={11} />,
+      cls: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    },
+  };
+  const cfg = map[state] || map.pending;
   return (
-    <div className="w-full flex flex-col items-center justify-center text-center px-4 py-20 animate-slide-fade-in">
-      {/* Image */}
-      <img
-        src={comingSoonImg}
-        alt="Coming Soon"
-        className="w-[52px] sm:w-[52px] mb-6 object-contain"
-      />
+    <span
+      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${cfg.cls}`}
+    >
+      {cfg.icon}
+      {cfg.label}
+    </span>
+  );
+};
 
-      {/* Heading */}
-      <h2 className="w-full text-[24px] sm:text-[28px] font-semibold text-[#4B5563] mb-4">
-        Coming Soon
-      </h2>
+/* ─────────────────────────────────────────
+   EMPTY STATE
+───────────────────────────────────────────*/
+const EmptyState = ({ icon, title, subtitle }) => (
+  <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-gray-200 rounded-2xl bg-gray-50">
+    <div className="p-4 bg-[#BF9B53]/10 rounded-full mb-4">{icon}</div>
+    <h3 className="text-base font-semibold text-gray-700">{title}</h3>
+    <p className="text-gray-400 text-sm mt-1 max-w-xs">{subtitle}</p>
+  </div>
+);
 
-      {/* Description */}
-      <p className="text-gray-600 text-[15px] sm:text-[16px] leading-relaxed max-w-md">
-        Stay tuned for the latest enhancements coming soon to the Contracts
-        page. You will be able to upload and manage contracts here.
-      </p>
+/* ─────────────────────────────────────────
+   SHIPMENT CARD
+───────────────────────────────────────────*/
+const ShipmentCard = ({
+  quote,
+  tabKey,
+  onMarkDelivered,
+  onTrack,
+  deliveryLoading,
+  selectedQuote,
+}) => {
+  const isCancelled =
+    quote.isCancelled === true || quote.status === "cancelled";
+  const isCompleted = tabKey === "completed";
+  const isUpcoming = tabKey === "upcoming";
+  const isProcessingThis =
+    deliveryLoading && selectedQuote?.shipment?._id === quote.shipment?._id;
+
+  const badgeState = isCancelled
+    ? "cancelled"
+    : isCompleted
+    ? "completed"
+    : "accepted";
+
+  return (
+    <div
+      className={`flex flex-col gap-4 bg-white border rounded-md p-5 shadow-sm transition
+      ${
+        isCancelled
+          ? "border-red-100 opacity-75"
+          : "border-gray-200 hover:shadow-md"
+      }`}
+    >
+      {/* ── TOP ROW: Code + Badges ── */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+          <FiHash size={12} />
+          <span>{quote.shipment?.shipmentCode || quote._id}</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <StatusBadge state={badgeState} />
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border
+            ${
+              quote.paymentStatus === "paid"
+                ? "bg-green-50 text-green-700 border-green-200"
+                : "bg-yellow-50 text-yellow-700 border-yellow-200"
+            }`}
+          >
+            Payment: {quote.paymentStatus}
+          </span>
+        </div>
+      </div>
+
+      {/* ── ROUTE ── */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 text-gray-800 font-semibold text-sm">
+          <FiMapPin size={14} className="text-[#BF9B53] shrink-0" />
+          <span>{quote.shipment?.pickupLocation}</span>
+        </div>
+        <span className="text-gray-300 text-base">→</span>
+        <div className="flex items-center gap-1.5 text-gray-800 font-semibold text-sm">
+          <FiMapPin size={14} className="text-green-500 shrink-0" />
+          <span>{quote.shipment?.deliveryLocation}</span>
+        </div>
+      </div>
+
+      {/* ── META ── */}
+      <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+        {quote.shipment?.pickupDate && (
+          <div className="flex items-center gap-1.5">
+            <FiCalendar size={12} />
+            <span>
+              Pickup:{" "}
+              {new Date(quote.shipment.pickupDate).toLocaleDateString("en-US", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+        )}
+        {quote.shipment?.deliveryDate && (
+          <div className="flex items-center gap-1.5">
+            <FiCalendar size={12} />
+            <span>
+              Delivery:{" "}
+              {new Date(quote.shipment.deliveryDate).toLocaleDateString(
+                "en-US",
+                { day: "numeric", month: "short", year: "numeric" }
+              )}
+            </span>
+          </div>
+        )}
+        {quote.shipment?.numberOfHorses && (
+          <div className="flex items-center gap-1.5">
+            <FiUsers size={12} />
+            <span>
+              {quote.shipment.numberOfHorses} Horse
+              {quote.shipment.numberOfHorses !== 1 ? "s" : ""}
+            </span>
+          </div>
+        )}
+        {quote.pickupTime && (
+          <div className="flex items-center gap-1.5">
+            <FiClock size={12} />
+            <span>Pickup time: {quote.pickupTime}</span>
+          </div>
+        )}
+      </div>
+
+      {/* ── PRICE ── */}
+      {quote.totalPrice && (
+        <div className="flex items-center gap-2 text-sm">
+          <span className="font-bold text-gray-800">
+            {quote.currency === "USD" ? "$" : quote.currency}
+            {quote.totalPrice.toLocaleString()}
+          </span>
+          <span className="text-gray-400 text-xs">
+            · {quote.paymentMethod} · due on {quote.paymentDue}
+          </span>
+        </div>
+      )}
+
+      {/* ── CANCEL REASON ── */}
+      {isCancelled && quote.cancelReason && (
+        <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-xs text-red-500">
+          <FiAlertCircle size={13} className="mt-0.5 shrink-0" />
+          <span>Cancellation reason: {quote.cancelReason}</span>
+        </div>
+      )}
+
+      {/* ── ACTIONS ── */}
+      <div className="flex flex-wrap gap-3 pt-1 border-t border-gray-100">
+        {/* Track — show for upcoming and completed */}
+        {!isCancelled && (
+          <button
+            onClick={() => onTrack(quote)}
+            className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53]
+              px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#BF9B53]/5 transition"
+          >
+            <FiNavigation size={14} />
+            Track Shipment
+          </button>
+        )}
+
+        {/* Mark Delivered — only upcoming tab */}
+        {isUpcoming && (
+          <button
+            className="flex items-center gap-2 bg-[#BF9B53] text-white
+              px-5 py-2 rounded-xl text-sm font-semibold hover:bg-[#a8863f]
+              disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            disabled={isProcessingThis}
+            onClick={() => onMarkDelivered(quote)}
+          >
+            <FiTruck size={14} />
+            {isProcessingThis ? "Processing..." : "Mark Delivered"}
+          </button>
+        )}
+
+        {/* Completed pill */}
+        {isCompleted && (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 text-sm font-semibold">
+            <FiCheckCircle size={14} />
+            Delivery Verified
+          </div>
+        )}
+
+        {/* Cancelled pill */}
+        {isCancelled && (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-500 text-sm font-semibold">
+            <FiXCircle size={14} />
+            Shipment Cancelled
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default ContractsComingSoon;
+/* ─────────────────────────────────────────
+   MAIN COMPONENT
+───────────────────────────────────────────*/
+const AllUpcomingShipments = () => {
+  const { quotes, loading, getMyQuotes } = useShipperQuote();
+  const {
+    markDelivered,
+    verifyOtp,
+    loading: deliveryLoading,
+  } = useShipperDelivery();
+  const navigate = useNavigate();
+
+  const [activeTab, setActiveTab] = useState("upcoming");
+  const [selectedQuote, setSelectedQuote] = useState(null);
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
+
+  useEffect(() => {
+    getMyQuotes();
+  }, [getMyQuotes]);
+
+  /*
+   * TAB LOGIC (based on real API data):
+   *
+   * UPCOMING  : quote.status === "accepted" AND not cancelled AND shipment.status !== "delivered"
+   *             NOTE: paymentStatus "paid" only means upfront payment — NOT delivery confirmation
+   *
+   * COMPLETED : shipment.status === "delivered" AND not cancelled
+   *
+   * CANCELLED : isCancelled === true OR quote.status === "cancelled"
+   */
+  const upcomingShipments = quotes.filter((q) => {
+    if (q.isCancelled === true || q.status === "cancelled") return false;
+    if (q.shipment?.status === "delivered") return false;
+    return q.status === "accepted";
+  });
+
+  const completedShipments = quotes.filter((q) => {
+    if (q.isCancelled === true || q.status === "cancelled") return false;
+    return q.shipment?.status === "delivered";
+  });
+
+  const cancelledShipments = quotes.filter((q) => {
+    return q.isCancelled === true || q.status === "cancelled";
+  });
+
+  const tabs = [
+    {
+      key: "upcoming",
+      label: "Upcoming",
+      count: upcomingShipments.length,
+      data: upcomingShipments,
+      icon: <FiClock size={14} />,
+      emptyIcon: <FiTruck size={32} className="text-[#BF9B53]" />,
+      emptyTitle: "No upcoming shipments",
+      emptySubtitle:
+        "Shipments you've been accepted for and need to deliver will show up here.",
+      info: (
+        <p>
+          <span className="font-semibold text-[#BF9B53]">
+            Upcoming shipments
+          </span>{" "}
+          — These are shipments where your quote has been accepted by the horse
+          owner and you are scheduled to pick up and deliver the horses. Once
+          you complete delivery, click{" "}
+          <span className="font-semibold">"Mark Delivered"</span> and enter the
+          OTP provided by the horse owner to confirm delivery.
+        </p>
+      ),
+    },
+    {
+      key: "completed",
+      label: "Completed",
+      count: completedShipments.length,
+      data: completedShipments,
+      icon: <FiCheckCircle size={14} />,
+      emptyIcon: <FiCheckCircle size={32} className="text-[#BF9B53]" />,
+      emptyTitle: "No completed shipments yet",
+      emptySubtitle:
+        "Once you deliver a shipment and the OTP is verified, it will appear here.",
+      info: (
+        <p>
+          <span className="font-semibold text-[#BF9B53]">
+            Completed shipments
+          </span>{" "}
+          — These shipments have been successfully delivered and the OTP has
+          been verified by both parties. Your payment will be processed based on
+          the agreed payment terms.
+        </p>
+      ),
+    },
+    {
+      key: "cancelled",
+      label: "Cancelled",
+      count: cancelledShipments.length,
+      data: cancelledShipments,
+      icon: <FiXCircle size={14} />,
+      emptyIcon: <FiXCircle size={32} className="text-[#BF9B53]" />,
+      emptyTitle: "No cancelled shipments",
+      emptySubtitle:
+        "Any shipments that were cancelled by you or the horse owner will appear here.",
+      info: (
+        <p>
+          <span className="font-semibold text-[#BF9B53]">
+            Cancelled shipments
+          </span>{" "}
+          — These shipments were cancelled either by you or the horse owner. If
+          a cancellation fee applies, it will be reflected in your account.
+          Contact support if you believe a cancellation was made in error.
+        </p>
+      ),
+    },
+  ];
+
+  const currentTab = tabs.find((t) => t.key === activeTab);
+
+  /* ── HANDLERS ── */
+  const handleMarkDelivered = async (quote) => {
+    try {
+      setSelectedQuote(quote);
+      await markDelivered(quote.shipment._id);
+      setOtpModalOpen(true);
+    } catch (err) {
+      setSelectedQuote(quote);
+      setOtpError("Failed to mark delivered. Please try again.");
+      setOtpModalOpen(true);
+    }
+  };
+
+  const handleTrack = (quote) => {
+    navigate(`/shipper/shipments/track/${quote.shipment._id}`);
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp || otp.length < 6)
+      return setOtpError("Please enter a valid 6-digit OTP");
+    try {
+      setOtpError("");
+      await verifyOtp(selectedQuote.shipment._id, otp);
+      setOtpModalOpen(false);
+      setOtp("");
+      navigate("/shipper/earnings");
+    } catch (err) {
+      const message =
+        err.response?.data?.message ||
+        err.message ||
+        "OTP verification failed. Please try again.";
+      setOtpError(message);
+    }
+  };
+
+  const closeModal = () => {
+    setOtpModalOpen(false);
+    setOtp("");
+    setOtpError("");
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[300px]">
+        <PageLoader
+          text="Loading shipments..."
+          fullScreen={false}
+          color="#BF9B53"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col font-[Montserrat] gap-6">
+      {/* ── HEADER ── */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">
+          My Shipments
+        </h1>
+        <p className="text-gray-500 text-sm mt-1">
+          Manage and track all your horse transport shipments in one place. Mark
+          deliveries, verify OTPs, and view your complete shipment history.
+        </p>
+      </div>
+
+      {/* ── TABS ── */}
+      <div className="flex flex-wrap sm:flex-nowrap items-center gap-1 border-b border-gray-200">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 transition-colors -mb-px
+        ${
+          activeTab === tab.key
+            ? "border-[#BF9B53] text-[#BF9B53]"
+            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+        }`}
+          >
+            {tab.icon}
+
+            {/* label control */}
+            <span className="truncate max-w-[70px] sm:max-w-none">
+              {tab.label}
+            </span>
+
+            {tab.count > 0 && (
+              <span
+                className={`text-[10px] sm:text-xs px-1 py-0.5 rounded-full font-bold
+            ${
+              activeTab === tab.key
+                ? "bg-[#BF9B53]/15 text-[#BF9B53]"
+                : "bg-gray-100 text-gray-500"
+            }`}
+              >
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* ── INFO BANNER ── */}
+      <div className="bg-[#BF9B53]/5 border border-[#BF9B53]/15 rounded-xl px-4 py-3 text-sm text-gray-600">
+        {currentTab.info}
+      </div>
+
+      {/* ── CONTENT ── */}
+      {currentTab.data.length === 0 ? (
+        <EmptyState
+          icon={currentTab.emptyIcon}
+          title={currentTab.emptyTitle}
+          subtitle={currentTab.emptySubtitle}
+        />
+      ) : (
+        <div className="flex flex-col gap-4">
+          {currentTab.data.map((quote) => (
+            <ShipmentCard
+              key={quote._id}
+              quote={quote}
+              tabKey={activeTab}
+              onMarkDelivered={handleMarkDelivered}
+              onTrack={handleTrack}
+              deliveryLoading={deliveryLoading}
+              selectedQuote={selectedQuote}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* ── OTP MODAL ── */}
+      {otpModalOpen && selectedQuote && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative">
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+            >
+              <MdClose size={20} />
+            </button>
+
+            <div className="flex justify-center mb-4">
+              <div className="p-3 bg-[#BF9B53]/10 rounded-full">
+                <FiCheckCircle size={28} className="text-[#BF9B53]" />
+              </div>
+            </div>
+
+            <h2 className="text-lg font-semibold text-gray-800 text-center mb-1">
+              Verify Delivery OTP
+            </h2>
+            <p className="text-gray-500 text-sm text-center mb-1">
+              Delivering to{" "}
+              <span className="font-semibold text-gray-700">
+                {selectedQuote.shipment?.deliveryLocation}
+              </span>
+            </p>
+            <p className="text-gray-400 text-xs text-center mb-5">
+              Ask the horse owner for the 6-digit OTP they received to confirm
+              successful delivery.
+            </p>
+
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={6}
+              value={otp}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, "");
+                if (val.length <= 6) setOtp(val);
+              }}
+              placeholder="000000"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-center
+                text-xl font-bold tracking-[0.4em] focus:outline-none
+                focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53] mb-1"
+            />
+
+            <p className="text-xs text-center text-gray-400 mb-2">
+              {otp.length}/6 digits entered
+            </p>
+
+            {otpError && (
+              <p className="text-red-500 text-xs text-center mb-3">
+                {otpError}
+              </p>
+            )}
+
+            <div className="flex gap-3 mt-2">
+              <button
+                onClick={closeModal}
+                className="flex-1 border border-gray-300 text-gray-600 px-4 py-2.5
+                  rounded-xl text-sm font-semibold hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleVerifyOtp}
+                disabled={deliveryLoading || otp.length < 6}
+                className="flex-1 bg-[#BF9B53] text-white px-4 py-2.5 rounded-xl
+                  text-sm font-semibold hover:bg-[#a8863f] disabled:opacity-50 transition"
+              >
+                {deliveryLoading ? "Verifying..." : "Verify OTP"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={() => navigate(-1)}
+        className="fixed bottom-6 right-6 bg-gray-600 text-white p-3 rounded-full shadow-lg hover:bg-[#BF9B53] transition"
+      >
+        <IoArrowBack className="w-5 h-5" />
+      </button>
+    </div>
+  );
+};
+
+export default AllUpcomingShipments;

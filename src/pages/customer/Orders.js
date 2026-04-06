@@ -206,7 +206,7 @@ const ShipmentDrawer = ({
     : "text-blue-600";
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end font-montserrat">
+    <div className="fixed inset-0 z-50 flex justify-end font-montserrat">
       {/* Backdrop */}
       <div
         onClick={close}
@@ -864,7 +864,7 @@ const AllShipments = () => {
               </p>
               <p className="text-xs text-white font-medium mt-0.5">Total</p>
             </div>
-            <div className="bg-gray-100 rounded-lg px-3 py-2 text-center min-w-14">
+            {/* <div className="bg-gray-100 rounded-lg px-3 py-2 text-center min-w-14">
               <p className="text-lg font-bold text-gray-700 leading-none">
                 {draft.length}
               </p>
@@ -899,7 +899,7 @@ const AllShipments = () => {
               <p className="text-xs text-gray-600 font-medium mt-0.5">
                 Cancelled
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
 

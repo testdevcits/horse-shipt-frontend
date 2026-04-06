@@ -37,17 +37,12 @@ const NewOpportunities = () => {
 
   /* ================= LOCATION ================= */
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocation({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        });
-      },
-      () => {
-        console.log("Location denied");
-      }
-    );
+    navigator.geolocation.getCurrentPosition((pos) => {
+      setLocation({
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+      });
+    });
   }, []);
 
   /* ================= INITIAL LOAD ================= */
@@ -218,18 +213,19 @@ const NewOpportunities = () => {
             <div className="flex-1 hidden sm:block" />
 
             {/* TABS */}
-            <div className="flex border rounded-lg overflow-hidden">
+            <div className="flex w-full sm:w-auto border rounded-lg overflow-hidden">
               <button
                 onClick={() => setActiveTab("map")}
-                className={`px-4 py-2 ${
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 ${
                   activeTab === "map" ? "bg-system-primary text-white" : ""
                 }`}
               >
                 <CiMap /> Map
               </button>
+
               <button
                 onClick={() => setActiveTab("list")}
-                className={`px-4 py-2 ${
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 ${
                   activeTab === "list" ? "bg-system-primary text-white" : ""
                 }`}
               >

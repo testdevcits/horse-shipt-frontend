@@ -19,15 +19,13 @@ export const DriverProvider = ({ children }) => {
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [toast, setToast] = useState({
-    message: "",
-    type: "",
-    visible: false,
-  });
-
+  // ---------------- TOAST HANDLER ----------------
   const showToast = (message, type = "info") => {
-    setToast({ message, type, visible: true });
-    setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
+    if (Toast[type]) {
+      Toast[type](message);
+    } else {
+      Toast.info(message);
+    }
   };
 
   // ====================================================
@@ -45,16 +43,17 @@ export const DriverProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (Array.isArray(response.data?.drivers)) {
+      if (Array.isArray(response?.data?.drivers)) {
         setDrivers(response.data.drivers);
       } else {
         setDrivers([]);
       }
     } catch (err) {
-      console.error("Fetch Drivers Error:", err.response?.data || err.message);
+      console.error("Fetch Drivers Error:", err?.response?.data || err.message);
+
       setDrivers([]);
       showToast(
-        err.response?.data?.message || "Failed to fetch drivers",
+        err?.response?.data?.message || "Failed to fetch drivers",
         "error"
       );
     } finally {
@@ -76,10 +75,15 @@ export const DriverProvider = ({ children }) => {
 
       await fetchDrivers();
       showToast("Driver added successfully", "success");
+
       return { success: true };
     } catch (err) {
-      console.error("Add Driver Error:", err.response?.data || err.message);
-      showToast(err.response?.data?.message || "Failed to add driver", "error");
+      console.error("Add Driver Error:", err?.response?.data || err.message);
+
+      showToast(
+        err?.response?.data?.message || "Failed to add driver",
+        "error"
+      );
       return { success: false };
     } finally {
       setLoading(false);
@@ -100,11 +104,13 @@ export const DriverProvider = ({ children }) => {
 
       await fetchDrivers();
       showToast("Driver updated successfully", "success");
+
       return { success: true };
     } catch (err) {
-      console.error("Update Driver Error:", err.response?.data || err.message);
+      console.error("Update Driver Error:", err?.response?.data || err.message);
+
       showToast(
-        err.response?.data?.message || "Failed to update driver",
+        err?.response?.data?.message || "Failed to update driver",
         "error"
       );
       return { success: false };
@@ -127,11 +133,13 @@ export const DriverProvider = ({ children }) => {
 
       await fetchDrivers();
       showToast("Driver deleted successfully", "success");
+
       return { success: true };
     } catch (err) {
-      console.error("Delete Driver Error:", err.response?.data || err.message);
+      console.error("Delete Driver Error:", err?.response?.data || err.message);
+
       showToast(
-        err.response?.data?.message || "Failed to delete driver",
+        err?.response?.data?.message || "Failed to delete driver",
         "error"
       );
       return { success: false };
@@ -156,14 +164,16 @@ export const DriverProvider = ({ children }) => {
 
       await fetchDrivers();
       showToast("Vehicles assigned successfully", "success");
+
       return { success: true };
     } catch (err) {
       console.error(
         "Assign Vehicles Error:",
-        err.response?.data || err.message
+        err?.response?.data || err.message
       );
+
       showToast(
-        err.response?.data?.message || "Failed to assign vehicles",
+        err?.response?.data?.message || "Failed to assign vehicles",
         "error"
       );
       return { success: false };
@@ -173,7 +183,7 @@ export const DriverProvider = ({ children }) => {
   };
 
   // ====================================================
-  // TOGGLE DRIVER ACTIVE / DEACTIVE
+  // TOGGLE DRIVER STATUS
   // ====================================================
   const toggleDriverStatus = async (driverId, isActive) => {
     if (!token) return { success: false };
@@ -187,18 +197,21 @@ export const DriverProvider = ({ children }) => {
       );
 
       await fetchDrivers();
+
       showToast(
         `Driver ${isActive ? "activated" : "deactivated"} successfully`,
         "success"
       );
+
       return { success: true };
     } catch (err) {
       console.error(
         "Toggle Driver Status Error:",
-        err.response?.data || err.message
+        err?.response?.data || err.message
       );
+
       showToast(
-        err.response?.data?.message || "Failed to update driver status",
+        err?.response?.data?.message || "Failed to update driver status",
         "error"
       );
       return { success: false };
@@ -232,14 +245,6 @@ export const DriverProvider = ({ children }) => {
       }}
     >
       {children}
-
-      {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ message: "", type: "", visible: false })}
-        />
-      )}
     </DriverContext.Provider>
   );
 };

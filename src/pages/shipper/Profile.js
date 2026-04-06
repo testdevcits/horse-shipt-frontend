@@ -54,7 +54,7 @@ const Profile = () => {
         {/* PROFILE */}
         <div className="bg-white rounded-md shadow-md border border-[#BF9B53] p-4 sm:p-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl sm:text-2xl font-semibold">My Profile</h1>
+            <h1 className="text-md sm:text-md font-semibold">My Profile</h1>
             {!isEditing && (
               <Button onClick={() => setIsEditing(true)} icon={<FiEdit3 />}>
                 Edit
@@ -268,7 +268,7 @@ const Profile = () => {
         {/* REVIEWS */}
         <div className="bg-white rounded-md shadow-md border border-[#BF9B53] p-4 sm:p-6">
           <div className="flex justify-between mb-4">
-            <h2 className="text-lg sm:text-xl">My Reviews</h2>
+            <h2 className="text-lg sm:text-md">My Reviews</h2>
             <Button onClick={() => setShowAllReviews(!showAllReviews)}>
               {showAllReviews ? "Hide" : "Show"}
             </Button>

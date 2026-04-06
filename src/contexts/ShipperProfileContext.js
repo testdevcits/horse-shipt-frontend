@@ -17,17 +17,16 @@ export const ShipperProfileProvider = ({ children }) => {
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ message: "", type: "", visible: false });
 
   const showToast = useCallback((message, type = "info") => {
-    setToast({ message, type, visible: true });
-    setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
+    if (type === "success") Toast.success(message);
+    else if (type === "error") Toast.error(message);
+    else if (type === "warning") Toast.warning(message);
+    else Toast.info(message);
   }, []);
 
-  // Normalize backend data → frontend safe
   const normalizeProfile = (data) => ({
     ...data,
-
     profileImage: data?.profileImage?.url || data?.profileImage || "",
     bannerImage: data?.bannerImage?.url || data?.bannerImage || "",
     mobile: data?.mobile || "",
@@ -53,7 +52,7 @@ export const ShipperProfileProvider = ({ children }) => {
 
       setProfile(normalizeProfile(res.data.data || {}));
     } catch (err) {
-      console.error("Fetch Profile Error:", err.response?.data || err.message);
+      console.error("Fetch Profile Error:", err);
       showToast(
         err.response?.data?.message || "Failed to fetch profile",
         "error"
@@ -82,13 +81,12 @@ export const ShipperProfileProvider = ({ children }) => {
         }
       );
 
-      // safer update
       setProfile(normalizeProfile(res.data.data));
-
       showToast("Profile updated successfully", "success");
+
       return { success: true };
     } catch (err) {
-      console.error("Update Profile Error:", err.response?.data || err.message);
+      console.error("Update Profile Error:", err);
       showToast(
         err.response?.data?.message || "Failed to update profile",
         "error"
@@ -200,14 +198,6 @@ export const ShipperProfileProvider = ({ children }) => {
       }}
     >
       {children}
-
-      {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ message: "", type: "", visible: false })}
-        />
-      )}
     </ShipperProfileContext.Provider>
   );
 };

@@ -42,11 +42,10 @@ export const ShipperContractProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [token, hasFetched]); // ✅ stable reference for useEffect
+  }, [token, hasFetched]);
 
-  // 🔥 Auto-call once when token is available
   useEffect(() => {
-    fetchContracts(); // ✅ no ESLint warning now
+    fetchContracts();
   }, [fetchContracts]);
 
   // ---------------- UPLOAD CONTRACT ----------------

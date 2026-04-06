@@ -33,10 +33,10 @@ const navItems = [
     icon: <DashboardIcon />,
   },
   {
-    name: "Contract",
+    name: "My Shipment",
     path: "/shipper/contract",
     icon: <OrdersIcon />,
-    subPaths: [{ name: "Contracts", path: "/shipper/orders/pending" }],
+    // subPaths: [{ name: "My Shipment", path: "/shipper/orders/pending" }],
   },
   {
     name: "Vehicles",

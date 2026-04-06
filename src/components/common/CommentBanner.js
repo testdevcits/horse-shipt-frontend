@@ -27,7 +27,7 @@ const CommentBanner = () => {
   };
 
   return (
-    <div className="relative w-full rounded-[12px] overflow-hidden shadow-md h-[232px]">
+    <div className="relative w-full font-montserrat rounded-[12px] overflow-hidden shadow-md h-[232px]">
       {/* Banner Background */}
       <div
         className="absolute inset-0 bg-cover bg-center rounded-[12px]"
@@ -89,11 +89,10 @@ const CommentBanner = () => {
           </div>
 
           {/* User Info */}
-          <div className="flex flex-col justify-center gap-2 truncate">
+          <div className="flex flex-col justify-center gap-2 font-montserrat  truncate">
             <h2
               className="text-gray-900 truncate"
               style={{
-                fontFamily: "Montserrat, sans-serif",
                 fontWeight: 600,
                 fontSize: "30px",
                 lineHeight: "38px",
@@ -101,11 +100,8 @@ const CommentBanner = () => {
             >
               {user?.name || "User Name"}
             </h2>
-            <span
-              className="px-3 py-1 text-sm font-medium rounded-md bg-gray-100 text-gray-700 w-max"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >
-              {user?.role || "Role"}
+            <span className="px-3 py-1 text-sm  rounded-md bg-gray-100 text-gray-700 w-max uppercase">
+              {user?.role || "Role"} Account
             </span>
           </div>
         </div>

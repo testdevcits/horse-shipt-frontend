@@ -20,12 +20,14 @@ export const ShipperLocationProvider = ({ children }) => {
 
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState({ message: "", type: "", visible: false });
 
   // ---------------- TOAST HANDLER ----------------
   const showToast = useCallback((message, type = "info") => {
-    setToast({ message, type, visible: true });
-    setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
+    if (Toast[type]) {
+      Toast[type](message);
+    } else {
+      Toast.info(message);
+    }
   }, []);
 
   // ---------------- FETCH CURRENT LOCATION (Silent) ----------------
@@ -36,14 +38,18 @@ export const ShipperLocationProvider = ({ children }) => {
       const res = await axios.get(`${API_BASE_URL}/current-location`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setLocation(res.data.data || null);
+
+      setLocation(res?.data?.data || null);
     } catch (err) {
-      console.error("Fetch Location Error:", err.response?.data || err.message);
-      // No toast here (silent background fetch)
+      console.error(
+        "Fetch Location Error:",
+        err?.response?.data || err.message
+      );
+      // silent (no toast)
     }
   }, [token]);
 
-  // ---------------- UPDATE CURRENT LOCATION (With Toast) ----------------
+  // ---------------- UPDATE CURRENT LOCATION ----------------
   const updateLocation = async (locationData) => {
     if (!token) return { success: false };
 
@@ -57,19 +63,22 @@ export const ShipperLocationProvider = ({ children }) => {
         }
       );
 
-      setLocation(res.data.data || locationData);
-      //   showToast("Location updated successfully", "success");e
+      setLocation(res?.data?.data || locationData);
+
+      // showToast("Location updated successfully", "success");
 
       return { success: true };
     } catch (err) {
       console.error(
         "Update Location Error:",
-        err.response?.data || err.message
+        err?.response?.data || err.message
       );
+
       showToast(
-        err.response?.data?.message || "Failed to update location",
+        err?.response?.data?.message || "Failed to update location",
         "error"
       );
+
       return { success: false };
     } finally {
       setLoading(false);
@@ -96,13 +105,6 @@ export const ShipperLocationProvider = ({ children }) => {
       }}
     >
       {children}
-      {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ message: "", type: "", visible: false })}
-        />
-      )}
     </ShipperLocationContext.Provider>
   );
 };

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
+import Toast from "../../components/common/Toast";
 
 const ShipperDeliveryContext = createContext();
 const API_BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
@@ -15,10 +16,22 @@ export const ShipperDeliveryProvider = ({ children }) => {
   const [hasMore, setHasMore] = useState(false);
   const [nextCursor, setNextCursor] = useState(null);
 
-  // Mark shipment as delivered
+  // ---------------- TOAST HANDLER ----------------
+  const showToast = (message, type = "info") => {
+    if (Toast[type]) {
+      Toast[type](message);
+    } else {
+      Toast.info(message);
+    }
+  };
+
+  // ====================================================
+  // MARK DELIVERED
+  // ====================================================
   const markDelivered = useCallback(
     async (shipmentId) => {
       if (!token) return null;
+
       setLoading(true);
       try {
         const res = await axios.post(
@@ -26,10 +39,21 @@ export const ShipperDeliveryProvider = ({ children }) => {
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
+
+        showToast("Shipment marked as delivered", "success");
         return res.data;
       } catch (err) {
-        console.error("Mark delivered error:", err);
-        throw err;
+        console.error(
+          "Mark delivered error:",
+          err?.response?.data || err.message
+        );
+
+        showToast(
+          err?.response?.data?.message || "Failed to mark delivered",
+          "error"
+        );
+
+        return null;
       } finally {
         setLoading(false);
       }
@@ -37,10 +61,13 @@ export const ShipperDeliveryProvider = ({ children }) => {
     [token]
   );
 
-  // Verify delivery OTP
+  // ====================================================
+  // VERIFY OTP
+  // ====================================================
   const verifyOtp = useCallback(
     async (shipmentId, otp) => {
       if (!token) return null;
+
       setLoading(true);
       try {
         const res = await axios.post(
@@ -48,10 +75,18 @@ export const ShipperDeliveryProvider = ({ children }) => {
           { otp },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+
+        showToast("OTP verified successfully", "success");
         return res.data;
       } catch (err) {
-        console.error("Verify OTP error:", err);
-        throw err;
+        console.error("Verify OTP error:", err?.response?.data || err.message);
+
+        showToast(
+          err?.response?.data?.message || "OTP verification failed",
+          "error"
+        );
+
+        return null;
       } finally {
         setLoading(false);
       }
@@ -59,9 +94,12 @@ export const ShipperDeliveryProvider = ({ children }) => {
     [token]
   );
 
-  // Request payout
+  // ====================================================
+  // REQUEST PAYOUT
+  // ====================================================
   const requestPayout = useCallback(async () => {
     if (!token) return null;
+
     setLoading(true);
     try {
       const res = await axios.post(
@@ -69,19 +107,33 @@ export const ShipperDeliveryProvider = ({ children }) => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      showToast("Payout requested successfully", "success");
       return res.data;
     } catch (err) {
-      console.error("Payout request error:", err);
-      throw err;
+      console.error(
+        "Payout request error:",
+        err?.response?.data || err.message
+      );
+
+      showToast(
+        err?.response?.data?.message || "Failed to request payout",
+        "error"
+      );
+
+      return null;
     } finally {
       setLoading(false);
     }
   }, [token]);
 
-  // Get delivery status
+  // ====================================================
+  // GET DELIVERY STATUS
+  // ====================================================
   const getDeliveryStatus = useCallback(
     async (shipmentId) => {
       if (!token) return null;
+
       setLoading(true);
       try {
         const res = await axios.get(
@@ -92,8 +144,17 @@ export const ShipperDeliveryProvider = ({ children }) => {
         setDeliveryStatus(res.data);
         return res.data;
       } catch (err) {
-        console.error("Get delivery status error:", err);
-        throw err;
+        console.error(
+          "Get delivery status error:",
+          err?.response?.data || err.message
+        );
+
+        showToast(
+          err?.response?.data?.message || "Failed to fetch delivery status",
+          "error"
+        );
+
+        return null;
       } finally {
         setLoading(false);
       }
@@ -101,13 +162,14 @@ export const ShipperDeliveryProvider = ({ children }) => {
     [token]
   );
 
-  // Get payout history with pagination
+  // ====================================================
+  // GET PAYOUT HISTORY
+  // ====================================================
   const getPayoutHistory = useCallback(
     async (limit = 10, cursor = null) => {
       if (!token) return null;
 
       setLoading(true);
-
       try {
         let url = `${API_BASE_URL}/shipper/payout-history?limit=${limit}`;
 
@@ -119,19 +181,28 @@ export const ShipperDeliveryProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const newTransactions = res.data.transactions || [];
+        const newTransactions = res?.data?.transactions || [];
 
         setPayoutHistory((prev) =>
           cursor ? [...prev, ...newTransactions] : newTransactions
         );
 
-        setHasMore(res.data.hasMore);
-        setNextCursor(res.data.nextCursor);
+        setHasMore(res?.data?.hasMore);
+        setNextCursor(res?.data?.nextCursor);
 
         return res.data;
       } catch (err) {
-        console.error("Get payout history error:", err);
-        throw err;
+        console.error(
+          "Get payout history error:",
+          err?.response?.data || err.message
+        );
+
+        showToast(
+          err?.response?.data?.message || "Failed to fetch payout history",
+          "error"
+        );
+
+        return null;
       } finally {
         setLoading(false);
       }

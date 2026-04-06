@@ -370,7 +370,6 @@ const AllUpcomingShipments = () => {
       await markDelivered(quote.shipment._id);
       setOtpModalOpen(true);
     } catch (err) {
-      console.error(err);
       setSelectedQuote(quote);
       setOtpError("Failed to mark delivered. Please try again.");
       setOtpModalOpen(true);
