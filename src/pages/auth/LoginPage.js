@@ -63,20 +63,18 @@ const LoginPage = () => {
 
   // ----------------- Handle OAuth redirect -----------------
   useEffect(() => {
-    if (oauthError) {
-      setToast({ message: oauthError, type: "error" });
-      navigate(location.pathname, { replace: true });
-      return;
-    }
-
     const params = new URLSearchParams(location.search);
+
+    // ---------------- Frontend toast for backend error ----------------
     const error = params.get("error");
     if (error) {
       setToast({ message: decodeURIComponent(error), type: "error" });
+      // Clean URL so toast doesn't repeat
       navigate(location.pathname, { replace: true });
       return;
     }
 
+    // ---------------- Frontend OAuth login ----------------
     const token = params.get("token");
     if (token) {
       const oauthUser = {
@@ -97,6 +95,12 @@ const LoginPage = () => {
           : "/customer/dashboard",
         { replace: true }
       );
+    }
+
+    // ---------------- Handle any local oauthError from context ----------------
+    if (oauthError) {
+      setToast({ message: oauthError, type: "error" });
+      navigate(location.pathname, { replace: true });
     }
   }, [location.search, oauthError, oauthLogin, navigate, location.pathname]);
 

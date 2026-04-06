@@ -48,13 +48,9 @@ const SignupPage = () => {
 
   // ----------------- Handle OAuth redirect -----------------
   useEffect(() => {
-    if (oauthError) {
-      setToast({ message: oauthError, type: "error" });
-      navigate(location.pathname, { replace: true });
-      return;
-    }
-
     const params = new URLSearchParams(location.search);
+
+    // Backend returned error
     const error = params.get("error");
     if (error) {
       setToast({ message: decodeURIComponent(error), type: "error" });
@@ -62,6 +58,7 @@ const SignupPage = () => {
       return;
     }
 
+    // OAuth success
     const token = params.get("token");
     if (token) {
       const userData = {
@@ -83,6 +80,12 @@ const SignupPage = () => {
         { replace: true }
       );
     }
+
+    // Any frontend oauthError from context
+    if (oauthError) {
+      setToast({ message: oauthError, type: "error" });
+      navigate(location.pathname, { replace: true });
+    }
   }, [location.search, oauthError, oauthLogin, navigate, location.pathname]);
 
   // ----------------- Handle normal signup -----------------
@@ -93,7 +96,7 @@ const SignupPage = () => {
 
       if (res.success) {
         resetForm();
-        // login the user immediately after signup
+        // login user immediately after signup
         oauthLogin(
           res.data.token ? { token: res.data.token, ...res.data } : res.data
         );
