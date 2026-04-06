@@ -57,9 +57,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (payload) => {
     const { email, password, role, deviceId, location } = payload;
 
-    if (!role) {
-      return { success: false, errors: ["Role is required"] };
-    }
+    if (!role) return { success: false, errors: ["Role is required"] };
 
     setLoading(true);
 
@@ -79,12 +77,10 @@ export const AuthProvider = ({ children }) => {
       const userData = res.data?.data;
 
       if (!userData?.token) {
-        return {
-          success: false,
-          errors: ["Invalid server response"],
-        };
+        return { success: false, errors: ["Invalid server response"] };
       }
 
+      // Save user data locally
       setUser(userData);
       setToken(userData.token);
       setRole(userData.role);
@@ -93,27 +89,23 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
 
+      // Connect socket if not already connected
       if (!socket.connected) {
-        socket.auth = {
-          userId: userData._id,
-          role: userData.role,
-        };
+        socket.auth = { userId: userData._id, role: userData.role };
         socket.connect();
       }
 
-      return { success: true };
+      return { success: true, data: userData };
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
 
-      const backendData = err.response?.data;
+      const backendErrors =
+        err.response?.data?.errors ||
+        (err.response?.data?.message
+          ? [err.response.data.message]
+          : ["Invalid credentials"]);
 
-      return {
-        success: false,
-        errors: backendData?.errors ||
-          (backendData?.message ? [backendData.message] : null) || [
-            "Invalid credentials",
-          ],
-      };
+      return { success: false, errors: backendErrors };
     } finally {
       setLoading(false);
     }
@@ -127,14 +119,16 @@ export const AuthProvider = ({ children }) => {
 
     setLoading(true);
     try {
+      // Make POST request to signup endpoint
       const res = await axios.post(
         `${API_BASE_URL}/auth/signup`,
-        { name, email, password, role },
+        { name, email, password, role }, // Only required fields
         { withCredentials: true }
       );
 
       const newUser = res.data.data;
 
+      // Save user data locally
       setUser(newUser);
       setToken(newUser.token);
       setRole(newUser.role);
@@ -143,17 +137,22 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", newUser.token);
       localStorage.setItem("role", newUser.role);
 
-      // 🔹 Socket connect after signup
+      // Connect socket after signup
       socket.auth = { userId: newUser._id, role: newUser.role };
       socket.connect();
 
-      return { success: true };
+      return { success: true, data: newUser };
     } catch (err) {
       console.error("Signup Error:", err.response?.data || err.message);
-      return {
-        success: false,
-        errors: err.response?.data?.errors || ["Server Error"],
-      };
+
+      // Merge errors and message
+      const backendErrors =
+        err.response?.data?.errors ||
+        (err.response?.data?.message
+          ? [err.response.data.message]
+          : ["Server Error"]);
+
+      return { success: false, errors: backendErrors };
     } finally {
       setLoading(false);
     }

@@ -48,13 +48,11 @@ const LoginPage = () => {
   const { login, oauthLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const initialValues = { email: "", password: "", role: "" };
-
   const validationSchema = Yup.object({
     email: Yup.string().email("Invalid email").required("Required"),
     password: Yup.string().required("Required"),
@@ -63,31 +61,15 @@ const LoginPage = () => {
       .required("Required"),
   });
 
-  /* ===============================
-     HANDLE GOOGLE REDIRECT
-  ================================ */
+  // ----------------- Handle OAuth redirect -----------------
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-
-    // HANDLE ERROR FROM GOOGLE
     const error = params.get("error");
     if (error) {
-      const decodedError = decodeURIComponent(error);
-
-      setToast({
-        message: decodedError,
-        type: "error",
-      });
-
-      // small delay so toast visible rahe
-      setTimeout(() => {
-        navigate("/login", { replace: true });
-      }, 100);
-
+      setToast({ message: decodeURIComponent(error), type: "error" });
       return;
     }
 
-    // HANDLE SUCCESS LOGIN
     const token = params.get("token");
     if (token) {
       const oauthUser = {
@@ -111,14 +93,12 @@ const LoginPage = () => {
     }
   }, [location.search, oauthLogin, navigate]);
 
-  /* ===============================
-     NORMAL LOGIN
-  ================================ */
+  // ----------------- Handle normal login -----------------
   const handleLogin = async (values, { setSubmitting, setFieldError }) => {
     setLoading(true);
 
     try {
-      const result = await login(values);
+      const result = await login({ ...values, action: "login" }); // specify action=login
 
       if (result.success) {
         navigate(
@@ -133,33 +113,21 @@ const LoginPage = () => {
             e.toLowerCase().includes("email")
           );
           if (emailError) setFieldError("email", emailError);
-
-          setToast({
-            message: result.errors.join(", "),
-            type: "error",
-          });
+          setToast({ message: result.errors.join(", "), type: "error" });
         } else {
-          setToast({
-            message: "Login failed",
-            type: "error",
-          });
+          setToast({ message: "Login failed", type: "error" });
         }
       }
     } catch (err) {
       console.error("[LOGIN FRONTEND ERROR]", err);
-      setToast({
-        message: "Login error",
-        type: "error",
-      });
+      setToast({ message: "Login error", type: "error" });
     } finally {
       setSubmitting(false);
       setLoading(false);
     }
   };
 
-  /* ===============================
-     GOOGLE LOGIN
-  ================================ */
+  // ----------------- Google OAuth login -----------------
   const handleGoogleLogin = (role) => {
     if (!role) {
       setToast({
@@ -168,10 +136,9 @@ const LoginPage = () => {
       });
       return;
     }
-
     window.location.href = `${API_BASE_URL}/auth/google?role=${encodeURIComponent(
       role
-    )}`;
+    )}&action=login`;
   };
 
   return (
@@ -180,12 +147,10 @@ const LoginPage = () => {
       style={{ backgroundImage: `url(${loginBg})` }}
     >
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-20">
-        {/* Logo */}
         <div className="flex items-center justify-center w-full md:w-[1168px] h-[64px] gap-4 opacity-100">
           <img src={loginLogo} alt="Logo" className="h-full object-contain" />
         </div>
 
-        {/* Login form */}
         <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 md:p-8 shadow-md flex flex-col justify-center w-full max-w-sm gap-4">
           <h1 className="text-xl sm:text-2xl font-semibold text-start text-gray-800">
             Welcome Back
@@ -209,10 +174,8 @@ const LoginPage = () => {
             {({ values, setFieldValue, isValid, isSubmitting, dirty }) => {
               const canSubmit =
                 isValid && dirty && values.role && !isSubmitting && !loading;
-
               return (
                 <Form className="flex flex-col gap-3">
-                  {/* Email */}
                   <div>
                     <label className="text-xs font-medium text-gray-700">
                       Email
@@ -230,7 +193,6 @@ const LoginPage = () => {
                     />
                   </div>
 
-                  {/* Password */}
                   <div>
                     <label className="text-xs font-medium text-gray-700">
                       Password
@@ -258,7 +220,6 @@ const LoginPage = () => {
                     />
                   </div>
 
-                  {/* Role selection */}
                   <p className="text-xs font-medium text-gray-700 mt-1">
                     Select your role:
                   </p>
@@ -284,9 +245,16 @@ const LoginPage = () => {
                     className="text-xs text-red-500"
                   />
 
-                  {/* ACTION SECTION */}
                   <div className="flex flex-col gap-3 mt-4">
-                    <Button type="submit" disabled={!canSubmit}>
+                    <Button
+                      type="submit"
+                      disabled={!canSubmit}
+                      className={`w-full px-4 py-2 text-sm rounded-lg transition ${
+                        canSubmit
+                          ? "bg-[#BF9B53] text-white hover:bg-[#a6813f]"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
+                    >
                       {loading ? "Logging in..." : "Login"}
                     </Button>
 
@@ -302,10 +270,9 @@ const LoginPage = () => {
                       type="button"
                       onClick={() => handleGoogleLogin(values.role)}
                       disabled={!values.role}
-                      className="w-full flex items-center justify-center gap-2"
+                      className="w-full flex items-center bg-gray-500 justify-center gap-2 px-4 py-2 text-sm rounded-lg border border-gray-300 transition disabled:opacity-50"
                     >
-                      <FcGoogle size={18} />
-                      Continue with Google
+                      <FcGoogle size={18} /> Continue with Google
                     </Button>
                   </div>
 

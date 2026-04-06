@@ -9,10 +9,13 @@ import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../contexts/AuthContext";
 import loginLogo from "../../assets/images/loginLogo.png";
 
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+
 const SignupPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, oauthLogin } = useAuth();
+  const { signup, oauthLogin } = useAuth();
 
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -72,42 +75,23 @@ const SignupPage = () => {
     }
   }, [location.search, oauthLogin, navigate]);
 
-  // ----------------- Handle Signup -----------------
   const handleSignup = async (values, { setSubmitting, resetForm }) => {
     setLoading(true);
     setBackendError("");
     try {
-      const res = (await login.signup)
-        ? await login.signup(values) // use context signup if available
-        : await fetch(
-            `${
-              process.env.REACT_APP_API_BASE_URL ||
-              "https://horse-shipt.vercel.app/api"
-            }/auth/signup`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                name: values.name,
-                email: values.email,
-                password: values.password,
-                role: values.role,
-                provider: "local",
-              }),
-            }
-          ).then((res) => res.json());
+      const res = await signup({ ...values, action: "signup" });
 
       if (res.success) {
-        // login automatically
-        login(res.data);
         resetForm();
+        oauthLogin(
+          res.data.token ? { token: res.data.token, ...res.data } : res.data
+        );
         navigate(
           res.data.role === "shipper"
             ? "/shipper/dashboard"
             : "/customer/dashboard"
         );
       } else {
-        // handle backend errors
         setBackendError(res.errors?.[0] || res.message || "Signup failed");
       }
     } catch (err) {
@@ -122,7 +106,6 @@ const SignupPage = () => {
     }
   };
 
-  // ----------------- Handle Google Signup -----------------
   const handleGoogleSignup = (role) => {
     if (!role) {
       setToast({
@@ -131,9 +114,9 @@ const SignupPage = () => {
       });
       return;
     }
-    window.location.href = `${
-      process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api"
-    }/auth/google?role=${encodeURIComponent(role)}`;
+    window.location.href = `${API_BASE_URL}/auth/google?role=${encodeURIComponent(
+      role
+    )}&action=signup`;
   };
 
   return (
@@ -142,17 +125,10 @@ const SignupPage = () => {
       style={{ backgroundImage: `url(${signupBg})` }}
     >
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-20">
-        {/* Logo */}
         <div className="flex items-center justify-center w-full md:w-[1168px] h-[64px] gap-4 opacity-100">
-          {/* Logo Image */}
-          <img
-            src={loginLogo} // import your logo at the top: import logo from '../assets/images/logo.png';
-            alt="Logo"
-            className="h-full object-contain"
-          />
+          <img src={loginLogo} alt="Logo" className="h-full object-contain" />
         </div>
 
-        {/* Signup form */}
         <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 md:p-8 shadow-md flex flex-col justify-center w-full max-w-sm gap-4">
           <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
             Create Account
@@ -184,10 +160,8 @@ const SignupPage = () => {
             {({ values, setFieldValue, isValid, isSubmitting }) => {
               const canSubmit =
                 isValid && values.role && !isSubmitting && !loading;
-
               return (
                 <Form className="flex flex-col gap-3">
-                  {/* Name */}
                   <div>
                     <label className="text-xs font-medium text-gray-700">
                       Name
@@ -205,7 +179,6 @@ const SignupPage = () => {
                     />
                   </div>
 
-                  {/* Email */}
                   <div>
                     <label className="text-xs font-medium text-gray-700">
                       Email
@@ -223,7 +196,6 @@ const SignupPage = () => {
                     />
                   </div>
 
-                  {/* Password */}
                   <div>
                     <label className="text-xs font-medium text-gray-700">
                       Password
@@ -241,7 +213,6 @@ const SignupPage = () => {
                     />
                   </div>
 
-                  {/* Confirm Password */}
                   <div>
                     <label className="text-xs font-medium text-gray-700">
                       Confirm Password
@@ -259,13 +230,8 @@ const SignupPage = () => {
                     />
                   </div>
 
-                  {/* Role selection */}
                   <p className="text-xs font-medium text-gray-700 mt-1">
                     Are you a Customer or Shipper? Please select your role:
-                  </p>
-                  <p className="text-xs text-gray-500 mb-1">
-                    Choose 'Customer' if you are an Owner, Barn Manager,
-                    Trainer, or Agent.
                   </p>
                   <div className="flex gap-2">
                     {["shipper", "customer"].map((r) => (
@@ -273,7 +239,7 @@ const SignupPage = () => {
                         key={r}
                         type="button"
                         onClick={() => setFieldValue("role", r, true)}
-                        className={`flex-1 py-1 text-xs font-medium rounded transition-all duration-150 ${
+                        className={`flex-1 py-1 text-xs font-medium rounded ${
                           values.role === r
                             ? "bg-[#BF9B53] text-white"
                             : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -288,20 +254,13 @@ const SignupPage = () => {
                     component="div"
                     className="text-xs text-red-500"
                   />
-                  <ErrorMessage
-                    name="role"
-                    component="div"
-                    className="text-xs text-red-500"
-                  />
 
-                  {/* Submit button */}
                   <div className="flex justify-end mt-2">
                     <Button type="submit" disabled={!canSubmit}>
                       {loading ? "Signing up..." : "Signup"}
                     </Button>
                   </div>
 
-                  {/* Google signup */}
                   <div className="flex flex-col gap-2 mt-4">
                     <Button
                       type="button"
