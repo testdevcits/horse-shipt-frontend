@@ -66,6 +66,7 @@ const PayoutAndCardPage = () => {
           getMySubscription(),
         ]);
       } catch (err) {
+        console.error("Error loading data:", err);
         Toast.error("Failed to load data");
       } finally {
         setGlobalLoading(false);
@@ -136,6 +137,7 @@ const PayoutAndCardPage = () => {
     try {
       await getPayoutHistory(5, nextCursor);
     } catch (err) {
+      console.error("Error loading more payouts:", err);
       Toast.error("Failed to load more payouts");
     } finally {
       setLoadingMore(false);
@@ -150,6 +152,7 @@ const PayoutAndCardPage = () => {
       await createSetupIntent();
       Toast.info("Enter your card details");
     } catch (err) {
+      console.error("Error adding card:", err);
       Toast.error("Failed to initialize card setup");
     } finally {
       setCardProcessing(false);
@@ -177,12 +180,14 @@ const PayoutAndCardPage = () => {
 
       if (error) {
         Toast.error(error.message);
+        setCardProcessing(false);
         return;
       }
 
       await savePaymentMethod(setupIntent.payment_method);
       Toast.success("Card saved successfully!");
     } catch (err) {
+      console.error("Error saving card:", err);
       Toast.error("Failed to save card");
     } finally {
       setCardProcessing(false);
@@ -231,9 +236,9 @@ const PayoutAndCardPage = () => {
         </div>
       </div>
 
-      <div className="max-w-full mx-auto mt-4 space-y-8">
+      <div className="max-w-full mx-auto mt-4 space-y-8 px-4 pb-8">
         {/* ── SUBSCRIPTION STATUS CARD ── */}
-        <div className="bg-white rounded-md shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-6 py-6 border-b border-slate-200">
             <div className="flex items-center gap-3">
@@ -242,7 +247,7 @@ const PayoutAndCardPage = () => {
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-slate-900">
-                  Subscription
+                  Subscription Status
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
                   Your current plan and billing details
@@ -252,8 +257,8 @@ const PayoutAndCardPage = () => {
           </div>
 
           {/* Content */}
-          <div className="px-6 py-4">
-            {(subscriptionLoading || globalLoading) && !subscription ? (
+          <div className="px-6 py-8">
+            {subscriptionLoading && !subscription ? (
               <div className="flex justify-center py-8">
                 <PageLoader
                   text="Loading subscription..."
@@ -262,34 +267,83 @@ const PayoutAndCardPage = () => {
                 />
               </div>
             ) : !subscription ? (
-              <div className="text-center py-10">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-100 rounded-full mb-4">
-                  <AlertCircle className="w-6 h-6 text-slate-400" />
+              // NO SUBSCRIPTION STATE
+              <div className="space-y-4">
+                <div className="text-center py-8 space-y-4">
+                  <div className="inline-flex items-center justify-center w-14 h-14 bg-slate-100 rounded-full mb-3">
+                    <AlertCircle className="w-7 h-7 text-slate-400" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold text-slate-900">
+                      No Active Subscription
+                    </p>
+                    <p className="text-sm text-slate-600 mt-1">
+                      You don't currently have an active or trial subscription
+                    </p>
+                  </div>
                 </div>
-                <p className="text-slate-500 font-medium">
-                  No active subscription found
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  Contact support if you believe this is an error
-                </p>
+
+                {/* Upgrade Recommendation */}
+                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Zap className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-blue-900">
+                        Upgrade to Premium
+                      </p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        Start your free 30-day trial and unlock unlimited
+                        offers, advanced analytics, and priority support.
+                      </p>
+                    </div>
+                  </div>
+                  <button className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 text-sm">
+                    Start Free Trial
+                  </button>
+                </div>
+
+                {/* Features List */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                    <p className="text-xs font-semibold text-slate-900">
+                      ✓ Unlimited Offers
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                    <p className="text-xs font-semibold text-slate-900">
+                      ✓ Advanced Analytics
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                    <p className="text-xs font-semibold text-slate-900">
+                      ✓ Priority Support
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                    <p className="text-xs font-semibold text-slate-900">
+                      ✓ Verified Badge
+                    </p>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="space-y-2">
+              // ✅ ACTIVE SUBSCRIPTION STATE
+              <div className="space-y-6">
                 {/* Status Badge + Trial Alert Row */}
                 <div className="flex flex-wrap items-center gap-3">
                   <span
-                    className={`inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-semibold border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
                   >
                     <span
-                      className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`}
+                      className={`w-2 h-2 rounded-full ${statusStyle.dot}`}
                     />
                     {subscription.status?.charAt(0).toUpperCase() +
                       subscription.status?.slice(1)}
                   </span>
 
                   {subscription.trialActive && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-                      <Zap className="w-3 h-3" />
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                      <Zap className="w-3.5 h-3.5" />
                       Trial Active
                     </span>
                   )}
@@ -301,7 +355,7 @@ const PayoutAndCardPage = () => {
                   {subscription.status === "trialing" &&
                     subscription.remainingTrialDays !== undefined && (
                       <div className="p-4 bg-[#BF9B53]/10 rounded-lg border border-[#BF9B53]">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-2">
                           <Clock className="w-4 h-4 text-yellow-600" />
                           <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                             Trial Remaining
@@ -314,9 +368,9 @@ const PayoutAndCardPage = () => {
                           </span>
                         </p>
                         {/* Trial progress bar */}
-                        <div className="mt-3 h-1.5 bg-[#BF9B53] rounded-full overflow-hidden">
+                        <div className="mt-3 h-1.5 bg-[#BF9B53]/30 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-white rounded-full transition-all duration-500"
+                            className="h-full bg-[#BF9B53] rounded-full transition-all duration-500"
                             style={{ width: `${trialProgressPercent}%` }}
                           />
                         </div>
@@ -326,7 +380,7 @@ const PayoutAndCardPage = () => {
                   {/* Trial End */}
                   {subscription.trialEnd && (
                     <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-2">
                         <Calendar className="w-4 h-4 text-slate-500" />
                         <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                           Trial Ends
@@ -341,7 +395,7 @@ const PayoutAndCardPage = () => {
                   {/* Current Period Start */}
                   {subscription.currentPeriodStart && (
                     <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-2">
                         <Calendar className="w-4 h-4 text-slate-500" />
                         <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                           Period Start
@@ -356,7 +410,7 @@ const PayoutAndCardPage = () => {
                   {/* Current Period End */}
                   {subscription.currentPeriodEnd && (
                     <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-2">
                         <Calendar className="w-4 h-4 text-slate-500" />
                         <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                           Period End
@@ -387,7 +441,7 @@ const PayoutAndCardPage = () => {
 
         {/* ── PAYMENT METHOD CARD ── */}
         <div className="group">
-          <div className="bg-white rounded-md shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
             {/* Card Header */}
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-6 border-b border-[#BF9B53]">
               <div className="flex items-center gap-3">
@@ -521,7 +575,7 @@ const PayoutAndCardPage = () => {
 
         {/* ── PAYOUT HISTORY CARD ── */}
         <div>
-          <div className="bg-white rounded-md shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
             {/* Card Header */}
             <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-6 py-6 border-b border-slate-200">
               <div className="flex items-center gap-3">

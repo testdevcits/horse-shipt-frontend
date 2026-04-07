@@ -542,7 +542,7 @@ const DriverDashboard = () => {
             </div>
 
             {/* VIEW ROUTE BUTTON */}
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
               <button
                 onClick={() => setMapModalOpen(true)}
                 disabled={!driverLocation}
