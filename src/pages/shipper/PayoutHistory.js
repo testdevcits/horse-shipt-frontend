@@ -237,8 +237,8 @@ const PayoutAndCardPage = () => {
           {/* Header */}
           <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-6 py-6 border-b border-slate-200">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white rounded-lg border border-violet-200">
-                <Crown className="w-5 h-5 text-violet-600" />
+              <div className="p-2 bg-white rounded-lg border border-[#BF9B53]">
+                <Crown className="w-5 h-5 text-[#BF9B53]" />
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-slate-900">
@@ -314,7 +314,7 @@ const PayoutAndCardPage = () => {
                           </span>
                         </p>
                         {/* Trial progress bar */}
-                        <div className="mt-3 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                        <div className="mt-3 h-1.5 bg-[#BF9B53] rounded-full overflow-hidden">
                           <div
                             className="h-full bg-white rounded-full transition-all duration-500"
                             style={{ width: `${trialProgressPercent}%` }}
@@ -387,12 +387,12 @@ const PayoutAndCardPage = () => {
 
         {/* ── PAYMENT METHOD CARD ── */}
         <div className="group">
-          <div className="bg-white rounded-md shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          <div className="bg-white rounded-md shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-6 border-b border-slate-200">
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-6 border-b border-[#BF9B53]">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-white rounded-lg border border-amber-200">
-                  <CreditCard className="w-5 h-5 text-amber-600" />
+                <div className="p-2.5 bg-white rounded-lg border border-[#BF9B53]">
+                  <CreditCard className="w-5 h-5 text-[#BF9B53]" />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-slate-900">
@@ -464,7 +464,7 @@ const PayoutAndCardPage = () => {
                   <button
                     type="submit"
                     disabled={cardProcessing || !stripe}
-                    className="w-full px-6 py-3 bg-amber-600 hover:bg-amber-700 disabled:bg-slate-300 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                    className="w-full px-6 py-3 bg-gray-600 hover:bg-[#BF9B53] disabled:bg-slate-300 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                   >
                     {cardProcessing ? "Saving..." : "Save Card"}
                   </button>
@@ -480,8 +480,8 @@ const PayoutAndCardPage = () => {
                           Current Card
                         </p>
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-white rounded-lg border border-amber-300">
-                            <CreditCard className="w-5 h-5 text-amber-600" />
+                          <div className="p-2 bg-white rounded-lg border border-[#BF9B53]">
+                            <CreditCard className="w-5 h-5 text-[#BF9B53]" />
                           </div>
                           <div>
                             <p className="font-semibold text-slate-900">
@@ -521,12 +521,12 @@ const PayoutAndCardPage = () => {
 
         {/* ── PAYOUT HISTORY CARD ── */}
         <div>
-          <div className="bg-white rounded-md shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          <div className="bg-white rounded-md shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
             {/* Card Header */}
             <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-6 py-6 border-b border-slate-200">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-white rounded-lg border border-yellow-200">
-                  <TrendingUp className="w-5 h-5 text-yellow-600" />
+                <div className="p-2.5 bg-white rounded-lg border border-[#BF9B53]">
+                  <TrendingUp className="w-5 h-5 text-[#BF9B53]" />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-slate-900">
@@ -601,7 +601,7 @@ const PayoutAndCardPage = () => {
                                 </code>
                                 <button
                                   onClick={() => toggleId(payout.id)}
-                                  className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors duration-150 text-slate-500 hover:text-amber-600"
+                                  className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors duration-150 text-slate-500 hover:text-[#BF9B53]"
                                   title={
                                     visibleIds[payout.id] ? "Hide" : "View"
                                   }
