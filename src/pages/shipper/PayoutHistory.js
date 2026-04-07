@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useShipperPayments } from "../../contexts/shipperContext/ShipperPaymentContext";
 import { useShipperDelivery } from "../../contexts/shipperContext/ShipperDeliveryContext";
+import { useSubscription } from "../../contexts/shipperContext/SubscriptionContext";
 import PageLoader from "../../components/common/PageLoader";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import Toast from "../../components/common/Toast";
@@ -12,6 +13,11 @@ import {
   EyeOff,
   Lock,
   CheckCircle2,
+  Crown,
+  Calendar,
+  Clock,
+  Zap,
+  AlertCircle,
 } from "lucide-react";
 
 const PayoutAndCardPage = () => {
@@ -38,6 +44,12 @@ const PayoutAndCardPage = () => {
     nextCursor,
   } = useShipperDelivery();
 
+  const {
+    subscription,
+    loading: subscriptionLoading,
+    getMySubscription,
+  } = useSubscription();
+
   const [visibleIds, setVisibleIds] = useState({});
   const [loadingMore, setLoadingMore] = useState(false);
   const [cardProcessing, setCardProcessing] = useState(false);
@@ -48,7 +60,11 @@ const PayoutAndCardPage = () => {
     const fetchAll = async () => {
       setGlobalLoading(true);
       try {
-        await Promise.all([getPayoutHistory(), fetchPaymentStatus()]);
+        await Promise.all([
+          getPayoutHistory(),
+          fetchPaymentStatus(),
+          getMySubscription(),
+        ]);
       } catch (err) {
         Toast.error("Failed to load data");
       } finally {
@@ -56,13 +72,62 @@ const PayoutAndCardPage = () => {
       }
     };
     fetchAll();
-  }, [getPayoutHistory, fetchPaymentStatus]);
+  }, [getPayoutHistory, fetchPaymentStatus, getMySubscription]);
 
   // Helpers
   const toggleId = (id) =>
     setVisibleIds((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const maskId = (id) => (id ? id.slice(0, 4) + "••••••••" + id.slice(-4) : "");
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "—";
+    return new Date(dateStr).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const getSubscriptionStatusStyle = (status) => {
+    switch (status) {
+      case "trialing":
+        return {
+          bg: "bg-blue-100",
+          text: "text-blue-800",
+          border: "border-blue-200",
+          dot: "bg-blue-500",
+        };
+      case "active":
+        return {
+          bg: "bg-green-100",
+          text: "text-green-800",
+          border: "border-green-200",
+          dot: "bg-green-500",
+        };
+      case "canceled":
+        return {
+          bg: "bg-red-100",
+          text: "text-red-800",
+          border: "border-red-200",
+          dot: "bg-red-500",
+        };
+      case "past_due":
+        return {
+          bg: "bg-orange-100",
+          text: "text-orange-800",
+          border: "border-orange-200",
+          dot: "bg-orange-500",
+        };
+      default:
+        return {
+          bg: "bg-slate-100",
+          text: "text-slate-800",
+          border: "border-slate-200",
+          dot: "bg-slate-400",
+        };
+    }
+  };
 
   // Load more payouts
   const handleLoadMore = async () => {
@@ -136,13 +201,26 @@ const PayoutAndCardPage = () => {
     );
   }
 
+  const statusStyle = subscription
+    ? getSubscriptionStatusStyle(subscription.status)
+    : null;
+
+  // Trial progress percentage
+  const trialProgressPercent =
+    subscription?.status === "trialing" && subscription?.remainingTrialDays
+      ? Math.min(
+          100,
+          Math.round(((30 - subscription.remainingTrialDays) / 30) * 100)
+        )
+      : 0;
+
   return (
     <div className="min-h-screen font-[Montserrat]">
       {/* Header Section */}
       <div className="bg-white border-b border-[#BF9B53]">
-        <div className="max-w-full mx-auto px-4 py-6">
+        <div className="max-w-full mx-auto px-4 py-4">
           <div className="flex items-center gap-3 mb-2">
-            <TrendingUp className="w-8 h-8 text-amber-600" />
+            <TrendingUp className="w-8 h-8 text-[#BF9B53]" />
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
               Payouts & Payments
             </h1>
@@ -154,7 +232,160 @@ const PayoutAndCardPage = () => {
       </div>
 
       <div className="max-w-full mx-auto mt-4 space-y-8">
-        {/* PAYMENT METHOD CARD */}
+        {/* ── SUBSCRIPTION STATUS CARD ── */}
+        <div className="bg-white rounded-md shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-6 py-6 border-b border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-lg border border-violet-200">
+                <Crown className="w-5 h-5 text-violet-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">
+                  Subscription
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Your current plan and billing details
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="px-6 py-4">
+            {(subscriptionLoading || globalLoading) && !subscription ? (
+              <div className="flex justify-center py-8">
+                <PageLoader
+                  text="Loading subscription..."
+                  size={24}
+                  color="#7c3aed"
+                />
+              </div>
+            ) : !subscription ? (
+              <div className="text-center py-10">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-100 rounded-full mb-4">
+                  <AlertCircle className="w-6 h-6 text-slate-400" />
+                </div>
+                <p className="text-slate-500 font-medium">
+                  No active subscription found
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Contact support if you believe this is an error
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {/* Status Badge + Trial Alert Row */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <span
+                    className={`inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-semibold border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${statusStyle.dot}`}
+                    />
+                    {subscription.status?.charAt(0).toUpperCase() +
+                      subscription.status?.slice(1)}
+                  </span>
+
+                  {subscription.trialActive && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                      <Zap className="w-3 h-3" />
+                      Trial Active
+                    </span>
+                  )}
+                </div>
+
+                {/* Info Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Remaining Trial Days */}
+                  {subscription.status === "trialing" &&
+                    subscription.remainingTrialDays !== undefined && (
+                      <div className="p-4 bg-[#BF9B53]/10 rounded-lg border border-[#BF9B53]">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Clock className="w-4 h-4 text-yellow-600" />
+                          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                            Trial Remaining
+                          </p>
+                        </div>
+                        <p className="text-2xl font-bold text-slate-900">
+                          {subscription.remainingTrialDays}
+                          <span className="text-sm font-medium text-slate-500 ml-1">
+                            days
+                          </span>
+                        </p>
+                        {/* Trial progress bar */}
+                        <div className="mt-3 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-white rounded-full transition-all duration-500"
+                            style={{ width: `${trialProgressPercent}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Trial End */}
+                  {subscription.trialEnd && (
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Calendar className="w-4 h-4 text-slate-500" />
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Trial Ends
+                        </p>
+                      </div>
+                      <p className="text-base font-semibold text-slate-900">
+                        {formatDate(subscription.trialEnd)}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Current Period Start */}
+                  {subscription.currentPeriodStart && (
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Calendar className="w-4 h-4 text-slate-500" />
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Period Start
+                        </p>
+                      </div>
+                      <p className="text-base font-semibold text-slate-900">
+                        {formatDate(subscription.currentPeriodStart)}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Current Period End */}
+                  {subscription.currentPeriodEnd && (
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Calendar className="w-4 h-4 text-slate-500" />
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Period End
+                        </p>
+                      </div>
+                      <p className="text-base font-semibold text-slate-900">
+                        {formatDate(subscription.currentPeriodEnd)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Trial warning if ≤ 7 days left */}
+                {subscription.status === "trialing" &&
+                  subscription.remainingTrialDays <= 7 && (
+                    <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-amber-800">
+                        Your trial is ending soon. Make sure a payment card is
+                        on file to avoid any interruption to your service.
+                      </p>
+                    </div>
+                  )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── PAYMENT METHOD CARD ── */}
         <div className="group">
           <div className="bg-white rounded-md shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300 overflow-hidden">
             {/* Card Header */}
@@ -288,14 +519,14 @@ const PayoutAndCardPage = () => {
           </div>
         </div>
 
-        {/* PAYOUT HISTORY CARD */}
+        {/* ── PAYOUT HISTORY CARD ── */}
         <div>
           <div className="bg-white rounded-md shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300 overflow-hidden">
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 px-6 py-6 border-b border-slate-200">
+            <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-6 py-6 border-b border-slate-200">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-white rounded-lg border border-emerald-200">
-                  <TrendingUp className="w-5 h-5 text-emerald-600" />
+                <div className="p-2.5 bg-white rounded-lg border border-yellow-200">
+                  <TrendingUp className="w-5 h-5 text-yellow-600" />
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold text-slate-900">
@@ -356,7 +587,7 @@ const PayoutAndCardPage = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {payoutHistory.map((payout, idx) => (
+                        {payoutHistory.map((payout) => (
                           <tr
                             key={payout.id}
                             className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150"

@@ -8,6 +8,9 @@ import { useShipperPayments } from "../contexts/shipperContext/ShipperPaymentCon
 import StripeAlertBanner from "../pages/shipper/common/StripeAlertBanner";
 import StripeVerificationModal from "../pages/shipper/common/StripeVerificationModal";
 
+// NEW IMPORT
+import SubscriptionPopup from "../pages/shipper/Subscription/SubscriptionPopup";
+
 import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
 import { MdOutlineNotificationsActive } from "react-icons/md";
@@ -25,7 +28,8 @@ const ShipperLayout = () => {
 
   const { user, logout } = useAuth();
   const { profile, loading } = useShipperProfile();
-  const { fetchStripeStatus, needsOnboarding } = useShipperPayments();
+  const { fetchStripeStatus, needsOnboarding, subscription } =
+    useShipperPayments();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -46,7 +50,7 @@ const ShipperLayout = () => {
     profile?.profilePicture ||
     user?.profilePicture ||
     defaultProfileImage ||
-    logo; // fallback to logo if nothing else
+    logo;
 
   /* ================= Screen Resize ================= */
   useEffect(() => {
@@ -60,7 +64,7 @@ const ShipperLayout = () => {
     fetchStripeStatus();
   }, [fetchStripeStatus]);
 
-  /* ================= Auto Modal Once Per Session ================= */
+  /* ================= Auto Stripe Modal ================= */
   useEffect(() => {
     if (needsOnboarding && !isPaymentTab) {
       const hasShown = sessionStorage.getItem("stripeModalShown");
@@ -82,7 +86,6 @@ const ShipperLayout = () => {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        // fallback (desktop)
         await navigator.clipboard.writeText(shareData.url);
         alert("Link copied to clipboard!");
       }
@@ -90,6 +93,13 @@ const ShipperLayout = () => {
       console.error("Share failed:", error);
     }
   };
+
+  /* ================= CHECK IF SUBSCRIPTION POPUP SHOULD SHOW ================= */
+  const showSubscriptionPopup =
+    !showStripeModal &&
+    subscription &&
+    !subscription.trialActive && // trial not active
+    subscription.status !== "active"; // subscription not active
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -158,7 +168,7 @@ const ShipperLayout = () => {
                 }`}
                 onClick={() => !loading && setProfilePopup(!profilePopup)}
                 onError={(e) => {
-                  e.target.src = logo1; // fallback if broken URL
+                  e.target.src = logo1;
                 }}
               />
 
@@ -211,6 +221,9 @@ const ShipperLayout = () => {
         isOpen={showStripeModal}
         onClose={() => setShowStripeModal(false)}
       />
+
+      {/* ================= SUBSCRIPTION POPUP ================= */}
+      {showSubscriptionPopup && <SubscriptionPopup />}
     </div>
   );
 };

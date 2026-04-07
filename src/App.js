@@ -46,6 +46,7 @@ import { ReviewProvider } from "./contexts/customerContext/ReviewContext";
 
 // ------------------- Import Newsletter Context -------------------
 import { NewsletterProvider } from "./contexts/NewsletterContext";
+import { SubscriptionProvider } from "./contexts/shipperContext/SubscriptionContext";
 
 // ------------------- Stripe Setup -------------------
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
@@ -60,62 +61,64 @@ function App() {
       >
         <LegalProvider>
           <AuthProvider>
-            <CustomerPaymentProvider>
-              {/* Wrap ShipperPaymentProvider with Elements for Stripe */}
-              <ShipperPaymentProvider>
-                <Elements stripe={stripePromise}>
-                  <CustomerNotificationProvider>
-                    <VehicleProvider>
-                      <DriverProvider>
-                        <ShipperSettingsProvider>
-                          <ShipperProfileProvider>
-                            <ShipperReviewProvider>
-                              <ShipperLocationProvider>
-                                <ShipperPreferredAreaProvider>
-                                  <CustomerShipmentProvider>
-                                    <CustomerQuoteProvider>
-                                      <CustomerReviewProvider>
-                                        <ReviewProvider>
-                                          <ProfileProvider>
-                                            <ShipperContractProvider>
-                                              <ShipperQuoteProvider>
-                                                <ShipperShipmentProvider>
-                                                  <ShipperDeliveryProvider>
-                                                    <DriverAuthProvider>
-                                                      <ShipperChatProvider>
-                                                        <CustomerChatProvider>
-                                                          <ShipperQuestionProvider>
-                                                            <CustomerQuestionProvider>
-                                                              <DeliveredShipmentProvider>
-                                                                <NewsletterProvider>
-                                                                  <AppRoutes />
-                                                                </NewsletterProvider>
-                                                              </DeliveredShipmentProvider>
-                                                            </CustomerQuestionProvider>
-                                                          </ShipperQuestionProvider>
-                                                        </CustomerChatProvider>
-                                                      </ShipperChatProvider>
-                                                    </DriverAuthProvider>
-                                                  </ShipperDeliveryProvider>
-                                                </ShipperShipmentProvider>
-                                              </ShipperQuoteProvider>
-                                            </ShipperContractProvider>
-                                          </ProfileProvider>
-                                        </ReviewProvider>
-                                      </CustomerReviewProvider>
-                                    </CustomerQuoteProvider>
-                                  </CustomerShipmentProvider>
-                                </ShipperPreferredAreaProvider>
-                              </ShipperLocationProvider>
-                            </ShipperReviewProvider>
-                          </ShipperProfileProvider>
-                        </ShipperSettingsProvider>
-                      </DriverProvider>
-                    </VehicleProvider>
-                  </CustomerNotificationProvider>
-                </Elements>
-              </ShipperPaymentProvider>
-            </CustomerPaymentProvider>
+            <SubscriptionProvider>
+              <CustomerPaymentProvider>
+                {/* Wrap ShipperPaymentProvider with Elements for Stripe */}
+                <ShipperPaymentProvider>
+                  <Elements stripe={stripePromise}>
+                    <CustomerNotificationProvider>
+                      <VehicleProvider>
+                        <DriverProvider>
+                          <ShipperSettingsProvider>
+                            <ShipperProfileProvider>
+                              <ShipperReviewProvider>
+                                <ShipperLocationProvider>
+                                  <ShipperPreferredAreaProvider>
+                                    <CustomerShipmentProvider>
+                                      <CustomerQuoteProvider>
+                                        <CustomerReviewProvider>
+                                          <ReviewProvider>
+                                            <ProfileProvider>
+                                              <ShipperContractProvider>
+                                                <ShipperQuoteProvider>
+                                                  <ShipperShipmentProvider>
+                                                    <ShipperDeliveryProvider>
+                                                      <DriverAuthProvider>
+                                                        <ShipperChatProvider>
+                                                          <CustomerChatProvider>
+                                                            <ShipperQuestionProvider>
+                                                              <CustomerQuestionProvider>
+                                                                <DeliveredShipmentProvider>
+                                                                  <NewsletterProvider>
+                                                                    <AppRoutes />
+                                                                  </NewsletterProvider>
+                                                                </DeliveredShipmentProvider>
+                                                              </CustomerQuestionProvider>
+                                                            </ShipperQuestionProvider>
+                                                          </CustomerChatProvider>
+                                                        </ShipperChatProvider>
+                                                      </DriverAuthProvider>
+                                                    </ShipperDeliveryProvider>
+                                                  </ShipperShipmentProvider>
+                                                </ShipperQuoteProvider>
+                                              </ShipperContractProvider>
+                                            </ProfileProvider>
+                                          </ReviewProvider>
+                                        </CustomerReviewProvider>
+                                      </CustomerQuoteProvider>
+                                    </CustomerShipmentProvider>
+                                  </ShipperPreferredAreaProvider>
+                                </ShipperLocationProvider>
+                              </ShipperReviewProvider>
+                            </ShipperProfileProvider>
+                          </ShipperSettingsProvider>
+                        </DriverProvider>
+                      </VehicleProvider>
+                    </CustomerNotificationProvider>
+                  </Elements>
+                </ShipperPaymentProvider>
+              </CustomerPaymentProvider>
+            </SubscriptionProvider>
           </AuthProvider>
         </LegalProvider>
       </LoadScript>
