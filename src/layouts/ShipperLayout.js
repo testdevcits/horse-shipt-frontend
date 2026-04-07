@@ -28,8 +28,7 @@ const ShipperLayout = () => {
 
   const { user, logout } = useAuth();
   const { profile, loading } = useShipperProfile();
-  const { fetchStripeStatus, needsOnboarding, subscription } =
-    useShipperPayments();
+  const { fetchStripeStatus, needsOnboarding } = useShipperPayments();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -93,13 +92,6 @@ const ShipperLayout = () => {
       console.error("Share failed:", error);
     }
   };
-
-  /* ================= CHECK IF SUBSCRIPTION POPUP SHOULD SHOW ================= */
-  const showSubscriptionPopup =
-    !showStripeModal &&
-    subscription &&
-    !subscription.trialActive && // trial not active
-    subscription.status !== "active"; // subscription not active
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -223,7 +215,7 @@ const ShipperLayout = () => {
       />
 
       {/* ================= SUBSCRIPTION POPUP ================= */}
-      {showSubscriptionPopup && <SubscriptionPopup />}
+      {!showStripeModal && <SubscriptionPopup />}
     </div>
   );
 };
