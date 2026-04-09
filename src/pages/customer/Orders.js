@@ -103,7 +103,7 @@ const HorseCard = ({ horse, idx }) => (
 
       {horse.generalInfo && (
         <p className="text-xs text-gray-500 bg-white border border-gray-200 rounded px-2 py-1 mb-2 leading-tight">
-          💬 {horse.generalInfo}
+          {horse.generalInfo}
         </p>
       )}
 
@@ -173,6 +173,7 @@ const ShipmentDrawer = ({
   const isDelivered = shipment.status === "delivered";
   const isCancelled = shipment.status === "cancelled";
 
+  // ── Short date format: "10 Apr 2026" ──
   const fmt = (d) =>
     d
       ? new Date(d).toLocaleDateString("en-US", {
@@ -182,6 +183,7 @@ const ShipmentDrawer = ({
         })
       : "—";
 
+  // ── Full date+time format ──
   const fmtFull = (d) =>
     d
       ? new Date(d).toLocaleString("en-US", {
@@ -192,6 +194,32 @@ const ShipmentDrawer = ({
           minute: "2-digit",
         })
       : "—";
+
+  // ── Pickup date: prefer range, fallback to single pickupDate ──
+  const getPickupDisplay = () => {
+    const start = shipment.pickupDateRange?.start;
+    const end = shipment.pickupDateRange?.end;
+    if (start && end) {
+      const s = fmt(start);
+      const e = fmt(end);
+      // If both dates are the same day show only once
+      return s === e ? s : `${s} – ${e}`;
+    }
+    return fmt(shipment.pickupDate);
+  };
+
+  // ── Delivery date: prefer range, fallback to deliveredAt or single deliveryDate ──
+  const getDeliveryDisplay = () => {
+    if (isDelivered) return fmtFull(shipment.deliveredAt);
+    const start = shipment.deliveryDateRange?.start;
+    const end = shipment.deliveryDateRange?.end;
+    if (start && end) {
+      const s = fmt(start);
+      const e = fmt(end);
+      return s === e ? s : `${s} - ${e}`;
+    }
+    return fmt(shipment.deliveryDate);
+  };
 
   const iconBg = isDelivered
     ? "bg-[#BF9B53]"
@@ -290,52 +318,63 @@ const ShipmentDrawer = ({
             </div>
           </div>
 
-          {/* Info Grid */}
+          {/* ── Info Grid — uses pickupDateRange / deliveryDateRange ── */}
           <div className="grid grid-cols-2 gap-2">
-            {[
-              {
-                icon: "📅",
-                label: "Pickup Date",
-                value: fmt(shipment.pickupDate),
-              },
-              {
-                icon: "🏁",
-                label: isDelivered ? "Delivered At" : "Delivery Date",
-                value: isDelivered
-                  ? fmtFull(shipment.deliveredAt)
-                  : fmt(shipment.deliveryDate),
-              },
-              {
-                icon: "🐎",
-                label: "Horses",
-                value: `${shipment.numberOfHorses}`,
-              },
-              {
-                icon: "💳",
-                label: "Status",
-                value: shipment.status,
-                highlight:
+            {/* Pickup Date */}
+            <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                Pickup Date
+              </p>
+              <p className="text-sm font-bold text-gray-900 leading-snug">
+                {getPickupDisplay()}
+              </p>
+              {shipment.pickupTimeOption && (
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {shipment.pickupTimeOption}
+                </p>
+              )}
+            </div>
+
+            {/* Delivery Date */}
+            <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                {isDelivered ? "Delivered At" : "Delivery Date"}
+              </p>
+              <p className="text-sm font-bold text-gray-900 leading-snug">
+                {getDeliveryDisplay()}
+              </p>
+              {!isDelivered && shipment.deliveryTimeOption && (
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {shipment.deliveryTimeOption}
+                </p>
+              )}
+            </div>
+
+            {/* Horses */}
+            <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                Horses
+              </p>
+              <p className="text-sm font-bold text-gray-900">
+                {shipment.numberOfHorses}
+              </p>
+            </div>
+
+            {/* Status */}
+            <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                Status
+              </p>
+              <p
+                className={`text-sm font-bold capitalize ${
                   shipment.status === "delivered"
                     ? "text-green-600"
-                    : "text-gray-600",
-              },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="bg-gray-50 border border-gray-200 rounded-md p-2"
+                    : "text-gray-600"
+                }`}
               >
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
-                  {item.icon} {item.label}
-                </p>
-                <p
-                  className={`text-sm font-bold text-gray-900 capitalize ${
-                    item.highlight || ""
-                  }`}
-                >
-                  {item.value}
-                </p>
-              </div>
-            ))}
+                {shipment.status}
+              </p>
+            </div>
           </div>
 
           {/* Shipper */}
@@ -358,9 +397,7 @@ const ShipmentDrawer = ({
             </div>
           ) : (
             <div className="border border-dashed border-gray-200 rounded-md p-3 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 text-sm">
-                👤
-              </div>
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 text-sm"></div>
               <p className="text-xs text-gray-400 italic">
                 No shipper assigned yet
               </p>
@@ -483,6 +520,18 @@ const ShipmentRow = ({ s, onView }) => {
     return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
   };
 
+  // ── Pickup display for row card — prefer range ──
+  const getRowPickupDisplay = () => {
+    const start = s.pickupDateRange?.start;
+    const end = s.pickupDateRange?.end;
+    if (start && end) {
+      const s1 = fmt(start);
+      const e1 = fmt(end);
+      return s1 === e1 ? s1 : `${s1} – ${e1}`;
+    }
+    return fmt(s.pickupDate);
+  };
+
   const isDelivered = s.status === "delivered";
   const isCancelled = s.status === "cancelled";
 
@@ -524,24 +573,21 @@ const ShipmentRow = ({ s, onView }) => {
           <StatusChip status={s.status} />
         </div>
         <p className="text-xs text-gray-500 truncate mb-1 flex gap-1">
-          {" "}
-          <MdOutlineLocationOn color="#BF9B53" size={16} />{" "}
-          {truncateText(s.pickupLocation)}→ {truncateText(s.deliveryLocation)}
+          <MdOutlineLocationOn color="#BF9B53" size={16} />
+          {truncateText(s.pickupLocation)} → {truncateText(s.deliveryLocation)}
         </p>
         <div className="flex flex-wrap gap-2 text-xs">
           <span className="text-gray-400 flex gap-1">
             <GiCardPickup color="#BF9B53" size={16} />
-            {fmt(s.pickupDate)}
+            {getRowPickupDisplay()}
           </span>
           <span className="text-gray-400 flex gap-1">
-            {" "}
-            <LiaHorseHeadSolid color="#BF9B53" size={16} /> {s.numberOfHorses}{" "}
-            horse
-            {s.numberOfHorses > 1 ? "s" : ""}
+            <LiaHorseHeadSolid color="#BF9B53" size={16} />
+            {s.numberOfHorses} horse{s.numberOfHorses > 1 ? "s" : ""}
           </span>
           {s.shipper?.name && (
             <span className="text-gray-400 flex gap-1">
-              <CiUser color="#BF9B53" size={16} />{" "}
+              <CiUser color="#BF9B53" size={16} />
               {truncateText(s.shipper.name)}
             </span>
           )}
@@ -665,10 +711,7 @@ const AllShipments = () => {
   const handleEditShipment = async () => {
     if (!selected) return;
     try {
-      // Fetch full shipment details
       await fetchShipmentById(selected._id);
-
-      // Navigate to create shipment page with edit mode
       navigate(`/customer/new-shipment/${selected._id}`, {
         state: {
           editMode: true,
@@ -713,14 +756,7 @@ const AllShipments = () => {
   const completed = shipments.filter((s) => s.status === "delivered");
   const cancelled = shipments.filter((s) => s.status === "cancelled");
 
-  const tabMap = {
-    draft,
-    inProgress,
-    published,
-    completed,
-    cancelled,
-  };
-
+  const tabMap = { draft, inProgress, published, completed, cancelled };
   const shown = tabMap[tab] || [];
 
   const TABS = [
@@ -731,24 +767,9 @@ const AllShipments = () => {
       count: inProgress.length,
       icon: "",
     },
-    {
-      key: "published",
-      label: "Published",
-      count: published.length,
-      icon: "",
-    },
-    {
-      key: "completed",
-      label: "Completed",
-      count: completed.length,
-      icon: "",
-    },
-    {
-      key: "cancelled",
-      label: "Cancelled",
-      count: cancelled.length,
-      icon: "",
-    },
+    { key: "published", label: "Published", count: published.length, icon: "" },
+    { key: "completed", label: "Completed", count: completed.length, icon: "" },
+    { key: "cancelled", label: "Cancelled", count: cancelled.length, icon: "" },
   ];
 
   const activeTabColor = {
@@ -864,42 +885,6 @@ const AllShipments = () => {
               </p>
               <p className="text-xs text-white font-medium mt-0.5">Total</p>
             </div>
-            {/* <div className="bg-gray-100 rounded-lg px-3 py-2 text-center min-w-14">
-              <p className="text-lg font-bold text-gray-700 leading-none">
-                {draft.length}
-              </p>
-              <p className="text-xs text-gray-600 font-medium mt-0.5">Draft</p>
-            </div>
-            <div className="bg-blue-50 rounded-lg px-3 py-2 text-center min-w-14">
-              <p className="text-lg font-bold text-blue-600 leading-none">
-                {inProgress.length}
-              </p>
-              <p className="text-xs text-gray-600 font-medium mt-0.5">
-                In Progress
-              </p>
-            </div>
-            <div className="bg-purple-50 rounded-lg px-3 py-2 text-center min-w-14">
-              <p className="text-lg font-bold text-purple-600 leading-none">
-                {published.length}
-              </p>
-              <p className="text-xs text-gray-600 font-medium mt-0.5">
-                Published
-              </p>
-            </div>
-            <div className="bg-green-50 rounded-lg px-3 py-2 text-center min-w-14">
-              <p className="text-lg font-bold text-green-600 leading-none">
-                {completed.length}
-              </p>
-              <p className="text-xs text-gray-600 font-medium mt-0.5">Done</p>
-            </div>
-            <div className="bg-red-50 rounded-lg px-3 py-2 text-center min-w-14">
-              <p className="text-lg font-bold text-red-600 leading-none">
-                {cancelled.length}
-              </p>
-              <p className="text-xs text-gray-600 font-medium mt-0.5">
-                Cancelled
-              </p>
-            </div> */}
           </div>
         </div>
 
@@ -937,7 +922,7 @@ const AllShipments = () => {
         {/* ── List ── */}
         {shown.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
-            <div className="text-3xl mb-2">📦</div>
+            <div className="text-3xl mb-2"></div>
             <h2 className="text-base font-bold text-gray-800 mb-1">
               {tab === "draft"
                 ? "No Draft Shipments"

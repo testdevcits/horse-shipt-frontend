@@ -1,14 +1,10 @@
-// src/pages/customer/MyHorses.jsx
 import React, { useEffect, useState } from "react";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import { CiEdit, CiTrash } from "react-icons/ci";
 import Toast from "../../components/common/Toast";
-import InputField from "../../components/common/InputField";
 import Select from "../../components/common/Select";
 import Button from "../../components/common/Button";
 import ConfirmModal from "../../components/common/ConfirmModal";
-import { Formik, Form } from "formik";
-import * as Yup from "yup";
 import PageLoader from "../../components/common/PageLoader";
 import NoData from "../../components/common/NoData";
 
@@ -61,37 +57,19 @@ const breedsList = [
   "Zangersheide",
   "Other Breed",
 ];
+
 const sexes = ["Stallion", "Gelding", "Mare", "Colt", "Filly"];
 const stallTypes = ["Box", "1/2 Box", "Single Stall"];
-
-// Yup Validation
-const HorseSchema = Yup.object().shape({
-  registeredName: Yup.string().required("Registered Name is required"),
-  barnName: Yup.string().required("Barn Name is required"),
-  breed: Yup.string().required("Breed is required"),
-  otherBreed: Yup.string().when("breed", {
-    is: "Other Breed",
-    then: Yup.string().required("Please specify other breed"),
-  }),
-  colour: Yup.string().required("Colour is required"),
-  age: Yup.number().required("Age is required").min(0, "Invalid age"),
-  sex: Yup.string().required("Sex is required"),
-  stallType: Yup.string().required("Stall Type is required"),
-  notes: Yup.string().required("Notes are required"),
-});
 
 const MyHorses = () => {
   const { horseLoading, horseError, getMyHorses, createHorse } =
     useCustomerShipments();
+
   const [horses, setHorses] = useState([]);
-  const [editingHorse, setEditingHorse] = useState(null);
+  const [editingHorseIndex, setEditingHorseIndex] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [deleteHorseId, setDeleteHorseId] = useState(null);
-  const [toast, setToast] = useState({
-    message: "",
-    type: "info",
-    show: false,
-  });
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const fetchHorses = async () => {
@@ -101,8 +79,85 @@ const MyHorses = () => {
     fetchHorses();
   }, [getMyHorses]);
 
+  const handleHorseChange = (idx, field, value) => {
+    setHorses((prev) => {
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], [field]: value };
+      return copy;
+    });
+  };
+
+  const validateHorse = (horse) => {
+    const newErrors = {};
+    if (!horse.registeredName) newErrors.registeredName = "Required";
+    if (!horse.barnName) newErrors.barnName = "Required";
+    if (!horse.colour) newErrors.colour = "Required";
+    if (!horse.age) newErrors.age = "Required";
+    if (!horse.breed) newErrors.breed = "Required";
+    if (horse.breed === "Other Breed" && !horse.otherBreed)
+      newErrors.otherBreed = "Required";
+    if (!horse.sex) newErrors.sex = "Required";
+    if (!horse.stallType) newErrors.stallType = "Required";
+    if (!horse.notes) newErrors.notes = "Required";
+    return newErrors;
+  };
+
+  const handleSaveHorse = async () => {
+    if (editingHorseIndex === null) return;
+
+    const horse = horses[editingHorseIndex];
+    const validationErrors = validateHorse(horse);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      Toast.error("Please fill all required fields");
+      return;
+    }
+
+    try {
+      let res;
+      if (horse._id) {
+        // Update existing horse
+        res = await fetch(
+          `${process.env.REACT_APP_API_BASE_URL}/customer/horses/${horse._id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify(horse),
+          }
+        );
+      } else {
+        // Create new horse
+        res = await createHorse(horse);
+      }
+
+      const data = res?.json ? await res.json() : res;
+
+      if (data.success || res?.data?.horse) {
+        const horseData = data.horse || res?.data?.horse;
+        setHorses((prev) =>
+          horse._id
+            ? prev.map((h) => (h._id === horse._id ? horseData : h))
+            : [horseData, ...prev]
+        );
+        Toast.success(horse._id ? "Horse updated" : "Horse created");
+        setShowForm(false);
+        setEditingHorseIndex(null);
+        setErrors({});
+      } else {
+        Toast.error(data.message || "Action failed");
+      }
+    } catch (err) {
+      Toast.error(err.message || "Action failed");
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteHorseId) return;
+
     try {
       const res = await fetch(
         `${process.env.REACT_APP_API_BASE_URL}/customer/horses/${deleteHorseId}`,
@@ -111,46 +166,43 @@ const MyHorses = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
+
       const data = await res.json();
+
       if (data.success) {
         setHorses((prev) => prev.filter((h) => h._id !== deleteHorseId));
-        setToast({
-          message: "Horse deleted successfully",
-          type: "success",
-          show: true,
-        });
+        Toast.success("Horse deleted successfully");
       } else {
-        setToast({
-          message: data.message || "Failed to delete horse",
-          type: "error",
-          show: true,
-        });
+        Toast.error(data.message || "Failed to delete horse");
       }
     } catch (err) {
-      setToast({
-        message: err.message || "Action failed",
-        type: "error",
-        show: true,
-      });
+      Toast.error(err.message || "Action failed");
     } finally {
       setDeleteHorseId(null);
     }
   };
 
+  const startAddHorse = () => {
+    setHorses((prev) => [...prev, {}]);
+    setEditingHorseIndex(horses.length);
+    setShowForm(true);
+  };
+
+  const startEditHorse = (idx) => {
+    setEditingHorseIndex(idx);
+    setShowForm(true);
+  };
+
   return (
     <div className="w-full flex flex-col gap-6 font-montserrat">
-      {/* Heading + Add Button */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-systemText uppercase">
           My Horses
         </h2>
         {!showForm && (
           <Button
-            className="bg-system-primary text-white hover:bg-opacity-90 transition w-full sm:w-auto px-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2"
-            onClick={() => {
-              setShowForm(true);
-              setEditingHorse(null);
-            }}
+            onClick={startAddHorse}
+            className="bg-system-primary text-white"
           >
             Horse +
           </Button>
@@ -158,176 +210,136 @@ const MyHorses = () => {
       </div>
 
       {/* Horse Form */}
-      {showForm && (
-        <Formik
-          initialValues={{
-            registeredName: editingHorse?.registeredName || "",
-            barnName: editingHorse?.barnName || "",
-            breed: editingHorse?.breed || "",
-            otherBreed: editingHorse?.otherBreed || "",
-            colour: editingHorse?.colour || "",
-            age: editingHorse?.age || "",
-            sex: editingHorse?.sex || "",
-            stallType:
-              editingHorse?.stallType || editingHorse?.defaultStallSize || "",
-            notes: editingHorse?.notes || "",
-          }}
-          enableReinitialize
-          validationSchema={HorseSchema}
-          onSubmit={async (values, { resetForm }) => {
-            try {
-              let res;
-              if (editingHorse) {
-                res = await fetch(
-                  `${process.env.REACT_APP_API_BASE_URL}/customer/horses/${editingHorse._id}`,
-                  {
-                    method: "PUT",
-                    headers: {
-                      "Content-Type": "application/json",
-                      Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                    body: JSON.stringify(values),
-                  }
-                );
-              } else {
-                res = await createHorse(values);
+      {showForm && editingHorseIndex !== null && (
+        <div className="border p-4 sm:p-6 rounded-md shadow-sm bg-white">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-4">
+            {horses[editingHorseIndex]?._id ? "Edit Horse" : "Add New Horse"}
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="text"
+              value={horses[editingHorseIndex]?.registeredName || ""}
+              onChange={(e) =>
+                handleHorseChange(
+                  editingHorseIndex,
+                  "registeredName",
+                  e.target.value
+                )
               }
-              const data = res?.json ? await res.json() : res;
-              if (data.success || res?.data?.horse) {
-                const horseData = data.horse || res?.data?.horse;
-                setHorses((prev) =>
-                  editingHorse
-                    ? prev.map((h) =>
-                        h._id === editingHorse._id ? horseData : h
-                      )
-                    : [horseData, ...prev]
-                );
-                setToast({
-                  message: editingHorse
-                    ? "Horse updated successfully"
-                    : "Horse created successfully",
-                  type: "success",
-                  show: true,
-                });
-                resetForm();
-                setEditingHorse(null);
+              placeholder="Registered Name"
+              className={`w-full border-2 rounded-lg px-4 py-2 ${
+                errors.registeredName ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            <input
+              type="text"
+              value={horses[editingHorseIndex]?.barnName || ""}
+              onChange={(e) =>
+                handleHorseChange(editingHorseIndex, "barnName", e.target.value)
+              }
+              placeholder="Barn Name"
+              className={`w-full border-2 rounded-lg px-4 py-2 ${
+                errors.barnName ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            <input
+              type="text"
+              value={horses[editingHorseIndex]?.colour || ""}
+              onChange={(e) =>
+                handleHorseChange(editingHorseIndex, "colour", e.target.value)
+              }
+              placeholder="Colour"
+              className={`w-full border-2 rounded-lg px-4 py-2 ${
+                errors.colour ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            <input
+              type="number"
+              value={horses[editingHorseIndex]?.age || ""}
+              onChange={(e) =>
+                handleHorseChange(editingHorseIndex, "age", e.target.value)
+              }
+              placeholder="Age"
+              className={`w-full border-2 rounded-lg px-4 py-2 ${
+                errors.age ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+
+            <Select
+              value={horses[editingHorseIndex]?.breed || ""}
+              onChange={(e) =>
+                handleHorseChange(editingHorseIndex, "breed", e.target.value)
+              }
+              options={breedsList.map((b) => ({ value: b, label: b }))}
+            />
+            {horses[editingHorseIndex]?.breed === "Other Breed" && (
+              <input
+                type="text"
+                value={horses[editingHorseIndex]?.otherBreed || ""}
+                onChange={(e) =>
+                  handleHorseChange(
+                    editingHorseIndex,
+                    "otherBreed",
+                    e.target.value
+                  )
+                }
+                placeholder="Other Breed"
+                className={`w-full border-2 rounded-lg px-4 py-2 ${
+                  errors.otherBreed ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+            )}
+
+            <Select
+              value={horses[editingHorseIndex]?.sex || ""}
+              onChange={(e) =>
+                handleHorseChange(editingHorseIndex, "sex", e.target.value)
+              }
+              options={sexes.map((s) => ({ value: s, label: s }))}
+            />
+
+            <Select
+              value={horses[editingHorseIndex]?.stallType || ""}
+              onChange={(e) =>
+                handleHorseChange(
+                  editingHorseIndex,
+                  "stallType",
+                  e.target.value
+                )
+              }
+              options={stallTypes.map((s) => ({ value: s, label: s }))}
+            />
+
+            <textarea
+              value={horses[editingHorseIndex]?.notes || ""}
+              onChange={(e) =>
+                handleHorseChange(editingHorseIndex, "notes", e.target.value)
+              }
+              placeholder="Notes"
+              className={`col-span-1 md:col-span-2 w-full border-2 rounded-lg px-4 py-2 ${
+                errors.notes ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            <Button onClick={handleSaveHorse} className="w-full sm:w-auto">
+              Save Horse
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
                 setShowForm(false);
-              } else {
-                setToast({
-                  message: data.message || "Action failed",
-                  type: "error",
-                  show: true,
-                });
-              }
-            } catch (err) {
-              setToast({
-                message: err.message || "Action failed",
-                type: "error",
-                show: true,
-              });
-            }
-          }}
-        >
-          {({ values, handleChange, handleSubmit, errors, touched }) => (
-            <Form
-              onSubmit={handleSubmit}
-              className="mb-6 border p-4 sm:p-6 rounded-md shadow-sm bg-white"
+                setEditingHorseIndex(null);
+                setErrors({});
+              }}
+              className="w-full sm:w-auto"
             >
-              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-4">
-                {editingHorse ? "Edit Horse" : "Add New Horse"}
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField
-                  label="Registered Name"
-                  name="registeredName"
-                  value={values.registeredName}
-                  onChange={handleChange}
-                  error={touched.registeredName && errors.registeredName}
-                />
-                <InputField
-                  label="Barn Name"
-                  name="barnName"
-                  value={values.barnName}
-                  onChange={handleChange}
-                  error={touched.barnName && errors.barnName}
-                />
-                <InputField
-                  label="Colour"
-                  name="colour"
-                  value={values.colour}
-                  onChange={handleChange}
-                  error={touched.colour && errors.colour}
-                />
-                <InputField
-                  label="Age"
-                  type="number"
-                  name="age"
-                  value={values.age}
-                  onChange={handleChange}
-                  error={touched.age && errors.age}
-                />
-                <Select
-                  label="Breed"
-                  name="breed"
-                  value={values.breed}
-                  onChange={handleChange}
-                  options={breedsList.map((b) => ({ value: b, label: b }))}
-                  error={touched.breed && errors.breed}
-                />
-                {values.breed === "Other Breed" && (
-                  <InputField
-                    label="Other Breed"
-                    name="otherBreed"
-                    value={values.otherBreed}
-                    onChange={handleChange}
-                    error={touched.otherBreed && errors.otherBreed}
-                  />
-                )}
-                <Select
-                  label="Sex"
-                  name="sex"
-                  value={values.sex}
-                  onChange={handleChange}
-                  options={sexes.map((s) => ({ value: s, label: s }))}
-                  error={touched.sex && errors.sex}
-                />
-                <Select
-                  label="Stall Size"
-                  name="stallType"
-                  value={values.stallType}
-                  onChange={handleChange}
-                  options={stallTypes.map((s) => ({ value: s, label: s }))}
-                  error={touched.stallType && errors.stallType}
-                />
-                <InputField
-                  label="Notes"
-                  name="notes"
-                  value={values.notes}
-                  onChange={handleChange}
-                  error={touched.notes && errors.notes}
-                  className="col-span-1 md:col-span-2"
-                />
-              </div>
-
-              <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                <Button type="submit" className="w-full sm:w-auto">
-                  {editingHorse ? "Update Horse" : "Save Horse"}
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="w-full sm:w-auto"
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingHorse(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </Form>
-          )}
-        </Formik>
+              Cancel
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Horse List */}
@@ -344,28 +356,21 @@ const MyHorses = () => {
             />
           ) : (
             <div className="grid grid-cols-1 gap-6">
-              {horses.map((horse) => (
+              {horses.map((horse, idx) => (
                 <div
-                  key={horse._id}
+                  key={horse._id || idx}
                   className="relative border border-[#BF9B53]/40 rounded-md p-5 bg-white shadow-sm hover:shadow-lg transition duration-300 flex flex-col"
                 >
-                  {/* TOP ACCENT LINE */}
-
-                  {/* HEADER */}
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
                     <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
                       {horse.registeredName}
                     </h3>
 
-                    {/* ACTION BUTTONS */}
                     <div className="flex gap-2 flex-shrink-0">
                       <Button
                         variant="custom"
                         icon={<CiEdit size={20} />}
-                        onClick={() => {
-                          setEditingHorse(horse);
-                          setShowForm(true);
-                        }}
+                        onClick={() => startEditHorse(idx)}
                         rounded
                         textColor="#BF9B53"
                       />
@@ -380,50 +385,41 @@ const MyHorses = () => {
                     </div>
                   </div>
 
-                  {/* INFO GRID */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm sm:text-base">
                     <p>
                       <span className="font-semibold text-[#BF9B53]">
                         Barn Name:
                       </span>{" "}
-                      <span className="text-gray-700">{horse.barnName}</span>
+                      {horse.barnName}
                     </p>
-
                     <p>
                       <span className="font-semibold text-[#BF9B53]">
                         Breed:
                       </span>{" "}
-                      <span className="text-gray-700">{horse.breed}</span>
+                      {horse.breed}
                     </p>
-
                     <p>
                       <span className="font-semibold text-[#BF9B53]">
                         Colour:
                       </span>{" "}
-                      <span className="text-gray-700">{horse.colour}</span>
+                      {horse.colour}
                     </p>
-
                     <p>
                       <span className="font-semibold text-[#BF9B53]">Age:</span>{" "}
-                      <span className="text-gray-700">{horse.age}</span>
+                      {horse.age}
                     </p>
-
                     <p>
                       <span className="font-semibold text-[#BF9B53]">Sex:</span>{" "}
-                      <span className="text-gray-700">{horse.sex}</span>
+                      {horse.sex}
                     </p>
-
                     <p>
                       <span className="font-semibold text-[#BF9B53]">
                         Stall:
                       </span>{" "}
-                      <span className="text-gray-700">
-                        {horse.stallType || horse.defaultStallSize}
-                      </span>
+                      {horse.stallType || horse.defaultStallSize}
                     </p>
                   </div>
 
-                  {/* NOTES */}
                   {horse.notes && (
                     <div className="mt-4 p-3 rounded-md bg-[#BF9B53]/10 border border-[#BF9B53]/20">
                       <p className="text-sm sm:text-base text-gray-700">
@@ -450,16 +446,6 @@ const MyHorses = () => {
         onCancel={() => setDeleteHorseId(null)}
         confirmText="Delete"
       />
-
-      {/* Toast */}
-      {toast.show && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          duration={3000}
-          onClose={() => setToast({ ...toast, show: false })}
-        />
-      )}
     </div>
   );
 };

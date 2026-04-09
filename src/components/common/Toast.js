@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 
+// Toast component
 const ToastComponent = ({
   message,
   type = "info",
@@ -29,11 +30,22 @@ const ToastComponent = ({
 
   return (
     <div
-      className={`fixed top-4 font-[Montserrat] right-4 z-[9999] px-4 py-2 rounded-md text-white shadow-lg ${bgColor}`}
+      className={`fixed top-4 right-4 z-[9999] px-4 py-2 rounded-md text-white shadow-lg font-[Montserrat] transition-all duration-300 ${bgColor}`}
     >
       {message}
     </div>
   );
+};
+
+// Keep a single toast container in body
+let toastContainer = null;
+
+const getToastContainer = () => {
+  if (!toastContainer) {
+    toastContainer = document.createElement("div");
+    document.body.appendChild(toastContainer);
+  }
+  return toastContainer;
 };
 
 // Callable API
@@ -45,13 +57,14 @@ const Toast = {
 };
 
 const renderToast = (message, type, duration = 3000) => {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
-  const root = createRoot(container);
+  const container = getToastContainer();
+  const toastRoot = document.createElement("div");
+  container.appendChild(toastRoot);
+  const root = createRoot(toastRoot);
 
   const cleanup = () => {
     root.unmount();
-    document.body.removeChild(container);
+    container.removeChild(toastRoot);
   };
 
   root.render(

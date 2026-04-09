@@ -1,3 +1,6 @@
+// /pages/customer/steps/Step1Pickup.jsx
+// UPDATED FILE - DATE RANGE SUPPORT ADDED
+
 import React, { useRef } from "react";
 import { GoogleMap, Autocomplete, Marker } from "@react-google-maps/api";
 import DateInput from "../../../components/common/DateInput";
@@ -5,13 +8,20 @@ import Select from "../../../components/common/Select";
 
 const containerStyle = {
   width: "100%",
-  height: "300px",
+  height: "350px",
 };
 
 const defaultCenter = {
   lat: 39.8283,
   lng: -98.5795,
 };
+
+const pickupTimeOptions = [
+  { value: "on", label: "On" },
+  { value: "before", label: "Before" },
+  { value: "after", label: "After" },
+  { value: "between", label: "Between" },
+];
 
 const Step1Pickup = ({
   pickupLocation,
@@ -20,22 +30,20 @@ const Step1Pickup = ({
   setPickupCoords,
   pickupTimeOption,
   setPickupTimeOption,
-  pickupDate,
-  setPickupDate,
+
+  // ✅ NEW DATE RANGE STATES
+  pickupStartDate,
+  setPickupStartDate,
+  pickupEndDate,
+  setPickupEndDate,
+
   errors,
   clearError,
 }) => {
   const mapRef = useRef(null);
   const autocompleteRef = useRef(null);
 
-  const pickupTimeOptions = [
-    { value: "on", label: "On" },
-    { value: "before", label: "Before" },
-    { value: "after", label: "After" },
-    { value: "between", label: "Between" },
-  ];
-
-  // ONLY when user selects from dropdown
+  // Handle place selected from autocomplete
   const onPlaceChanged = () => {
     if (!autocompleteRef.current) return;
 
@@ -45,7 +53,7 @@ const Step1Pickup = ({
     const lat = place.geometry.location.lat();
     const lng = place.geometry.location.lng();
 
-    setPickupLocation(place.formatted_address);
+    setPickupLocation(place.formatted_address || "");
     setPickupCoords({ lat, lng });
     clearError("pickupLocation");
 
@@ -55,7 +63,7 @@ const Step1Pickup = ({
     }
   };
 
-  // Marker drag updates parent coords
+  // Handle marker drag
   const handleMarkerDragEnd = (e) => {
     setPickupCoords({
       lat: e.latLng.lat(),
@@ -64,11 +72,11 @@ const Step1Pickup = ({
   };
 
   return (
-    <div className="flex flex-col w-full gap-4 bg-gray-50 p-4 rounded-lg font-montserrat">
-      {/* Pickup Location */}
+    <div className="flex flex-col w-full gap-6 bg-white p-6 rounded-lg font-montserrat">
+      {/* ===== LOCATION INPUT ===== */}
       <div>
-        <label className="block text-sm font-semibold mb-1 text-gray-500">
-          Pickup Location
+        <label className="block text-sm font-semibold mb-2 text-gray-600">
+          Pickup Location <span className="text-red-500">*</span>
         </label>
 
         <Autocomplete
@@ -79,10 +87,10 @@ const Step1Pickup = ({
             type="text"
             value={pickupLocation}
             placeholder="Search pickup address"
-            className={`w-full border rounded px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 ${
+            className={`w-full border-2 rounded-lg px-4 py-2 text-gray-700 focus:outline-none transition-all ${
               errors?.pickupLocation
-                ? "border-red-500 focus:ring-red-300"
-                : "border-gray-300 focus:ring-system-primary"
+                ? "border-red-500 focus:ring-2 focus:ring-red-300"
+                : "border-gray-300 focus:ring-2 focus:ring-[#BF9B53]"
             }`}
             onChange={(e) => {
               setPickupLocation(e.target.value);
@@ -93,49 +101,104 @@ const Step1Pickup = ({
         </Autocomplete>
 
         {errors?.pickupLocation && (
-          <p className="text-red-500 text-sm mt-1">{errors.pickupLocation}</p>
+          <p className="text-red-500 text-sm mt-2 font-semibold">
+            {errors.pickupLocation}
+          </p>
         )}
       </div>
 
-      {/* Google Map */}
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={pickupCoords || defaultCenter}
-        zoom={pickupCoords ? 14 : 4}
-        onLoad={(map) => (mapRef.current = map)}
-        options={{
-          mapId: process.env.REACT_APP_GOOGLE_MAP_ID,
-        }}
-      >
-        {pickupCoords && (
-          <Marker
-            position={pickupCoords}
-            draggable
-            onDragEnd={handleMarkerDragEnd}
-          />
+      {/* ===== GOOGLE MAP ===== */}
+      <div className="w-full rounded-lg overflow-hidden border-2 border-gray-200">
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={pickupCoords || defaultCenter}
+          zoom={pickupCoords ? 14 : 4}
+          onLoad={(map) => (mapRef.current = map)}
+          options={{
+            mapId: process.env.REACT_APP_GOOGLE_MAP_ID || "",
+            disableDefaultUI: false,
+          }}
+        >
+          {pickupCoords && (
+            <Marker
+              position={pickupCoords}
+              draggable={true}
+              onDragEnd={handleMarkerDragEnd}
+              title="Pickup Location"
+            />
+          )}
+        </GoogleMap>
+      </div>
+
+      {/* ===== PICKUP TIME ===== */}
+      <div>
+        <label className="block text-sm font-semibold mb-2 text-gray-600">
+          When can your horse(s) be picked up?{" "}
+          <span className="text-red-500">*</span>
+        </label>
+        <Select
+          value={pickupTimeOption}
+          onChange={(e) => {
+            setPickupTimeOption(e.target.value);
+            clearError("pickupTimeOption");
+          }}
+          options={pickupTimeOptions}
+        />
+        {errors?.pickupTimeOption && (
+          <p className="text-red-500 text-sm mt-2 font-semibold">
+            {errors.pickupTimeOption}
+          </p>
         )}
-      </GoogleMap>
+      </div>
 
-      {/* Pickup Time */}
-      <Select
-        label="When can your horse(s) be picked up?"
-        value={pickupTimeOption}
-        onChange={(e) => {
-          setPickupTimeOption(e.target.value);
-          clearError("pickupTimeOption");
-        }}
-        options={pickupTimeOptions}
-      />
+      {/* ===== PICKUP DATE RANGE ===== */}
+      <div>
+        <label className="block text-sm font-semibold mb-2 text-gray-600">
+          Pickup Date Range <span className="text-red-500">*</span>
+        </label>
 
-      {/* Pickup Date */}
-      <DateInput
-        value={pickupDate}
-        onChange={(val) => {
-          setPickupDate(val);
-          clearError("pickupDate");
-        }}
-        error={errors?.pickupDate}
-      />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Start Date */}
+          <DateInput
+            value={pickupStartDate}
+            onChange={(val) => {
+              setPickupStartDate(val);
+              clearError("pickupStartDate");
+            }}
+            error={errors?.pickupStartDate}
+            placeholder="Start Date"
+          />
+
+          {/* End Date */}
+          <DateInput
+            value={pickupEndDate}
+            onChange={(val) => {
+              setPickupEndDate(val);
+              clearError("pickupEndDate");
+            }}
+            error={errors?.pickupEndDate}
+            placeholder="End Date"
+          />
+        </div>
+
+        {(errors?.pickupStartDate || errors?.pickupEndDate) && (
+          <p className="text-red-500 text-sm mt-2 font-semibold">
+            {errors?.pickupStartDate || errors?.pickupEndDate}
+          </p>
+        )}
+
+        <p className="text-xs text-gray-500 mt-2">
+          If pickup is for a single day, select the same date in both fields.
+        </p>
+      </div>
+
+      {/* ===== HELP TEXT ===== */}
+      <div className="bg-[#BF9B53]/10 border border-[#BF9B53] rounded-lg p-4">
+        <p className="text-sm text-gray-900">
+          <span className="font-semibold">Note:</span> Please enter your pickup
+          address or adjust the map marker to set the exact location.
+        </p>
+      </div>
     </div>
   );
 };

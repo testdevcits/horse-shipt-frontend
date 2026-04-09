@@ -368,9 +368,9 @@ const PayoutAndCardPage = () => {
                           </span>
                         </p>
                         {/* Trial progress bar */}
-                        <div className="mt-3 h-1.5 bg-[#BF9B53]/30 rounded-full overflow-hidden">
+                        <div className="mt-3 h-1.5 bg-[#BF9B53] rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-[#BF9B53] rounded-full transition-all duration-500"
+                            className="h-full bg-gray-700 rounded-full transition-all duration-500"
                             style={{ width: `${trialProgressPercent}%` }}
                           />
                         </div>

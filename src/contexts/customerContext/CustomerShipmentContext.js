@@ -231,8 +231,14 @@ export const CustomerShipmentProvider = ({ children }) => {
   // =====================================================
   // CREATE HORSE
   // =====================================================
+  // ===== CustomerShipmentContext.js =====
   const createHorse = async (formData) => {
-    if (!token) return null;
+    console.log("createHorse called with:", formData);
+
+    if (!token) {
+      console.warn("No token found, returning null");
+      return { success: false, message: "No token found" };
+    }
 
     setHorseLoading(true);
     setHorseError(null);
@@ -240,20 +246,27 @@ export const CustomerShipmentProvider = ({ children }) => {
     try {
       let axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
       let dataToSend;
+
+      // Check if any value in formData is a File
       const hasFile = Object.values(formData).some(
         (val) => val instanceof File
       );
+      console.log("Has file in formData:", hasFile);
 
       if (hasFile) {
+        // Use FormData for file upload
         dataToSend = new FormData();
         for (const key in formData) {
           if (formData[key] !== undefined && formData[key] !== null) {
             dataToSend.append(key, formData[key]);
           }
         }
+        console.log("FormData prepared with files:", [...dataToSend.entries()]);
       } else {
+        // Send as JSON
         dataToSend = formData;
         axiosConfig.headers["Content-Type"] = "application/json";
+        console.log("JSON data prepared:", dataToSend);
       }
 
       const res = await axios.post(
@@ -261,21 +274,33 @@ export const CustomerShipmentProvider = ({ children }) => {
         dataToSend,
         axiosConfig
       );
+      console.log("Axios response:", res);
 
-      if (res?.data?.success && res?.data?.horse) {
+      if (res?.data?.horse) {
         const horse = res.data.horse;
+        console.log("Horse saved successfully:", horse);
+
         setMyHorses((prev) => [horse, ...prev]);
-        return horse;
+        return {
+          success: true,
+          horse,
+          message: res.data.message || "Horse saved successfully",
+        };
       }
 
-      setHorseError(res?.data?.message || "Failed to save horse");
-      return null;
+      console.warn("API returned no horse object:", res?.data);
+      const errorMsg = res?.data?.message || "Failed to save horse";
+      setHorseError(errorMsg);
+      return { success: false, message: errorMsg };
     } catch (err) {
       console.error("Create horse error:", err);
-      setHorseError(err.response?.data?.message || err.message);
-      return null;
+      const errorMsg =
+        err.response?.data?.message || err.message || "Failed to save horse";
+      setHorseError(errorMsg);
+      return { success: false, message: errorMsg };
     } finally {
       setHorseLoading(false);
+      console.log("createHorse finished loading");
     }
   };
 

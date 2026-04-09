@@ -66,6 +66,49 @@ const MyShipmentDetails = () => {
   const loading = shipmentLoading || quotesLoading;
   const shipment = currentShipment;
 
+  // ============ HELPER FUNCTION TO FORMAT DATE ============
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not specified";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  // ============ HELPER FUNCTION TO GET PICKUP DATES ============
+  const getPickupDates = () => {
+    if (shipment?.pickupDateRange) {
+      return {
+        startDate: formatDate(shipment.pickupDateRange.start),
+        endDate: formatDate(shipment.pickupDateRange.end),
+      };
+    }
+    return {
+      startDate: formatDate(shipment?.pickupDate),
+      endDate: formatDate(shipment?.pickupDate),
+    };
+  };
+
+  // ============ HELPER FUNCTION TO GET DELIVERY DATES ============
+  const getDeliveryDates = () => {
+    if (shipment?.deliveryDateRange) {
+      return {
+        startDate: formatDate(shipment.deliveryDateRange.start),
+        endDate: formatDate(shipment.deliveryDateRange.end),
+      };
+    }
+    return {
+      startDate: formatDate(shipment?.deliveryDate),
+      endDate: formatDate(shipment?.deliveryDate),
+    };
+  };
+
   // ---------------- TOAST ----------------
   const showToast = (message, type = "info") => {
     setToast({ message, type, visible: true });
@@ -151,7 +194,15 @@ const MyShipmentDetails = () => {
       />
     );
   if (!shipment)
-    return <p className="text-red-500 text-center mt-8">Shipment not found.</p>;
+    return (
+      <div className="text-center py-12 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
+        <div className="text-3xl mb-2"></div>
+        <p className="text-md text-gray-400">Shipment not found</p>
+      </div>
+    );
+
+  const pickupDates = getPickupDates();
+  const deliveryDates = getDeliveryDates();
 
   return (
     <div className="w-full font-montserrat relative">
@@ -202,7 +253,7 @@ const MyShipmentDetails = () => {
                   </p>
                   <p className="flex items-center gap-2 text-gray-700">
                     <LuCalendarDays />
-                    {new Date(shipment.pickupDate).toLocaleDateString()}
+                    {pickupDates.startDate} - {pickupDates.endDate}
                   </p>
                 </div>
 
@@ -214,7 +265,7 @@ const MyShipmentDetails = () => {
                   </p>
                   <p className="flex items-center gap-2 text-gray-700">
                     <LuCalendarDays />
-                    {new Date(shipment.deliveryDate).toLocaleDateString()}
+                    {deliveryDates.startDate} - {deliveryDates.endDate}
                   </p>
                 </div>
 
@@ -307,14 +358,22 @@ const MyShipmentDetails = () => {
                   <div className="w-3/4 text-gray-700 flex flex-col gap-1">
                     <span>Total Horses: {shipment.horses.length}</span>
                     <span>
-                      <strong>Pickup:</strong>{" "}
-                      {new Date(shipment.pickupDate).toLocaleDateString()} -{" "}
-                      {shipment.pickupTimeOption}
+                      <strong>Pickup:</strong> {pickupDates.startDate} -{" "}
+                      {pickupDates.endDate}
+                      {shipment.pickupTimeOption && (
+                        <span className="ml-2">
+                          ({shipment.pickupTimeOption})
+                        </span>
+                      )}
                     </span>
                     <span>
-                      <strong>Delivery:</strong>{" "}
-                      {new Date(shipment.deliveryDate).toLocaleDateString()} -{" "}
-                      {shipment.deliveryTimeOption}
+                      <strong>Delivery:</strong> {deliveryDates.startDate} -{" "}
+                      {deliveryDates.endDate}
+                      {shipment.deliveryTimeOption && (
+                        <span className="ml-2">
+                          ({shipment.deliveryTimeOption})
+                        </span>
+                      )}
                     </span>
                   </div>
                 </div>
