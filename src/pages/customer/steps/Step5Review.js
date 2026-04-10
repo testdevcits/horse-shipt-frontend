@@ -1,8 +1,3 @@
-// /pages/customer/steps/Step5Review.jsx
-// ✅ COMPLETE WORKING FILE - Copy and use directly
-// ⭐ EDIT BUTTONS FULLY FUNCTIONAL
-// ⭐ UPDATED: Shows date ranges correctly
-
 import React from "react";
 import { IoLocationOutline } from "react-icons/io5";
 import { LuCalendarDays } from "react-icons/lu";
@@ -39,7 +34,7 @@ const Step5Review = ({
   };
 
   return (
-    <div className="flex flex-col w-full gap-6 font-montserrat">
+    <div className="flex flex-col w-full gap-4 font-montserrat">
       {/* ===== PICKUP & DELIVERY INFO ===== */}
       <div className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-lg p-6 shadow-md relative">
         <button
@@ -57,9 +52,9 @@ const Step5Review = ({
 
         {/* Pickup */}
         <div className="mb-4">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="font-bold text-gray-700">Pickup:</span>
+          <div className="flex items-center gap-1 mb-2">
             <IoLocationOutline className="text-[#BF9B53] text-lg" />
+            <span className="font-bold text-[#BF9B53]">Pickup:</span>
           </div>
           <p className="text-gray-600 ml-7">
             {pickupLocation || "Not specified"}
@@ -82,9 +77,10 @@ const Step5Review = ({
 
         {/* Delivery */}
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <span className="font-bold text-gray-700">Delivery:</span>
-            <IoLocationOutline className="text-green-500 text-lg" />
+          <div className="flex items-center gap-1 mb-2">
+            {" "}
+            <IoLocationOutline className="text-[#BF9B53] text-lg" />
+            <span className="font-bold text-[#BF9B53]">Delivery:</span>
           </div>
           <p className="text-gray-600 ml-7">
             {deliveryLocation || "Not specified"}
@@ -117,7 +113,7 @@ const Step5Review = ({
         {horses.slice(0, numberOfHorses).map((h, idx) => (
           <div
             key={idx}
-            className="bg-gradient-to-r from-gray-50 to-white rounded-lg border-2 border-gray-200 p-4 relative hover:shadow-lg transition-all"
+            className="bg-gradient-to-r from-gray-50 to-white rounded-lg border-2 border-gray-200 p-4 relative "
           >
             {/* Edit Button */}
             <button
@@ -131,13 +127,16 @@ const Step5Review = ({
 
             {/* Horse Header */}
             <p className="font-bold text-gray-800 mb-3">
-              Horse {idx + 1}: {h.registeredName || "Unnamed"}
+              Horse {idx + 1}:{" "}
+              <span className="text-[#BF9B53]">
+                {h.registeredName || "Unnamed"}
+              </span>
             </p>
 
             {/* Horse Details Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm mb-3">
               <div>
-                <span className="font-semibold text-gray-600">Barn Name:</span>
+                <span className="font-semibold text-gray-600">Barn Name :</span>
                 <p className="text-gray-800">{h.barnName || "N/A"}</p>
               </div>
               <div>
@@ -223,14 +222,14 @@ const Step5Review = ({
           onClick={() => onEditStep(4)}
           className="mt-4 w-full px-4 py-3 bg-gray-100 rounded-lg text-gray-700 hover:bg-gray-200 font-semibold transition-all border-2 border-gray-300"
         >
-          Edit Horse Documents & Notes
+          Edit Horse Documents & Shipment Details
         </button>
       </div>
 
       {/* ===== RECIPIENT ACCESS ===== */}
       {recipientEmail && (
-        <div className="bg-[#BF9B53]/10 border-2 border-[#BF9B53] rounded-lg p-6 shadow-md">
-          <h3 className="font-bold text-gray-800 mb-2">✓ Recipient Access</h3>
+        <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2">
+          <h3 className="font-bold text-gray-800 mb-2">Recipient Access</h3>
           <p className="text-gray-700 font-semibold">{recipientEmail}</p>
           <p className="text-sm text-gray-500 mt-3">
             This recipient will receive an email with tracking information after
@@ -240,8 +239,8 @@ const Step5Review = ({
       )}
 
       {/* ===== SUMMARY ===== */}
-      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-2 border-[#BF9B53] rounded-lg p-6">
-        <h3 className="font-bold text-gray-800 mb-3">✓ Shipment Summary</h3>
+      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2">
+        <h3 className="font-bold text-gray-800 mb-3">Shipment Summary</h3>
         <ul className="space-y-2 text-sm text-gray-700">
           <li className="flex items-center gap-2">
             <span className="text-green-500 font-bold">✓</span>

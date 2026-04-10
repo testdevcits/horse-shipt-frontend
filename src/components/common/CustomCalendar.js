@@ -36,7 +36,7 @@ const CustomCalendar = ({
 
   return (
     <div
-      className="w-[252px] h-[303px] border border-[#EAEAEA] p-2 bg-system-background shadow-sm flex flex-col"
+      className=" border border-[#EAEAEA] p-2 bg-system-background shadow-sm flex flex-col"
       style={{ opacity: 1, gap: "16px" }}
     >
       {/* Header with Month and Arrows */}

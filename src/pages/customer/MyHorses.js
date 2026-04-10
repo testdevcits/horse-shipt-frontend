@@ -254,12 +254,15 @@ const MyHorses = () => {
                 errors.colour ? "border-red-500" : "border-gray-300"
               }`}
             />
+
             <input
-              type="number"
+              type="text"
               value={horses[editingHorseIndex]?.age || ""}
-              onChange={(e) =>
-                handleHorseChange(editingHorseIndex, "age", e.target.value)
-              }
+              onChange={(e) => {
+                // allow only digits
+                const onlyNumbers = e.target.value.replace(/[^0-9]/g, "");
+                handleHorseChange(editingHorseIndex, "age", onlyNumbers);
+              }}
               placeholder="Age"
               className={`w-full border-2 rounded-lg px-4 py-2 ${
                 errors.age ? "border-red-500" : "border-gray-300"

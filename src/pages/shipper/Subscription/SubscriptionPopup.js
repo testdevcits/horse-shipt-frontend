@@ -1,230 +1,449 @@
 import React, { useEffect, useState } from "react";
 import { useSubscription } from "../../../contexts/shipperContext/SubscriptionContext";
 import { useShipperPayments } from "../../../contexts/shipperContext/ShipperPaymentContext";
-import { useNavigate } from "react-router-dom";
-import { Check, Zap, Lock } from "lucide-react";
+import {
+  Check,
+  Zap,
+  Lock,
+  CreditCard,
+  AlertCircle,
+  Loader,
+  X,
+} from "lucide-react";
 import Toast from "../../../components/common/Toast";
+import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
 const SubscriptionPopup = () => {
-  const navigate = useNavigate();
+  const stripe = useStripe();
+  const elements = useElements();
 
+  // ================= CONTEXTS =================
   const {
     subscription,
-    loading,
+    loading: subLoading,
     createSubscription,
     cancelSubscription,
     plan,
   } = useSubscription();
 
-  const { needsOnboarding, hasCard, fetchPaymentStatus } = useShipperPayments();
+  const {
+    needsOnboarding,
+    hasCard,
+    paymentCard,
+    fetchPaymentStatus,
+    createSetupIntent,
+    savePaymentMethod,
+    createCustomer,
+  } = useShipperPayments();
 
+  // ================= STATE =================
   const [isOpen, setIsOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [cardError, setCardError] = useState(null);
+  const [activeStep, setActiveStep] = useState("review");
 
-  /* ================= FETCH CARD ================= */
+  // ================= EFFECTS =================
   useEffect(() => {
-    fetchPaymentStatus();
-  }, [fetchPaymentStatus]);
-
-  /* ================= CHECK SUBSCRIPTION ================= */
-  useEffect(() => {
-    if (!loading && !needsOnboarding) {
-      const isSubscribed =
-        subscription &&
-        (subscription.trialActive || subscription.status === "active");
-
-      if (!isSubscribed) {
-        setIsOpen(true);
-      }
+    if (isOpen) {
+      fetchPaymentStatus();
+      if (needsOnboarding) setActiveStep("payment");
     }
-  }, [subscription, loading, needsOnboarding]);
+  }, [isOpen, fetchPaymentStatus, needsOnboarding]);
 
-  /* ================= SUBSCRIBE ================= */
-  const handleSubscribe = async () => {
+  useEffect(() => {
+    if (!subLoading && !needsOnboarding) {
+      const isSubscribed =
+        subscription && ["active", "trialing"].includes(subscription.status);
+      if (!isSubscribed) setIsOpen(true);
+    }
+  }, [subscription, subLoading, needsOnboarding]);
+
+  // ================= ADD CARD =================
+  const handleAddCard = async () => {
+    if (!stripe || !elements) return;
     try {
-      if (!hasCard) {
-        Toast.warning("Please add a card first");
-        navigate("/shipper/settings?tab=payment");
+      setCardError(null);
+      setProcessing(true);
+
+      const clientSecret = await createSetupIntent();
+      if (!clientSecret) {
+        setCardError("Failed to initialize card setup");
+        setProcessing(false);
         return;
       }
 
-      setProcessing(true);
-      await createSubscription(true);
+      const cardElement = elements.getElement(CardElement);
+      const { setupIntent, error } = await stripe.confirmCardSetup(
+        clientSecret,
+        { payment_method: { card: cardElement, billing_details: {} } }
+      );
 
-      Toast.success("Subscription Activated!");
-      setIsOpen(false);
+      if (error) {
+        setCardError(error.message);
+        setProcessing(false);
+        return;
+      }
+
+      if (setupIntent.status === "succeeded") {
+        await savePaymentMethod(setupIntent.payment_method);
+        Toast.success("Card added successfully!");
+        setShowCardForm(false);
+        setActiveStep("review");
+        await fetchPaymentStatus();
+      }
     } catch (err) {
-      console.error(err);
-      Toast.error("Subscription failed. Try again.");
+      setCardError(err.message || "Failed to add card");
     } finally {
       setProcessing(false);
     }
   };
 
-  /* ================= CANCEL ================= */
+  // ================= SUBSCRIBE =================
+  const handleSubscribe = async () => {
+    try {
+      if (!hasCard) {
+        setShowCardForm(true);
+        Toast.warning("Please add a payment method first");
+        return;
+      }
+      setProcessing(true);
+      await createCustomer();
+      await createSubscription(true);
+      Toast.success("Subscription Activated!");
+      setIsOpen(false);
+      setActiveStep("review");
+    } catch (err) {
+      Toast.error(
+        err?.response?.data?.message || "Subscription failed. Try again."
+      );
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // ================= CANCEL =================
   const handleCancel = async () => {
     try {
       setProcessing(true);
       await cancelSubscription(false);
-
       Toast.info("Subscription will cancel at period end");
       setIsOpen(false);
+      setActiveStep("review");
     } catch (err) {
-      console.error(err);
       Toast.error("Cancel failed");
     } finally {
       setProcessing(false);
     }
   };
 
-  /* ================= FORMAT PRICE ================= */
+  // ================= FORMAT PRICE =================
   const formatPrice = () => {
-    if (!plan) return "Loading...";
-
+    if (!plan || !plan.monthly) return "Loading...";
     const symbol = plan.currency === "inr" ? "₹" : "$";
-    return `${symbol}${plan.amount}`;
+    return `${symbol}${plan.monthly.amount}`;
+  };
+
+  const isSubscribed =
+    subscription && ["active", "trialing"].includes(subscription.status);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setShowCardForm(false);
+    setActiveStep("review");
+    setCardError(null);
   };
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-montserrat">
-      <div className="bg-white rounded-md shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-300">
-        {/* ===================== HEADER ===================== */}
-        <div className="bg-gradient-to-br from-[#BF9B53] via-[#BF9B53]/60 to-[#BF9B53]/70 px-6 sm:px-4 py-4 sm:py-6 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-[#BF9B53]/60 rounded-full -translate-y-1/2 translate-x-1/3" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#BF9B53]/60 rounded-full translate-y-1/2 -translate-x-1/4" />
+  const FEATURES = [
+    "Full shipment management system",
+    "Quote handling & real-time tracking",
+    "Instant notifications & updates",
+    "Priority customer support",
+    "Advanced analytics & reporting",
+    "Unlimited shipments & quotes",
+  ];
 
-          <div className="relative space-y-3">
-            <div className="flex items-center gap-2 text-blue-100">
-              <Zap size={20} />
-              <span className="text-xs text-black font-semibold uppercase tracking-wider">
-                Premium Plan
+  return (
+    <div className="fixed inset-0 z-50 font-montserrat flex items-end sm:items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={handleClose}
+      />
+
+      {/* ── Sheet: bottom on mobile, centered on sm+ ── */}
+      <div className="relative z-10 w-full sm:max-w-md bg-white sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[90vh] overflow-hidden border border-slate-200">
+        {/* ===================== HEADER ===================== */}
+        <div className="bg-gradient-to-br from-[#BF9B53] via-[#BF9B53]/80 to-[#8B7138] px-5 py-5 text-white relative overflow-hidden shrink-0">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12" />
+
+          {/* Close button */}
+          <button
+            onClick={handleClose}
+            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors z-10"
+          >
+            <X size={14} />
+          </button>
+
+          <div className="relative space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-white/20 backdrop-blur">
+                <Zap size={14} />
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-wider opacity-90">
+                Premium Access
               </span>
             </div>
 
-            <h2 className="text-3xl sm:text-4xl font-black leading-tight">
-              Unlock Premium Features
-            </h2>
+            {/* Price pill — compact on mobile */}
+            <div className="flex items-end justify-between">
+              <h2 className="text-xl font-black leading-tight">
+                {isSubscribed ? "Your Subscription" : "Unlock Full Access"}
+              </h2>
+              {!isSubscribed && (
+                <div className="text-right shrink-0 ml-3">
+                  <p className="text-2xl font-black leading-none">
+                    {formatPrice()}
+                  </p>
+                  <p className="text-xs opacity-80">/month</p>
+                </div>
+              )}
+            </div>
 
-            <p className="text-black text-sm sm:text-base font-medium">
-              {subscription?.trialActive
-                ? `Your trial is active. ${
-                    subscription.remainingTrialDays
-                  } day${
-                    subscription.remainingTrialDays > 1 ? "s" : ""
-                  } remaining`
-                : "Get started with 30 days free, then continue at a premium price."}
+            <p className="text-xs font-medium opacity-90">
+              {isSubscribed
+                ? "Manage your subscription and billing"
+                : "30-day free trial • Cancel anytime"}
             </p>
           </div>
         </div>
 
-        {/* ===================== CONTENT ===================== */}
-        <div className="px-6 sm:px-4 py-4 space-y-4">
-          {/* Plan Card */}
-          <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-[#BF9B53] rounded-md p-6 overflow-hidden">
-            <div className="absolute top-4 right-4 px-3 py-1 bg-[#BF9B53] text-white text-xs font-bold uppercase rounded-full">
-              Best Value
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-2xl font-black text-slate-900">
-                {plan?.productName || "Premium Plan"}
-              </h3>
-
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-black text-slate-900">
-                  {formatPrice()}
-                </span>
-                <span className="text-slate-600 font-semibold">
-                  /{plan?.interval || "month"}
-                </span>
+        {/* ===================== SCROLLABLE BODY ===================== */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 overscroll-contain">
+          {/* ── STEP: REVIEW ── */}
+          {activeStep === "review" && (
+            <div className="space-y-3">
+              {/* Features — compact grid on mobile */}
+              <div className="bg-slate-50 rounded-xl p-4">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                  What's Included
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-1 gap-2">
+                  {FEATURES.map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2.5">
+                      <div className="flex-shrink-0 w-4 h-4 rounded-full bg-green-100 flex items-center justify-center">
+                        <Check size={11} className="text-green-600" />
+                      </div>
+                      <span className="text-xs text-slate-700">{feature}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <p className="text-[#BF9B53] font-bold text-sm flex items-center gap-1">
-                <Check size={16} />
-                30 days free trial • Cancel anytime
-              </p>
-            </div>
-          </div>
+              {/* Payment Method Status */}
+              {!isSubscribed && (
+                <div
+                  className={`p-3 rounded-xl border-2 flex items-center gap-3 ${
+                    hasCard
+                      ? "border-green-200 bg-green-50"
+                      : "border-amber-200 bg-amber-50"
+                  }`}
+                >
+                  <div
+                    className={`p-1.5 rounded-full shrink-0 ${
+                      hasCard ? "bg-green-100" : "bg-amber-100"
+                    }`}
+                  >
+                    {hasCard ? (
+                      <Check size={16} className="text-green-600" />
+                    ) : (
+                      <AlertCircle size={16} className="text-amber-600" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-xs">
+                      {hasCard
+                        ? "Payment Method Ready"
+                        : "Payment Method Required"}
+                    </p>
+                    <p className="text-xs text-slate-600 mt-0.5 truncate">
+                      {hasCard
+                        ? paymentCard?.cardBrand && paymentCard?.cardLast4
+                          ? `${paymentCard.cardBrand.toUpperCase()} •••• ${
+                              paymentCard.cardLast4
+                            }`
+                          : "Card saved"
+                        : "Add a card to activate your subscription"}
+                    </p>
+                  </div>
+                </div>
+              )}
 
-          {/* Card Status */}
-          <div className="p-4 rounded-md border-2 flex items-center gap-3">
-            {hasCard ? (
-              <>
-                <div className="p-2 rounded-full bg-emerald-100">
-                  <Check size={20} className="text-emerald-600" />
-                </div>
-                <div>
-                  <p className="font-bold text-slate-900">
-                    Payment Method Ready
+              {/* Active Subscription Info */}
+              {isSubscribed && (
+                <div className="p-3 rounded-xl bg-blue-50 border-2 border-blue-200 space-y-1">
+                  <p className="font-bold text-blue-900 text-sm">
+                    Subscription Active
                   </p>
-                  <p className="text-xs text-slate-600">
-                    Your card is saved and ready
+                  <p className="text-xs text-blue-800">
+                    Status:{" "}
+                    <span className="font-semibold capitalize">
+                      {subscription?.status}
+                    </span>
                   </p>
+                  {subscription?.currentPeriodEnd && (
+                    <p className="text-xs text-blue-800">
+                      Renewal:{" "}
+                      <span className="font-semibold">
+                        {new Date(
+                          subscription.currentPeriodEnd
+                        ).toLocaleDateString()}
+                      </span>
+                    </p>
+                  )}
                 </div>
-              </>
-            ) : (
-              <>
-                <div className="p-2 rounded-full bg-red-100">
-                  <Lock size={20} className="text-red-600" />
+              )}
+            </div>
+          )}
+
+          {/* ── STEP: ADD CARD ── */}
+          {(activeStep === "card" || showCardForm) && (
+            <div className="space-y-3">
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm mb-1 flex items-center gap-2">
+                  <CreditCard size={16} />
+                  Add Your Card
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Secured with Stripe encryption
+                </p>
+              </div>
+
+              <div className="border-2 border-slate-300 rounded-xl p-3 bg-white focus-within:border-[#BF9B53] focus-within:ring-2 focus-within:ring-[#BF9B53]/20 transition-all">
+                <CardElement
+                  options={{
+                    style: {
+                      base: {
+                        fontSize: "14px",
+                        fontFamily: '"Montserrat", sans-serif',
+                        color: "#1e293b",
+                        "::placeholder": { color: "#cbd5e1" },
+                      },
+                      invalid: { color: "#dc2626" },
+                    },
+                  }}
+                />
+              </div>
+
+              {cardError && (
+                <div className="p-2.5 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2">
+                  <AlertCircle size={15} className="text-red-600 shrink-0" />
+                  <p className="text-xs text-red-700">{cardError}</p>
                 </div>
-                <div>
-                  <p className="font-bold text-slate-900">Add Payment Method</p>
-                  <p className="text-xs text-slate-600">
-                    You need to add a card to subscribe
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
+              )}
+
+              <div className="p-2.5 rounded-lg bg-slate-50 flex items-center gap-2">
+                <Lock size={14} className="text-slate-400 shrink-0" />
+                <p className="text-xs text-slate-500">
+                  We never store full card numbers.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ===================== FOOTER ===================== */}
-        <div className="px-6 sm:px-4 py-4 border-t border-[#BF9B53] space-y-3 bg-slate-50">
-          {/* Subscribe Button */}
-          {!subscription?.trialActive && subscription?.status !== "active" && (
-            <button
-              onClick={handleSubscribe}
-              disabled={processing || !hasCard}
-              className="w-full py-3 px-4 bg-gradient-to-r from-[#BF9B53] to-[#BF9B53]/60 hover:bg-[#BF9B53] disabled:from-slate-300 disabled:to-slate-300 text-white font-bold rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-2"
-            >
-              {processing ? (
+        <div className="shrink-0 border-t bg-white px-5 py-4 space-y-2">
+          {!isSubscribed ? (
+            <>
+              {showCardForm ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Processing...
+                  <button
+                    onClick={handleAddCard}
+                    disabled={processing || !stripe || !elements}
+                    className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl disabled:opacity-50 transition-all text-sm flex items-center justify-center gap-2"
+                  >
+                    {processing ? (
+                      <>
+                        <Loader size={15} className="animate-spin" />
+                        Saving Card...
+                      </>
+                    ) : (
+                      "Save Card & Continue"
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCardForm(false);
+                      setCardError(null);
+                    }}
+                    disabled={processing}
+                    className="w-full py-2 text-slate-500 text-sm font-medium hover:text-slate-800 transition-colors"
+                  >
+                    Back
+                  </button>
                 </>
               ) : (
                 <>
-                  <Zap size={18} />
-                  Start 30-Day Free Trial
+                  <button
+                    onClick={() => {
+                      if (!hasCard) setShowCardForm(true);
+                      else handleSubscribe();
+                    }}
+                    disabled={processing || subLoading}
+                    className="w-full py-3 bg-gradient-to-r from-[#BF9B53] to-[#a8863e] text-white font-bold rounded-xl disabled:opacity-50 hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2"
+                  >
+                    {processing ? (
+                      <>
+                        <Loader size={15} className="animate-spin" />
+                        Processing...
+                      </>
+                    ) : hasCard ? (
+                      <>
+                        <Zap size={15} />
+                        Start Free Trial
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard size={15} />
+                        Add Payment Method
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleClose}
+                    disabled={processing}
+                    className="w-full py-2 text-slate-500 text-sm font-medium hover:text-slate-800 transition-colors disabled:opacity-50"
+                  >
+                    Maybe Later
+                  </button>
                 </>
               )}
-            </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleCancel}
+                disabled={processing}
+                className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl disabled:opacity-50 transition-all text-sm"
+              >
+                {processing ? "Processing..." : "Cancel Subscription"}
+              </button>
+              <button
+                onClick={handleClose}
+                disabled={processing}
+                className="w-full py-2 text-slate-500 text-sm font-medium hover:text-slate-800 transition-colors"
+              >
+                Close
+              </button>
+            </>
           )}
 
-          {/* Cancel Button */}
-          {subscription?.trialActive ||
-          ["active"].includes(subscription?.status) ? (
-            <button
-              onClick={handleCancel}
-              disabled={processing}
-              className="w-full py-3 px-4 bg-red-50 hover:bg-red-100 border-2 border-red-200 text-red-600 font-bold rounded-xl transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {processing ? "Processing..." : "Cancel Subscription"}
-            </button>
-          ) : null}
-
-          {/* Maybe Later Button */}
-          <button
-            onClick={() => setIsOpen(false)}
-            className="w-full py-3 px-4 text-slate-600 font-semibold hover:text-slate-900 hover:bg-gray-300 rounded-xl transition-colors duration-200"
-          >
-            Maybe Later
-          </button>
-
-          <p className="text-center text-xs text-slate-500 font-medium">
-            No hidden fees • Full access for 30 days • Cancel anytime
+          <p className="text-center text-xs text-slate-400 pt-1">
+            Monthly billing • No hidden charges • Cancel anytime
           </p>
         </div>
       </div>

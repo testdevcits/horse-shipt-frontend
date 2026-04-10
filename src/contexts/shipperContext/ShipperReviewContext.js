@@ -12,16 +12,6 @@ export const ShipperReviewProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [googleReviewLink, setGoogleReviewLink] = useState("");
 
-  // Toast State
-  const [toast, setToast] = useState(null);
-
-  const showToast = (message, type = "info") => {
-    setToast({ message, type });
-  };
-
-  // ==========================================
-  // GET Google Review Link
-  // ==========================================
   const fetchGoogleReviewLink = useCallback(async () => {
     if (!token) return;
 
@@ -31,9 +21,7 @@ export const ShipperReviewProvider = ({ children }) => {
       const res = await axios.get(
         `${API_BASE_URL}/shipper/reviews/google-link`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
@@ -41,23 +29,19 @@ export const ShipperReviewProvider = ({ children }) => {
         setGoogleReviewLink(res.data.googleReviewLink || "");
       }
     } catch (err) {
-      console.error("Fetch Google Review Link Error:", err);
-      showToast(
-        err.response?.data?.message || "Failed to fetch Google Review link",
-        "error"
+      console.error(err);
+      Toast.error(
+        err.response?.data?.message || "Failed to fetch Google Review link"
       );
     } finally {
       setLoading(false);
     }
   }, [token]);
 
-  // ==========================================
-  // UPDATE Google Review Link
-  // ==========================================
   const updateGoogleReviewLink = useCallback(
     async (link) => {
       if (!token) {
-        showToast("Not authenticated", "error");
+        Toast.error("Not authenticated");
         return;
       }
 
@@ -68,31 +52,27 @@ export const ShipperReviewProvider = ({ children }) => {
           `${API_BASE_URL}/shipper/reviews/google-link`,
           { googleReviewLink: link },
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
         if (res.data?.success) {
           setGoogleReviewLink(link);
-          showToast(
+
+          Toast.success(
             googleReviewLink
               ? "Google Review Link Updated Successfully"
-              : "Google Review Link Added Successfully",
-            "success"
+              : "Google Review Link Added Successfully"
           );
         } else {
-          showToast(res.data?.message || "Something went wrong", "error");
+          Toast.error(res.data?.message || "Something went wrong");
         }
 
         return res.data;
       } catch (err) {
-        console.error("Update Google Review Link Error:", err);
-
-        showToast(
-          err.response?.data?.message || "Failed to update Google Review link",
-          "error"
+        console.error(err);
+        Toast.error(
+          err.response?.data?.message || "Failed to update Google Review link"
         );
       } finally {
         setLoading(false);
@@ -111,15 +91,6 @@ export const ShipperReviewProvider = ({ children }) => {
       }}
     >
       {children}
-
-      {/* Toast Renderer */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
     </ShipperReviewContext.Provider>
   );
 };

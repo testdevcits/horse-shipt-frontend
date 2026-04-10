@@ -236,214 +236,12 @@ const PayoutAndCardPage = () => {
         </div>
       </div>
 
-      <div className="max-w-full mx-auto mt-4 space-y-8 px-4 pb-8">
-        {/* ── SUBSCRIPTION STATUS CARD ── */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-6 py-6 border-b border-slate-200">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white rounded-lg border border-[#BF9B53]">
-                <Crown className="w-5 h-5 text-[#BF9B53]" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-slate-900">
-                  Subscription Status
-                </h2>
-                <p className="text-xs text-slate-500 mt-1">
-                  Your current plan and billing details
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="px-6 py-8">
-            {subscriptionLoading && !subscription ? (
-              <div className="flex justify-center py-8">
-                <PageLoader
-                  text="Loading subscription..."
-                  size={24}
-                  color="#7c3aed"
-                />
-              </div>
-            ) : !subscription ? (
-              // NO SUBSCRIPTION STATE
-              <div className="space-y-4">
-                <div className="text-center py-8 space-y-4">
-                  <div className="inline-flex items-center justify-center w-14 h-14 bg-slate-100 rounded-full mb-3">
-                    <AlertCircle className="w-7 h-7 text-slate-400" />
-                  </div>
-                  <div>
-                    <p className="text-lg font-semibold text-slate-900">
-                      No Active Subscription
-                    </p>
-                    <p className="text-sm text-slate-600 mt-1">
-                      You don't currently have an active or trial subscription
-                    </p>
-                  </div>
-                </div>
-
-                {/* Upgrade Recommendation */}
-                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Zap className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-semibold text-blue-900">
-                        Upgrade to Premium
-                      </p>
-                      <p className="text-xs text-blue-700 mt-1">
-                        Start your free 30-day trial and unlock unlimited
-                        offers, advanced analytics, and priority support.
-                      </p>
-                    </div>
-                  </div>
-                  <button className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 text-sm">
-                    Start Free Trial
-                  </button>
-                </div>
-
-                {/* Features List */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                    <p className="text-xs font-semibold text-slate-900">
-                      ✓ Unlimited Offers
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                    <p className="text-xs font-semibold text-slate-900">
-                      ✓ Advanced Analytics
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                    <p className="text-xs font-semibold text-slate-900">
-                      ✓ Priority Support
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                    <p className="text-xs font-semibold text-slate-900">
-                      ✓ Verified Badge
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              // ✅ ACTIVE SUBSCRIPTION STATE
-              <div className="space-y-6">
-                {/* Status Badge + Trial Alert Row */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <span
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
-                  >
-                    <span
-                      className={`w-2 h-2 rounded-full ${statusStyle.dot}`}
-                    />
-                    {subscription.status?.charAt(0).toUpperCase() +
-                      subscription.status?.slice(1)}
-                  </span>
-
-                  {subscription.trialActive && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-                      <Zap className="w-3.5 h-3.5" />
-                      Trial Active
-                    </span>
-                  )}
-                </div>
-
-                {/* Info Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Remaining Trial Days */}
-                  {subscription.status === "trialing" &&
-                    subscription.remainingTrialDays !== undefined && (
-                      <div className="p-4 bg-[#BF9B53]/10 rounded-lg border border-[#BF9B53]">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Clock className="w-4 h-4 text-yellow-600" />
-                          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                            Trial Remaining
-                          </p>
-                        </div>
-                        <p className="text-2xl font-bold text-slate-900">
-                          {subscription.remainingTrialDays}
-                          <span className="text-sm font-medium text-slate-500 ml-1">
-                            days
-                          </span>
-                        </p>
-                        {/* Trial progress bar */}
-                        <div className="mt-3 h-1.5 bg-[#BF9B53] rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gray-700 rounded-full transition-all duration-500"
-                            style={{ width: `${trialProgressPercent}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Trial End */}
-                  {subscription.trialEnd && (
-                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calendar className="w-4 h-4 text-slate-500" />
-                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                          Trial Ends
-                        </p>
-                      </div>
-                      <p className="text-base font-semibold text-slate-900">
-                        {formatDate(subscription.trialEnd)}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Current Period Start */}
-                  {subscription.currentPeriodStart && (
-                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calendar className="w-4 h-4 text-slate-500" />
-                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                          Period Start
-                        </p>
-                      </div>
-                      <p className="text-base font-semibold text-slate-900">
-                        {formatDate(subscription.currentPeriodStart)}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Current Period End */}
-                  {subscription.currentPeriodEnd && (
-                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calendar className="w-4 h-4 text-slate-500" />
-                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                          Period End
-                        </p>
-                      </div>
-                      <p className="text-base font-semibold text-slate-900">
-                        {formatDate(subscription.currentPeriodEnd)}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Trial warning if ≤ 7 days left */}
-                {subscription.status === "trialing" &&
-                  subscription.remainingTrialDays <= 7 && (
-                    <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-lg border border-amber-200">
-                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-amber-800">
-                        Your trial is ending soon. Make sure a payment card is
-                        on file to avoid any interruption to your service.
-                      </p>
-                    </div>
-                  )}
-              </div>
-            )}
-          </div>
-        </div>
-
+      <div className="max-w-full mx-auto mt-4 space-y-6 pb-8">
         {/* ── PAYMENT METHOD CARD ── */}
         <div className="group">
-          <div className="bg-white rounded-2xl shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          <div className="bg-white rounded-md shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-6 border-b border-[#BF9B53]">
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-2 border-b border-[#BF9B53]">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-white rounded-lg border border-[#BF9B53]">
                   <CreditCard className="w-5 h-5 text-[#BF9B53]" />
@@ -465,9 +263,9 @@ const PayoutAndCardPage = () => {
             <div className="px-6 py-8">
               {!hasCard && !clientSecret && (
                 <div className="space-y-4">
-                  <div className="flex items-start gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="p-2 bg-white rounded border border-blue-300 mt-0.5">
-                      <Lock className="w-4 h-4 text-blue-600" />
+                  <div className="flex items-start gap-4 p-4 bg-[#BF9B53]/10 border border-[#BF9B53]">
+                    <div className="p-2 bg-white rounded border border-[#BF9B53] mt-0.5">
+                      <Lock className="w-4 h-4 text-[#BF9B53]" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-900">
@@ -481,7 +279,7 @@ const PayoutAndCardPage = () => {
                   <button
                     onClick={handleAddCard}
                     disabled={cardProcessing || paymentLoading}
-                    className="w-full sm:w-auto px-6 py-3 bg-amber-600 hover:bg-amber-700 disabled:bg-slate-300 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-6 py-3 bg-[#BF9B53]/90 hover:bg-[#BF9B53]  text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                   >
                     <CreditCard className="w-4 h-4" />
                     {cardProcessing ? "Processing..." : "Add Payment Card"}
@@ -563,7 +361,7 @@ const PayoutAndCardPage = () => {
               )}
 
               {paymentError && (
-                <div className="p-4 mt-4 bg-red-50 rounded-lg border border-red-200">
+                <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2 mt-4">
                   <p className="text-sm text-red-700 font-medium">
                     {paymentError}
                   </p>
@@ -572,12 +370,201 @@ const PayoutAndCardPage = () => {
             </div>
           </div>
         </div>
+        {/* ── SUBSCRIPTION STATUS CARD ── */}
+        <div className="bg-white rounded-md shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-4 py-2 border-b border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-lg border border-[#BF9B53]">
+                <Crown className="w-5 h-5 text-[#BF9B53]" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">
+                  Subscription Status
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Your current plan and billing details
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="px-6 py-8">
+            {subscriptionLoading && !subscription ? (
+              <div className="flex justify-center py-8">
+                <PageLoader
+                  text="Loading subscription..."
+                  size={24}
+                  color="#7c3aed"
+                />
+              </div>
+            ) : !subscription ? (
+              // NO SUBSCRIPTION STATE
+              <div className="space-y-4">
+                <div className="text-center py-8 space-y-4">
+                  <div className="inline-flex items-center justify-center w-14 h-14 bg-slate-100 rounded-full mb-3">
+                    <AlertCircle className="w-7 h-7 text-slate-400" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold text-slate-900">
+                      No Active Subscription
+                    </p>
+                    <p className="text-sm text-slate-600 mt-1">
+                      You don't currently have an active or trial subscription
+                    </p>
+                  </div>
+                </div>
+
+                {/* Upgrade Recommendation */}
+                <div className="p-4 bg-gray-100 rounded-md border border-[#BF9B53] space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Zap className="w-5 h-5 text-[#BF9B53] mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-[#BF9B53]">
+                        Upgrade to Premium
+                      </p>
+                      <p className="text-xs text-[#BF9B53] mt-1">
+                        Start your free 30-day trial and unlock unlimited
+                        offers, advanced analytics, and priority support.
+                      </p>
+                    </div>
+                  </div>
+                  <button className="w-md px-4 py-2.5 bg-[#BF9B53]/90 hover:bg-[#BF9B53] text-white font-semibold rounded-lg transition-colors duration-200 text-sm">
+                    Start Free Trial
+                  </button>
+                </div>
+
+                <div className="mt-4">
+                  <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2">
+                    <span className="text-lg font-bold text-amber-900">
+                      Full Access Unlocked After Subscription
+                    </span>
+                    <p className="text-xs text-amber-900 mt-1">
+                      Subscribe to unlock all features, unlimited offers,
+                      analytics, and priority support.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              // ACTIVE SUBSCRIPTION STATE
+              <div className="space-y-6">
+                {/* Status Badge + Trial Alert Row */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <span
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full ${statusStyle.dot}`}
+                    />
+                    {subscription.status?.charAt(0).toUpperCase() +
+                      subscription.status?.slice(1)}
+                  </span>
+
+                  {subscription.trialActive && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                      <Zap className="w-3.5 h-3.5" />
+                      Trial Active
+                    </span>
+                  )}
+                </div>
+
+                {/* Info Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Remaining Trial Days */}
+                  {subscription.status === "trialing" &&
+                    subscription.remainingTrialDays !== undefined && (
+                      <div className="p-4 bg-[#BF9B53]/10 rounded-lg border border-[#BF9B53]">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="w-4 h-4 text-yellow-600" />
+                          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                            Trial Remaining
+                          </p>
+                        </div>
+                        <p className="text-2xl font-bold text-slate-900">
+                          {subscription.remainingTrialDays}
+                          <span className="text-sm font-medium text-slate-500 ml-1">
+                            days
+                          </span>
+                        </p>
+                        {/* Trial progress bar */}
+                        <div className="mt-3 h-1.5 bg-gray-300 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-[#BF9B53] rounded-full transition-all duration-500"
+                            style={{ width: `${trialProgressPercent}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Trial End */}
+                  {subscription.trialEnd && (
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="w-4 h-4 text-slate-500" />
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Trial Ends
+                        </p>
+                      </div>
+                      <p className="text-base font-semibold text-slate-900">
+                        {formatDate(subscription.trialEnd)}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Current Period Start */}
+                  {subscription.currentPeriodStart && (
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="w-4 h-4 text-slate-500" />
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Period Start
+                        </p>
+                      </div>
+                      <p className="text-base font-semibold text-slate-900">
+                        {formatDate(subscription.currentPeriodStart)}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Current Period End */}
+                  {subscription.currentPeriodEnd && (
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="w-4 h-4 text-slate-500" />
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Period End
+                        </p>
+                      </div>
+                      <p className="text-base font-semibold text-slate-900">
+                        {formatDate(subscription.currentPeriodEnd)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Trial warning if ≤ 7 days left */}
+                {subscription.status === "trialing" &&
+                  subscription.remainingTrialDays <= 7 && (
+                    <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-amber-800">
+                        Your trial is ending soon. Make sure a payment card is
+                        on file to avoid any interruption to your service.
+                      </p>
+                    </div>
+                  )}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* ── PAYOUT HISTORY CARD ── */}
         <div>
-          <div className="bg-white rounded-2xl shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          <div className="bg-white rounded-md shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-6 py-6 border-b border-slate-200">
+            <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-4 py-2 border-b border-slate-200">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-white rounded-lg border border-[#BF9B53]">
                   <TrendingUp className="w-5 h-5 text-[#BF9B53]" />

@@ -10,7 +10,12 @@ const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 export const CustomerQuoteProvider = ({ children }) => {
   const { token } = useAuth();
 
+  // ---------------- STATE ----------------
   const [quotes, setQuotes] = useState([]);
+  const [totalQuotes, setTotalQuotes] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [loading, setLoading] = useState(false);
 
   // ---------------- TOAST ----------------
@@ -26,29 +31,35 @@ export const CustomerQuoteProvider = ({ children }) => {
   };
 
   /* =========================================================
-     GET QUOTES BY SHIPMENT ID (CUSTOMER) - ONE TIME CALL
+     GET QUOTES BY SHIPMENT ID (WITH PAGINATION)
   ========================================================= */
   const getQuotesByShipment = useCallback(
-    async (shipmentId, force = false) => {
+    async (shipmentId, force = false, page = 1, limit = 5) => {
       if (!token || !shipmentId) return;
-
-      // Only skip if not forced
-      if (!force && quotes.length > 0) return;
 
       setLoading(true);
       try {
         const res = await axios.get(
-          `${API_BASE_URL}/customer/quotes/${shipmentId}`,
+          `${API_BASE_URL}/customer/quotes/${shipmentId}?page=${page}&limit=${limit}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        setQuotes(res.data.success ? res.data.quotes || [] : []);
-        if (!res.data.success)
+
+        if (res.data.success) {
+          setQuotes(res.data.quotes || []);
+          setTotalQuotes(res.data.totalQuotes || 0);
+          setCurrentPage(res.data.currentPage || page);
+          setTotalPages(res.data.totalPages || 1);
+        } else {
+          setQuotes([]);
+          setTotalQuotes(0);
           showToast(res.data.message || "No quotes found", "info");
+        }
       } catch (error) {
         console.error(error);
         setQuotes([]);
+        setTotalQuotes(0);
         showToast(
           error.response?.data?.message || "Failed to fetch quotes",
           "error"
@@ -57,12 +68,11 @@ export const CustomerQuoteProvider = ({ children }) => {
         setLoading(false);
       }
     },
-    [token, quotes.length]
+    [token]
   );
 
   /* =========================================================
-     ACCEPT QUOTE WITH SIGNATURE (CUSTOMER)
-     customerSignature = base64 string
+     ACCEPT QUOTE
   ========================================================= */
   const acceptQuote = async (quoteId, customerSignature) => {
     if (!token) {
@@ -90,7 +100,7 @@ export const CustomerQuoteProvider = ({ children }) => {
 
       showToast(res.data.message || "Quote accepted successfully", "success");
 
-      // Update local quotes state
+      // Update local state
       setQuotes((prevQuotes) =>
         prevQuotes.map((q) =>
           q._id === quoteId
@@ -110,15 +120,19 @@ export const CustomerQuoteProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+  /* =========================================================
+     CANCEL QUOTE
+  ========================================================= */
   const cancelQuote = async (quoteId, reason) => {
     try {
       const res = await fetch(
-        `https://horse-shipt.vercel.app/api/customer/quotes/${quoteId}/cancel`,
+        `${API_BASE_URL}/customer/quotes/${quoteId}/cancel`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ reason }),
         }
@@ -130,10 +144,14 @@ export const CustomerQuoteProvider = ({ children }) => {
       return { success: false, message: "Cancel failed" };
     }
   };
+
   return (
     <CustomerQuoteContext.Provider
       value={{
         quotes,
+        totalQuotes,
+        currentPage,
+        totalPages,
         loading,
         getQuotesByShipment,
         acceptQuote,

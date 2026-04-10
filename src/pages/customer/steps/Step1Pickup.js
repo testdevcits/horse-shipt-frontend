@@ -1,5 +1,5 @@
 // /pages/customer/steps/Step1Pickup.jsx
-// UPDATED FILE - DATE RANGE SUPPORT ADDED
+// UPDATED FILE - Responsive Design, Current Date Pre-Selected, Past Dates Disabled
 
 import React, { useRef } from "react";
 import { GoogleMap, Autocomplete, Marker } from "@react-google-maps/api";
@@ -30,13 +30,10 @@ const Step1Pickup = ({
   setPickupCoords,
   pickupTimeOption,
   setPickupTimeOption,
-
-  // ✅ NEW DATE RANGE STATES
   pickupStartDate,
   setPickupStartDate,
   pickupEndDate,
   setPickupEndDate,
-
   errors,
   clearError,
 }) => {
@@ -71,8 +68,26 @@ const Step1Pickup = ({
     });
   };
 
+  // Handle start date change
+  const handleStartDateChange = (val) => {
+    setPickupStartDate(val);
+    clearError("pickupStartDate");
+    if (pickupEndDate) {
+      clearError("pickupEndDate");
+    }
+  };
+
+  // Handle end date change
+  const handleEndDateChange = (val) => {
+    setPickupEndDate(val);
+    clearError("pickupEndDate");
+    if (pickupStartDate) {
+      clearError("pickupStartDate");
+    }
+  };
+
   return (
-    <div className="flex flex-col w-full gap-6 bg-white p-6 rounded-lg font-montserrat">
+    <div className="flex flex-col w-full gap-6 bg-white p-4 md:p-6 rounded-lg font-montserrat">
       {/* ===== LOCATION INPUT ===== */}
       <div>
         <label className="block text-sm font-semibold mb-2 text-gray-600">
@@ -87,7 +102,7 @@ const Step1Pickup = ({
             type="text"
             value={pickupLocation}
             placeholder="Search pickup address"
-            className={`w-full border-2 rounded-lg px-4 py-2 text-gray-700 focus:outline-none transition-all ${
+            className={`w-full border-2 rounded-lg px-4 py-2 md:py-3 text-gray-700 text-sm md:text-base focus:outline-none transition-all ${
               errors?.pickupLocation
                 ? "border-red-500 focus:ring-2 focus:ring-red-300"
                 : "border-gray-300 focus:ring-2 focus:ring-[#BF9B53]"
@@ -101,7 +116,7 @@ const Step1Pickup = ({
         </Autocomplete>
 
         {errors?.pickupLocation && (
-          <p className="text-red-500 text-sm mt-2 font-semibold">
+          <p className="text-red-500 text-xs md:text-sm mt-2 font-semibold">
             {errors.pickupLocation}
           </p>
         )}
@@ -145,56 +160,55 @@ const Step1Pickup = ({
           options={pickupTimeOptions}
         />
         {errors?.pickupTimeOption && (
-          <p className="text-red-500 text-sm mt-2 font-semibold">
+          <p className="text-red-500 text-xs md:text-sm mt-2 font-semibold">
             {errors.pickupTimeOption}
           </p>
         )}
       </div>
 
       {/* ===== PICKUP DATE RANGE ===== */}
-      <div>
-        <label className="block text-sm font-semibold mb-2 text-gray-600">
+      <div className="space-y-3">
+        <label className="block text-sm font-semibold text-gray-600">
           Pickup Date Range <span className="text-red-500">*</span>
         </label>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
           {/* Start Date */}
-          <DateInput
-            value={pickupStartDate}
-            onChange={(val) => {
-              setPickupStartDate(val);
-              clearError("pickupStartDate");
-            }}
-            error={errors?.pickupStartDate}
-            placeholder="Start Date"
-          />
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-500">
+              Start Date
+            </label>
+            <DateInput
+              value={pickupStartDate}
+              onChange={handleStartDateChange}
+              error={errors?.pickupStartDate}
+              placeholder="Start Date"
+            />
+          </div>
 
           {/* End Date */}
-          <DateInput
-            value={pickupEndDate}
-            onChange={(val) => {
-              setPickupEndDate(val);
-              clearError("pickupEndDate");
-            }}
-            error={errors?.pickupEndDate}
-            placeholder="End Date"
-          />
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-gray-500">
+              End Date
+            </label>
+            <DateInput
+              value={pickupEndDate}
+              onChange={handleEndDateChange}
+              error={errors?.pickupEndDate}
+              placeholder="End Date"
+            />
+          </div>
         </div>
 
-        {(errors?.pickupStartDate || errors?.pickupEndDate) && (
-          <p className="text-red-500 text-sm mt-2 font-semibold">
-            {errors?.pickupStartDate || errors?.pickupEndDate}
-          </p>
-        )}
-
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs text-gray-500 mt-3">
           If pickup is for a single day, select the same date in both fields.
+          Only future dates can be selected.
         </p>
       </div>
 
       {/* ===== HELP TEXT ===== */}
       <div className="bg-[#BF9B53]/10 border border-[#BF9B53] rounded-lg p-4">
-        <p className="text-sm text-gray-900">
+        <p className="text-xs md:text-sm text-gray-900">
           <span className="font-semibold">Note:</span> Please enter your pickup
           address or adjust the map marker to set the exact location.
         </p>

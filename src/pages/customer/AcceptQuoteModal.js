@@ -5,6 +5,7 @@ import Toast from "../../components/common/Toast";
 import Button from "../../components/common/Button";
 import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteContext";
 import Checkbox from "../../components/common/Checkbox";
+import { MdCheckCircle } from "react-icons/md";
 
 // React PDF Viewer
 import { Worker, Viewer } from "@react-pdf-viewer/core";
@@ -31,6 +32,8 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   // RESPONSIVE SIGNATURE ONLY
   const sigWrapperRef = useRef(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
+
+  const isAccepted = quote.status === "accepted";
 
   const isCancellationExpired =
     quote.cancellationLastDate &&
@@ -73,7 +76,6 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
           return;
         }
 
-        // Correct endpoint
         const res = await fetch(
           `https://horse-shipt.vercel.app/api/customer/quotes/${quote._id}/pay`,
           {
@@ -181,11 +183,16 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
             >
               <FiX size={24} />
             </button>
-            <h2 className="text-2xl font-semibold">Accept Quote</h2>
+            <h2 className="text-2xl font-semibold">
+              {isAccepted ? "Quote Details" : "Accept Quote"}
+            </h2>
             <p className="text-gray-600 mt-1">
-              Review the quote details and sign digitally to accept.
+              {isAccepted
+                ? "This quote has already been accepted."
+                : "Review the quote details and sign digitally to accept."}
             </p>
-          </div>{" "}
+          </div>
+
           {quote.cancellationLastDate && (
             <p
               className={`border-b px-4 sm:px-6 py-1.5 sm:py-3 font-montserrat ${
@@ -211,6 +218,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
               )}
             </p>
           )}
+
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* LEFT */}
@@ -252,15 +260,17 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                 </p>
                 <p>
                   <strong className={strongLabelClass}>Transport Type:</strong>{" "}
-                  {quote.transportType}
+                  {quote.transportType || "N/A"}
                 </p>
                 <p>
                   <strong className={strongLabelClass}>Stalls Required:</strong>{" "}
-                  {quote.stallsRequired}
+                  {quote.stallsRequired || "N/A"}
                 </p>
                 <p>
                   <strong className={strongLabelClass}>Status:</strong>{" "}
-                  {quote.status}
+                  <span className="capitalize font-medium text-emerald-600">
+                    {quote.status}
+                  </span>
                 </p>
                 {quote.notes && (
                   <p>
@@ -332,20 +342,16 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
               {showCancelModal && (
                 <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center px-4">
                   <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
-                    {/* Close */}
                     <button
                       onClick={() => setShowCancelModal(false)}
                       className="absolute right-4 top-4 text-gray-500 hover:text-black"
                     >
                       <FiX size={20} />
                     </button>
-
                     <h2 className="text-xl font-semibold mb-2">Cancel Quote</h2>
                     <p className="text-gray-600 mb-4">
                       Please provide a reason for cancellation.
                     </p>
-
-                    {/* Reason Input */}
                     <textarea
                       className="w-full border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
                       rows={4}
@@ -353,8 +359,6 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                       value={cancelReason}
                       onChange={(e) => setCancelReason(e.target.value)}
                     />
-
-                    {/* Actions */}
                     <div className="flex gap-3 mt-5">
                       <Button
                         variant="secondary"
@@ -363,7 +367,6 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                       >
                         Back
                       </Button>
-
                       <Button
                         variant="danger"
                         fullWidth
@@ -376,67 +379,92 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                 </div>
               )}
 
-              {/* TERMS + SIGNATURE + CARD */}
-              <div className="border border-[#BF9B53] rounded-md p-4 space-y-3">
-                <Checkbox
-                  checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
-                  label="I agree to accept this quote and terms"
-                />
-                {!isCancellationExpired && (
-                  <p className="text-[11px] text-gray-500">
-                    Note: Cancellation is only allowed within the specified time
-                    window.
+              {/* ===== IF ACCEPTED: show accepted info card only ===== */}
+              {isAccepted ? (
+                <div className="border border-emerald-300 bg-emerald-50 rounded-md p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <MdCheckCircle className="text-emerald-600 w-6 h-6" />
+                    <h3 className="text-emerald-700 font-semibold text-lg">
+                      Quote Already Accepted
+                    </h3>
+                  </div>
+                  <p className="text-sm text-emerald-700">
+                    This quote was accepted on{" "}
+                    <span className="font-medium">
+                      {new Date(quote.contractAcceptedAt).toLocaleString()}
+                    </span>
+                    .
                   </p>
-                )}
-
-                {quote.paymentMethod === "card" &&
-                  quote.paymentStatus !== "paid" && (
-                    <div className="border rounded-md p-2 mt-2">
-                      <label className="block mb-1 font-medium text-gray-700">
-                        Card Details
-                      </label>
-                      <CardElement options={{ hidePostalCode: true }} />
-                    </div>
+                  {quote.paymentStatus === "paid" && (
+                    <p className="text-sm text-emerald-700">
+                      Payment Status:{" "}
+                      <span className="font-semibold capitalize">
+                        {quote.paymentStatus}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              ) : (
+                /* ===== IF NOT ACCEPTED: show checkbox, card, signature ===== */
+                <div className="border border-[#BF9B53] rounded-md p-4 space-y-3">
+                  <Checkbox
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    label="I agree to accept this quote and terms"
+                  />
+                  {!isCancellationExpired && (
+                    <p className="text-[11px] text-gray-500">
+                      Note: Cancellation is only allowed within the specified
+                      time window.
+                    </p>
                   )}
 
-                <div>
-                  <label className="block mb-1 font-medium text-gray-700">
-                    Your Signature
-                  </label>
-
-                  <div
-                    ref={sigWrapperRef}
-                    className="w-full border rounded-md overflow-hidden"
-                  >
-                    {canvasWidth > 0 && (
-                      <SignatureCanvas
-                        ref={(ref) => setSigPad(ref)}
-                        penColor="#22c55e"
-                        backgroundColor="transparent"
-                        canvasProps={{
-                          width: canvasWidth,
-                          height: 150,
-                          className: "w-full",
-                        }}
-                      />
+                  {quote.paymentMethod === "card" &&
+                    quote.paymentStatus !== "paid" && (
+                      <div className="border rounded-md p-2 mt-2">
+                        <label className="block mb-1 font-medium text-gray-700">
+                          Card Details
+                        </label>
+                        <CardElement options={{ hidePostalCode: true }} />
+                      </div>
                     )}
-                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => sigPad.clear()}
-                    className="mt-2 text-sm text-system-primary hover:text-[#22c55e]"
-                  >
-                    Clear Signature
-                  </button>
+                  <div>
+                    <label className="block mb-1 font-medium text-gray-700">
+                      Your Signature
+                    </label>
+                    <div
+                      ref={sigWrapperRef}
+                      className="w-full border rounded-md overflow-hidden"
+                    >
+                      {canvasWidth > 0 && (
+                        <SignatureCanvas
+                          ref={(ref) => setSigPad(ref)}
+                          penColor="#22c55e"
+                          backgroundColor="transparent"
+                          canvasProps={{
+                            width: canvasWidth,
+                            height: 150,
+                            className: "w-full",
+                          }}
+                        />
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => sigPad.clear()}
+                      className="mt-2 text-sm text-system-primary hover:text-[#22c55e]"
+                    >
+                      Clear Signature
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* ACTIONS */}
               <div className="flex gap-3 mt-auto">
                 <Button variant="google" fullWidth onClick={onClose}>
-                  Cancel
+                  {isAccepted ? "Close" : "Cancel"}
                 </Button>
                 {isCancelable && (
                   <Button
@@ -447,14 +475,17 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                     Cancel Quote
                   </Button>
                 )}
-                <Button
-                  variant="primary"
-                  fullWidth
-                  disabled={submitting || isCancellationExpired}
-                  onClick={handleSubmit}
-                >
-                  {submitting ? "Submitting..." : "Accept Quote"}
-                </Button>
+                {/* Hide Accept button if already accepted */}
+                {!isAccepted && (
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    disabled={submitting || isCancellationExpired}
+                    onClick={handleSubmit}
+                  >
+                    {submitting ? "Submitting..." : "Accept Quote"}
+                  </Button>
+                )}
               </div>
             </div>
           </div>

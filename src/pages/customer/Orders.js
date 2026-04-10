@@ -173,7 +173,6 @@ const ShipmentDrawer = ({
   const isDelivered = shipment.status === "delivered";
   const isCancelled = shipment.status === "cancelled";
 
-  // ── Short date format: "10 Apr 2026" ──
   const fmt = (d) =>
     d
       ? new Date(d).toLocaleDateString("en-US", {
@@ -183,7 +182,6 @@ const ShipmentDrawer = ({
         })
       : "—";
 
-  // ── Full date+time format ──
   const fmtFull = (d) =>
     d
       ? new Date(d).toLocaleString("en-US", {
@@ -195,20 +193,17 @@ const ShipmentDrawer = ({
         })
       : "—";
 
-  // ── Pickup date: prefer range, fallback to single pickupDate ──
   const getPickupDisplay = () => {
     const start = shipment.pickupDateRange?.start;
     const end = shipment.pickupDateRange?.end;
     if (start && end) {
       const s = fmt(start);
       const e = fmt(end);
-      // If both dates are the same day show only once
       return s === e ? s : `${s} – ${e}`;
     }
     return fmt(shipment.pickupDate);
   };
 
-  // ── Delivery date: prefer range, fallback to deliveredAt or single deliveryDate ──
   const getDeliveryDisplay = () => {
     if (isDelivered) return fmtFull(shipment.deliveredAt);
     const start = shipment.deliveryDateRange?.start;
@@ -234,7 +229,7 @@ const ShipmentDrawer = ({
     : "text-blue-600";
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end font-montserrat">
+    <div className="fixed inset-0 z-40 flex justify-end font-montserrat">
       {/* Backdrop */}
       <div
         onClick={close}
@@ -245,7 +240,7 @@ const ShipmentDrawer = ({
 
       {/* Panel */}
       <div
-        className={`relative z-10 w-full max-w-2xl h-full bg-white flex flex-col shadow-2xl transition-transform duration-300 ease-in-out ${
+        className={`relative z-50 w-full max-w-2xl h-full bg-white flex flex-col shadow-2xl transition-transform duration-300 ease-in-out ${
           visible ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -318,9 +313,8 @@ const ShipmentDrawer = ({
             </div>
           </div>
 
-          {/* ── Info Grid — uses pickupDateRange / deliveryDateRange ── */}
+          {/* Info Grid */}
           <div className="grid grid-cols-2 gap-2">
-            {/* Pickup Date */}
             <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                 Pickup Date
@@ -335,7 +329,6 @@ const ShipmentDrawer = ({
               )}
             </div>
 
-            {/* Delivery Date */}
             <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                 {isDelivered ? "Delivered At" : "Delivery Date"}
@@ -350,7 +343,6 @@ const ShipmentDrawer = ({
               )}
             </div>
 
-            {/* Horses */}
             <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                 Horses
@@ -360,7 +352,6 @@ const ShipmentDrawer = ({
               </p>
             </div>
 
-            {/* Status */}
             <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                 Status
@@ -462,39 +453,34 @@ const ShipmentDrawer = ({
             </>
           )}
 
-          {/* In Progress Actions */}
-          {isInProgress && (
+          {/* ── View Full Details button — shown for ALL non-draft tabs ── */}
+          {!isDraft && (
             <button
               onClick={onNavigate}
-              className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+              className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-[#BF9B53] hover:bg-[#a8863e] text-white transition-colors"
             >
               <FiEye size={14} />
-              View Shipment
+              View Full Details
             </button>
           )}
 
-          {/* Delivered Action */}
+          {/* Delivered: Rate Shipper */}
           {isDelivered && (
             <button
               onClick={() => {
-                if (!alreadyReviewed) onReview();
+                if (!alreadyReviewed) {
+                  onReview();
+                }
               }}
               disabled={alreadyReviewed}
               className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors ${
                 alreadyReviewed
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                  : "bg-[#BF9B53] hover:bg-[#a8863e] text-white cursor-pointer"
+                  : "bg-gray-800 hover:bg-gray-900 text-white cursor-pointer"
               }`}
             >
               {alreadyReviewed ? "Already Reviewed" : "Rate Shipper"}
             </button>
-          )}
-
-          {/* Cancelled or Published */}
-          {(isCancelled || (!isDelivered && !isDraft && !isInProgress)) && (
-            <div className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed">
-              {isCancelled ? "🚫 Cancelled" : "📢 Published"}
-            </div>
           )}
         </div>
       </div>
@@ -520,7 +506,6 @@ const ShipmentRow = ({ s, onView }) => {
     return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
   };
 
-  // ── Pickup display for row card — prefer range ──
   const getRowPickupDisplay = () => {
     const start = s.pickupDateRange?.start;
     const end = s.pickupDateRange?.end;
@@ -539,7 +524,7 @@ const ShipmentRow = ({ s, onView }) => {
     ? "bg-[#BF9B53]"
     : isCancelled
     ? "bg-red-100"
-    : "bg-[#BF9B53]/100";
+    : "bg-[#BF9B53]";
 
   const iconColor = isDelivered
     ? "text-white"
@@ -549,8 +534,6 @@ const ShipmentRow = ({ s, onView }) => {
 
   const hoverBorder = isCancelled
     ? "hover:border-red-300"
-    : isDelivered
-    ? "hover:border-[#BF9B53]"
     : "hover:border-[#BF9B53] border-2";
 
   return (
@@ -630,93 +613,166 @@ const AllShipments = () => {
     fetchCompletedShipments();
   }, [fetchCompletedShipments]);
 
+  // =====================================================
+  // HANDLE REVIEW SUBMIT - Close review modal and drawer
+  // =====================================================
   const handleReviewSubmit = async (data) => {
     if (!selected) return;
     try {
-      const res = await addReview({
+      await addReview({
         shipperId: selected.shipper._id,
         shipmentId: selected._id,
         rating: data.rating,
         reviewText: data.reviewText,
       });
-      if (res?.success)
-        setToast({
-          message: "Review submitted successfully!",
-          type: "success",
-        });
+
+      setToast({
+        message: "Review submitted successfully!",
+        type: "success",
+      });
+
+      // Close review modal first
+      setReviewOpen(false);
+
+      // Then close the drawer
+      setTimeout(() => {
+        setSelected(null);
+      }, 100);
     } catch (err) {
       setToast({
         message: err.message || "Failed to submit review",
         type: "error",
       });
-    } finally {
-      setReviewOpen(false);
+      // Keep modals open for retry
     }
   };
 
+  // =====================================================
+  // HANDLE PUBLISH - Open confirmation modal (drawer stays)
+  // =====================================================
+  const openPublishConfirm = () => {
+    setConfirmModal({
+      open: true,
+      action: "publish",
+      shipmentId: selected?._id,
+    });
+  };
+
+  // =====================================================
+  // HANDLE DELETE - Open confirmation modal (drawer stays)
+  // =====================================================
+  const openDeleteConfirm = () => {
+    setConfirmModal({
+      open: true,
+      action: "delete",
+      shipmentId: selected?._id,
+    });
+  };
+
+  // =====================================================
+  // CONFIRM PUBLISH - Execute publish action
+  // =====================================================
   const handlePublish = async () => {
     if (!selected) return;
+
     try {
-      const res = await publishShipment(selected._id);
-      if (res?.success) {
-        setToast({
-          message: "Shipment published successfully!",
-          type: "success",
-        });
+      await publishShipment(selected._id);
+
+      setToast({
+        message: "Shipment published successfully!",
+        type: "success",
+      });
+
+      // Close confirmation modal first
+      setConfirmModal({ open: false, action: null, shipmentId: null });
+
+      // Then close the drawer
+      setTimeout(() => {
         setSelected(null);
-        fetchCompletedShipments();
-      }
+      }, 100);
+
+      // Refresh list
+      fetchCompletedShipments();
     } catch (err) {
       setToast({
         message: err.message || "Failed to publish shipment",
         type: "error",
       });
-    } finally {
+
+      // Close modal but keep drawer open
       setConfirmModal({ open: false, action: null, shipmentId: null });
     }
   };
 
+  // =====================================================
+  // CONFIRM DELETE - Execute delete action
+  // =====================================================
   const handleDelete = async () => {
     if (!selected) return;
+
     try {
-      const res = await deleteShipment(selected._id);
-      if (res?.success) {
-        setToast({
-          message: "Shipment deleted successfully!",
-          type: "success",
-        });
+      await deleteShipment(selected._id);
+
+      setToast({
+        message: "Shipment deleted successfully!",
+        type: "success",
+      });
+
+      // Close confirmation modal first
+      setConfirmModal({ open: false, action: null, shipmentId: null });
+
+      // Then close the drawer
+      setTimeout(() => {
         setSelected(null);
-        fetchCompletedShipments();
-      }
+      }, 100);
+
+      // Refresh list
+      fetchCompletedShipments();
     } catch (err) {
       setToast({
         message: err.message || "Failed to delete shipment",
         type: "error",
       });
-    } finally {
+
+      // Close modal but keep drawer open
       setConfirmModal({ open: false, action: null, shipmentId: null });
     }
   };
 
-  const handleNavigateWithQuery = () => {
-    const token = createShipmentQueryToken(selected._id);
+  // =====================================================
+  // CONFIRM ACTION - Route to correct handler
+  // =====================================================
+  const confirmAction = () => {
+    if (confirmModal.action === "publish") {
+      handlePublish();
+    } else if (confirmModal.action === "delete") {
+      handleDelete();
+    }
+  };
+
+  // =====================================================
+  // NAVIGATE TO DETAILS PAGE
+  // =====================================================
+  const handleNavigateToDetails = (shipment = selected) => {
+    if (!shipment) return;
+    const token = createShipmentQueryToken(shipment._id);
     const params = new URLSearchParams({
-      shipmentId: selected._id,
+      shipmentId: shipment._id,
       ref: token,
     });
     navigate(`/customer/my-shipments?${params.toString()}`);
     setSelected(null);
   };
 
+  // =====================================================
+  // EDIT SHIPMENT
+  // =====================================================
   const handleEditShipment = async () => {
     if (!selected) return;
     try {
       await fetchShipmentById(selected._id);
       navigate(`/customer/new-shipment/${selected._id}`, {
-        state: {
-          editMode: true,
-          shipment: selected,
-        },
+        state: { editMode: true, shipment: selected },
       });
       setSelected(null);
     } catch (err) {
@@ -724,14 +780,6 @@ const AllShipments = () => {
         message: err.message || "Failed to load shipment for editing",
         type: "error",
       });
-    }
-  };
-
-  const confirmAction = () => {
-    if (confirmModal.action === "publish") {
-      handlePublish();
-    } else if (confirmModal.action === "delete") {
-      handleDelete();
     }
   };
 
@@ -760,16 +808,11 @@ const AllShipments = () => {
   const shown = tabMap[tab] || [];
 
   const TABS = [
-    { key: "draft", label: "Draft", count: draft.length, icon: "" },
-    {
-      key: "inProgress",
-      label: "In Progress",
-      count: inProgress.length,
-      icon: "",
-    },
-    { key: "published", label: "Published", count: published.length, icon: "" },
-    { key: "completed", label: "Completed", count: completed.length, icon: "" },
-    { key: "cancelled", label: "Cancelled", count: cancelled.length, icon: "" },
+    { key: "draft", label: "Draft", count: draft.length },
+    { key: "inProgress", label: "In Progress", count: inProgress.length },
+    { key: "published", label: "Published", count: published.length },
+    { key: "completed", label: "Completed", count: completed.length },
+    { key: "cancelled", label: "Cancelled", count: cancelled.length },
   ];
 
   const activeTabColor = {
@@ -807,28 +850,30 @@ const AllShipments = () => {
         />
       )}
 
-      {/* Confirmation Modal */}
-      <ConfirmModal
-        show={confirmModal.open}
-        title={
-          confirmModal.action === "publish"
-            ? "Publish Shipment"
-            : "Delete Shipment"
-        }
-        message={
-          confirmModal.action === "publish"
-            ? "Are you sure you want to publish this shipment? It will be visible to shippers."
-            : "Are you sure you want to delete this shipment? This action cannot be undone."
-        }
-        onConfirm={confirmAction}
-        onCancel={() =>
-          setConfirmModal({ open: false, action: null, shipmentId: null })
-        }
-        confirmText={confirmModal.action === "publish" ? "Publish" : "Delete"}
-        confirmColor={confirmModal.action === "publish" ? "blue" : "red"}
-      />
+      {/* Confirmation Modal - Z-index 50 (above drawer's z-40) */}
+      {confirmModal.open && (
+        <ConfirmModal
+          show={confirmModal.open}
+          title={
+            confirmModal.action === "publish"
+              ? "Publish Shipment"
+              : "Delete Shipment"
+          }
+          message={
+            confirmModal.action === "publish"
+              ? "Are you sure you want to publish this shipment? It will be visible to shippers."
+              : "Are you sure you want to delete this shipment? This action cannot be undone."
+          }
+          onConfirm={confirmAction}
+          onCancel={() =>
+            setConfirmModal({ open: false, action: null, shipmentId: null })
+          }
+          confirmText={confirmModal.action === "publish" ? "Publish" : "Delete"}
+          confirmColor={confirmModal.action === "publish" ? "blue" : "red"}
+        />
+      )}
 
-      {/* Review Modal */}
+      {/* Review Modal - Z-index 50 (above drawer's z-40) */}
       {reviewOpen && selected && (
         <ReviewModal
           open={reviewOpen}
@@ -838,7 +883,7 @@ const AllShipments = () => {
         />
       )}
 
-      {/* Drawer */}
+      {/* Drawer - Z-index 40 */}
       {selected && (
         <ShipmentDrawer
           shipment={selected}
@@ -847,21 +892,9 @@ const AllShipments = () => {
           alreadyReviewed={hasReviewed(selected._id)}
           isDraft={tab === "draft"}
           isInProgress={tab === "inProgress"}
-          onPublish={() =>
-            setConfirmModal({
-              open: true,
-              action: "publish",
-              shipmentId: selected._id,
-            })
-          }
-          onDelete={() =>
-            setConfirmModal({
-              open: true,
-              action: "delete",
-              shipmentId: selected._id,
-            })
-          }
-          onNavigate={handleNavigateWithQuery}
+          onPublish={openPublishConfirm}
+          onDelete={openDeleteConfirm}
+          onNavigate={() => handleNavigateToDetails(selected)}
           onEdit={handleEditShipment}
         />
       )}
@@ -903,7 +936,6 @@ const AllShipments = () => {
                       : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}
               >
-                <span>{t.icon}</span>
                 {t.label}
                 <span
                   className={`text-xs font-bold px-1.5 py-0.5 rounded-full leading-none ml-1 ${
@@ -922,8 +954,7 @@ const AllShipments = () => {
         {/* ── List ── */}
         {shown.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
-            <div className="text-3xl mb-2"></div>
-            <h2 className="text-base font-bold text-gray-800 mb-1">
+            <p className="text-base font-bold text-gray-800 mb-1">
               {tab === "draft"
                 ? "No Draft Shipments"
                 : tab === "inProgress"
@@ -933,7 +964,7 @@ const AllShipments = () => {
                 : tab === "completed"
                 ? "No Completed Shipments"
                 : "No Cancelled Shipments"}
-            </h2>
+            </p>
             <p className="text-xs text-gray-400">{emptyMsg[tab]}</p>
           </div>
         ) : (

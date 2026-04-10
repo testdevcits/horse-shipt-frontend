@@ -5,6 +5,7 @@
 import React, { useEffect, useState } from "react";
 import Select from "../../../components/common/Select";
 import Toast from "../../../components/common/Toast";
+import ColorPicker from "../../../components/common/ColorPicker";
 
 const breedsList = [
   "American Sport Pony",
@@ -262,7 +263,7 @@ const Step3HorseInfo = ({
         <div
           key={idx}
           id={`horse-${idx}`}
-          className="bg-white p-6 rounded-xl space-y-4 shadow-md border border-gray-200 transition-all duration-300"
+          className="bg-white p-6 rounded-md space-y-4 shadow-md border border-gray-200 transition-all duration-300"
         >
           <p className="font-bold text-lg text-[#BF9B53]">
             Horse {idx + 1}: {horse.registeredName || "Unnamed"}
@@ -392,42 +393,33 @@ const Step3HorseInfo = ({
 
           {/* Colour & Age */}
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <label className="block font-semibold text-gray-600 mb-2">
-                Colour <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={horse.colour || ""}
-                onChange={(e) =>
-                  handleHorseChange(idx, "colour", e.target.value)
-                }
-                className={`w-full border-2 rounded-lg px-4 py-2 ${
-                  errors?.[`colour${idx}`]
-                    ? "border-red-500"
-                    : "border-gray-300"
-                }`}
-                placeholder="e.g., Bay, Chestnut, Gray"
-              />
-              {errors?.[`colour${idx}`] && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors[`colour${idx}`]}
-                </p>
-              )}
-            </div>
+            {/* COLOR PICKER */}
+            <ColorPicker
+              value={horse.colour}
+              onChange={(val) => handleHorseChange(idx, "colour", val)}
+              label="Colour"
+              error={errors?.[`colour${idx}`]}
+            />
+
+            {/* AGE INPUT (unchanged) */}
             <div className="flex-1">
               <label className="block font-semibold text-gray-600 mb-2">
                 Age <span className="text-red-500">*</span>
               </label>
+
               <input
                 type="text"
                 value={horse.age || ""}
-                onChange={(e) => handleHorseChange(idx, "age", e.target.value)}
+                onChange={(e) => {
+                  const onlyNumbers = e.target.value.replace(/[^0-9]/g, "");
+                  handleHorseChange(idx, "age", onlyNumbers);
+                }}
                 className={`w-full border-2 rounded-lg px-4 py-2 ${
                   errors?.[`age${idx}`] ? "border-red-500" : "border-gray-300"
                 }`}
-                placeholder="e.g., 5 years"
+                placeholder="e.g., 5"
               />
+
               {errors?.[`age${idx}`] && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors[`age${idx}`]}
@@ -492,7 +484,7 @@ const Step3HorseInfo = ({
       <button
         onClick={handleSaveSelectedHorses}
         disabled={saving}
-        className="w-full py-3 bg-[#BF9B53] text-white font-bold rounded-xl hover:bg-[#a7863e] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        className="w-full py-3 bg-[#BF9B53] text-white font-bold rounded-md hover:bg-[#a7863e] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         {saving ? "Saving..." : "Save Horses"}
       </button>

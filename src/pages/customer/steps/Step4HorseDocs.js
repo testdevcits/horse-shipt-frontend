@@ -41,7 +41,7 @@ const Step4HorseDocuments = ({
           className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-xl shadow-md border border-gray-200 space-y-5"
         >
           {/* Header */}
-          <h2 className="text-lg font-bold text-gray-800 mb-4 pb-3 border-b-2 border-[#BF9B53]">
+          <h2 className="text-lg font-bold text-gray-900 mb-4 pb-3 border-b-2 border-[#BF9B53]">
             Horse {idx + 1} - {horse.registeredName || "Unnamed"}
           </h2>
 
@@ -142,8 +142,8 @@ const Step4HorseDocuments = ({
       ))}
 
       {/* ===== RECIPIENT EMAIL ===== */}
-      <div className="bg-white p-6 rounded-xl border-2 border-blue-200 shadow-md">
-        <h3 className="text-lg font-bold mb-3 text-gray-800">
+      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2">
+        <h3 className="text-lg font-bold mb-1 text-gray-800">
           Share Tracking (Optional)
         </h3>
 
@@ -156,7 +156,7 @@ const Step4HorseDocuments = ({
           value={recipientEmail || ""}
           onChange={(e) => setRecipientEmail(e.target.value)}
           placeholder="buyer@example.com"
-          className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/20"
+          className="w-full px-4 py-2 text-[#BF9B53] border-2 border-gray-300 focus:outline-none focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/20"
         />
 
         <p className="text-sm text-gray-500 mt-3">
@@ -166,11 +166,12 @@ const Step4HorseDocuments = ({
       </div>
 
       {/* ===== INFO BANNER ===== */}
-      <div className="bg-amber-50 border-l-4 border-[#BF9B53] p-4 rounded-r-lg">
-        <p className="text-sm text-amber-800">
-          <span className="font-bold">Important:</span> While Coggins and Health
-          Certificates are optional, we highly recommend uploading them to
-          increase buyer confidence and facilitate transport.
+      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-4">
+        <p className="text-sm ">
+          <span className="text-lg font-bold text-amber-900">Important : </span>{" "}
+          While Coggins and Health Certificates are optional, we highly
+          recommend uploading them to increase buyer confidence and facilitate
+          transport.
         </p>
       </div>
 
@@ -180,7 +181,7 @@ const Step4HorseDocuments = ({
           title="Missing Recommended Documents"
           message="Your Coggins or Health Certificate have not been uploaded. These documents are highly recommended before shipment. Do you want to continue without them?"
           onClose={onCloseWarning}
-          buttonText="Continue to Review"
+          buttonText="Continue"
         />
       )}
     </div>

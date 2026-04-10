@@ -1,6 +1,6 @@
 // /pages/customer/NewShipment.jsx
 // COMPLETE WORKING FILE - Copy and use directly
-// UPDATED: Step 1 & 2 values changed to date ranges
+// FINAL: Step 1 & 2 values with proper error handling for date ranges
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,8 +18,8 @@ import { useCustomerShipments } from "../../contexts/customerContext/CustomerShi
 import PageLoader from "../../components/common/PageLoader";
 
 const steps = [
-  { id: 1, title: "Pickup" },
-  { id: 2, title: "Delivery" },
+  { id: 1, title: "Pickup Date" },
+  { id: 2, title: "Select Drop-Off Date" },
   { id: 3, title: "Number of Horses" },
   { id: 4, title: "Additional Information" },
   { id: 5, title: "Review your shipment details" },
@@ -188,37 +188,57 @@ const NewShipment = () => {
     const stepErrors = {};
 
     if (currentStep === 1) {
-      if (!pickupLocation.trim()) {
-        stepErrors.pickupLocation = "Pickup location required";
+      // Pickup location validation
+      if (!pickupLocation || !pickupLocation.trim()) {
+        stepErrors.pickupLocation = "Pickup location is required";
       }
+
+      // Pickup time option validation
       if (!pickupTimeOption) {
-        stepErrors.pickupTimeOption = "Select time option";
+        stepErrors.pickupTimeOption = "Pickup time option is required";
       }
-      if (!pickupStartDate) {
-        stepErrors.pickupStartDate = "Pickup start date required";
+
+      // Pickup start date validation
+      if (!pickupStartDate || pickupStartDate.trim() === "") {
+        stepErrors.pickupStartDate = "Pickup start date is required";
       }
-      if (!pickupEndDate) {
-        stepErrors.pickupEndDate = "Pickup end date required";
+
+      // Pickup end date validation
+      if (!pickupEndDate || pickupEndDate.trim() === "") {
+        stepErrors.pickupEndDate = "Pickup end date is required";
       }
-      if (pickupStartDate && pickupEndDate && pickupEndDate < pickupStartDate) {
-        stepErrors.pickupEndDate = "End date must be after start date";
+
+      // Validate that end date is not before start date
+      if (
+        pickupStartDate &&
+        pickupEndDate &&
+        new Date(pickupEndDate) < new Date(pickupStartDate)
+      ) {
+        stepErrors.pickupEndDate = "End date cannot be before start date";
       }
     } else if (currentStep === 2) {
-      if (!deliveryLocation.trim()) {
-        stepErrors.deliveryLocation = "Delivery location required";
+      // Delivery location validation
+      if (!deliveryLocation || !deliveryLocation.trim()) {
+        stepErrors.deliveryLocation = "Delivery location is required";
       }
-      if (!deliveryStartDate) {
-        stepErrors.deliveryStartDate = "Delivery start date required";
+
+      // Delivery start date validation
+      if (!deliveryStartDate || deliveryStartDate.trim() === "") {
+        stepErrors.deliveryStartDate = "Delivery start date is required";
       }
-      if (!deliveryEndDate) {
-        stepErrors.deliveryEndDate = "Delivery end date required";
+
+      // Delivery end date validation
+      if (!deliveryEndDate || deliveryEndDate.trim() === "") {
+        stepErrors.deliveryEndDate = "Delivery end date is required";
       }
+
+      // Validate that end date is not before start date
       if (
         deliveryStartDate &&
         deliveryEndDate &&
-        deliveryEndDate < deliveryStartDate
+        new Date(deliveryEndDate) < new Date(deliveryStartDate)
       ) {
-        stepErrors.deliveryEndDate = "End date must be after start date";
+        stepErrors.deliveryEndDate = "End date cannot be before start date";
       }
     } else if (currentStep === 3) {
       horses.forEach((h, idx) => {
@@ -461,7 +481,7 @@ const NewShipment = () => {
      RENDER: Main Component
      ========================================== */
   return (
-    <div className="w-full flex flex-col items-center relative py-10">
+    <div className="w-full flex flex-col items-center relative py-6">
       {/* Toast Notifications */}
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
 
@@ -471,7 +491,7 @@ const NewShipment = () => {
       )}
 
       {/* Stepper Progress */}
-      <div className="w-full max-w-4xl flex gap-2 relative mb-10 px-4 items-center">
+      <div className="w-full max-w-5xl flex gap-2 relative mb-10 px-2 items-center">
         {steps.map((step, index) => {
           const isCompleted = currentStep > step.id;
           const isCurrent = currentStep === step.id;
@@ -502,7 +522,7 @@ const NewShipment = () => {
       </div>
 
       {/* Header */}
-      <div className="flex flex-row justify-between w-full max-w-5xl gap-2 relative mt-4 items-center px-4">
+      <div className="flex flex-row justify-between w-full max-w-5xl gap-2 relative mt-2 items-center px-4">
         <div className="font-montserrat font-semibold text-[20px] leading-[30px]">
           New Shipment
         </div>
@@ -513,16 +533,15 @@ const NewShipment = () => {
           Cancel
         </div>
       </div>
-
       {/* Step Title */}
       <div className="w-full max-w-5xl px-4 mb-4 mt-4">
-        <p className="font-montserrat text-xl font-semibold text-gray-700">
+        <p className="font-montserrat text-md font-semibold text-gray-700">
           {steps[currentStep - 1]?.title}
         </p>
       </div>
 
       {/* Step Content */}
-      <div className="w-full max-w-5xl px-4">{renderStepContent()}</div>
+      <div className="w-full max-w-5xl">{renderStepContent()}</div>
 
       {/* Navigation Buttons */}
       <div className="flex w-full max-w-5xl justify-between md:justify-end gap-4 mt-6 px-4">

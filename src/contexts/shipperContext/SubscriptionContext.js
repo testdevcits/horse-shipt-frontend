@@ -18,13 +18,15 @@ export const SubscriptionProvider = ({ children }) => {
 
   const [subscription, setSubscription] = useState(null);
   const [plan, setPlan] = useState(null);
-  const [loading, setLoading] = useState(false);
 
-  const fetchedOnce = useRef(false);
+  const [loading, setLoading] = useState(false);
+  const [planLoading, setPlanLoading] = useState(false);
+
+  const hasFetched = useRef(false);
 
   /* ===============================
        GET MY SUBSCRIPTION
-    =================================*/
+  =================================*/
   const getMySubscription = useCallback(async () => {
     if (!token || !isShipper) return;
 
@@ -36,7 +38,6 @@ export const SubscriptionProvider = ({ children }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // API response shape: { success, trialActive, status, remainingTrialDays, trialEnd, ... }
       const raw = res.data;
 
       if (!raw || !raw.success) {
@@ -44,10 +45,9 @@ export const SubscriptionProvider = ({ children }) => {
         return;
       }
 
-      // Spread into new object so we don't mutate axios cache
       const data = { ...raw };
 
-      // Compute remainingTrialDays locally as fallback if API doesn't send it
+      // trial calculation
       if (
         data.status === "trialing" &&
         data.trialEnd &&
@@ -55,15 +55,33 @@ export const SubscriptionProvider = ({ children }) => {
       ) {
         const now = new Date();
         const trialEndDate = new Date(data.trialEnd);
+
         const remainingDays = Math.ceil(
           (trialEndDate - now) / (1000 * 60 * 60 * 24)
         );
+
         data.remainingTrialDays = remainingDays > 0 ? remainingDays : 0;
+      }
+
+      // access flag
+      data.hasAccess =
+        data.hasAccess ?? ["active", "trialing"].includes(data.status);
+
+      // cancel message
+      if (data.cancelAtPeriodEnd && data.currentPeriodEnd) {
+        data.cancelMessage = `Your subscription will end on ${new Date(
+          data.currentPeriodEnd
+        ).toLocaleDateString()}`;
+      } else {
+        data.cancelMessage = null;
       }
 
       setSubscription(data);
     } catch (err) {
-      console.error("Get Subscription Error:", err);
+      console.error(
+        "Get Subscription Error:",
+        err?.response?.data || err.message
+      );
       setSubscription(null);
     } finally {
       setLoading(false);
@@ -72,25 +90,37 @@ export const SubscriptionProvider = ({ children }) => {
 
   /* ===============================
        GET PLAN DETAILS
-    =================================*/
+  =================================*/
   const getSubscriptionPlan = useCallback(async () => {
     if (!token || !isShipper) return;
+
+    setPlanLoading(true);
 
     try {
       const res = await axios.get(
         `${API_BASE_URL}/shipper/stripe/subscription-plan`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setPlan(res.data?.data || null);
+
+      const planData = res.data?.data;
+
+      if (!planData || !planData.monthly) {
+        setPlan(null);
+        return;
+      }
+
+      setPlan(planData);
     } catch (err) {
-      console.error("Get Plan Error:", err);
+      console.error("Get Plan Error:", err?.response?.data || err.message);
       setPlan(null);
+    } finally {
+      setPlanLoading(false);
     }
   }, [token, isShipper]);
 
   /* ===============================
        CREATE SUBSCRIPTION
-    =================================*/
+  =================================*/
   const createSubscription = async (withTrial = true) => {
     if (!token || !isShipper) return;
 
@@ -100,17 +130,22 @@ export const SubscriptionProvider = ({ children }) => {
         { withTrial },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       await getMySubscription();
+
       return res.data;
     } catch (err) {
-      console.error("Create Subscription Error:", err);
+      console.error(
+        "Create Subscription Error:",
+        err?.response?.data || err.message
+      );
       throw err;
     }
   };
 
   /* ===============================
        CANCEL SUBSCRIPTION
-    =================================*/
+  =================================*/
   const cancelSubscription = async (
     cancelImmediately = false,
     reason = "User requested"
@@ -123,24 +158,31 @@ export const SubscriptionProvider = ({ children }) => {
         { cancelImmediately, reason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       await getMySubscription();
+
       return res.data;
     } catch (err) {
-      console.error("Cancel Subscription Error:", err);
+      console.error(
+        "Cancel Subscription Error:",
+        err?.response?.data || err.message
+      );
       throw err;
     }
   };
 
   /* ===============================
-       AUTO LOAD
-    =================================*/
+       AUTO LOAD (ONCE)
+  =================================*/
   useEffect(() => {
     if (!token || !isShipper) return;
-    if (!fetchedOnce.current) {
-      fetchedOnce.current = true;
-      getMySubscription();
-      getSubscriptionPlan();
-    }
+
+    if (hasFetched.current) return;
+
+    hasFetched.current = true;
+
+    getMySubscription();
+    getSubscriptionPlan();
   }, [token, isShipper, getMySubscription, getSubscriptionPlan]);
 
   return (
@@ -148,7 +190,16 @@ export const SubscriptionProvider = ({ children }) => {
       value={{
         subscription,
         plan,
+
         loading,
+        planLoading,
+
+        hasAccess: subscription?.hasAccess,
+        isTrial: subscription?.status === "trialing",
+        isCanceled: subscription?.status === "canceled",
+        cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd,
+        cancelMessage: subscription?.cancelMessage,
+
         getMySubscription,
         getSubscriptionPlan,
         createSubscription,

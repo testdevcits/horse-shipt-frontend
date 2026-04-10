@@ -1,6 +1,7 @@
 // /components/common/FileInput.jsx
 import React, { useRef, useState, useEffect } from "react";
-import Button from "./Button"; // import your custom Button component
+import Button from "./Button";
+import { FiUpload } from "react-icons/fi";
 
 const FileInput = ({
   label,
@@ -42,30 +43,30 @@ const FileInput = ({
         </label>
       )}
 
-      <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
+      <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-gray-200">
         {/* File name or placeholder */}
         <span
-          className={`truncate ${error ? "text-red-500" : ""}`}
+          className="truncate"
           style={{
             fontFamily: "Montserrat, sans-serif",
             fontWeight: 500,
-            fontStyle: "normal",
             fontSize: "14px",
             lineHeight: "20px",
             letterSpacing: "0%",
-            color: "#333333",
+            color: fileName ? "#BF9B53" : "#6B7280",
           }}
         >
           {fileName || placeholder}
         </span>
 
-        {/* Upload button using custom Button component */}
+        {/* Upload button */}
         <Button
           type="button"
           onClick={handleClick}
           variant="secondary"
           rounded={false}
-          className="border border-gray-500 border-[2px]"
+          icon={<FiUpload />}
+          className="border border-gray-300 hover:text-white hover:border-system-primary"
         >
           Upload
         </Button>

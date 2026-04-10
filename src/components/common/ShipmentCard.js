@@ -26,6 +26,7 @@ const CustomerShipmentCard = ({ shipment }) => {
     navigate(`/customer/my-shipments?${params.toString()}`);
   };
 
+  // ✅ UPDATED: handle range dates safely
   const formatDate = (date) => {
     if (!date) return "Pending";
     return new Date(date).toLocaleDateString("en-US", {
@@ -34,9 +35,15 @@ const CustomerShipmentCard = ({ shipment }) => {
     });
   };
 
+  const pickupStart = shipment?.pickupDateRange?.start;
+  const pickupEnd = shipment?.pickupDateRange?.end;
+
+  const deliveryStart = shipment?.deliveryDateRange?.start;
+  const deliveryEnd = shipment?.deliveryDateRange?.end;
+
   const isPickupToday =
-    shipment.pickupDate &&
-    new Date(shipment.pickupDate).toDateString() === new Date().toDateString();
+    pickupStart &&
+    new Date(pickupStart).toDateString() === new Date().toDateString();
 
   return (
     <div
@@ -100,7 +107,10 @@ const CustomerShipmentCard = ({ shipment }) => {
 
               <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                 <LuCalendarDays size={14} />
-                <span>{formatDate(shipment.pickupDate)}</span>
+                <span>
+                  {pickupStart ? formatDate(pickupStart) : "Pending"} -{" "}
+                  {pickupEnd ? formatDate(pickupEnd) : "Pending"}
+                </span>
               </div>
             </div>
 
@@ -117,7 +127,10 @@ const CustomerShipmentCard = ({ shipment }) => {
 
               <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                 <LuCalendarDays size={14} />
-                <span>{formatDate(shipment.deliveryDate)}</span>
+                <span>
+                  {deliveryStart ? formatDate(deliveryStart) : "Pending"} -{" "}
+                  {deliveryEnd ? formatDate(deliveryEnd) : "Pending"}
+                </span>
               </div>
             </div>
           </div>

@@ -17,7 +17,7 @@ const Button = ({
   icon,
 }) => {
   const baseStyles =
-    "px-4 py-3 text-base font-medium transition-all duration-200 flex items-center justify-center gap-2 min-h-[44px]";
+    "px-4 py-2 text-base font-medium transition-all duration-200 flex items-center justify-center gap-2 min-h-[44px]";
 
   const width = fullWidth ? "w-full" : "";
   const borderRadius = rounded ? "rounded-full" : "rounded-md";
@@ -26,7 +26,7 @@ const Button = ({
   const variantStyles = {
     primary: "bg-[#BF9B53] hover:bg-[#a6813f] text-white border-none",
     secondary:
-      "bg-[#F3F4F6] hover:bg-gray-200 text-gray-700 border-2 border-[#D1D5DB]",
+      "bg-[#F3F4F6] hover:bg-[#BF9B53] text-gray-700 border-2 border-[#BF9B53]",
     google: "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100",
     custom: "",
   };

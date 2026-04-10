@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { SlLocationPin } from "react-icons/sl";
-import { LuCalendarDays, LuCircleChevronRight } from "react-icons/lu";
+import { LuCalendarDays } from "react-icons/lu";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
@@ -12,12 +12,12 @@ import PageLoader from "../../components/common/PageLoader";
 import AcceptQuoteModal from "./AcceptQuoteModal";
 import Toast from "../../components/common/Toast";
 import ShipmentQuestions from "./ShipmentQuestions";
+import ShipmentQuotes from "./Shipmentquotes";
 
 // ---------------- STRIPE ----------------
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
-// Replace with your Stripe test key
 const stripePromise = loadStripe(
   "pk_test_51T6oVICVoPk11ijL51FMIuNhin8FIjyoJSOITwlK6AqEutL9Jl4bwdOrhziWtZdaBesLZSJheByHGV5RNHbMrYfH00yf77nS4r"
 );
@@ -39,6 +39,9 @@ const MyShipmentDetails = () => {
 
   const {
     quotes,
+    totalQuotes,
+    currentPage,
+    totalPages,
     getQuotesByShipment,
     loading: quotesLoading,
   } = useCustomerQuote();
@@ -63,15 +66,14 @@ const MyShipmentDetails = () => {
     fetchData();
   }, [fetchData]);
 
-  const loading = shipmentLoading || quotesLoading;
+  const loading = shipmentLoading;
   const shipment = currentShipment;
 
-  // ============ HELPER FUNCTION TO FORMAT DATE ============
+  // ============ HELPER: FORMAT DATE ============
   const formatDate = (dateString) => {
     if (!dateString) return "Not specified";
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
+      return new Date(dateString).toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
@@ -81,7 +83,6 @@ const MyShipmentDetails = () => {
     }
   };
 
-  // ============ HELPER FUNCTION TO GET PICKUP DATES ============
   const getPickupDates = () => {
     if (shipment?.pickupDateRange) {
       return {
@@ -95,7 +96,6 @@ const MyShipmentDetails = () => {
     };
   };
 
-  // ============ HELPER FUNCTION TO GET DELIVERY DATES ============
   const getDeliveryDates = () => {
     if (shipment?.deliveryDateRange) {
       return {
@@ -119,7 +119,7 @@ const MyShipmentDetails = () => {
     setSelectedShipmentId(id);
     setShowDeleteModal(true);
   };
-  // ---------------- PUBLISH SHIPMENT ----------------
+
   const handlePublishShipment = async () => {
     try {
       await publishShipment(shipment._id);
@@ -131,36 +131,18 @@ const MyShipmentDetails = () => {
 
   const handleConfirmDelete = async () => {
     if (!selectedShipmentId) return;
-
     await deleteShipment(selectedShipmentId);
-
     setShowDeleteModal(false);
     setSelectedShipmentId(null);
-
-    // Optional redirect
     navigate("/customer/dashboard");
-  };
-
-  const handleReviewNavigate = () => {
-    const shipperId =
-      quotes?.[0]?.shipper?._id ||
-      shipment?.shipperId ||
-      shipment?.shipper?._id;
-
-    if (!shipperId) {
-      alert("Shipper ID not found");
-      return;
-    }
-
-    navigate(`/customer/reviews/${shipperId}`);
   };
 
   // ---------------- TAB BUTTON ----------------
   const handleTabClick = (id) => {
     setActiveTab(id);
-
-    if (id === "quotes" && shipmentId) getQuotesByShipment(shipmentId, true);
-
+    // Load first page with limit=5 when switching to quotes tab
+    if (id === "quotes" && shipmentId)
+      getQuotesByShipment(shipmentId, true, 1, 5);
     if (id === "questions" && shipmentId) fetchQuestions(shipmentId);
   };
 
@@ -177,7 +159,7 @@ const MyShipmentDetails = () => {
       <span className="truncate">{label}</span>
       {count !== undefined && (
         <span
-          className="flex items-center justify-center w-[25px] h-[24px] text-[10px] sm:text-xs font-medium 
+          className="flex items-center justify-center w-[25px] h-[24px] text-[10px] sm:text-xs font-medium
                      bg-[#F2EBDD] border border-[#BF9B53] rounded-full"
         >
           {count}
@@ -187,12 +169,7 @@ const MyShipmentDetails = () => {
   );
 
   if (loading)
-    return (
-      <PageLoader
-        text="Loading shipment Quotes details..."
-        fullScreen={false}
-      />
-    );
+    return <PageLoader text="Loading shipment details..." fullScreen={false} />;
   if (!shipment)
     return (
       <div className="text-center py-12 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
@@ -223,7 +200,11 @@ const MyShipmentDetails = () => {
       {/* ================= TABS ================= */}
       <div className="flex gap-6 border-b mb-6">
         <TabButton id="overview" label="Overview" />
-        <TabButton id="quotes" label="Quotes" count={quotes.length} />
+        <TabButton
+          id="quotes"
+          label="Quotes"
+          count={totalQuotes ?? quotes.length}
+        />
         <TabButton
           id="questions"
           label="Questions"
@@ -279,15 +260,12 @@ const MyShipmentDetails = () => {
 
                 {!shipment.publish && shipment.status === "pending" && (
                   <div className="flex gap-3 mt-4">
-                    {/* Publish Button */}
                     <button
                       onClick={() => setShowPublishModal(true)}
                       className="px-6 py-3 bg-system-primary text-white rounded-lg font-medium hover:opacity-90 transition"
                     >
                       Publish Shipment
                     </button>
-
-                    {/* Delete Button */}
                     <button
                       onClick={() => handleDeleteClick(shipment._id)}
                       className="px-6 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition"
@@ -315,21 +293,17 @@ const MyShipmentDetails = () => {
                 <FiChevronDown size={20} />
               )}
             </div>
+
             {showDeleteModal && (
               <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
                 <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
-                  {/* Title */}
                   <h2 className="text-xl font-semibold mb-2">
                     Delete Shipment
                   </h2>
-
-                  {/* Message */}
                   <p className="text-gray-600 mb-4">
                     Are you sure you want to delete this shipment? This action
                     cannot be undone.
                   </p>
-
-                  {/* Buttons */}
                   <div className="flex gap-3 mt-5">
                     <button
                       onClick={() => setShowDeleteModal(false)}
@@ -337,7 +311,6 @@ const MyShipmentDetails = () => {
                     >
                       Cancel
                     </button>
-
                     <button
                       onClick={handleConfirmDelete}
                       className="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
@@ -348,6 +321,7 @@ const MyShipmentDetails = () => {
                 </div>
               </div>
             )}
+
             {openDetails && (
               <div className="p-4 space-y-6">
                 {/* GENERAL */}
@@ -426,41 +400,17 @@ const MyShipmentDetails = () => {
 
       {/* ================= QUOTES TAB ================= */}
       {activeTab === "quotes" && (
-        <div className="bg-white border border-[#BF9B53] rounded-lg p-6 relative">
-          <h3 className="font-medium mb-4">Total Quotes: {quotes.length}</h3>
-          {quotes.length === 0 ? (
-            <p className="text-gray-500 text-center">No quotes received yet.</p>
-          ) : (
-            <div className="space-y-4">
-              {quotes.map((quote) => (
-                <div
-                  key={quote._id}
-                  className="border rounded-lg p-4 flex justify-between items-center relative"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {quote.shipper?.companyName || quote.shipper?.name}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Price (USD): ${quote.totalPrice} • {quote.status}
-                    </p>
-                  </div>
-
-                  <LuCircleChevronRight
-                    size={22}
-                    className="text-system-primary cursor-pointer hover:scale-110 transition absolute right-2 top-1/2 -translate-y-1/2"
-                    onClick={() => setSelectedQuote(quote)}
-                  />
-                </div>
-              ))}
-              <button
-                onClick={handleReviewNavigate}
-                className="text-system-primary hover:opacity-80 transition text-sm font-medium bg-transparent border-none p-0 cursor-pointer"
-              >
-                View Shipper Reviews
-              </button>
-            </div>
-          )}
+        <div className="mt-6">
+          <ShipmentQuotes
+            quotes={quotes}
+            loading={quotesLoading}
+            onSelectQuote={setSelectedQuote}
+            shipment={shipment}
+            shipmentId={shipmentId}
+            totalQuotes={totalQuotes}
+            currentPage={currentPage}
+            totalPages={totalPages}
+          />
         </div>
       )}
 
@@ -471,7 +421,7 @@ const MyShipmentDetails = () => {
         </div>
       )}
 
-      {/* ================= ACCEPT QUOTE MODAL WITH STRIPE ================= */}
+      {/* ================= ACCEPT QUOTE MODAL ================= */}
       {selectedQuote && (
         <Elements stripe={stripePromise}>
           <AcceptQuoteModal
@@ -481,6 +431,7 @@ const MyShipmentDetails = () => {
         </Elements>
       )}
 
+      {/* ================= PUBLISH MODAL ================= */}
       {showPublishModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
           <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
@@ -490,7 +441,6 @@ const MyShipmentDetails = () => {
               <strong>cannot delete or edit</strong> it. Are you sure you want
               to proceed?
             </p>
-
             <div className="flex gap-3 mt-5">
               <button
                 onClick={() => setShowPublishModal(false)}
@@ -498,7 +448,6 @@ const MyShipmentDetails = () => {
               >
                 Cancel
               </button>
-
               <button
                 onClick={async () => {
                   await handlePublishShipment();
