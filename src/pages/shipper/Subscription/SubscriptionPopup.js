@@ -8,20 +8,42 @@ import {
   CreditCard,
   AlertCircle,
   Loader,
+  Shield,
 } from "lucide-react";
 import Toast from "../../../components/common/Toast";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+
+// =====================================================
+// FEATURES LIST
+// =====================================================
+const FEATURES = [
+  "Full shipment management system",
+  "Quote handling & real-time tracking",
+  "Instant notifications & updates",
+  "Priority customer support",
+  "Advanced analytics & reporting",
+  "Unlimited shipments & quotes",
+];
+
+// =====================================================
+// HELPER — format interval label
+// e.g. "day" → "day", "month" → "month", "week" → "week"
+// =====================================================
+const formatInterval = (interval) => {
+  if (!interval) return "month";
+  return interval; // already human-readable from Stripe
+};
 
 const SubscriptionPopup = () => {
   const stripe = useStripe();
   const elements = useElements();
 
-  // ================= CONTEXTS =================
+  // ── Contexts ──
   const {
     subscription,
     loading: subLoading,
     createSubscription,
-    plan,
+    plan, // raw API response: { data: { daily: {...}, trialDays, currency } }
   } = useSubscription();
 
   const {
@@ -34,31 +56,56 @@ const SubscriptionPopup = () => {
     createCustomer,
   } = useShipperPayments();
 
-  // ================= STATE =================
+  // ── Local state ──
   const [isOpen, setIsOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
   const [cardError, setCardError] = useState(null);
 
-  // ================= EFFECTS =================
+  // ── Fetch payment status when popup opens ──
   useEffect(() => {
-    if (isOpen) {
-      fetchPaymentStatus();
-    }
+    if (isOpen) fetchPaymentStatus();
   }, [isOpen, fetchPaymentStatus]);
 
-  // Open modal for new users who haven't subscribed yet
+  // ── Auto-open for unsubscribed users ──
   useEffect(() => {
     if (!subLoading && !needsOnboarding) {
       const isSubscribed =
         subscription && ["active", "trialing"].includes(subscription.status);
-      if (!isSubscribed) {
-        setIsOpen(true);
-      }
+      if (!isSubscribed) setIsOpen(true);
     }
   }, [subscription, subLoading, needsOnboarding]);
 
-  // ================= ADD CARD =================
+  // =====================================================
+  // DERIVE PLAN DETAILS from API response
+  // API shape: plan.data.daily | plan.data.monthly | plan.data.weekly
+  // =====================================================
+  const planData = (() => {
+    if (!plan) return null;
+    // Support both { data: { daily } } and flat { daily }
+    const root = plan?.data || plan;
+    // Pick the first available plan key (daily, weekly, monthly)
+    const planKey = ["daily", "weekly", "monthly"].find((k) => root?.[k]);
+    return planKey ? root[planKey] : null;
+  })();
+
+  const trialDays = plan?.data?.trialDays ?? plan?.trialDays ?? 0;
+
+  const formatPrice = () => {
+    if (!planData) return "Loading...";
+    const symbol = planData.currency === "inr" ? "₹" : "$";
+    return `${symbol}${planData.amount}`;
+  };
+
+  const intervalLabel = planData ? formatInterval(planData.interval) : "day";
+
+  // e.g. "1-day free trial" or "30-day free trial"
+  const trialLabel =
+    trialDays > 0 ? `${trialDays}-day free trial` : "Free trial";
+
+  // =====================================================
+  // ADD CARD
+  // =====================================================
   const handleAddCard = async () => {
     if (!stripe || !elements) return;
     try {
@@ -68,7 +115,6 @@ const SubscriptionPopup = () => {
       const clientSecret = await createSetupIntent();
       if (!clientSecret) {
         setCardError("Failed to initialize card setup");
-        setProcessing(false);
         return;
       }
 
@@ -80,7 +126,6 @@ const SubscriptionPopup = () => {
 
       if (error) {
         setCardError(error.message);
-        setProcessing(false);
         return;
       }
 
@@ -97,7 +142,9 @@ const SubscriptionPopup = () => {
     }
   };
 
-  // ================= SUBSCRIBE =================
+  // =====================================================
+  // SUBSCRIBE
+  // =====================================================
   const handleSubscribe = async () => {
     try {
       if (!hasCard) {
@@ -109,7 +156,6 @@ const SubscriptionPopup = () => {
       await createCustomer();
       await createSubscription(true);
       Toast.success("Subscription Activated!");
-      // Modal will close automatically when subscription updates
       setIsOpen(false);
     } catch (err) {
       Toast.error(
@@ -120,84 +166,92 @@ const SubscriptionPopup = () => {
     }
   };
 
-  // ================= FORMAT PRICE =================
-  const formatPrice = () => {
-    if (!plan || !plan.monthly) return "Loading...";
-    const symbol = plan.currency === "inr" ? "₹" : "$";
-    return `${symbol}${plan.monthly.amount}`;
-  };
-
+  // =====================================================
+  // GUARD
+  // =====================================================
   const isSubscribed =
     subscription && ["active", "trialing"].includes(subscription.status);
 
-  // Don't show modal if already subscribed
   if (!isOpen || isSubscribed) return null;
 
-  const FEATURES = [
-    "Full shipment management system",
-    "Quote handling & real-time tracking",
-    "Instant notifications & updates",
-    "Priority customer support",
-    "Advanced analytics & reporting",
-    "Unlimited shipments & quotes",
-  ];
-
+  // =====================================================
+  // RENDER
+  // =====================================================
   return (
     <div className="fixed inset-0 z-50 font-montserrat flex items-end sm:items-center justify-center">
-      {/* Backdrop - No close on click */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      {/* Backdrop — no close on click (forced flow) */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-      {/* ── Sheet: bottom on mobile, centered on sm+ ── */}
+      {/* Sheet: bottom on mobile, centered modal on sm+ */}
       <div className="relative z-10 w-full sm:max-w-md bg-white sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[90vh] overflow-hidden border border-slate-200">
-        {/* ===================== HEADER ===================== */}
-        <div className="bg-gradient-to-br from-[#BF9B53] via-[#BF9B53]/80 to-[#8B7138] px-5 py-5 text-white relative overflow-hidden shrink-0">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12" />
+        {/* ══════════════ HEADER ══════════════ */}
+        <div className="bg-gradient-to-br from-[#BF9B53] via-[#c9a55e] to-[#8B7138] px-5 py-5 text-white relative overflow-hidden shrink-0">
+          {/* Decorative circles */}
+          <div className="absolute top-0 right-0 w-36 h-36 bg-white/5 rounded-full -mr-16 -mt-16 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12 pointer-events-none" />
 
-          <div className="relative space-y-1">
+          <div className="relative space-y-2">
+            {/* Badge */}
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-white/20 backdrop-blur">
-                <Zap size={14} />
+                <Zap size={13} />
               </div>
-              <span className="text-xs font-semibold uppercase tracking-wider opacity-90">
-                Get Started
+              <span className="text-xs font-semibold uppercase tracking-widest opacity-90">
+                Subscription Required
               </span>
             </div>
 
-            {/* Price pill — compact on mobile */}
-            <div className="flex items-end justify-between">
+            {/* Title + Price */}
+            <div className="flex items-end justify-between gap-3">
               <h2 className="text-xl font-black leading-tight">
                 Unlock Full Access
               </h2>
-              <div className="text-right shrink-0 ml-3">
-                <p className="text-2xl font-black leading-none">
-                  {formatPrice()}
-                </p>
-                <p className="text-xs opacity-80">/month</p>
+
+              {/* Price pill */}
+              <div className="shrink-0 bg-white/20 backdrop-blur rounded-xl px-3 py-1.5 text-right">
+                {planData ? (
+                  <>
+                    <p className="text-2xl font-black leading-none">
+                      {formatPrice()}
+                    </p>
+                    <p className="text-[11px] opacity-80 mt-0.5">
+                      /{intervalLabel}
+                    </p>
+                  </>
+                ) : (
+                  <Loader size={18} className="animate-spin opacity-70" />
+                )}
               </div>
             </div>
 
-            <p className="text-xs font-medium opacity-90">
-              30-day free trial • Cancel anytime • No hidden charges
-            </p>
+            {/* Trial badge */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur rounded-full px-2.5 py-1 text-[11px] font-semibold">
+                <Shield size={11} />
+                {trialLabel}
+              </span>
+              <span className="text-[11px] opacity-80">
+                Cancel anytime • No hidden charges
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* ===================== SCROLLABLE BODY ===================== */}
+        {/* ══════════════ SCROLLABLE BODY ══════════════ */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 overscroll-contain">
-          {/* ── STEP 1: FEATURES & PAYMENT METHOD ── */}
+          {/* ── STEP 1: Features + Payment Status ── */}
           {!showCardForm && (
             <div className="space-y-3">
-              {/* Features Grid */}
+              {/* Features */}
               <div className="bg-slate-50 rounded-xl p-4">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-                  Premium Features Included
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                  What's Included
                 </p>
                 <div className="grid grid-cols-1 gap-2">
                   {FEATURES.map((feature, i) => (
                     <div key={i} className="flex items-center gap-2.5">
-                      <div className="flex-shrink-0 w-4 h-4 rounded-full bg-green-100 flex items-center justify-center">
-                        <Check size={11} className="text-green-600" />
+                      <div className="flex-shrink-0 w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <Check size={10} className="text-emerald-600" />
                       </div>
                       <span className="text-xs text-slate-700">{feature}</span>
                     </div>
@@ -205,69 +259,70 @@ const SubscriptionPopup = () => {
                 </div>
               </div>
 
-              {/* Payment Method Status */}
+              {/* Payment method status */}
               <div
-                className={`p-3 rounded-xl border-2 flex items-center gap-3 ${
+                className={`p-3 rounded-xl border-2 flex items-center gap-3 transition-colors ${
                   hasCard
-                    ? "border-green-200 bg-green-50"
+                    ? "border-emerald-200 bg-emerald-50"
                     : "border-amber-200 bg-amber-50"
                 }`}
               >
                 <div
                   className={`p-1.5 rounded-full shrink-0 ${
-                    hasCard ? "bg-green-100" : "bg-amber-100"
+                    hasCard ? "bg-emerald-100" : "bg-amber-100"
                   }`}
                 >
                   {hasCard ? (
-                    <Check size={16} className="text-green-600" />
+                    <Check size={15} className="text-emerald-600" />
                   ) : (
-                    <AlertCircle size={16} className="text-amber-600" />
+                    <AlertCircle size={15} className="text-amber-600" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-xs">
+                  <p className="font-bold text-xs text-slate-800">
                     {hasCard
                       ? "Payment Method Ready"
                       : "Payment Method Required"}
                   </p>
-                  <p className="text-xs text-slate-600 mt-0.5 truncate">
+                  <p className="text-xs text-slate-500 mt-0.5 truncate">
                     {hasCard
                       ? paymentCard?.cardBrand && paymentCard?.cardLast4
                         ? `${paymentCard.cardBrand.toUpperCase()} •••• ${
                             paymentCard.cardLast4
                           }`
                         : "Card saved"
-                      : "Add a card to activate your subscription"}
+                      : "Add a card to start your free trial"}
                   </p>
                 </div>
               </div>
 
-              {/* Info Box */}
-              <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
-                <p className="text-xs text-blue-900 flex items-center gap-2">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-600" />
-                  <span>
-                    Complete your setup to start managing shipments immediately
-                  </span>
+              {/* Info */}
+              <div className="p-3 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-2">
+                <span className="mt-0.5 inline-block w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                <p className="text-xs text-blue-800 leading-relaxed">
+                  You won't be charged during your{" "}
+                  <span className="font-semibold">{trialLabel}</span>. After the
+                  trial, billing is {formatPrice()}/{intervalLabel}.
                 </p>
               </div>
             </div>
           )}
 
-          {/* ── STEP 2: ADD CARD FORM ── */}
+          {/* ── STEP 2: Add Card Form ── */}
           {showCardForm && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <h3 className="font-bold text-slate-900 text-sm mb-1 flex items-center gap-2">
-                  <CreditCard size={16} />
-                  Add Your Payment Method
+                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2 mb-0.5">
+                  <CreditCard size={15} className="text-[#BF9B53]" />
+                  Add Payment Method
                 </h3>
-                <p className="text-xs text-slate-500">
-                  Secured with Stripe encryption
+                <p className="text-xs text-slate-400">
+                  You won't be charged until your trial ends
                 </p>
               </div>
 
-              <div className="border-2 border-slate-300 rounded-xl p-3 bg-white focus-within:border-[#BF9B53] focus-within:ring-2 focus-within:ring-[#BF9B53]/20 transition-all">
+              {/* Card input */}
+              <div className="border-2 border-slate-200 rounded-xl p-3.5 bg-white focus-within:border-[#BF9B53] focus-within:ring-2 focus-within:ring-[#BF9B53]/20 transition-all">
                 <CardElement
                   options={{
                     style: {
@@ -283,34 +338,35 @@ const SubscriptionPopup = () => {
                 />
               </div>
 
+              {/* Card error */}
               {cardError && (
                 <div className="p-2.5 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2">
-                  <AlertCircle size={15} className="text-red-600 shrink-0" />
+                  <AlertCircle size={14} className="text-red-500 shrink-0" />
                   <p className="text-xs text-red-700">{cardError}</p>
                 </div>
               )}
 
-              <div className="p-2.5 rounded-lg bg-slate-50 flex items-center gap-2">
-                <Lock size={14} className="text-slate-400 shrink-0" />
+              {/* Security note */}
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-center gap-2">
+                <Lock size={13} className="text-slate-400 shrink-0" />
                 <p className="text-xs text-slate-500">
-                  We never store full card numbers. Your information is secure.
+                  We never store full card numbers. Secured by Stripe.
                 </p>
               </div>
 
-              {/* Progress Indicator */}
-              <div className="flex items-center gap-2 mt-4">
-                <div className="h-1 flex-1 rounded-full bg-[#BF9B53]" />
+              {/* Step indicator */}
+              <div className="flex items-center gap-1.5 pt-1">
                 <div className="h-1 flex-1 rounded-full bg-slate-200" />
+                <div className="h-1 flex-1 rounded-full bg-[#BF9B53]" />
               </div>
             </div>
           )}
         </div>
 
-        {/* ===================== FOOTER ===================== */}
-        <div className="shrink-0 border-t bg-white px-5 py-4 space-y-2">
+        {/* ══════════════ FOOTER ══════════════ */}
+        <div className="shrink-0 border-t border-slate-100 bg-white px-5 py-4 space-y-2">
           {!showCardForm ? (
             <>
-              {/* Step 1: Add Card or Start Trial */}
               <button
                 onClick={() => {
                   if (!hasCard) {
@@ -320,9 +376,9 @@ const SubscriptionPopup = () => {
                   }
                 }}
                 disabled={processing || subLoading}
-                className="w-full py-3 bg-gradient-to-r from-[#BF9B53] to-[#a8863e] text-white font-bold rounded-xl disabled:opacity-50 hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-gradient-to-r from-[#BF9B53] to-[#a8863e] text-white font-bold rounded-xl disabled:opacity-50 hover:shadow-lg hover:from-[#c9a55e] hover:to-[#BF9B53] transition-all text-sm flex items-center justify-center gap-2"
               >
-                {processing ? (
+                {processing || subLoading ? (
                   <>
                     <Loader size={15} className="animate-spin" />
                     Processing...
@@ -330,7 +386,7 @@ const SubscriptionPopup = () => {
                 ) : hasCard ? (
                   <>
                     <Zap size={15} />
-                    Start Free Trial
+                    Start {trialLabel}
                   </>
                 ) : (
                   <>
@@ -339,18 +395,16 @@ const SubscriptionPopup = () => {
                   </>
                 )}
               </button>
-
-              <p className="text-center text-xs text-slate-400 pt-1">
-                Monthly billing • No hidden charges • Cancel anytime
+              <p className="text-center text-[11px] text-slate-400 pt-0.5">
+                {formatPrice()}/{intervalLabel} after trial • Cancel anytime
               </p>
             </>
           ) : (
             <>
-              {/* Step 2: Save Card & Continue */}
               <button
                 onClick={handleAddCard}
                 disabled={processing || !stripe || !elements}
-                className="w-full py-3 bg-gradient-to-r from-[#BF9B53] to-[#a8863e] text-white font-bold rounded-xl disabled:opacity-50 hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-gradient-to-r from-[#BF9B53] to-[#a8863e] text-white font-bold rounded-xl disabled:opacity-50 hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2"
               >
                 {processing ? (
                   <>
@@ -371,13 +425,13 @@ const SubscriptionPopup = () => {
                   setCardError(null);
                 }}
                 disabled={processing}
-                className="w-full py-2 text-slate-500 text-sm font-medium hover:text-slate-800 transition-colors disabled:opacity-50"
+                className="w-full py-2 text-slate-500 text-sm font-medium hover:text-slate-800 transition-colors disabled:opacity-40"
               >
-                Back
+                ← Back
               </button>
 
-              <p className="text-center text-xs text-slate-400 pt-1">
-                Secured by Stripe
+              <p className="text-center text-[11px] text-slate-400 pt-0.5">
+                🔒 Secured by Stripe
               </p>
             </>
           )}

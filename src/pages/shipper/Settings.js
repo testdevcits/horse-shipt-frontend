@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import CommentBanner from "../../components/common/CommentBanner";
 import Profile from "./Profile";
 import ShipmentSettings from "./ShipmentSettings";
-import PaymentsComingSoon from "./PaymentsComingSoon";
+import PaymentsSettings from "./PaymentsComingSoon";
 import ShipperNotifications from "./ShipperNotifications";
 
 const ShipperSettings = () => {
@@ -37,7 +37,7 @@ const ShipperSettings = () => {
       case "shipment":
         return <ShipmentSettings />;
       case "payment":
-        return <PaymentsComingSoon />;
+        return <PaymentsSettings />;
       case "notification":
         return <ShipperNotifications />;
       default:
@@ -61,7 +61,7 @@ const ShipperSettings = () => {
     <>
       <CommentBanner />
 
-      <div className="flex flex-col items-center w-full px-2 font-[Montserrat]">
+      <div className="flex flex-col items-center w-full px-2 font-montserrat">
         <div
           ref={containerRef}
           className="w-full flex flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible border-b border-gray-300 mb-6 mt-6 scrollbar-hide"

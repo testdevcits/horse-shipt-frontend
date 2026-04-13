@@ -102,14 +102,24 @@ export const SubscriptionProvider = ({ children }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const planData = res.data?.data;
+      const data = res.data?.data;
 
-      if (!planData || !planData.monthly) {
+      if (!data) {
         setPlan(null);
         return;
       }
 
-      setPlan(planData);
+      // IMPORTANT FIX: DO NOT FORCE monthly only
+      const normalizedPlan = {
+        currency: data.currency || "usd",
+        trialDays: data.trialDays || 0,
+
+        daily: data.daily || null,
+        weekly: data.weekly || null,
+        monthly: data.monthly || null,
+      };
+
+      setPlan(normalizedPlan);
     } catch (err) {
       console.error("Get Plan Error:", err?.response?.data || err.message);
       setPlan(null);
