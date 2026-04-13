@@ -11,9 +11,9 @@ const Switch = ({
   className = "",
 }) => {
   const sizeMap = {
-    sm: { width: 32, height: 18, knob: 14 },
-    md: { width: 44, height: 24, knob: 20 },
-    lg: { width: 60, height: 28, knob: 24 },
+    sm: { width: 32, height: 18, knob: 10 },
+    md: { width: 44, height: 20, knob: 18 },
+    lg: { width: 60, height: 26, knob: 24 },
   };
 
   const { width, height, knob } = sizeMap[size] || sizeMap.md;
@@ -47,7 +47,7 @@ const Switch = ({
           height: knob,
           borderRadius: rounded ? "50%" : "6px",
           top: (height - knob) / 2,
-          left: checked ? width - knob : 0,
+          left: checked ? width - knob : 1,
         }}
       ></span>
     </label>
