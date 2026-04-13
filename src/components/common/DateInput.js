@@ -1,7 +1,3 @@
-// /components/common/DateInput.jsx
-// UPDATED FILE - Responsive Calendar with Top Positioning
-// Better UI for mobile and desktop
-
 import React, { useState, useRef, useEffect } from "react";
 import CustomCalendar from "./CustomCalendar";
 
@@ -102,7 +98,7 @@ const DateInput = ({ value, onChange, error, placeholder }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle date selection from calendar
+  // UPDATED: Handle date selection from calendar - single date only
   const handleDateSelect = (dates) => {
     if (dates && dates[0]) {
       const selectedDate = dates[0];
@@ -112,7 +108,7 @@ const DateInput = ({ value, onChange, error, placeholder }) => {
     }
   };
 
-  // Handle input field click - set to today if empty
+  // UPDATED: Handle input field click - set to today if empty
   const handleInputClick = () => {
     // If no date selected, set to today
     if (!displayValue) {

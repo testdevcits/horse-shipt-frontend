@@ -1,5 +1,5 @@
 // /pages/customer/steps/Step1Pickup.jsx
-// UPDATED FILE - Responsive Design, Current Date Pre-Selected, Past Dates Disabled
+// UPDATED FILE - Responsive Design, Current Date Pre-Selected, Past Dates Disabled, Single Date Selection
 
 import React, { useRef } from "react";
 import { GoogleMap, Autocomplete, Marker } from "@react-google-maps/api";
@@ -68,7 +68,7 @@ const Step1Pickup = ({
     });
   };
 
-  // Handle start date change
+  // UPDATED: Handle start date change - single date selection
   const handleStartDateChange = (val) => {
     setPickupStartDate(val);
     clearError("pickupStartDate");
@@ -77,7 +77,7 @@ const Step1Pickup = ({
     }
   };
 
-  // Handle end date change
+  // UPDATED: Handle end date change - single date selection
   const handleEndDateChange = (val) => {
     setPickupEndDate(val);
     clearError("pickupEndDate");

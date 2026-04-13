@@ -20,15 +20,17 @@ const CustomCalendar = ({
     setCurrentMonth(currentMonth.subtract(1, "month"));
   const handleNextMonth = () => setCurrentMonth(currentMonth.add(1, "month"));
 
+  // UPDATED: Single date selection - jab naya date select hone par pehla automatically deselect ho jaye
   const handleDateClick = (date) => {
     const formatted = date.format("YYYY-MM-DD");
     if (unavailableDates.includes(formatted)) return;
 
+    // Agar same date phir se click karo to deselect karo, warna naya select karo
     let updated;
     if (selectedDates.includes(formatted)) {
-      updated = selectedDates.filter((d) => d !== formatted);
+      updated = [];
     } else {
-      updated = [...selectedDates, formatted];
+      updated = [formatted]; // Sirf ek date select rahega
     }
     setSelectedDates(updated);
     onSelectDates(updated);
