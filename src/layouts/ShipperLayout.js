@@ -240,11 +240,33 @@ const ShipperLayout = () => {
               {/* Lock overlay */}
               {showSubscriptionBlock && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center">
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg flex flex-col items-center gap-2 border border-[#BF9B53]/30">
-                    <span className="text-2xl">🔒</span>
-                    <p className="text-sm font-semibold text-gray-700 text-center">
-                      Subscribe to access this page
+                  {/* Backdrop */}
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+                  {/* Card */}
+                  <div className="relative bg-white rounded-2xl px-6 py-5 shadow-2xl border border-[#BF9B53]/30 flex flex-col items-center gap-3 max-w-[260px] text-center">
+                    {/* Lock Icon */}
+                    <div className="w-12 h-12 rounded-full bg-[#BF9B53]/10 flex items-center justify-center">
+                      <span className="text-2xl">🔒</span>
+                    </div>
+
+                    {/* Title */}
+                    <p className="text-sm font-bold text-gray-800">
+                      Subscription Required
                     </p>
+
+                    {/* Subtitle */}
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Subscribe to unlock full access to this page and continue
+                      using all features.
+                    </p>
+
+                    {/* Button style hint (optional visual only) */}
+                    <div className="mt-1 w-full h-9 rounded-lg bg-gradient-to-r from-[#BF9B53] to-[#a8863e] flex items-center justify-center">
+                      <span className="text-white text-xs font-semibold">
+                        Upgrade Now
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}

@@ -431,7 +431,7 @@ const SubscriptionPopup = () => {
               </button>
 
               <p className="text-center text-[11px] text-slate-400 pt-0.5">
-                🔒 Secured by Stripe
+                Secured by Stripe
               </p>
             </>
           )}
