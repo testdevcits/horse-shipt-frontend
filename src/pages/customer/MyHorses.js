@@ -80,7 +80,7 @@ const emptyHorse = {
 // =====================================================
 const Spinner = ({ text }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-    <div className="bg-white rounded-2xl shadow-xl px-10 py-8 flex flex-col items-center gap-4">
+    <div className="bg-white rounded-md shadow-xl px-10 py-8 flex flex-col items-center gap-4">
       <svg
         className="animate-spin h-10 w-10 text-[#BF9B53]"
         xmlns="http://www.w3.org/2000/svg"

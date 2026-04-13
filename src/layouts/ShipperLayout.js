@@ -4,11 +4,10 @@ import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { useShipperProfile } from "../contexts/ShipperProfileContext";
 import { useShipperPayments } from "../contexts/shipperContext/ShipperPaymentContext";
+import { useSubscription } from "../contexts/shipperContext/SubscriptionContext";
 
 import StripeAlertBanner from "../pages/shipper/common/StripeAlertBanner";
 import StripeVerificationModal from "../pages/shipper/common/StripeVerificationModal";
-
-// NEW IMPORT
 import SubscriptionPopup from "../pages/shipper/Subscription/SubscriptionPopup";
 
 import { CgMenu } from "react-icons/cg";
@@ -19,7 +18,6 @@ import { IoShareSocial } from "react-icons/io5";
 import StatusBadge from "../components/common/StatusBadge";
 import logo from "../assets/images/logo.png";
 import logo1 from "../assets/images/profileImage.png";
-
 import defaultProfileImage from "../assets/images/profileImage.png";
 
 const ShipperLayout = () => {
@@ -29,12 +27,15 @@ const ShipperLayout = () => {
   const { user, logout } = useAuth();
   const { profile, loading } = useShipperProfile();
   const { fetchStripeStatus, needsOnboarding } = useShipperPayments();
+  const { subscription } = useSubscription();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
-  const [showStripeModal, setShowStripeModal] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [subscriptionJustCompleted, setSubscriptionJustCompleted] =
+    useState(false);
 
   /* ================= Detect Payment Tab ================= */
   const queryParams = new URLSearchParams(location.search);
@@ -63,16 +64,34 @@ const ShipperLayout = () => {
     fetchStripeStatus();
   }, [fetchStripeStatus]);
 
-  /* ================= Auto Stripe Modal ================= */
+  /* ================= Monitor Subscription Status ================= */
+  useEffect(() => {
+    if (
+      subscription &&
+      ["active", "trialing"].includes(subscription.status) &&
+      subscriptionJustCompleted
+    ) {
+      // Subscription was just activated, show verification modal
+      setShowVerificationModal(true);
+      setSubscriptionJustCompleted(false);
+    }
+  }, [subscription, subscriptionJustCompleted]);
+
+  /* ================= Auto Stripe Modal for Onboarding ================= */
   useEffect(() => {
     if (needsOnboarding && !isPaymentTab) {
-      const hasShown = sessionStorage.getItem("stripeModalShown");
-      if (!hasShown) {
-        setShowStripeModal(true);
-        sessionStorage.setItem("stripeModalShown", "true");
+      // Only show if user has already subscribed
+      const isSubscribed =
+        subscription && ["active", "trialing"].includes(subscription.status);
+      if (isSubscribed) {
+        const hasShown = sessionStorage.getItem("stripeModalShown");
+        if (!hasShown) {
+          // setShowVerificationModal(true);
+          sessionStorage.setItem("stripeModalShown", "true");
+        }
       }
     }
-  }, [needsOnboarding, isPaymentTab]);
+  }, [needsOnboarding, isPaymentTab, subscription]);
 
   const handleShare = async () => {
     const shareData = {
@@ -95,20 +114,26 @@ const ShipperLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* ================= STRIPE ALERT ================= */}
-      {needsOnboarding && (
-        <div className="fixed top-0 left-0 w-full z-50">
-          <StripeAlertBanner
-            onOpenModal={() => setShowStripeModal(true)}
-            hideButton={isPaymentTab}
-          />
-        </div>
-      )}
+      {/* ================= STRIPE ALERT (Only if needs onboarding and subscribed) ================= */}
+      {needsOnboarding &&
+        subscription &&
+        ["active", "trialing"].includes(subscription.status) && (
+          <div className="fixed top-0 left-0 w-full z-50">
+            <StripeAlertBanner
+              onOpenModal={() => setShowVerificationModal(true)}
+              hideButton={isPaymentTab}
+            />
+          </div>
+        )}
 
       {/* ================= HEADER ================= */}
       <header
         className={`sticky ${
-          needsOnboarding ? "top-[52px]" : "top-0"
+          needsOnboarding &&
+          subscription &&
+          ["active", "trialing"].includes(subscription.status)
+            ? "top-[52px]"
+            : "top-0"
         } z-40 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6`}
       >
         <div className="flex items-center gap-4">
@@ -187,7 +212,13 @@ const ShipperLayout = () => {
 
       {/* ================= BODY ================= */}
       <div
-        className={`flex flex-1 relative ${needsOnboarding ? "mt-[52px]" : ""}`}
+        className={`flex flex-1 relative ${
+          needsOnboarding &&
+          subscription &&
+          ["active", "trialing"].includes(subscription.status)
+            ? "mt-[52px]"
+            : ""
+        }`}
       >
         <Sidebar
           sidebarOpen={sidebarOpen}
@@ -208,14 +239,16 @@ const ShipperLayout = () => {
         </main>
       </div>
 
-      {/* ================= STRIPE MODAL ================= */}
+      {/* ================= VERIFICATION MODAL (After subscription) ================= */}
       <StripeVerificationModal
-        isOpen={showStripeModal}
-        onClose={() => setShowStripeModal(false)}
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
       />
 
-      {/* ================= SUBSCRIPTION POPUP ================= */}
-      {!showStripeModal && <SubscriptionPopup />}
+      {/* ================= SUBSCRIPTION POPUP (Mandatory for new users) ================= */}
+      <SubscriptionPopup
+        onSubscriptionComplete={() => setSubscriptionJustCompleted(true)}
+      />
     </div>
   );
 };

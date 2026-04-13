@@ -8,7 +8,6 @@ import {
   CreditCard,
   AlertCircle,
   Loader,
-  X,
 } from "lucide-react";
 import Toast from "../../../components/common/Toast";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
@@ -22,7 +21,6 @@ const SubscriptionPopup = () => {
     subscription,
     loading: subLoading,
     createSubscription,
-    cancelSubscription,
     plan,
   } = useSubscription();
 
@@ -41,21 +39,22 @@ const SubscriptionPopup = () => {
   const [processing, setProcessing] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
   const [cardError, setCardError] = useState(null);
-  const [activeStep, setActiveStep] = useState("review");
 
   // ================= EFFECTS =================
   useEffect(() => {
     if (isOpen) {
       fetchPaymentStatus();
-      if (needsOnboarding) setActiveStep("payment");
     }
-  }, [isOpen, fetchPaymentStatus, needsOnboarding]);
+  }, [isOpen, fetchPaymentStatus]);
 
+  // Open modal for new users who haven't subscribed yet
   useEffect(() => {
     if (!subLoading && !needsOnboarding) {
       const isSubscribed =
         subscription && ["active", "trialing"].includes(subscription.status);
-      if (!isSubscribed) setIsOpen(true);
+      if (!isSubscribed) {
+        setIsOpen(true);
+      }
     }
   }, [subscription, subLoading, needsOnboarding]);
 
@@ -89,7 +88,6 @@ const SubscriptionPopup = () => {
         await savePaymentMethod(setupIntent.payment_method);
         Toast.success("Card added successfully!");
         setShowCardForm(false);
-        setActiveStep("review");
         await fetchPaymentStatus();
       }
     } catch (err) {
@@ -111,27 +109,12 @@ const SubscriptionPopup = () => {
       await createCustomer();
       await createSubscription(true);
       Toast.success("Subscription Activated!");
+      // Modal will close automatically when subscription updates
       setIsOpen(false);
-      setActiveStep("review");
     } catch (err) {
       Toast.error(
         err?.response?.data?.message || "Subscription failed. Try again."
       );
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  // ================= CANCEL =================
-  const handleCancel = async () => {
-    try {
-      setProcessing(true);
-      await cancelSubscription(false);
-      Toast.info("Subscription will cancel at period end");
-      setIsOpen(false);
-      setActiveStep("review");
-    } catch (err) {
-      Toast.error("Cancel failed");
     } finally {
       setProcessing(false);
     }
@@ -147,14 +130,8 @@ const SubscriptionPopup = () => {
   const isSubscribed =
     subscription && ["active", "trialing"].includes(subscription.status);
 
-  const handleClose = () => {
-    setIsOpen(false);
-    setShowCardForm(false);
-    setActiveStep("review");
-    setCardError(null);
-  };
-
-  if (!isOpen) return null;
+  // Don't show modal if already subscribed
+  if (!isOpen || isSubscribed) return null;
 
   const FEATURES = [
     "Full shipment management system",
@@ -167,11 +144,8 @@ const SubscriptionPopup = () => {
 
   return (
     <div className="fixed inset-0 z-50 font-montserrat flex items-end sm:items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={handleClose}
-      />
+      {/* Backdrop - No close on click */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
 
       {/* ── Sheet: bottom on mobile, centered on sm+ ── */}
       <div className="relative z-10 w-full sm:max-w-md bg-white sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[90vh] overflow-hidden border border-slate-200">
@@ -180,58 +154,46 @@ const SubscriptionPopup = () => {
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12" />
 
-          {/* Close button */}
-          <button
-            onClick={handleClose}
-            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors z-10"
-          >
-            <X size={14} />
-          </button>
-
           <div className="relative space-y-1">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-white/20 backdrop-blur">
                 <Zap size={14} />
               </div>
               <span className="text-xs font-semibold uppercase tracking-wider opacity-90">
-                Premium Access
+                Get Started
               </span>
             </div>
 
             {/* Price pill — compact on mobile */}
             <div className="flex items-end justify-between">
               <h2 className="text-xl font-black leading-tight">
-                {isSubscribed ? "Your Subscription" : "Unlock Full Access"}
+                Unlock Full Access
               </h2>
-              {!isSubscribed && (
-                <div className="text-right shrink-0 ml-3">
-                  <p className="text-2xl font-black leading-none">
-                    {formatPrice()}
-                  </p>
-                  <p className="text-xs opacity-80">/month</p>
-                </div>
-              )}
+              <div className="text-right shrink-0 ml-3">
+                <p className="text-2xl font-black leading-none">
+                  {formatPrice()}
+                </p>
+                <p className="text-xs opacity-80">/month</p>
+              </div>
             </div>
 
             <p className="text-xs font-medium opacity-90">
-              {isSubscribed
-                ? "Manage your subscription and billing"
-                : "30-day free trial • Cancel anytime"}
+              30-day free trial • Cancel anytime • No hidden charges
             </p>
           </div>
         </div>
 
         {/* ===================== SCROLLABLE BODY ===================== */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 overscroll-contain">
-          {/* ── STEP: REVIEW ── */}
-          {activeStep === "review" && (
+          {/* ── STEP 1: FEATURES & PAYMENT METHOD ── */}
+          {!showCardForm && (
             <div className="space-y-3">
-              {/* Features — compact grid on mobile */}
+              {/* Features Grid */}
               <div className="bg-slate-50 rounded-xl p-4">
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-                  What's Included
+                  Premium Features Included
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-1 gap-2">
+                <div className="grid grid-cols-1 gap-2">
                   {FEATURES.map((feature, i) => (
                     <div key={i} className="flex items-center gap-2.5">
                       <div className="flex-shrink-0 w-4 h-4 rounded-full bg-green-100 flex items-center justify-center">
@@ -244,78 +206,61 @@ const SubscriptionPopup = () => {
               </div>
 
               {/* Payment Method Status */}
-              {!isSubscribed && (
+              <div
+                className={`p-3 rounded-xl border-2 flex items-center gap-3 ${
+                  hasCard
+                    ? "border-green-200 bg-green-50"
+                    : "border-amber-200 bg-amber-50"
+                }`}
+              >
                 <div
-                  className={`p-3 rounded-xl border-2 flex items-center gap-3 ${
-                    hasCard
-                      ? "border-green-200 bg-green-50"
-                      : "border-amber-200 bg-amber-50"
+                  className={`p-1.5 rounded-full shrink-0 ${
+                    hasCard ? "bg-green-100" : "bg-amber-100"
                   }`}
                 >
-                  <div
-                    className={`p-1.5 rounded-full shrink-0 ${
-                      hasCard ? "bg-green-100" : "bg-amber-100"
-                    }`}
-                  >
-                    {hasCard ? (
-                      <Check size={16} className="text-green-600" />
-                    ) : (
-                      <AlertCircle size={16} className="text-amber-600" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-xs">
-                      {hasCard
-                        ? "Payment Method Ready"
-                        : "Payment Method Required"}
-                    </p>
-                    <p className="text-xs text-slate-600 mt-0.5 truncate">
-                      {hasCard
-                        ? paymentCard?.cardBrand && paymentCard?.cardLast4
-                          ? `${paymentCard.cardBrand.toUpperCase()} •••• ${
-                              paymentCard.cardLast4
-                            }`
-                          : "Card saved"
-                        : "Add a card to activate your subscription"}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Active Subscription Info */}
-              {isSubscribed && (
-                <div className="p-3 rounded-xl bg-blue-50 border-2 border-blue-200 space-y-1">
-                  <p className="font-bold text-blue-900 text-sm">
-                    Subscription Active
-                  </p>
-                  <p className="text-xs text-blue-800">
-                    Status:{" "}
-                    <span className="font-semibold capitalize">
-                      {subscription?.status}
-                    </span>
-                  </p>
-                  {subscription?.currentPeriodEnd && (
-                    <p className="text-xs text-blue-800">
-                      Renewal:{" "}
-                      <span className="font-semibold">
-                        {new Date(
-                          subscription.currentPeriodEnd
-                        ).toLocaleDateString()}
-                      </span>
-                    </p>
+                  {hasCard ? (
+                    <Check size={16} className="text-green-600" />
+                  ) : (
+                    <AlertCircle size={16} className="text-amber-600" />
                   )}
                 </div>
-              )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-xs">
+                    {hasCard
+                      ? "Payment Method Ready"
+                      : "Payment Method Required"}
+                  </p>
+                  <p className="text-xs text-slate-600 mt-0.5 truncate">
+                    {hasCard
+                      ? paymentCard?.cardBrand && paymentCard?.cardLast4
+                        ? `${paymentCard.cardBrand.toUpperCase()} •••• ${
+                            paymentCard.cardLast4
+                          }`
+                        : "Card saved"
+                      : "Add a card to activate your subscription"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Info Box */}
+              <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
+                <p className="text-xs text-blue-900 flex items-center gap-2">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-600" />
+                  <span>
+                    Complete your setup to start managing shipments immediately
+                  </span>
+                </p>
+              </div>
             </div>
           )}
 
-          {/* ── STEP: ADD CARD ── */}
-          {(activeStep === "card" || showCardForm) && (
+          {/* ── STEP 2: ADD CARD FORM ── */}
+          {showCardForm && (
             <div className="space-y-3">
               <div>
                 <h3 className="font-bold text-slate-900 text-sm mb-1 flex items-center gap-2">
                   <CreditCard size={16} />
-                  Add Your Card
+                  Add Your Payment Method
                 </h3>
                 <p className="text-xs text-slate-500">
                   Secured with Stripe encryption
@@ -348,8 +293,14 @@ const SubscriptionPopup = () => {
               <div className="p-2.5 rounded-lg bg-slate-50 flex items-center gap-2">
                 <Lock size={14} className="text-slate-400 shrink-0" />
                 <p className="text-xs text-slate-500">
-                  We never store full card numbers.
+                  We never store full card numbers. Your information is secure.
                 </p>
+              </div>
+
+              {/* Progress Indicator */}
+              <div className="flex items-center gap-2 mt-4">
+                <div className="h-1 flex-1 rounded-full bg-[#BF9B53]" />
+                <div className="h-1 flex-1 rounded-full bg-slate-200" />
               </div>
             </div>
           )}
@@ -357,94 +308,79 @@ const SubscriptionPopup = () => {
 
         {/* ===================== FOOTER ===================== */}
         <div className="shrink-0 border-t bg-white px-5 py-4 space-y-2">
-          {!isSubscribed ? (
+          {!showCardForm ? (
             <>
-              {showCardForm ? (
-                <>
-                  <button
-                    onClick={handleAddCard}
-                    disabled={processing || !stripe || !elements}
-                    className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl disabled:opacity-50 transition-all text-sm flex items-center justify-center gap-2"
-                  >
-                    {processing ? (
-                      <>
-                        <Loader size={15} className="animate-spin" />
-                        Saving Card...
-                      </>
-                    ) : (
-                      "Save Card & Continue"
-                    )}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowCardForm(false);
-                      setCardError(null);
-                    }}
-                    disabled={processing}
-                    className="w-full py-2 text-slate-500 text-sm font-medium hover:text-slate-800 transition-colors"
-                  >
-                    Back
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => {
-                      if (!hasCard) setShowCardForm(true);
-                      else handleSubscribe();
-                    }}
-                    disabled={processing || subLoading}
-                    className="w-full py-3 bg-gradient-to-r from-[#BF9B53] to-[#a8863e] text-white font-bold rounded-xl disabled:opacity-50 hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2"
-                  >
-                    {processing ? (
-                      <>
-                        <Loader size={15} className="animate-spin" />
-                        Processing...
-                      </>
-                    ) : hasCard ? (
-                      <>
-                        <Zap size={15} />
-                        Start Free Trial
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard size={15} />
-                        Add Payment Method
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={handleClose}
-                    disabled={processing}
-                    className="w-full py-2 text-slate-500 text-sm font-medium hover:text-slate-800 transition-colors disabled:opacity-50"
-                  >
-                    Maybe Later
-                  </button>
-                </>
-              )}
+              {/* Step 1: Add Card or Start Trial */}
+              <button
+                onClick={() => {
+                  if (!hasCard) {
+                    setShowCardForm(true);
+                  } else {
+                    handleSubscribe();
+                  }
+                }}
+                disabled={processing || subLoading}
+                className="w-full py-3 bg-gradient-to-r from-[#BF9B53] to-[#a8863e] text-white font-bold rounded-xl disabled:opacity-50 hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2"
+              >
+                {processing ? (
+                  <>
+                    <Loader size={15} className="animate-spin" />
+                    Processing...
+                  </>
+                ) : hasCard ? (
+                  <>
+                    <Zap size={15} />
+                    Start Free Trial
+                  </>
+                ) : (
+                  <>
+                    <CreditCard size={15} />
+                    Add Payment Method
+                  </>
+                )}
+              </button>
+
+              <p className="text-center text-xs text-slate-400 pt-1">
+                Monthly billing • No hidden charges • Cancel anytime
+              </p>
             </>
           ) : (
             <>
+              {/* Step 2: Save Card & Continue */}
               <button
-                onClick={handleCancel}
-                disabled={processing}
-                className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl disabled:opacity-50 transition-all text-sm"
+                onClick={handleAddCard}
+                disabled={processing || !stripe || !elements}
+                className="w-full py-3 bg-gradient-to-r from-[#BF9B53] to-[#a8863e] text-white font-bold rounded-xl disabled:opacity-50 hover:shadow-lg transition-all text-sm flex items-center justify-center gap-2"
               >
-                {processing ? "Processing..." : "Cancel Subscription"}
+                {processing ? (
+                  <>
+                    <Loader size={15} className="animate-spin" />
+                    Saving Card...
+                  </>
+                ) : (
+                  <>
+                    <Check size={15} />
+                    Save Card & Continue
+                  </>
+                )}
               </button>
+
               <button
-                onClick={handleClose}
+                onClick={() => {
+                  setShowCardForm(false);
+                  setCardError(null);
+                }}
                 disabled={processing}
-                className="w-full py-2 text-slate-500 text-sm font-medium hover:text-slate-800 transition-colors"
+                className="w-full py-2 text-slate-500 text-sm font-medium hover:text-slate-800 transition-colors disabled:opacity-50"
               >
-                Close
+                Back
               </button>
+
+              <p className="text-center text-xs text-slate-400 pt-1">
+                Secured by Stripe
+              </p>
             </>
           )}
-
-          <p className="text-center text-xs text-slate-400 pt-1">
-            Monthly billing • No hidden charges • Cancel anytime
-          </p>
         </div>
       </div>
     </div>

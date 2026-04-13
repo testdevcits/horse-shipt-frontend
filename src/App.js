@@ -6,7 +6,7 @@ import { loadStripe } from "@stripe/stripe-js";
 
 // ------------------- Context Providers -------------------
 import { AuthProvider } from "./contexts/AuthContext";
-import { CustomerPaymentProvider } from "./contexts/CustomerPaymentContext";
+import { CustomerPaymentProvider } from "./contexts/customerContext/CustomerPaymentContext";
 import { CustomerNotificationProvider } from "./contexts/CustomerNotificationContext";
 import { VehicleProvider } from "./contexts/shipperContext/VehicleContext";
 import { DriverProvider } from "./contexts/shipperContext/DriverContext";

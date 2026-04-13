@@ -61,25 +61,29 @@ const notificationsList = [
 const CustomerNotifications = () => {
   const { notifications, updateNotification, loading } =
     useCustomerNotifications();
-  const [pendingIds, setPendingIds] = useState([]);
 
+  const [pendingIds, setPendingIds] = useState([]);
   const [localOverrides, setLocalOverrides] = useState({});
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   // =====================================================
-  // OPTIMISTIC TOGGLE
+  // TOGGLE ONLY FROM SWITCH
   // =====================================================
   const handleToggle = async (id) => {
     if (pendingIds.includes(id)) return;
+
     const currentValue = localOverrides.hasOwnProperty(id)
       ? localOverrides[id]
       : !!notifications[id];
 
     const newValue = !currentValue;
+
     setLocalOverrides((prev) => ({ ...prev, [id]: newValue }));
     setPendingIds((prev) => [...prev, id]);
 
     try {
       await updateNotification(id, newValue);
+
       setLocalOverrides((prev) => {
         const next = { ...prev };
         delete next[id];
@@ -88,6 +92,7 @@ const CustomerNotifications = () => {
 
       const label =
         notificationsList.find((n) => n.id === id)?.label || "Notification";
+
       Toast.success(`${label} ${newValue ? "enabled" : "disabled"}`);
     } catch {
       setLocalOverrides((prev) => {
@@ -95,6 +100,7 @@ const CustomerNotifications = () => {
         delete next[id];
         return next;
       });
+
       Toast.error("Failed to update notification. Please try again.");
     } finally {
       setPendingIds((prev) => prev.filter((pid) => pid !== id));
@@ -102,7 +108,7 @@ const CustomerNotifications = () => {
   };
 
   // =====================================================
-  // LOADING STATE
+  // LOADING
   // =====================================================
   if (loading || !notifications) {
     return (
@@ -115,7 +121,6 @@ const CustomerNotifications = () => {
     );
   }
 
-  // How many are enabled
   const enabledCount = notificationsList.filter((item) => {
     const val = localOverrides.hasOwnProperty(item.id)
       ? localOverrides[item.id]
@@ -124,11 +129,11 @@ const CustomerNotifications = () => {
   }).length;
 
   // =====================================================
-  // RENDER
+  // UI
   // =====================================================
   return (
     <div className="max-w-full mx-auto font-montserrat">
-      {/* ── Page Header ── */}
+      {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-1">
           Notifications
@@ -139,31 +144,29 @@ const CustomerNotifications = () => {
         </p>
       </div>
 
-      {/* ── Summary Badge ── */}
+      {/* Summary */}
       <div className="flex bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2 gap-2 mb-4">
-        <MdOutlineNotificationsActive
-          size={20}
-          className="text-gray-500 hover:text-system-primary transition"
-        />
+        <MdOutlineNotificationsActive size={20} className="text-gray-500" />
         <p className="text-sm font-medium text-[#9a7c3f]">
           {enabledCount} of {notificationsList.length} notifications enabled
         </p>
       </div>
 
-      {/* ── Notification Cards ── */}
+      {/* List */}
       <div className="flex flex-col gap-3">
         {notificationsList.map((item, index) => {
           const isChecked = localOverrides.hasOwnProperty(item.id)
             ? localOverrides[item.id]
             : !!notifications[item.id];
+
           const isPending = pendingIds.includes(item.id);
 
           return (
             <div
               key={item.id}
-              onClick={() => !isPending && handleToggle(item.id)}
+              onClick={() => setSelectedNotification(item)}
               className={`
-                group flex items-center justify-between gap-4 p-4 rounded-xl border
+                group flex items-center justify-between gap-4 p-4 rounded-md border
                 transition-all duration-200 cursor-pointer select-none
                 ${
                   isChecked
@@ -172,44 +175,37 @@ const CustomerNotifications = () => {
                 }
                 ${isPending ? "opacity-70 cursor-wait" : "hover:shadow-md"}
               `}
-              style={{
-                animationDelay: `${index * 40}ms`,
-              }}
+              style={{ animationDelay: `${index * 40}ms` }}
             >
               <div className="flex items-start gap-3 flex-1 min-w-0">
                 <div
-                  className={`
-                    flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg
-                    transition-colors duration-200
-                    ${isChecked ? "bg-[#BF9B53]/15" : "bg-gray-200"}
-                  `}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
+                    isChecked ? "bg-[#BF9B53]/15" : "bg-gray-200"
+                  }`}
                 >
                   {item.icon}
                 </div>
 
-                {/* Text */}
-                <div className="min-w-0">
+                <div>
                   <p
-                    className={`font-semibold text-sm leading-5 transition-colors duration-200 ${
+                    className={`font-semibold text-sm ${
                       isChecked ? "text-gray-900" : "text-gray-500"
                     }`}
                   >
                     {item.label}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5 leading-4">
+                  <p className="text-xs text-gray-400 mt-0.5">
                     {item.description}
                   </p>
                 </div>
               </div>
-              <div
-                className="flex-shrink-0"
-                onClick={(e) => e.stopPropagation()}
-              >
+
+              {/* Switch */}
+              <div onClick={(e) => e.stopPropagation()}>
                 <Switch
                   checked={isChecked}
-                  onChange={() => !isPending && handleToggle(item.id)}
+                  onChange={() => handleToggle(item.id)}
                   disabled={isPending}
-                  size="md"
                 />
               </div>
             </div>
@@ -217,10 +213,39 @@ const CustomerNotifications = () => {
         })}
       </div>
 
-      {/* ── Footer Note ── */}
+      {/* =====================================================
+          MODAL
+      ===================================================== */}
+      {selectedNotification && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-5 w-[90%] max-w-md shadow-xl">
+            <h2 className="text-lg font-semibold mb-2">
+              {selectedNotification.label}
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              {selectedNotification.description}
+            </p>
+
+            <p className="text-xs text-gray-400 mb-4">
+              This setting controls how you receive notifications related to{" "}
+              {selectedNotification.label.toLowerCase()}.
+            </p>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setSelectedNotification(null)}
+                className="px-4 py-2 bg-[#BF9B53] text-white rounded-md text-sm"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
       <p className="mt-6 text-xs text-gray-400 text-center">
-        Changes are saved automatically. You can update your preferences
-        anytime.
+        Changes are saved automatically.
       </p>
     </div>
   );
