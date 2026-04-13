@@ -9,6 +9,7 @@ import { useSubscription } from "../contexts/shipperContext/SubscriptionContext"
 import StripeAlertBanner from "../pages/shipper/common/StripeAlertBanner";
 import StripeVerificationModal from "../pages/shipper/common/StripeVerificationModal";
 import SubscriptionPopup from "../pages/shipper/Subscription/SubscriptionPopup";
+import { LuLockKeyhole } from "react-icons/lu";
 
 import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
@@ -247,7 +248,7 @@ const ShipperLayout = () => {
                   <div className="relative bg-white rounded-2xl px-6 py-5 shadow-2xl border border-[#BF9B53]/30 flex flex-col items-center gap-3 max-w-[260px] text-center">
                     {/* Lock Icon */}
                     <div className="w-12 h-12 rounded-full bg-[#BF9B53]/10 flex items-center justify-center">
-                      <span className="text-2xl">🔒</span>
+                      <LuLockKeyhole />
                     </div>
 
                     {/* Title */}
