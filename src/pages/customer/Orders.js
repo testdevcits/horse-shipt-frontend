@@ -601,7 +601,6 @@ const AllShipments = () => {
 
   const [selected, setSelected] = useState(null);
   const [reviewOpen, setReviewOpen] = useState(false);
-  const [toast, setToast] = useState(null);
   const [tab, setTab] = useState("draft");
   const [confirmModal, setConfirmModal] = useState({
     open: false,
@@ -626,10 +625,7 @@ const AllShipments = () => {
         reviewText: data.reviewText,
       });
 
-      setToast({
-        message: "Review submitted successfully!",
-        type: "success",
-      });
+      Toast.success("Review submitted successfully!");
 
       // Close review modal first
       setReviewOpen(false);
@@ -639,10 +635,7 @@ const AllShipments = () => {
         setSelected(null);
       }, 100);
     } catch (err) {
-      setToast({
-        message: err.message || "Failed to submit review",
-        type: "error",
-      });
+      Toast.error(err.message || "Failed to submit review");
       // Keep modals open for retry
     }
   };
@@ -678,10 +671,7 @@ const AllShipments = () => {
     try {
       await publishShipment(selected._id);
 
-      setToast({
-        message: "Shipment published successfully!",
-        type: "success",
-      });
+      Toast.success("Shipment published successfully!");
 
       // Close confirmation modal first
       setConfirmModal({ open: false, action: null, shipmentId: null });
@@ -694,10 +684,7 @@ const AllShipments = () => {
       // Refresh list
       fetchCompletedShipments();
     } catch (err) {
-      setToast({
-        message: err.message || "Failed to publish shipment",
-        type: "error",
-      });
+      Toast.error(err.message || "Failed to publish shipment");
 
       // Close modal but keep drawer open
       setConfirmModal({ open: false, action: null, shipmentId: null });
@@ -713,10 +700,7 @@ const AllShipments = () => {
     try {
       await deleteShipment(selected._id);
 
-      setToast({
-        message: "Shipment deleted successfully!",
-        type: "success",
-      });
+      Toast.success("Shipment deleted successfully!");
 
       // Close confirmation modal first
       setConfirmModal({ open: false, action: null, shipmentId: null });
@@ -729,10 +713,7 @@ const AllShipments = () => {
       // Refresh list
       fetchCompletedShipments();
     } catch (err) {
-      setToast({
-        message: err.message || "Failed to delete shipment",
-        type: "error",
-      });
+      Toast.error(err.message || "Failed to delete shipment");
 
       // Close modal but keep drawer open
       setConfirmModal({ open: false, action: null, shipmentId: null });
@@ -776,10 +757,7 @@ const AllShipments = () => {
       });
       setSelected(null);
     } catch (err) {
-      setToast({
-        message: err.message || "Failed to load shipment for editing",
-        type: "error",
-      });
+      Toast.error(err.message || "Failed to load shipment for editing");
     }
   };
 
@@ -841,15 +819,6 @@ const AllShipments = () => {
 
   return (
     <div className="w-full min-h-screen font-montserrat">
-      {/* Toast */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-
       {/* Confirmation Modal - Z-index 50 (above drawer's z-40) */}
       {confirmModal.open && (
         <ConfirmModal

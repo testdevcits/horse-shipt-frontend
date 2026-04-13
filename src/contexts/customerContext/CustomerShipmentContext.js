@@ -28,6 +28,7 @@ export const CustomerShipmentProvider = ({ children }) => {
   const [myHorses, setMyHorses] = useState([]);
   const [horseLoading, setHorseLoading] = useState(false);
   const [horseError, setHorseError] = useState(null);
+  const [horsesFetched, setHorsesFetched] = useState(false);
 
   // =====================================================
   // FETCH CUSTOMER SHIPMENTS
@@ -200,29 +201,86 @@ export const CustomerShipmentProvider = ({ children }) => {
   };
 
   // =====================================================
-  // GET MY HORSES
+  // GET MY HORSES (FETCH ONLY ONCE WITH CACHE)
   // =====================================================
   const getMyHorses = useCallback(async () => {
-    if (!token || user?.role !== "customer") return;
+    if (!token || user?.role !== "customer") {
+      console.warn("Not authorized to fetch horses");
+      return [];
+    }
+
+    // CRITICAL: Only fetch if not already fetched
+    if (horsesFetched) {
+      console.log("Horses already fetched, returning cached list");
+      return myHorses;
+    }
 
     setHorseLoading(true);
     setHorseError(null);
 
     try {
+      console.log("Fetching horses from API...");
       const res = await axios.get(`${API_BASE_URL}/customer/horses`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.data.success) {
         const horsesList = res.data.data?.horses || res.data.horses || [];
+        console.log("Horses fetched successfully:", horsesList.length);
         setMyHorses(horsesList);
+        setHorsesFetched(true); // Mark as fetched
+        setHorseError(null);
         return horsesList;
       } else {
-        setHorseError(res.data.message || "Failed to fetch horses");
+        const errorMsg = res.data.message || "Failed to fetch horses";
+        setHorseError(errorMsg);
+        setHorsesFetched(true);
+        return [];
       }
     } catch (err) {
       console.error("Get my horses error:", err);
-      setHorseError(err.response?.data?.message || err.message);
+      const errorMsg = err.response?.data?.message || err.message;
+      setHorseError(errorMsg);
+      setHorsesFetched(true);
+      return [];
+    } finally {
+      setHorseLoading(false);
+    }
+  }, [token, user, horsesFetched, myHorses]);
+
+  // =====================================================
+  // REFRESH HORSES (Force refresh from API)
+  // =====================================================
+  const refreshHorses = useCallback(async () => {
+    if (!token || user?.role !== "customer") {
+      return [];
+    }
+
+    setHorseLoading(true);
+    setHorseError(null);
+
+    try {
+      console.log("Force refreshing horses...");
+      const res = await axios.get(`${API_BASE_URL}/customer/horses`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data.success) {
+        const horsesList = res.data.data?.horses || res.data.horses || [];
+        console.log("Horses refreshed successfully:", horsesList.length);
+        setMyHorses(horsesList);
+        setHorseError(null);
+        return horsesList;
+      } else {
+        const errorMsg = res.data.message || "Failed to refresh horses";
+        setHorseError(errorMsg);
+        return [];
+      }
+    } catch (err) {
+      console.error("Refresh horses error:", err);
+      const errorMsg = err.response?.data?.message || err.message;
+      setHorseError(errorMsg);
+      return [];
     } finally {
       setHorseLoading(false);
     }
@@ -231,13 +289,14 @@ export const CustomerShipmentProvider = ({ children }) => {
   // =====================================================
   // CREATE HORSE
   // =====================================================
-  // ===== CustomerShipmentContext.js =====
-  const createHorse = async (formData) => {
-    console.log("createHorse called with:", formData);
+  const createHorse = async (horseData) => {
+    console.log("createHorse called with:", horseData);
 
     if (!token) {
-      console.warn("No token found, returning null");
-      return { success: false, message: "No token found" };
+      const errorMsg = "No authorization token";
+      console.warn(errorMsg);
+      setHorseError(errorMsg);
+      return { success: false, message: errorMsg };
     }
 
     setHorseLoading(true);
@@ -247,26 +306,25 @@ export const CustomerShipmentProvider = ({ children }) => {
       let axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
       let dataToSend;
 
-      // Check if any value in formData is a File
-      const hasFile = Object.values(formData).some(
+      // Check if any value is a File
+      const hasFile = Object.values(horseData).some(
         (val) => val instanceof File
       );
-      console.log("Has file in formData:", hasFile);
 
       if (hasFile) {
-        // Use FormData for file upload
+        // Use FormData for files
         dataToSend = new FormData();
-        for (const key in formData) {
-          if (formData[key] !== undefined && formData[key] !== null) {
-            dataToSend.append(key, formData[key]);
+        Object.keys(horseData).forEach((key) => {
+          if (horseData[key] !== undefined && horseData[key] !== null) {
+            dataToSend.append(key, horseData[key]);
           }
-        }
-        console.log("FormData prepared with files:", [...dataToSend.entries()]);
+        });
+        console.log("FormData prepared for horse with files");
       } else {
         // Send as JSON
-        dataToSend = formData;
+        dataToSend = horseData;
         axiosConfig.headers["Content-Type"] = "application/json";
-        console.log("JSON data prepared:", dataToSend);
+        console.log("JSON data prepared for horse");
       }
 
       const res = await axios.post(
@@ -274,41 +332,50 @@ export const CustomerShipmentProvider = ({ children }) => {
         dataToSend,
         axiosConfig
       );
-      console.log("Axios response:", res);
 
-      if (res?.data?.horse) {
-        const horse = res.data.horse;
-        console.log("Horse saved successfully:", horse);
+      console.log("Horse creation response:", res.data);
 
-        setMyHorses((prev) => [horse, ...prev]);
+      if (res?.data?.success && res?.data?.horse) {
+        const newHorse = res.data.horse;
+        console.log("Horse created successfully:", newHorse);
+
+        // Add to state - only context manages this
+        setMyHorses((prev) => [newHorse, ...prev]);
+        setHorseError(null);
+
         return {
           success: true,
-          horse,
-          message: res.data.message || "Horse saved successfully",
+          horse: newHorse,
+          message: res.data.message || "Horse created successfully",
         };
       }
 
-      console.warn("API returned no horse object:", res?.data);
-      const errorMsg = res?.data?.message || "Failed to save horse";
+      const errorMsg = res?.data?.message || "Failed to create horse";
       setHorseError(errorMsg);
       return { success: false, message: errorMsg };
     } catch (err) {
       console.error("Create horse error:", err);
       const errorMsg =
-        err.response?.data?.message || err.message || "Failed to save horse";
+        err.response?.data?.message || err.message || "Failed to create horse";
       setHorseError(errorMsg);
       return { success: false, message: errorMsg };
     } finally {
       setHorseLoading(false);
-      console.log("createHorse finished loading");
     }
   };
 
   // =====================================================
   // UPDATE HORSE
   // =====================================================
-  const updateHorse = async (horseId, formData) => {
-    if (!token || !horseId) return null;
+  const updateHorse = async (horseId, horseData) => {
+    console.log("updateHorse called with:", horseId, horseData);
+
+    if (!token || !horseId) {
+      const errorMsg = "Missing token or horse ID";
+      console.warn(errorMsg);
+      setHorseError(errorMsg);
+      return { success: false, message: errorMsg };
+    }
 
     setHorseLoading(true);
     setHorseError(null);
@@ -316,19 +383,20 @@ export const CustomerShipmentProvider = ({ children }) => {
     try {
       let axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
       let dataToSend;
-      const hasFile = Object.values(formData).some(
+
+      const hasFile = Object.values(horseData).some(
         (val) => val instanceof File
       );
 
       if (hasFile) {
         dataToSend = new FormData();
-        for (const key in formData) {
-          if (formData[key] !== undefined && formData[key] !== null) {
-            dataToSend.append(key, formData[key]);
+        Object.keys(horseData).forEach((key) => {
+          if (horseData[key] !== undefined && horseData[key] !== null) {
+            dataToSend.append(key, horseData[key]);
           }
-        }
+        });
       } else {
-        dataToSend = formData;
+        dataToSend = horseData;
         axiosConfig.headers["Content-Type"] = "application/json";
       }
 
@@ -338,20 +406,34 @@ export const CustomerShipmentProvider = ({ children }) => {
         axiosConfig
       );
 
+      console.log("Horse update response:", res.data);
+
       if (res?.data?.success && res?.data?.horse) {
         const updatedHorse = res.data.horse;
+        console.log("Horse updated successfully:", updatedHorse);
+
+        // Update in state
         setMyHorses((prev) =>
-          prev.map((h) => (h._id === updatedHorse._id ? updatedHorse : h))
+          prev.map((h) => (h._id === horseId ? updatedHorse : h))
         );
-        return updatedHorse;
+        setHorseError(null);
+
+        return {
+          success: true,
+          horse: updatedHorse,
+          message: res.data.message || "Horse updated successfully",
+        };
       }
 
-      setHorseError(res?.data?.message || "Failed to update horse");
-      return null;
+      const errorMsg = res?.data?.message || "Failed to update horse";
+      setHorseError(errorMsg);
+      return { success: false, message: errorMsg };
     } catch (err) {
       console.error("Update horse error:", err);
-      setHorseError(err.response?.data?.message || err.message);
-      return null;
+      const errorMsg =
+        err.response?.data?.message || err.message || "Failed to update horse";
+      setHorseError(errorMsg);
+      return { success: false, message: errorMsg };
     } finally {
       setHorseLoading(false);
     }
@@ -361,7 +443,14 @@ export const CustomerShipmentProvider = ({ children }) => {
   // DELETE HORSE
   // =====================================================
   const deleteHorse = async (horseId) => {
-    if (!token || !horseId) return false;
+    console.log("deleteHorse called with:", horseId);
+
+    if (!token || !horseId) {
+      const errorMsg = "Missing token or horse ID";
+      console.warn(errorMsg);
+      setHorseError(errorMsg);
+      return { success: false, message: errorMsg };
+    }
 
     setHorseLoading(true);
     setHorseError(null);
@@ -374,24 +463,36 @@ export const CustomerShipmentProvider = ({ children }) => {
         }
       );
 
+      console.log("Horse delete response:", res.data);
+
       if (res?.data?.success) {
+        console.log("Horse deleted successfully");
+        // Remove from state
         setMyHorses((prev) => prev.filter((h) => h._id !== horseId));
-        return true;
+        setHorseError(null);
+
+        return {
+          success: true,
+          message: res.data.message || "Horse deleted successfully",
+        };
       }
 
-      setHorseError(res?.data?.message || "Failed to delete horse");
-      return false;
+      const errorMsg = res?.data?.message || "Failed to delete horse";
+      setHorseError(errorMsg);
+      return { success: false, message: errorMsg };
     } catch (err) {
       console.error("Delete horse error:", err);
-      setHorseError(err.response?.data?.message || err.message);
-      return false;
+      const errorMsg =
+        err.response?.data?.message || err.message || "Failed to delete horse";
+      setHorseError(errorMsg);
+      return { success: false, message: errorMsg };
     } finally {
       setHorseLoading(false);
     }
   };
 
   // =====================================================
-  // AUTO FETCH SHIPMENTS
+  // AUTO FETCH SHIPMENTS ON MOUNT
   // =====================================================
   useEffect(() => {
     if (user && token && user.role === "customer" && shipments.length === 0) {
@@ -400,36 +501,45 @@ export const CustomerShipmentProvider = ({ children }) => {
   }, [user, token, fetchShipments, shipments.length]);
 
   // =====================================================
-  // PROVIDER
+  // PROVIDER VALUE
   // =====================================================
-  return (
-    <CustomerShipmentContext.Provider
-      value={{
-        // Shipments
-        shipments,
-        currentShipment,
-        loading,
-        error,
-        fetchShipments,
-        fetchShipmentById,
-        createShipment,
-        publishShipment,
-        deleteShipment,
+  const value = {
+    // Shipments
+    shipments,
+    currentShipment,
+    loading,
+    error,
+    fetchShipments,
+    fetchShipmentById,
+    createShipment,
+    publishShipment,
+    deleteShipment,
 
-        // Horses
-        myHorses,
-        horseLoading,
-        horseError,
-        getMyHorses,
-        createHorse,
-        updateHorse,
-        deleteHorse,
-      }}
-    >
+    // Horses
+    myHorses,
+    horseLoading,
+    horseError,
+    getMyHorses,
+    refreshHorses,
+    createHorse,
+    updateHorse,
+    deleteHorse,
+  };
+
+  return (
+    <CustomerShipmentContext.Provider value={value}>
       {children}
     </CustomerShipmentContext.Provider>
   );
 };
 
 // ---------------- Custom Hook ----------------
-export const useCustomerShipments = () => useContext(CustomerShipmentContext);
+export const useCustomerShipments = () => {
+  const context = useContext(CustomerShipmentContext);
+  if (!context) {
+    throw new Error(
+      "useCustomerShipments must be used within CustomerShipmentProvider"
+    );
+  }
+  return context;
+};
