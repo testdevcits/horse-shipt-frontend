@@ -123,17 +123,17 @@ const Footer = () => {
             <ul className="space-y-3">
               <li>
                 <Link
-                  to="/about"
+                  to="/driver/login"
                   className="text-gray-400 hover:text-[#BF9B53] transition-colors duration-300 flex items-center gap-2 group"
                 >
                   <FiChevronRight
                     size={16}
                     className="group-hover:translate-x-1 transition-transform"
                   />
-                  About Us
+                  Driver
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link
                   to="/contact"
                   className="text-gray-400 hover:text-[#BF9B53] transition-colors duration-300 flex items-center gap-2 group"
@@ -168,7 +168,7 @@ const Footer = () => {
                   />
                   Blog
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 
