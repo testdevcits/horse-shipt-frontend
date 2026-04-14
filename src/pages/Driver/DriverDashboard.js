@@ -1,11 +1,164 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { FaTruck, FaMapLocationDot, FaLocationDot } from "react-icons/fa6";
-import { FiX, FiLogOut, FiPhone, FiMail, FiFileText } from "react-icons/fi";
-import PageLoader from "../../components/common/PageLoader";
+import {
+  FaTruck,
+  FaMapLocationDot,
+  FaLocationDot,
+  FaHorse,
+} from "react-icons/fa6";
+import {
+  FiX,
+  FiLogOut,
+  FiPhone,
+  FiMail,
+  FiFileText,
+  FiMapPin,
+  FiCalendar,
+  FiClock,
+  FiChevronDown,
+  FiChevronUp,
+} from "react-icons/fi";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import { useDriverAuth } from "../../contexts/DriverAuthContext";
 import RouteMapModal from "./Routemapmodal";
 import { useNavigate } from "react-router-dom";
+
+/* ── Skeleton Loader ── */
+const Skeleton = ({ className }) => (
+  <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+);
+
+const DashboardSkeleton = () => (
+  <div className="space-y-4 px-3 pt-4">
+    <Skeleton className="h-28 w-full rounded-2xl" />
+    <Skeleton className="h-48 w-full rounded-2xl" />
+    <Skeleton className="h-36 w-full rounded-2xl" />
+  </div>
+);
+
+/* ── Status Badge ── */
+const StatusBadge = ({ status }) => {
+  const cfg =
+    {
+      available: "bg-emerald-100 text-emerald-700 border-emerald-200",
+      on_trip: "bg-blue-100 text-blue-700 border-blue-200",
+      offline: "bg-gray-100 text-gray-500 border-gray-200",
+    }[status] || "bg-amber-100 text-amber-700 border-amber-200";
+
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wide ${cfg}`}
+    >
+      <span
+        className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+          status === "available"
+            ? "bg-emerald-500"
+            : status === "on_trip"
+            ? "bg-blue-500"
+            : "bg-gray-400"
+        }`}
+      />
+      {status || "N/A"}
+    </span>
+  );
+};
+
+/* ── Section Card ── */
+const SectionCard = ({
+  title,
+  children,
+  accent = false,
+  collapsible = false,
+  defaultOpen = true,
+}) => {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div
+      className={`bg-white rounded-2xl shadow-sm border ${
+        accent ? "border-[#BF9B53]" : "border-gray-100"
+      } overflow-hidden`}
+    >
+      {title && (
+        <div
+          className={`flex items-center justify-between px-4 py-3 ${
+            accent
+              ? "bg-gradient-to-r from-[#BF9B53]/10 to-amber-50"
+              : "bg-gray-50"
+          } border-b ${accent ? "border-[#BF9B53]/20" : "border-gray-100"} ${
+            collapsible ? "cursor-pointer" : ""
+          }`}
+          onClick={collapsible ? () => setOpen(!open) : undefined}
+        >
+          <h3
+            className={`font-bold text-sm ${
+              accent ? "text-[#BF9B53]" : "text-gray-700"
+            }`}
+          >
+            {title}
+          </h3>
+          {collapsible &&
+            (open ? (
+              <FiChevronUp size={16} className="text-gray-400" />
+            ) : (
+              <FiChevronDown size={16} className="text-gray-400" />
+            ))}
+        </div>
+      )}
+      {(!collapsible || open) && <div className="p-4">{children}</div>}
+    </div>
+  );
+};
+
+/* ── Info Row ── */
+const InfoRow = ({ icon, label, value }) => (
+  <div className="flex items-start gap-3">
+    <div className="mt-0.5 text-[#BF9B53] shrink-0">{icon}</div>
+    <div className="min-w-0">
+      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+        {label}
+      </p>
+      <p className="text-sm font-semibold text-gray-800 truncate">
+        {value || "N/A"}
+      </p>
+    </div>
+  </div>
+);
+
+/* ── Location Card ── */
+const LocationCard = ({ type, location, date, time, icon, color }) => (
+  <div
+    className={`rounded-xl border ${
+      color === "gold"
+        ? "border-[#BF9B53]/30 bg-[#BF9B53]/5"
+        : "border-green-200 bg-green-50"
+    } p-3`}
+  >
+    <div className="flex items-center gap-2 mb-2">
+      <div
+        className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+          color === "gold" ? "bg-[#BF9B53]" : "bg-green-500"
+        }`}
+      >
+        {icon}
+      </div>
+      <span className="font-bold text-xs text-gray-700 uppercase tracking-wide">
+        {type}
+      </span>
+    </div>
+    <p className="text-sm font-semibold text-gray-800 leading-tight mb-2">
+      {location || "N/A"}
+    </p>
+    <div className="flex gap-3 text-xs text-gray-500">
+      <span className="flex items-center gap-1">
+        <FiCalendar size={10} />
+        {date}
+      </span>
+      <span className="flex items-center gap-1">
+        <FiClock size={10} />
+        {time}
+      </span>
+    </div>
+  </div>
+);
 
 const DriverDashboard = () => {
   const {
@@ -24,12 +177,10 @@ const DriverDashboard = () => {
   const [locationError, setLocationError] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch driver data on mount
   useEffect(() => {
     fetchDriver();
   }, [fetchDriver]);
 
-  // Get driver current location
   useEffect(() => {
     const updateLocation = () => {
       if (
@@ -43,597 +194,452 @@ const DriverDashboard = () => {
         setLocationError(false);
       } else if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          (position) => {
+          (pos) => {
             setDriverLocation({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude,
             });
             setLocationError(false);
           },
           () => {
             setLocationError(true);
-            console.warn("Geolocation permission denied");
           }
         );
       }
     };
-
     updateLocation();
     const interval = setInterval(updateLocation, 30000);
     return () => clearInterval(interval);
   }, [driver]);
 
-  // Handlers
-  const handleLogout = () => setConfirmLogout(true);
-  const confirmLogoutAction = () => logout();
-
-  const assignedVehicles = useMemo(() => {
-    return (
+  const assignedVehicles = useMemo(
+    () =>
       driver?.assignedVehicles
-        ?.map((vehicleId) => (vehicleId === vehicle?._id ? vehicle : null))
-        .filter(Boolean) || []
-    );
-  }, [driver, vehicle]);
+        ?.map((vid) => (vid === vehicle?._id ? vehicle : null))
+        .filter(Boolean) || [],
+    [driver, vehicle]
+  );
 
-  const formatDate = useCallback((dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
+  const formatDate = useCallback((ds) => {
+    if (!ds) return "N/A";
+    return new Date(ds).toLocaleDateString("en-US", {
       day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   }, []);
 
-  const formatTime = useCallback((timeString) => {
-    if (!timeString) return "N/A";
+  const formatTime = useCallback((ts) => {
+    if (!ts) return "N/A";
     try {
-      const [hours, minutes] = timeString.split(":");
-      const hour = parseInt(hours);
-      const period = hour >= 12 ? "PM" : "AM";
-      const displayHour = hour % 12 || 12;
-      return `${displayHour}:${minutes} ${period}`;
+      const [h, m] = ts.split(":");
+      const hr = parseInt(h);
+      return `${hr % 12 || 12}:${m} ${hr >= 12 ? "PM" : "AM"}`;
     } catch {
-      return timeString;
+      return ts;
     }
   }, []);
 
   if (contextLoading || !driver) {
-    return <PageLoader text="Loading driver dashboard..." fullScreen />;
+    return (
+      <div className="min-h-screen bg-amber-50 font-[Montserrat]">
+        {/* skeleton navbar */}
+        <div className="fixed top-0 left-0 w-full h-16 bg-white shadow-sm z-50 flex items-center px-4 gap-3">
+          <Skeleton className="w-12 h-12 rounded-xl" />
+          <div className="space-y-1.5">
+            <Skeleton className="h-3 w-28" />
+            <Skeleton className="h-2 w-16" />
+          </div>
+        </div>
+        <div className="pt-20">
+          <DashboardSkeleton />
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="w-full min-h-screen font-montserrat bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 py-4 px-3 sm:px-4">
-      {/* NAVBAR */}
-      <header className="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-lg shadow-lg z-50 border-b-2 border-[#BF9B53]/30">
-        <div className="w-full px-3 sm:px-4 py-3 flex items-center justify-between">
+    <div className="w-full min-h-screen font-[Montserrat] bg-amber-50/60 pb-8">
+      {/* ── NAVBAR ── */}
+      <header className="fixed top-0 left-0 w-full bg-white/98 backdrop-blur-xl shadow-sm z-50 border-b border-amber-100">
+        <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden border-2 border-[#BF9B53] cursor-pointer shadow-md hover:shadow-lg transition-all flex items-center justify-center bg-[#BF9B53]/10">
+              <div className="w-11 h-11 rounded-xl overflow-hidden border-2 border-[#BF9B53] shadow-sm flex items-center justify-center bg-amber-50">
                 {driver.profileImage?.url ? (
                   <img
                     src={driver.profileImage.url}
-                    alt={driver.name || "Driver"}
+                    alt={driver.name}
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-[#BF9B53] font-bold text-base">
+                  <span className="text-[#BF9B53] font-black text-base">
                     {driver.name?.[0]?.toUpperCase() || "D"}
                   </span>
                 )}
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-slate-900 text-sm truncate">
-                {driver.name || "N/A"}
-              </span>
-              <span className="text-xs text-slate-500 truncate">
-                {driver.role || "Driver"}
-              </span>
+            <div>
+              <p className="font-bold text-gray-900 text-sm leading-tight">
+                {driver.name || "Driver"}
+              </p>
+              <StatusBadge status={driver.driverStatus} />
             </div>
           </div>
           <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-3 py-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all font-medium text-xs sm:text-sm"
-            title="Logout"
+            onClick={() => setConfirmLogout(true)}
+            className="flex items-center gap-1.5 px-3 py-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all text-sm font-semibold"
           >
-            <FiLogOut size={18} />
-            <span className="hidden sm:inline">Logout</span>
+            <FiLogOut size={16} />
+            <span className="hidden sm:inline text-xs">Logout</span>
           </button>
         </div>
       </header>
 
-      <div className="h-16 sm:h-20"></div>
+      <div className="h-[68px]" />
 
-      <div className="w-full space-y-4 animate-fade-in px-0">
-        {/* DRIVER INFO CARD */}
-        <div className="bg-white rounded-xl shadow-md p-4 border-2 border-[#BF9B53] hover:shadow-lg transition-shadow mx-3 sm:mx-4">
-          <h3 className="text-lg font-bold mb-4 text-[#BF9B53]">
-            Driver Information
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-            {/* Email */}
-            <div className="flex items-start gap-2">
-              <FiMail
-                className="text-blue-500 mt-0.5 flex-shrink-0"
-                size={16}
+      <div className="px-3 pt-4 space-y-3">
+        {/* ── DRIVER INFO ── */}
+        <SectionCard title="Driver Information" accent>
+          <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-2 gap-3">
+              <InfoRow
+                icon={<FiMail size={14} />}
+                label="Email"
+                value={driver.email}
+              />
+              <InfoRow
+                icon={<FiPhone size={14} />}
+                label="Phone"
+                value={driver.phone}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <InfoRow
+                icon={<FiFileText size={14} />}
+                label="License"
+                value={driver.licenseNumber}
               />
               <div>
-                <p className="text-slate-500 text-xs font-bold uppercase">
-                  Email
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                  Location
                 </p>
-                <p className="font-medium text-slate-900 text-xs">
-                  {driver.email || "N/A"}
-                </p>
+                {driverLocation ? (
+                  <p className="text-sm font-semibold text-gray-800 flex items-center gap-1">
+                    <span className="w-2 h-2 bg-green-500 rounded-full inline-block" />
+                    {driverLocation.lat.toFixed(3)},{" "}
+                    {driverLocation.lng.toFixed(3)}
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-400 font-medium">
+                    {locationError ? "Permission Denied" : "Locating..."}
+                  </p>
+                )}
               </div>
             </div>
-
-            {/* Phone */}
-            <div className="flex items-start gap-2">
-              <FiPhone
-                className="text-green-500 mt-0.5 flex-shrink-0"
-                size={16}
-              />
-              <div>
-                <p className="text-slate-500 text-xs font-bold uppercase">
-                  Phone
-                </p>
-                <p className="font-medium text-slate-900 text-xs">
-                  {driver.phone || "N/A"}
-                </p>
-              </div>
-            </div>
-
-            {/* License */}
-            <div className="flex items-start gap-2">
-              <FiFileText
-                className="text-amber-500 mt-0.5 flex-shrink-0"
-                size={16}
-              />
-              <div>
-                <p className="text-slate-500 text-xs font-bold uppercase">
-                  License
-                </p>
-                <p className="font-medium text-slate-900 text-xs">
-                  {driver.licenseNumber || "N/A"}
-                </p>
-              </div>
-            </div>
-
-            {/* Status */}
             <div>
-              <p className="text-slate-500 text-xs font-bold uppercase mb-1">
-                Status
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                Active Status
               </p>
               <span
-                className={`inline-flex px-2 py-1 rounded text-xs font-bold ${
-                  driver.driverStatus === "available"
-                    ? "bg-green-100 text-green-700"
-                    : driver.driverStatus === "on_trip"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-amber-100 text-amber-700"
-                }`}
-              >
-                {(driver.driverStatus || "N/A").toUpperCase()}
-              </span>
-            </div>
-
-            {/* Active Status */}
-            <div>
-              <p className="text-slate-500 text-xs font-bold uppercase mb-1">
-                Active
-              </p>
-              <span
-                className={`inline-flex px-2 py-1 rounded text-xs font-bold ${
+                className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold border ${
                   driver.isActive
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-red-100 text-red-700"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    : "bg-red-50 text-red-600 border-red-200"
                 }`}
               >
-                {driver.isActive ? "ACTIVE" : "INACTIVE"}
+                {driver.isActive ? "✓ ACTIVE" : "✗ INACTIVE"}
               </span>
-            </div>
-
-            {/* Current Location */}
-            <div>
-              <p className="text-slate-500 text-xs font-bold uppercase mb-1">
-                Location
-              </p>
-              {driverLocation ? (
-                <p className="font-medium text-slate-900 text-xs">
-                  <span className="inline-flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                    {driverLocation.lat.toFixed(2)},{" "}
-                    {driverLocation.lng.toFixed(2)}
-                  </span>
-                </p>
-              ) : (
-                <p className="text-slate-500 font-medium text-xs">
-                  {locationError ? "Permission Denied" : "Loading..."}
-                </p>
-              )}
             </div>
           </div>
-        </div>
+        </SectionCard>
 
-        {/* CURRENT SHIPMENT SECTION */}
-        {currentShipment && (
-          <div className="bg-gradient-to-br from-[#BF9B53]/5 to-yellow-100/30 rounded-xl p-4 border-2 border-[#BF9B53] shadow-lg mx-3 sm:mx-4">
-            <div className="mb-4">
-              <h3 className="text-2xl font-bold text-[#BF9B53]">
-                Current Shipment
-              </h3>
-              <p className="text-xs sm:text-sm text-[#8B7043] font-bold mt-1">
-                Status:{" "}
-                <span className="text-[#BF9B53]">
-                  {(currentShipment.tripStatus || "N/A").toUpperCase()}
-                </span>
-              </p>
+        {/* ── CURRENT SHIPMENT ── */}
+        {currentShipment ? (
+          <SectionCard title="🚚 Current Shipment" accent>
+            {/* Trip Status Banner */}
+            <div className="mb-4 flex items-center justify-between bg-amber-50 border border-[#BF9B53]/30 rounded-xl px-3 py-2">
+              <span className="text-xs text-gray-500 font-semibold">
+                Trip Status
+              </span>
+              <span className="text-xs font-black text-[#BF9B53] uppercase tracking-wider">
+                {currentShipment.tripStatus || "N/A"}
+              </span>
             </div>
 
-            {/* Pickup & Delivery Info */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              {/* PICKUP INFO */}
-              <div className="bg-white rounded-lg p-3 border border-[#BF9B53]/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 bg-[#BF9B53] rounded flex items-center justify-center">
-                    <FaLocationDot className="text-white text-xs" />
-                  </div>
-                  <h4 className="font-bold text-slate-900 text-sm">Pickup</h4>
-                </div>
-                <div className="space-y-1 text-xs">
-                  <div>
-                    <p className="text-slate-500 font-bold">LOCATION</p>
-                    <p className="text-slate-900 font-medium">
-                      {currentShipment.shipment?.pickupLocation || "N/A"}
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <p className="text-slate-500 font-bold">DATE</p>
-                      <p className="text-slate-900 font-medium">
-                        {formatDate(currentShipment.shipment?.pickupDate)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-slate-500 font-bold">TIME</p>
-                      <p className="text-slate-900 font-medium">
-                        {formatTime(currentShipment.pickupTime)}
-                      </p>
-                    </div>
-                  </div>
+            {/* Route */}
+            <div className="space-y-2 mb-4">
+              <LocationCard
+                type="Pickup"
+                icon={<FaLocationDot className="text-white text-xs" />}
+                color="gold"
+                location={currentShipment.shipment?.pickupLocation}
+                date={formatDate(currentShipment.shipment?.pickupDate)}
+                time={formatTime(currentShipment.pickupTime)}
+              />
+              {/* Arrow */}
+              <div className="flex items-center justify-center">
+                <div className="flex flex-col items-center gap-0.5">
+                  {[...Array(3)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-0.5 h-1.5 bg-[#BF9B53]/40 rounded-full"
+                    />
+                  ))}
+                  <FiMapPin size={14} className="text-[#BF9B53]" />
                 </div>
               </div>
-
-              {/* DELIVERY INFO */}
-              <div className="bg-white rounded-lg p-3 border border-[#BF9B53]/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 bg-[#BF9B53] rounded flex items-center justify-center">
-                    <FaMapLocationDot className="text-white text-xs" />
-                  </div>
-                  <h4 className="font-bold text-slate-900 text-sm">Delivery</h4>
-                </div>
-                <div className="space-y-1 text-xs">
-                  <div>
-                    <p className="text-slate-500 font-bold">LOCATION</p>
-                    <p className="text-slate-900 font-medium">
-                      {currentShipment.shipment?.deliveryLocation || "N/A"}
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <p className="text-slate-500 font-bold">DATE</p>
-                      <p className="text-slate-900 font-medium">
-                        {formatDate(currentShipment.shipment?.deliveryDate)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-slate-500 font-bold">ETA</p>
-                      <p className="text-slate-900 font-medium">
-                        {formatTime(currentShipment.estimatedArrivalTime)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <LocationCard
+                type="Delivery"
+                icon={<FaMapLocationDot className="text-white text-xs" />}
+                color="green"
+                location={currentShipment.shipment?.deliveryLocation}
+                date={formatDate(currentShipment.shipment?.deliveryDate)}
+                time={formatTime(currentShipment.estimatedArrivalTime)}
+              />
             </div>
 
-            {/* HORSES DETAILS */}
-            {currentShipment.shipment?.horses &&
-              currentShipment.shipment.horses.length > 0 && (
-                <div className="bg-white rounded-lg p-3 border border-[#BF9B53]/30 mb-4">
-                  <h4 className="font-bold text-[#BF9B53] text-sm mb-3">
-                    Horses ({currentShipment.shipment.horses.length})
-                  </h4>
-
-                  <div className="space-y-2">
-                    {currentShipment.shipment.horses.map((horse, idx) => (
-                      <div
-                        key={idx}
-                        className="bg-gradient-to-r from-[#BF9B53]/10 to-yellow-100/30 rounded p-3 border border-[#BF9B53]/20"
-                      >
-                        {/* Horse Photo */}
-                        {horse.photo?.url && (
-                          <div className="mb-2">
-                            <img
-                              src={horse.photo.url}
-                              alt={horse.registeredName}
-                              onClick={() => setSelectedImage(horse.photo.url)}
-                              className="w-full h-32 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
-                            />
-                          </div>
-                        )}
-
-                        {/* Horse Info Grid */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                          {/* Registered Name */}
-                          <div>
-                            <p className="text-slate-500 font-bold">
-                              REGISTERED
-                            </p>
-                            <p className="text-slate-900 font-medium">
-                              {horse.registeredName || "N/A"}
-                            </p>
-                          </div>
-
-                          {/* Barn Name */}
-                          <div>
-                            <p className="text-slate-500 font-bold">
-                              BARN NAME
-                            </p>
-                            <p className="text-slate-900 font-medium">
-                              {horse.barnName || "N/A"}
-                            </p>
-                          </div>
-
-                          {/* Breed */}
-                          <div>
-                            <p className="text-slate-500 font-bold">BREED</p>
-                            <p className="text-slate-900 font-medium">
-                              {horse.breed || "N/A"}
-                            </p>
-                          </div>
-
-                          {/* Sex */}
-                          <div>
-                            <p className="text-slate-500 font-bold">SEX</p>
-                            <p className="text-slate-900 font-medium">
-                              {horse.sex || "N/A"}
-                            </p>
-                          </div>
-
-                          {/* Age */}
-                          <div>
-                            <p className="text-slate-500 font-bold">AGE</p>
-                            <p className="text-slate-900 font-medium">
-                              {horse.age || "N/A"}
-                            </p>
-                          </div>
-
-                          {/* Colour */}
-                          <div>
-                            <p className="text-slate-500 font-bold">COLOUR</p>
-                            <p className="text-slate-900 font-medium">
-                              {horse.colour || "N/A"}
-                            </p>
-                          </div>
-
-                          {/* Stall Size */}
-                          <div className="sm:col-span-3">
-                            <p className="text-slate-500 font-bold">
-                              STALL SIZE
-                            </p>
-                            <p className="text-slate-900 font-medium">
-                              {horse.requestedStallSize || "N/A"}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* General Info */}
-                        {horse.generalInfo && (
-                          <div className="mt-2 pt-2 border-t border-[#BF9B53]/20">
-                            <p className="text-slate-500 font-bold text-xs">
-                              INFO
-                            </p>
-                            <p className="text-slate-900 text-xs leading-tight">
-                              {horse.generalInfo}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Documents */}
-                        {(horse.documents?.coggins?.url ||
-                          horse.documents?.healthCertificate?.url ||
-                          horse.documents?.other?.url) && (
-                          <div className="mt-2 pt-2 border-t border-[#BF9B53]/20">
-                            <p className="text-slate-500 font-bold text-xs mb-1">
-                              DOCUMENTS
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {horse.documents?.coggins?.url && (
-                                <a
-                                  href={horse.documents.coggins.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="bg-[#BF9B53] text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80"
-                                >
-                                  Coggins
-                                </a>
-                              )}
-                              {horse.documents?.healthCertificate?.url && (
-                                <a
-                                  href={horse.documents.healthCertificate.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="bg-[#BF9B53] text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80"
-                                >
-                                  Health Cert
-                                </a>
-                              )}
-                              {horse.documents?.other?.url && (
-                                <a
-                                  href={horse.documents.other.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="bg-[#BF9B53] text-white px-2 py-1 rounded text-xs font-bold hover:opacity-80"
-                                >
-                                  Other
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+            {/* Stats Row */}
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {[
+                {
+                  label: "Price",
+                  value: `$${currentShipment.totalPrice || "0"}`,
+                },
+                {
+                  label: "Payment",
+                  value: currentShipment.paymentStatus?.toUpperCase() || "N/A",
+                },
+                {
+                  label: "Stalls",
+                  value: currentShipment.stallsRequired || "0",
+                },
+                {
+                  label: "Status",
+                  value: currentShipment.status?.toUpperCase() || "N/A",
+                },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="bg-amber-50 border border-[#BF9B53]/20 rounded-xl p-2 text-center"
+                >
+                  <p className="text-[9px] font-bold text-gray-400 uppercase">
+                    {stat.label}
+                  </p>
+                  <p className="text-xs font-black text-[#BF9B53] mt-0.5 truncate">
+                    {stat.value}
+                  </p>
                 </div>
-              )}
+              ))}
+            </div>
 
-            {/* GENERAL NOTES */}
-            {currentShipment.shipment?.notes && (
-              <div className="bg-white rounded-lg p-3 border border-[#BF9B53]/30 mb-4">
-                <p className="text-xs font-bold text-slate-500 mb-1">
-                  SPECIAL NOTES
+            {/* Horses */}
+            {currentShipment.shipment?.horses?.length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <FaHorse size={11} /> Horses (
+                  {currentShipment.shipment.horses.length})
                 </p>
-                <p className="text-slate-700 text-xs leading-tight">
+                <div className="space-y-2">
+                  {currentShipment.shipment.horses.map((horse, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-amber-50/60 border border-[#BF9B53]/20 rounded-xl p-3"
+                    >
+                      {horse.photo?.url && (
+                        <img
+                          src={horse.photo.url}
+                          alt={horse.registeredName}
+                          onClick={() => setSelectedImage(horse.photo.url)}
+                          className="w-full h-36 object-cover rounded-lg mb-3 cursor-pointer"
+                        />
+                      )}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {[
+                          ["Registered", horse.registeredName],
+                          ["Barn Name", horse.barnName],
+                          ["Breed", horse.breed],
+                          ["Sex", horse.sex],
+                          ["Age", horse.age],
+                          ["Colour", horse.colour],
+                        ].map(([label, val]) => (
+                          <div key={label}>
+                            <p className="text-[9px] font-black text-gray-400 uppercase">
+                              {label}
+                            </p>
+                            <p className="font-semibold text-gray-800">
+                              {val || "N/A"}
+                            </p>
+                          </div>
+                        ))}
+                        <div className="col-span-2">
+                          <p className="text-[9px] font-black text-gray-400 uppercase">
+                            Stall Size
+                          </p>
+                          <p className="font-semibold text-gray-800">
+                            {horse.requestedStallSize || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                      {horse.generalInfo && (
+                        <p className="mt-2 pt-2 border-t border-[#BF9B53]/20 text-xs text-gray-600 leading-relaxed">
+                          {horse.generalInfo}
+                        </p>
+                      )}
+                      {/* Docs */}
+                      {(horse.documents?.coggins?.url ||
+                        horse.documents?.healthCertificate?.url ||
+                        horse.documents?.other?.url) && (
+                        <div className="mt-2 pt-2 border-t border-[#BF9B53]/20 flex flex-wrap gap-2">
+                          {horse.documents?.coggins?.url && (
+                            <a
+                              href={horse.documents.coggins.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="bg-[#BF9B53] text-white px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                            >
+                              Coggins
+                            </a>
+                          )}
+                          {horse.documents?.healthCertificate?.url && (
+                            <a
+                              href={horse.documents.healthCertificate.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="bg-[#BF9B53] text-white px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                            >
+                              Health Cert
+                            </a>
+                          )}
+                          {horse.documents?.other?.url && (
+                            <a
+                              href={horse.documents.other.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="bg-[#BF9B53] text-white px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                            >
+                              Other
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Notes */}
+            {currentShipment.shipment?.notes && (
+              <div className="mb-3 bg-blue-50 border border-blue-100 rounded-xl p-3">
+                <p className="text-[10px] font-black text-blue-400 uppercase mb-1">
+                  Special Notes
+                </p>
+                <p className="text-xs text-blue-800 leading-relaxed">
                   {currentShipment.shipment.notes}
                 </p>
               </div>
             )}
-
-            {/* SHIPMENT NOTES */}
             {currentShipment.notes && (
-              <div className="bg-white rounded-lg p-3 border border-[#BF9B53]/30 mb-4">
-                <p className="text-xs font-bold text-slate-500 mb-1">
-                  SHIPMENT NOTES
+              <div className="mb-3 bg-gray-50 border border-gray-100 rounded-xl p-3">
+                <p className="text-[10px] font-black text-gray-400 uppercase mb-1">
+                  Shipment Notes
                 </p>
-                <p className="text-slate-700 text-xs leading-tight">
+                <p className="text-xs text-gray-700 leading-relaxed">
                   {currentShipment.notes}
                 </p>
               </div>
             )}
 
-            {/* SHIPMENT STATS */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-              <div className="bg-white rounded-lg p-2 border border-[#BF9B53]/30 text-center">
-                <p className="text-slate-500 font-bold text-xs">PRICE</p>
-                <p className="text-[#BF9B53] font-bold text-sm">
-                  ${currentShipment.totalPrice || "0"}
-                </p>
-              </div>
-              <div className="bg-white rounded-lg p-2 border border-[#BF9B53]/30 text-center">
-                <p className="text-slate-500 font-bold text-xs">PAYMENT</p>
-                <p className="text-[#BF9B53] font-bold text-xs">
-                  {currentShipment.paymentStatus?.toUpperCase() || "N/A"}
-                </p>
-              </div>
-              <div className="bg-white rounded-lg p-2 border border-[#BF9B53]/30 text-center">
-                <p className="text-slate-500 font-bold text-xs">STALLS</p>
-                <p className="text-[#BF9B53] font-bold text-sm">
-                  {currentShipment.stallsRequired || "0"}
-                </p>
-              </div>
-              <div className="bg-white rounded-lg p-2 border border-[#BF9B53]/30 text-center">
-                <p className="text-slate-500 font-bold text-xs">STATUS</p>
-                <p className="text-[#BF9B53] font-bold text-xs">
-                  {currentShipment.status?.toUpperCase() || "N/A"}
-                </p>
-              </div>
-            </div>
-
-            {/* VIEW ROUTE BUTTON */}
-            <div className="flex justify-end gap-2">
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
               <button
                 onClick={() => setMapModalOpen(true)}
                 disabled={!driverLocation}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#BF9B53] to-orange-500 text-white font-bold text-sm rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-[#BF9B53] to-amber-500 text-white font-bold text-sm rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <FaMapLocationDot size={16} />
                 View Route
               </button>
-
               <button
                 onClick={() =>
                   navigate(`/driver/delivery/${currentShipment.shipment?._id}`)
                 }
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-bold text-sm rounded-lg hover:bg-green-700 transition"
+                className="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-sm rounded-2xl shadow-md hover:shadow-lg active:scale-95 transition-all"
               >
+                <FaTruck size={15} />
                 Deliver
               </button>
             </div>
-          </div>
-        )}
-
-        {!currentShipment && (
-          <div className="bg-white rounded-lg p-6 text-center border border-[#BF9B53] mx-3 sm:mx-4">
-            <FaTruck className="text-slate-300 text-4xl mx-auto mb-2" />
-            <p className="text-slate-500 font-medium text-sm">
+          </SectionCard>
+        ) : (
+          <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
+            <FaTruck className="text-gray-200 text-5xl mx-auto mb-3" />
+            <p className="text-gray-400 font-semibold text-sm">
               No active shipment assigned
+            </p>
+            <p className="text-gray-300 text-xs mt-1">
+              You'll see your shipment details here once assigned
             </p>
           </div>
         )}
 
-        {/* ASSIGNED VEHICLES */}
+        {/* ── ASSIGNED VEHICLES ── */}
         {assignedVehicles.length > 0 && (
-          <div className="mx-3 sm:mx-4">
-            <h3 className="text-lg font-bold text-[#BF9B53] mb-3">
-              Assigned Vehicle{assignedVehicles.length !== 1 ? "s" : ""} (
-              {assignedVehicles.length})
-            </h3>
-
+          <SectionCard
+            title={`Assigned Vehicle${
+              assignedVehicles.length !== 1 ? "s" : ""
+            } (${assignedVehicles.length})`}
+            collapsible
+            defaultOpen={false}
+          >
             <div className="space-y-3">
               {assignedVehicles.map((veh) => (
                 <div
                   key={veh._id}
-                  className="bg-white rounded-lg p-4 border-2 border-[#BF9B53] hover:shadow-lg transition-all"
+                  className="border border-amber-100 rounded-xl p-3 bg-amber-50/30"
                 >
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h4 className="font-bold text-slate-900 text-base">
+                      <p className="font-black text-gray-900 text-sm">
                         {veh.vehicleNumber || "N/A"}
-                      </h4>
-                      <p className="text-xs text-slate-500">
-                        {veh.vehicleType} • {veh.transportType}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {veh.vehicleType} · {veh.transportType}
                       </p>
                     </div>
                   </div>
-
-                  {/* Details */}
-                  <div className="space-y-2 mb-3 pb-3 border-b border-slate-200">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-600 font-bold">Trailer:</span>
-                      <span className="font-semibold text-slate-900">
+                  <div className="grid grid-cols-2 gap-2 text-xs mb-2 pb-2 border-b border-amber-100">
+                    <div>
+                      <p className="text-[9px] font-black text-gray-400 uppercase">
+                        Trailer
+                      </p>
+                      <p className="font-semibold text-gray-800">
                         {veh.trailerType || "N/A"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-600 font-bold">Stalls:</span>
-                      <span className="font-semibold text-slate-900">
-                        {veh.numberOfStalls} ({veh.stallSize})
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Notes */}
-                  {veh.notes && (
-                    <div className="mb-3 p-2 bg-blue-50 rounded border border-blue-200">
-                      <p className="text-xs text-slate-600 leading-tight">
-                        {veh.notes}
                       </p>
                     </div>
+                    <div>
+                      <p className="text-[9px] font-black text-gray-400 uppercase">
+                        Stalls
+                      </p>
+                      <p className="font-semibold text-gray-800">
+                        {veh.numberOfStalls} ({veh.stallSize})
+                      </p>
+                    </div>
+                  </div>
+                  {veh.notes && (
+                    <p className="text-xs text-gray-500 mb-2">{veh.notes}</p>
                   )}
-
-                  {/* Images */}
-                  {veh.images && veh.images.length > 0 && (
-                    <div className="flex gap-2 overflow-x-auto hide-scrollbar">
+                  {veh.images?.length > 0 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1">
                       {veh.images.map((img) => (
                         <img
                           key={img._id}
                           src={img.url}
-                          alt={`${veh.vehicleNumber}`}
+                          alt={veh.vehicleNumber}
                           onClick={() => setSelectedImage(img.url)}
-                          className="w-14 h-14 object-cover rounded border border-slate-200 flex-shrink-0 cursor-pointer hover:shadow-md transition-shadow"
+                          className="w-16 h-16 object-cover rounded-xl border border-amber-100 flex-shrink-0 cursor-pointer active:scale-95 transition-transform"
                         />
                       ))}
                     </div>
@@ -641,20 +647,11 @@ const DriverDashboard = () => {
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {assignedVehicles.length === 0 && (
-          <div className="bg-white rounded-lg p-6 text-center border border-[#BF9B53] mx-3 sm:mx-4">
-            <FaTruck className="text-slate-300 text-4xl mx-auto mb-2" />
-            <p className="text-slate-500 font-medium text-sm">
-              No vehicle assigned yet
-            </p>
-          </div>
+          </SectionCard>
         )}
       </div>
 
-      {/* ROUTE MAP MODAL */}
+      {/* ── ROUTE MAP MODAL ── */}
       {mapModalOpen && currentShipment && driverLocation && (
         <RouteMapModal
           isOpen={mapModalOpen}
@@ -673,61 +670,37 @@ const DriverDashboard = () => {
         />
       )}
 
-      {/* FULL SCREEN IMAGE MODAL */}
+      {/* ── FULL SCREEN IMAGE MODAL ── */}
       {selectedImage && (
-        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-[9999] p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-2xl max-h-[90vh] animate-fade-in">
+        <div
+          className="fixed inset-0 bg-black/95 flex items-center justify-center z-[9999] p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative w-full max-w-lg">
             <button
               onClick={() => setSelectedImage(null)}
-              className="absolute -top-8 right-0 text-white hover:text-gray-300 transition-colors"
-              title="Close"
+              className="absolute -top-10 right-0 text-white/80"
             >
               <FiX size={28} />
             </button>
             <img
               src={selectedImage}
               alt="Full view"
-              className="w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-              loading="lazy"
+              className="w-full max-h-[90vh] object-contain rounded-2xl"
             />
           </div>
         </div>
       )}
 
-      {/* LOGOUT CONFIRM MODAL */}
       <ConfirmModal
         show={confirmLogout}
         title="Logout"
         message="Are you sure you want to log out?"
-        onConfirm={confirmLogoutAction}
+        onConfirm={() => logout()}
         onCancel={() => setConfirmLogout(false)}
         confirmText="Logout"
         confirmColor="red"
       />
-
-      {/* CUSTOM STYLES */}
-      <style>{`
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out;
-        }
-      `}</style>
     </div>
   );
 };

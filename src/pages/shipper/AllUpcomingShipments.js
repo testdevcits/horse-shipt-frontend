@@ -80,9 +80,6 @@ const ShipmentCard = ({
   const isCancelled =
     quote.isCancelled === true || quote.status === "cancelled";
   const isCompleted = tabKey === "completed";
-  const isUpcoming = tabKey === "upcoming";
-  const isProcessingThis =
-    deliveryLoading && selectedQuote?.shipment?._id === quote.shipment?._id;
 
   const badgeState = isCancelled
     ? "cancelled"
@@ -213,7 +210,7 @@ const ShipmentCard = ({
         )}
 
         {/* Mark Delivered — only upcoming tab */}
-        {isUpcoming && (
+        {/* {isUpcoming && (
           <button
             className="flex items-center gap-2 bg-[#BF9B53] text-white
               px-5 py-2 rounded-xl text-sm font-semibold hover:bg-[#a8863f]
@@ -224,7 +221,7 @@ const ShipmentCard = ({
             <FiTruck size={14} />
             {isProcessingThis ? "Processing..." : "Mark Delivered"}
           </button>
-        )}
+        )} */}
 
         {/* Completed pill */}
         {isCompleted && (
