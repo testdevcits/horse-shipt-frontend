@@ -64,11 +64,9 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      // Call AuthContext login function (it handles API request)
-      const result = await login(values); // <-- only one API call
+      const result = await login(values);
 
       if (result.success) {
-        // Navigate based on role
         navigate(
           values.role === "shipper"
             ? "/shipper/dashboard"
@@ -76,7 +74,6 @@ const LoginPage = () => {
           { replace: true }
         );
       } else {
-        // Handle validation errors from backend
         if (result.errors?.length > 0) {
           const emailError = result.errors.find((e) =>
             e.toLowerCase().includes("email")
@@ -120,15 +117,9 @@ const LoginPage = () => {
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-20">
         {/* Logo */}
         <div className="flex items-center justify-center w-full md:w-[1168px] h-[64px] gap-4 opacity-100">
-          {/* Logo Image */}
-          <img
-            src={loginLogo} // import your logo at the top: import logo from '../assets/images/logo.png';
-            alt="Logo"
-            className="h-full object-contain"
-          />
+          <img src={loginLogo} alt="Logo" className="h-full object-contain" />
         </div>
 
-        {/* Login form */}
         <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 md:p-8 shadow-md flex flex-col justify-center w-full max-w-sm gap-4">
           <h1 className="text-xl sm:text-2xl font-semibold text-start text-gray-800">
             Welcome Back
@@ -216,9 +207,7 @@ const LoginPage = () => {
                     className="text-xs text-red-500"
                   />
 
-                  {/* ACTION SECTION */}
                   <div className="flex flex-col gap-3 mt-4">
-                    {/* Submit button */}
                     <Button
                       type="submit"
                       disabled={!canSubmit}
@@ -239,8 +228,6 @@ const LoginPage = () => {
                       </span>
                       <div className="flex-1 h-px bg-gray-300" />
                     </div>
-
-                    {/* Google login */}
                     <Button
                       type="button"
                       onClick={() => handleGoogleLogin(values.role)}

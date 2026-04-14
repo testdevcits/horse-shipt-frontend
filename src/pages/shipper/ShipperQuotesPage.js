@@ -392,35 +392,42 @@ const ShipperQuotesPage = () => {
                 )}
 
                 {/* ACTIONS */}
-                <div className="flex flex-wrap gap-3 pt-2">
-                  {quote.contract?.url && (
-                    <button
-                      onClick={() =>
-                        setVisibleContractId(
-                          visibleContractId === quote._id ? null : quote._id
-                        )
-                      }
-                      className="px-4 py-2 bg-[#BF9B53] hover:bg-[#a5843f] text-white rounded-lg text-sm"
-                    >
-                      View Contract
-                    </button>
-                  )}
+                {/* ACTIONS */}
+                <div className="flex flex-wrap gap-3 pt-2 items-center justify-between">
+                  {/* LEFT SIDE BUTTONS */}
+                  <div className="flex gap-3 flex-wrap">
+                    {quote.contract?.url && (
+                      <button
+                        onClick={() =>
+                          setVisibleContractId(
+                            visibleContractId === quote._id ? null : quote._id
+                          )
+                        }
+                        className="px-4 py-2 bg-[#BF9B53] hover:bg-[#a5843f] text-white rounded-lg text-sm"
+                      >
+                        {visibleContractId === quote._id
+                          ? "Hide Contract"
+                          : "View Contract"}
+                      </button>
+                    )}
 
+                    {canDelete && (
+                      <button
+                        onClick={() => openModal(quote, "delete")}
+                        className="px-4 py-2 border border-[#BF9B53] text-[#BF9B53] hover:bg-[#BF9B53]/10 rounded-lg text-sm flex items-center gap-1"
+                      >
+                        <RiDeleteBinLine /> Delete
+                      </button>
+                    )}
+                  </div>
+
+                  {/* RIGHT SIDE (CANCEL BUTTON) */}
                   {!isExpired && !quote.isCancelled && (
                     <button
                       onClick={() => openModal(quote, "cancel")}
-                      className="px-4 py-2 border border-[#BF9B53] text-[#BF9B53] hover:bg-[#BF9B53]/10 rounded-lg text-sm flex items-center gap-1"
+                      className="ml-auto px-4 py-2 border border-red-500 text-red-500 hover:bg-[#BF9B53]/10 rounded-lg text-sm flex items-center gap-1"
                     >
-                      <RiCloseCircleLine /> Cancel
-                    </button>
-                  )}
-
-                  {canDelete && (
-                    <button
-                      onClick={() => openModal(quote, "delete")}
-                      className="px-4 py-2 border border-[#BF9B53] text-[#BF9B53] hover:bg-[#BF9B53]/10 rounded-lg text-sm flex items-center gap-1"
-                    >
-                      <RiDeleteBinLine /> Delete
+                      <RiCloseCircleLine /> Cancel Quotes
                     </button>
                   )}
                 </div>
@@ -444,29 +451,76 @@ const ShipperQuotesPage = () => {
 
       {/* CANCEL / DELETE MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-xl w-[90%] max-w-md">
-            <h3 className="text-lg font-semibold mb-3">
-              {modalType === "cancel" ? "Cancel Shipment" : "Delete Quote"}
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              {modalType === "cancel"
-                ? "Are you sure you want to cancel this shipment?"
-                : "This quote is not accepted. Do you want to delete it?"}
-            </p>
-            <div className="flex justify-end gap-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white w-[90%] max-w-xl rounded-md shadow-xl p-6">
+            {/* HEADER */}
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                {modalType === "cancel" ? "Cancel Shipment" : "Delete Quote"}
+              </h3>
+
               <button
                 onClick={closeModal}
-                className="px-4 py-2 bg-gray-200 rounded"
+                className="text-gray-400 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* MESSAGE */}
+            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+              {modalType === "cancel"
+                ? "Are you sure you want to cancel this shipment?"
+                : "This quote is not accepted. Are you sure you want to delete it?"}
+            </p>
+
+            {modalType === "cancel" &&
+              selectedQuote?.paymentStatus === "paid" && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-5 space-y-3">
+                  <p className="text-sm font-semibold text-red-600 flex items-center gap-2">
+                    Cancellation Charges Will Apply
+                  </p>
+
+                  <p className="text-xs text-gray-700 leading-relaxed">
+                    The customer has already completed the payment for this
+                    shipment. If you cancel now, the customer will receive a{" "}
+                    <b>100% refund</b>.
+                  </p>
+
+                  <div className="bg-white border rounded-md p-3 text-xs text-gray-700 space-y-1">
+                    <p>You (Shipper) will be charged:</p>
+                    <p className="ml-2">- Platform service fee</p>
+                    <p className="ml-2">- Payment processing fee</p>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] text-xs p-4">
+                    These charges will be automatically deducted from your saved
+                    payment method (card).
+                  </div>
+                </div>
+              )}
+
+            {/* ACTION BUTTONS */}
+            <div className="flex justify-end gap-3">
+              {/* NO BUTTON */}
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
               >
                 No
               </button>
+
+              {/* YES BUTTON */}
               <button
                 onClick={handleAction}
                 disabled={actionLoading}
-                className="px-4 py-2 bg-red-500 text-white rounded"
+                className={`px-4 py-2 rounded-lg text-white transition flex items-center justify-center min-w-[120px] ${
+                  actionLoading
+                    ? "bg-red-300 cursor-not-allowed"
+                    : "bg-red-500 hover:bg-red-600"
+                }`}
               >
-                {actionLoading ? "Processing..." : "Yes"}
+                {actionLoading ? "Processing..." : "Yes, Cancel Shipment"}
               </button>
             </div>
           </div>

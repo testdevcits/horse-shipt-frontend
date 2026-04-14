@@ -122,7 +122,7 @@ const ShipmentQuestions = ({ shipmentId }) => {
       {/* ===================== LOADING STATE ===================== */}
       {loading ? (
         <div className="py-12">
-          <PageLoader text="Loading questions..." size={32} color="#BF9B53" />
+          <PageLoader text="Loading questions..." size={24} color="#BF9B53" />
         </div>
       ) : allQuestions.length === 0 ? (
         <div className="py-8">

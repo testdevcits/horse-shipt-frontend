@@ -81,14 +81,12 @@ const SignupPage = () => {
       );
     }
 
-    // Any frontend oauthError from context
     if (oauthError) {
       setToast({ message: oauthError, type: "error" });
       navigate(location.pathname, { replace: true });
     }
   }, [location.search, oauthError, oauthLogin, navigate, location.pathname]);
 
-  // ----------------- Handle normal signup -----------------
   const handleSignup = async (values, { setSubmitting, resetForm }) => {
     setLoading(true);
     try {
@@ -96,7 +94,6 @@ const SignupPage = () => {
 
       if (res.success) {
         resetForm();
-        // login user immediately after signup
         oauthLogin(
           res.data.token ? { token: res.data.token, ...res.data } : res.data
         );

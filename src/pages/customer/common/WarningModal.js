@@ -6,7 +6,7 @@ const Modal = ({
   message,
   onClose,
   buttonText = "OK",
-  type = "info", // info | success | warning | error
+  type = "info",
 }) => {
   const typeStyles = {
     info: "bg-[#BF9B53] text-white",
@@ -35,7 +35,6 @@ const Modal = ({
 
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
-            {/* <p className="text-xs text-gray-400 capitalize">{type} message</p> */}
           </div>
 
           <button
@@ -46,13 +45,10 @@ const Modal = ({
           </button>
         </div>
 
-        {/* Divider */}
         <div className="h-[1px] bg-[#BF9B53] mb-4" />
 
-        {/* Message */}
         <p className="text-sm text-gray-600 leading-relaxed mb-6">{message}</p>
 
-        {/* Actions */}
         <div className="flex justify-end">
           <button
             onClick={onClose}

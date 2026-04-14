@@ -20,8 +20,6 @@ const CustomerLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
-
-  // Use profile image from context or fallback to user.photo
   const displayedProfileImage =
     profileImage || user?.photo || defaultProfileImage;
 
@@ -33,9 +31,7 @@ const CustomerLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* Header */}
       <header className="sticky top-0 z-50 flex items-center justify-between bg-white shadow-md px-4 py-3 border-b border-gray-300 lg:px-6">
-        {/* Left */}
         <div className="flex items-center gap-4">
           {!mobileOpen ? (
             <button
@@ -58,10 +54,7 @@ const CustomerLayout = () => {
             className="hidden sm:block w-32 h-auto object-contain"
           />
         </div>
-
-        {/* Right */}
         <div className="flex items-center gap-4 relative">
-          {/* Notification Bell */}
           <div
             className="relative cursor-pointer"
             onClick={() => navigate("/customer/settings?tab=notification")}
@@ -80,7 +73,7 @@ const CustomerLayout = () => {
           {/* Profile */}
           <div className="relative">
             <img
-              src={displayedProfileImage} // <-- now reactive to context changes
+              src={displayedProfileImage}
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
               onClick={() => setProfilePopup(!profilePopup)}
@@ -101,8 +94,6 @@ const CustomerLayout = () => {
           </div>
         </div>
       </header>
-
-      {/* Body */}
       <div className="flex flex-1 relative">
         <Sidebar
           sidebarOpen={sidebarOpen}

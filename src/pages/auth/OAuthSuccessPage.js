@@ -26,7 +26,6 @@ const OAuthSuccessPage = () => {
     }
 
     if (token && role) {
-      // Save user info in context
       oauthLogin({
         token,
         role,
@@ -37,17 +36,14 @@ const OAuthSuccessPage = () => {
         photo,
       });
 
-      // Redirect to dashboard
       navigate(`/${role}/dashboard`, { replace: true });
     } else if (token && !role) {
-      // Token exists but role missing
       setToast({
         message: "Role not found. Please login manually.",
         type: "error",
       });
       navigate("/login", { replace: true });
     } else {
-      // No token
       navigate("/login", { replace: true });
     }
   }, [location.search, oauthLogin, navigate]);

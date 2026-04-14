@@ -132,7 +132,7 @@ const TruckDriverPage = () => {
 
       {/* FORM */}
       {showForm && (
-        <div className="bg-white shadow rounded-xl p-6 mb-8">
+        <div className="bg-white shadow rounded-md p-6 mb-8">
           <Formik
             initialValues={initialValues}
             validationSchema={validationSchema}
@@ -251,13 +251,6 @@ const TruckDriverPage = () => {
                   </button>
 
                   <button
-                    onClick={() => setSelectedDriver(driver)}
-                    className="px-3 py-1.5 border rounded-lg text-sm hover:bg-gray-50"
-                  >
-                    Assign Vehicles
-                  </button>
-
-                  <button
                     onClick={() => handleToggleStatus(driver)}
                     className={`px-3 py-1.5 rounded-lg text-sm ${
                       driver.isActive
@@ -368,7 +361,25 @@ const TruckDriverPage = () => {
       <ConfirmModal
         show={confirmDelete.show}
         title="Delete Driver"
-        message="Are you sure?"
+        message={
+          <div className="space-y-3 text-sm text-gray-700">
+            <p>Are you sure you want to delete this driver?</p>
+
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 space-y-2">
+              <p className="text-red-600 font-semibold">Important Notice</p>
+
+              <ul className="list-disc pl-4 text-xs space-y-1">
+                <li>Driver will be permanently removed</li>
+                <li>Any assigned shipments may be affected</li>
+              </ul>
+            </div>
+
+            <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] text-xs p-4">
+              Please make sure this driver is not assigned to any active
+              shipment before deleting.
+            </div>
+          </div>
+        }
         onConfirm={confirmDeleteDriver}
         onCancel={() => setConfirmDelete({ show: false, id: null })}
       />

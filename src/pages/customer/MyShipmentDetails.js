@@ -14,7 +14,6 @@ import Toast from "../../components/common/Toast";
 import ShipmentQuestions from "./ShipmentQuestions";
 import ShipmentQuotes from "./Shipmentquotes";
 
-// ---------------- STRIPE ----------------
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
@@ -54,9 +53,11 @@ const MyShipmentDetails = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedShipmentId, setSelectedShipmentId] = useState(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
-  const [toast, setToast] = useState({ message: "", type: "", visible: false });
 
-  // ---------------- FETCH SHIPMENT ----------------
+  const showToast = (message, type = "info") => {
+    Toast[type](message);
+  };
+
   const fetchData = useCallback(() => {
     if (!shipmentId) return;
     fetchShipmentById(shipmentId);
@@ -69,7 +70,6 @@ const MyShipmentDetails = () => {
   const loading = shipmentLoading;
   const shipment = currentShipment;
 
-  // ============ HELPER: FORMAT DATE ============
   const formatDate = (dateString) => {
     if (!dateString) return "Not specified";
     try {
@@ -109,12 +109,6 @@ const MyShipmentDetails = () => {
     };
   };
 
-  // ---------------- TOAST ----------------
-  const showToast = (message, type = "info") => {
-    setToast({ message, type, visible: true });
-    setTimeout(() => setToast({ message: "", type: "", visible: false }), 3000);
-  };
-
   const handleDeleteClick = (id) => {
     setSelectedShipmentId(id);
     setShowDeleteModal(true);
@@ -137,10 +131,8 @@ const MyShipmentDetails = () => {
     navigate("/customer/dashboard");
   };
 
-  // ---------------- TAB BUTTON ----------------
   const handleTabClick = (id) => {
     setActiveTab(id);
-    // Load first page with limit=5 when switching to quotes tab
     if (id === "quotes" && shipmentId)
       getQuotesByShipment(shipmentId, true, 1, 5);
     if (id === "questions" && shipmentId) fetchQuestions(shipmentId);
@@ -158,10 +150,7 @@ const MyShipmentDetails = () => {
     >
       <span className="truncate">{label}</span>
       {count !== undefined && (
-        <span
-          className="flex items-center justify-center w-[25px] h-[24px] text-[10px] sm:text-xs font-medium
-                     bg-[#F2EBDD] border border-[#BF9B53] rounded-full"
-        >
+        <span className="flex items-center justify-center w-[25px] h-[24px] text-[10px] sm:text-xs font-medium bg-[#F2EBDD] border border-[#BF9B53] rounded-full">
           {count}
         </span>
       )}
@@ -170,10 +159,10 @@ const MyShipmentDetails = () => {
 
   if (loading)
     return <PageLoader text="Loading shipment details..." fullScreen={false} />;
+
   if (!shipment)
     return (
       <div className="text-center py-12 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
-        <div className="text-3xl mb-2"></div>
         <p className="text-md text-gray-400">Shipment not found</p>
       </div>
     );
@@ -183,21 +172,10 @@ const MyShipmentDetails = () => {
 
   return (
     <div className="w-full font-montserrat relative">
-      {/* ================= TOAST ================= */}
-      {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast({ message: "", type: "", visible: false })}
-        />
-      )}
-
       <h2 className="font-semibold text-2xl md:text-3xl mb-6 uppercase">
         Shipment_ID :{" "}
         <span className="text-[#BF9B53]">{shipment.shipmentCode}</span>
       </h2>
-
-      {/* ================= TABS ================= */}
       <div className="flex gap-6 border-b mb-6">
         <TabButton id="overview" label="Overview" />
         <TabButton
@@ -434,7 +412,7 @@ const MyShipmentDetails = () => {
       {/* ================= PUBLISH MODAL ================= */}
       {showPublishModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
-          <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
+          <div className="bg-white w-full max-w-md rounded-md shadow-lg p-6 relative">
             <h2 className="text-xl font-semibold mb-2">Confirm Publish</h2>
             <p className="text-gray-600 mb-4">
               Once you publish this shipment, you{" "}

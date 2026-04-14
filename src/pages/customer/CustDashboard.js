@@ -1,11 +1,10 @@
-// src/pages/customer/CustDashboard.js
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { TbCalendarTime } from "react-icons/tb";
 
 import { useAuth } from "../../contexts/AuthContext";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
-import MyUpcomingShipments from "./MyUpcomingShipments"; // default export
+import MyUpcomingShipments from "./MyUpcomingShipments";
 import TopRatedShippers from "./TopRatedShippers";
 import Button from "../../components/common/Button";
 import logo from "../../assets/images/mobileLogo.png";
@@ -15,7 +14,6 @@ const CustDashboard = () => {
   const navigate = useNavigate();
   const { shipments, fetchShipments, loading } = useCustomerShipments();
 
-  // ================= DATE HELPERS =================
   const now = new Date();
   const dayName = now.toLocaleDateString("en-US", { weekday: "long" });
   const fullDate = now.toLocaleDateString("en-US", {
@@ -35,14 +33,12 @@ const CustDashboard = () => {
     navigate("/customer/new-shipment");
   };
 
-  // ================= FETCH SHIPMENTS =================
   useEffect(() => {
     fetchShipments();
   }, [fetchShipments]);
 
   return (
     <div className="flex flex-col font-[Montserrat] gap-6 md:gap-8 w-full">
-      {/* ================= HEADER ================= */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
         <div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-800">
@@ -53,7 +49,6 @@ const CustDashboard = () => {
           </p>
         </div>
 
-        {/* DATE BADGE */}
         <div className="flex items-center gap-2 w-full sm:w-auto bg-[#BF9B53]/10 border border-[#BF9B53]/20 rounded-md px-4 py-2.5">
           <TbCalendarTime size={18} className="text-[#BF9B53]" />
           <div className="flex flex-row sm:flex-col items-center sm:items-start gap-1 sm:gap-0 leading-tight">
@@ -63,7 +58,6 @@ const CustDashboard = () => {
         </div>
       </div>
 
-      {/* ================= START SHIPMENT CARD ================= */}
       <div className="relative w-full bg-gradient-to-br from-white via-gray-50 to-white border border-gray-100 rounded-xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 group overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#BF9B53]/5 to-[#8B7D4A]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -92,7 +86,6 @@ const CustDashboard = () => {
             </p>
           </div>
 
-          {/* CTA Button */}
           <div className="relative">
             <Button
               variant="custom"
@@ -126,7 +119,6 @@ const CustDashboard = () => {
         </div>
       </div>
 
-      {/* ================= SECTIONS ================= */}
       <div className="flex flex-col gap-6">
         <MyUpcomingShipments shipments={shipments} loading={loading} />
         <div className="w-full border-2 border-t border-[#BF9B53]"></div>

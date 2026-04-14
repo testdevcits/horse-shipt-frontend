@@ -33,7 +33,7 @@ const StripeVerificationModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 px-4 font-montserrat p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-br from-[#BF9B53] via-[#BF9B53]/80 to-[#8B7138] px-6 py-8 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20" />
@@ -89,12 +89,11 @@ const StripeVerificationModal = ({ isOpen, onClose }) => {
           </div>
 
           {/* Security Note */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
-            <Lock size={16} className="text-blue-600 mt-0.5 shrink-0" />
-            <p className="text-xs text-blue-900">
-              <span className="font-semibold">Secure & Private:</span> Your
-              banking information is encrypted and processed only by Stripe. We
-              never store your bank details.
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-start gap-2">
+            <Lock size={16} className="text-gray-600 mt-0.5 shrink-0" />
+            <p className="text-xs text-gray-900">
+              Your banking information is encrypted and processed only by
+              Stripe. We never store your bank details.
             </p>
           </div>
 

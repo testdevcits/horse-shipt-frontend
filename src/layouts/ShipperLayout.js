@@ -40,33 +40,21 @@ const ShipperLayout = () => {
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-  // ── Payment tab detection ──
   const queryParams = new URLSearchParams(location.search);
   const isPaymentTab =
     location.pathname === "/shipper/settings" &&
     queryParams.get("tab") === "payment";
 
-  // ── Subscription status ──
   const isSubscribed =
     subscription && ["active", "trialing"].includes(subscription.status);
 
-  // ── Is current route subscription-free? ──
   const isSubscriptionFreeRoute = SUBSCRIPTION_FREE_ROUTES.some((route) =>
     location.pathname.startsWith(route)
   );
 
-  // ══════════════════════════════════════════════════
-  // PRIORITY LOGIC:
-  //  1. subLoading → don't block (wait for data)
-  //  2. NOT subscribed + NOT free route → show SubscriptionPopup (step 1 must pass first)
-  //  3. Subscribed BUT needsOnboarding → show StripeAlertBanner + modal
-  // ══════════════════════════════════════════════════
-
-  // Step 1: Block page with subscription popup
   const showSubscriptionBlock =
     !subLoading && !isSubscribed && !isSubscriptionFreeRoute;
 
-  // Step 2: Only show Stripe issues AFTER subscription is confirmed
   const showStripeBanner = isSubscribed && needsOnboarding;
 
   // ── Profile image ──
@@ -90,7 +78,6 @@ const ShipperLayout = () => {
     fetchStripeStatus();
   }, [fetchStripeStatus]);
 
-  // ── Auto Stripe modal — only show AFTER subscription confirmed ──
   useEffect(() => {
     if (isSubscribed && needsOnboarding && !isPaymentTab) {
       const hasShown = sessionStorage.getItem("stripeModalShown");
@@ -101,11 +88,10 @@ const ShipperLayout = () => {
     }
   }, [isSubscribed, needsOnboarding, isPaymentTab]);
 
-  // ── Share ──
   const handleShare = async () => {
     const shareData = {
       title: "Check this shipment app",
-      text: "Track and manage shipments easily 🚚",
+      text: "Track and manage shipments easily",
       url: window.location.href,
     };
     try {
@@ -122,7 +108,6 @@ const ShipperLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* ── Stripe Alert Banner (only if subscribed + needs onboarding) ── */}
       {showStripeBanner && (
         <div className="fixed top-0 left-0 w-full z-50">
           <StripeAlertBanner
@@ -132,7 +117,6 @@ const ShipperLayout = () => {
         </div>
       )}
 
-      {/* ── Header ── */}
       <header
         className={`sticky ${
           showStripeBanner ? "top-[52px]" : "top-0"
@@ -207,7 +191,6 @@ const ShipperLayout = () => {
         </div>
       </header>
 
-      {/* ── Body ── */}
       <div
         className={`flex flex-1 relative ${
           showStripeBanner ? "mt-[52px]" : ""
@@ -226,7 +209,6 @@ const ShipperLayout = () => {
         >
           <div className="p-4 sm:p-6 md:p-8">
             <div className="relative">
-              {/* Page content — blurred when subscription is missing */}
               <div
                 className={
                   showSubscriptionBlock
@@ -237,7 +219,6 @@ const ShipperLayout = () => {
                 <Outlet />
               </div>
 
-              {/* Lock overlay */}
               {showSubscriptionBlock && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center">
                   <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg flex flex-col items-center gap-2 border border-[#BF9B53]/30">
@@ -255,7 +236,6 @@ const ShipperLayout = () => {
         </main>
       </div>
 
-      {/* ── Stripe Verification Modal (only if subscribed + needs onboarding) ── */}
       {isSubscribed && (
         <StripeVerificationModal
           isOpen={showStripeModal}
@@ -263,12 +243,6 @@ const ShipperLayout = () => {
         />
       )}
 
-      {/* ── Subscription Popup ──
-          Show ONLY when:
-          1. User is NOT subscribed
-          2. Not on a free route (/shipper/settings)
-          3. Subscription data has loaded
-      ── */}
       {!subLoading && !isSubscribed && !isSubscriptionFreeRoute && (
         <SubscriptionPopup />
       )}

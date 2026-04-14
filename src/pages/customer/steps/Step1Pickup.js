@@ -1,6 +1,3 @@
-// /pages/customer/steps/Step1Pickup.jsx
-// UPDATED FILE - Responsive Design, Current Date Pre-Selected, Past Dates Disabled, Single Date Selection
-
 import React, { useRef } from "react";
 import { GoogleMap, Autocomplete, Marker } from "@react-google-maps/api";
 import DateInput from "../../../components/common/DateInput";
@@ -40,7 +37,6 @@ const Step1Pickup = ({
   const mapRef = useRef(null);
   const autocompleteRef = useRef(null);
 
-  // Handle place selected from autocomplete
   const onPlaceChanged = () => {
     if (!autocompleteRef.current) return;
 
@@ -60,7 +56,6 @@ const Step1Pickup = ({
     }
   };
 
-  // Handle marker drag
   const handleMarkerDragEnd = (e) => {
     setPickupCoords({
       lat: e.latLng.lat(),
@@ -68,7 +63,6 @@ const Step1Pickup = ({
     });
   };
 
-  // UPDATED: Handle start date change - single date selection
   const handleStartDateChange = (val) => {
     setPickupStartDate(val);
     clearError("pickupStartDate");
@@ -77,7 +71,6 @@ const Step1Pickup = ({
     }
   };
 
-  // UPDATED: Handle end date change - single date selection
   const handleEndDateChange = (val) => {
     setPickupEndDate(val);
     clearError("pickupEndDate");
@@ -88,7 +81,6 @@ const Step1Pickup = ({
 
   return (
     <div className="flex flex-col w-full gap-6 bg-white p-4 md:p-6 rounded-lg font-montserrat">
-      {/* ===== LOCATION INPUT ===== */}
       <div>
         <label className="block text-sm font-semibold mb-2 text-gray-600">
           Pickup Location <span className="text-red-500">*</span>
@@ -145,7 +137,6 @@ const Step1Pickup = ({
         </GoogleMap>
       </div>
 
-      {/* ===== PICKUP TIME ===== */}
       <div>
         <label className="block text-sm font-semibold mb-2 text-gray-600">
           When can your horse(s) be picked up?{" "}
@@ -166,14 +157,12 @@ const Step1Pickup = ({
         )}
       </div>
 
-      {/* ===== PICKUP DATE RANGE ===== */}
       <div className="space-y-3">
         <label className="block text-sm font-semibold text-gray-600">
           Pickup Date Range <span className="text-red-500">*</span>
         </label>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-          {/* Start Date */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-gray-500">
               Start Date
@@ -186,7 +175,6 @@ const Step1Pickup = ({
             />
           </div>
 
-          {/* End Date */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-gray-500">
               End Date
@@ -206,7 +194,6 @@ const Step1Pickup = ({
         </p>
       </div>
 
-      {/* ===== HELP TEXT ===== */}
       <div className="bg-[#BF9B53]/10 border border-[#BF9B53] rounded-lg p-4">
         <p className="text-xs md:text-sm text-gray-900">
           <span className="font-semibold">Note:</span> Please enter your pickup

@@ -4,7 +4,6 @@ const ReviewModal = ({ open, onClose, shipment, onSubmit }) => {
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
 
-  // Reset when modal opens
   useEffect(() => {
     if (open) {
       setRating(0);
@@ -29,14 +28,12 @@ const ReviewModal = ({ open, onClose, shipment, onSubmit }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
       <div className="bg-white w-full max-w-md rounded-2xl p-5 shadow-lg animate-slide-fade-in">
-        {/* Header */}
         <h2 className="text-lg font-semibold mb-1">Rate Shipper</h2>
 
         <p className="text-xs text-gray-500 mb-3">
           Shipment: {shipment.shipmentCode}
         </p>
 
-        {/* Shipper */}
         <div className="mb-4">
           <p className="font-medium">{shipment.shipper?.name}</p>
           <p className="text-xs text-gray-500">{shipment.shipper?.email}</p>
@@ -60,7 +57,6 @@ const ReviewModal = ({ open, onClose, shipment, onSubmit }) => {
           </div>
         </div>
 
-        {/* Review */}
         <textarea
           value={reviewText}
           onChange={(e) => setReviewText(e.target.value)}
@@ -69,7 +65,6 @@ const ReviewModal = ({ open, onClose, shipment, onSubmit }) => {
           rows={3}
         />
 
-        {/* Actions */}
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}

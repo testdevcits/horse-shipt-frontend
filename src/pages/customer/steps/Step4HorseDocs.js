@@ -1,6 +1,3 @@
-// /pages/customer/steps/Step4HorseDocs.jsx
-// COMPLETE WORKING FILE - Copy and use directly
-
 import React from "react";
 import FileInput from "../../../components/common/FileInput";
 import ImageInput from "../../../components/common/ImageInput";
@@ -34,7 +31,6 @@ const Step4HorseDocuments = ({
 
   return (
     <div className="flex flex-col w-full gap-6 font-montserrat">
-      {/* ===== EACH HORSE ===== */}
       {horses.map((horse, idx) => (
         <div
           key={idx}
@@ -45,7 +41,6 @@ const Step4HorseDocuments = ({
             Horse {idx + 1} - {horse.registeredName || "Unnamed"}
           </h2>
 
-          {/* ===== HORSE PHOTO ===== */}
           <div className="flex flex-col gap-2">
             <label style={labelStyle}>
               Upload a Photo of the Horse{" "}
@@ -65,7 +60,6 @@ const Step4HorseDocuments = ({
             />
           </div>
 
-          {/* ===== COGGINS ===== */}
           <div>
             <FileInput
               file={horse.cogins}
@@ -82,7 +76,6 @@ const Step4HorseDocuments = ({
             </p>
           </div>
 
-          {/* ===== HEALTH CERTIFICATE ===== */}
           <div>
             <FileInput
               file={horse.healthCertificate}
@@ -99,7 +92,6 @@ const Step4HorseDocuments = ({
             </p>
           </div>
 
-          {/* ===== OTHER DOCUMENTS ===== */}
           <div>
             <FileInput
               file={horse.otherDocuments}
@@ -117,7 +109,6 @@ const Step4HorseDocuments = ({
             </p>
           </div>
 
-          {/* ===== GENERAL INFO ===== */}
           <div>
             <label style={labelStyle} className="block mb-2">
               Shipment Details
@@ -141,7 +132,6 @@ const Step4HorseDocuments = ({
         </div>
       ))}
 
-      {/* ===== RECIPIENT EMAIL ===== */}
       <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2">
         <h3 className="text-lg font-bold mb-1 text-gray-800">
           Share Tracking (Optional)
@@ -165,7 +155,6 @@ const Step4HorseDocuments = ({
         </p>
       </div>
 
-      {/* ===== INFO BANNER ===== */}
       <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-4">
         <p className="text-sm ">
           <span className="text-lg font-bold text-amber-900">Important : </span>{" "}
@@ -175,7 +164,6 @@ const Step4HorseDocuments = ({
         </p>
       </div>
 
-      {/* ===== WARNING MODAL ===== */}
       {showWarning && (
         <Modal
           title="Missing Recommended Documents"

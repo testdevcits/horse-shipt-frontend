@@ -13,9 +13,6 @@ import {
 import { RiChatQuoteLine } from "react-icons/ri";
 import { IoMdStarHalf } from "react-icons/io";
 
-// =====================================================
-// NOTIFICATIONS CONFIG
-// =====================================================
 const notificationsList = [
   {
     id: "newQuote",
@@ -55,9 +52,6 @@ const notificationsList = [
   },
 ];
 
-// =====================================================
-// MAIN COMPONENT
-// =====================================================
 const CustomerNotifications = () => {
   const { notifications, updateNotification, loading } =
     useCustomerNotifications();
@@ -66,9 +60,6 @@ const CustomerNotifications = () => {
   const [localOverrides, setLocalOverrides] = useState({});
   const [selectedNotification, setSelectedNotification] = useState(null);
 
-  // =====================================================
-  // TOGGLE ONLY FROM SWITCH
-  // =====================================================
   const handleToggle = async (id) => {
     if (pendingIds.includes(id)) return;
 
@@ -107,9 +98,6 @@ const CustomerNotifications = () => {
     }
   };
 
-  // =====================================================
-  // LOADING
-  // =====================================================
   if (loading || !notifications) {
     return (
       <PageLoader
@@ -128,12 +116,8 @@ const CustomerNotifications = () => {
     return val;
   }).length;
 
-  // =====================================================
-  // UI
-  // =====================================================
   return (
     <div className="max-w-full mx-auto font-montserrat">
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-1">
           Notifications
@@ -144,7 +128,6 @@ const CustomerNotifications = () => {
         </p>
       </div>
 
-      {/* Summary */}
       <div className="flex bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2 gap-2 mb-4">
         <MdOutlineNotificationsActive size={20} className="text-gray-500" />
         <p className="text-sm font-medium text-[#9a7c3f]">
@@ -199,8 +182,6 @@ const CustomerNotifications = () => {
                   </p>
                 </div>
               </div>
-
-              {/* Switch */}
               <div onClick={(e) => e.stopPropagation()}>
                 <Switch
                   checked={isChecked}
@@ -213,9 +194,6 @@ const CustomerNotifications = () => {
         })}
       </div>
 
-      {/* =====================================================
-          MODAL
-      ===================================================== */}
       {selectedNotification && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-5 w-[90%] max-w-md shadow-xl">

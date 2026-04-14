@@ -35,10 +35,10 @@ const navItems = [
     name: "My Shipments",
     path: "/customer/orders",
     icon: <CustomerOrdersIcon />,
-    subPaths: [
-      { name: "Pending", path: "/customer/orders/pending" },
-      { name: "Completed", path: "/customer/orders/completed" },
-    ],
+    // subPaths: [
+    //   { name: "Pending", path: "/customer/orders/pending" },
+    //   { name: "Completed", path: "/customer/orders/completed" },
+    // ],
   },
   {
     name: "New Shipment",

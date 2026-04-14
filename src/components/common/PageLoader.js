@@ -33,7 +33,7 @@ const PageLoader = ({
       </div>
 
       {/* Loader Text */}
-      <p className="mt-4 text-systemText text-sm sm:text-base">{text}</p>
+      <p className="text-systemText text-sm sm:text-base">{text}</p>
     </div>
   );
 };

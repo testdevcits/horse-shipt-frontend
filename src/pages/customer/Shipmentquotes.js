@@ -100,7 +100,7 @@ const ShipmentQuotes = ({
       {/* ===================== LOADING STATE ===================== */}
       {isLoading ? (
         <div className="py-12">
-          <PageLoader text="Loading quotes..." size={32} color="#BF9B53" />
+          <PageLoader text="Loading quotes..." size={24} color="#BF9B53" />
         </div>
       ) : quotes.length === 0 ? (
         <div className="py-8">

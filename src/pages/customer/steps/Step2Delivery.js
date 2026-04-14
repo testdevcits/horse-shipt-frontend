@@ -1,6 +1,3 @@
-// /pages/customer/steps/Step2Delivery.jsx
-// UPDATED FILE - Responsive Design, Current Date Pre-Selected, Past Dates Disabled
-
 import React, { useRef } from "react";
 import { GoogleMap, Autocomplete, Marker } from "@react-google-maps/api";
 import DateInput from "../../../components/common/DateInput";
@@ -40,7 +37,6 @@ const Step2Delivery = ({
   const mapRef = useRef(null);
   const autocompleteRef = useRef(null);
 
-  // Handle place selected from autocomplete
   const onPlaceChanged = () => {
     if (!autocompleteRef.current) return;
 
@@ -60,7 +56,6 @@ const Step2Delivery = ({
     }
   };
 
-  // Handle marker drag
   const handleMarkerDragEnd = (e) => {
     setDeliveryCoords({
       lat: e.latLng.lat(),
@@ -68,7 +63,6 @@ const Step2Delivery = ({
     });
   };
 
-  // Handle start date change
   const handleStartDateChange = (val) => {
     setDeliveryStartDate(val);
     clearError("deliveryStartDate");
@@ -77,7 +71,6 @@ const Step2Delivery = ({
     }
   };
 
-  // Handle end date change
   const handleEndDateChange = (val) => {
     setDeliveryEndDate(val);
     clearError("deliveryEndDate");
@@ -88,7 +81,6 @@ const Step2Delivery = ({
 
   return (
     <div className="flex flex-col w-full gap-6 bg-white p-4 md:p-6 rounded-lg font-montserrat">
-      {/* ===== LOCATION INPUT ===== */}
       <div>
         <label className="block text-sm font-semibold mb-2 text-gray-600">
           Delivery Location <span className="text-red-500">*</span>
@@ -122,7 +114,6 @@ const Step2Delivery = ({
         )}
       </div>
 
-      {/* ===== GOOGLE MAP ===== */}
       <div className="w-full rounded-lg overflow-hidden border-2 border-gray-200">
         <GoogleMap
           mapContainerStyle={containerStyle}
@@ -145,7 +136,6 @@ const Step2Delivery = ({
         </GoogleMap>
       </div>
 
-      {/* ===== DELIVERY TIME ===== */}
       <div>
         <label className="block text-sm font-semibold mb-2 text-gray-600">
           When should your horse(s) be delivered?{" "}
@@ -166,14 +156,12 @@ const Step2Delivery = ({
         )}
       </div>
 
-      {/* ===== DELIVERY DATE RANGE ===== */}
       <div className="space-y-3">
         <label className="block text-sm font-semibold text-gray-600">
           Select Drop-Off Date Range <span className="text-red-500">*</span>
         </label>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-          {/* Start Date */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-gray-500">
               Start Date
@@ -186,7 +174,6 @@ const Step2Delivery = ({
             />
           </div>
 
-          {/* End Date */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-gray-500">
               End Date
@@ -206,7 +193,6 @@ const Step2Delivery = ({
         </p>
       </div>
 
-      {/* ===== HELP TEXT ===== */}
       <div className="bg-[#BF9B53]/10 border border-[#BF9B53] rounded-lg p-4">
         <p className="text-xs md:text-sm text-gray-900">
           <span className="font-semibold">Note:</span> Please enter your

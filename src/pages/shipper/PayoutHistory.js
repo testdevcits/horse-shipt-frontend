@@ -5,6 +5,7 @@ import { useSubscription } from "../../contexts/shipperContext/SubscriptionConte
 import PageLoader from "../../components/common/PageLoader";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import Toast from "../../components/common/Toast";
+import TrialAlertBanner from "../shipper/common/Trialalertbanner";
 import {
   ChevronDown,
   CreditCard,
@@ -54,6 +55,7 @@ const PayoutAndCardPage = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [cardProcessing, setCardProcessing] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(true);
+  const [trialCountdown, setTrialCountdown] = useState(null);
 
   // Initial Load
   useEffect(() => {
@@ -75,7 +77,33 @@ const PayoutAndCardPage = () => {
     fetchAll();
   }, [getPayoutHistory, fetchPaymentStatus, getMySubscription]);
 
-  // Helpers
+  // Live Timer Effect
+  useEffect(() => {
+    if (!subscription?.trialEnd || subscription.status !== "trialing") return;
+
+    const updateTimer = () => {
+      const now = new Date();
+      const trialEndDate = new Date(subscription.trialEnd);
+      const diffMs = trialEndDate - now;
+
+      if (diffMs <= 0) {
+        setTrialCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+
+      setTrialCountdown({
+        days: Math.floor(diffMs / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((diffMs % (1000 * 60)) / 1000),
+      });
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [subscription?.trialEnd, subscription?.status]);
+
   const toggleId = (id) =>
     setVisibleIds((prev) => ({ ...prev, [id]: !prev[id] }));
 
@@ -87,6 +115,14 @@ const PayoutAndCardPage = () => {
       year: "numeric",
       month: "short",
       day: "numeric",
+    });
+  };
+
+  const formatTime = (dateStr) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -130,7 +166,6 @@ const PayoutAndCardPage = () => {
     }
   };
 
-  // Load more payouts
   const handleLoadMore = async () => {
     if (!hasMore) return;
     setLoadingMore(true);
@@ -144,7 +179,6 @@ const PayoutAndCardPage = () => {
     }
   };
 
-  // Add Card
   const handleAddCard = async () => {
     setCardProcessing(true);
     try {
@@ -159,22 +193,17 @@ const PayoutAndCardPage = () => {
     }
   };
 
-  // Save Card
   const handleSaveCard = async (e) => {
     e.preventDefault();
     if (!stripe || !elements) return;
 
     setCardProcessing(true);
-
     try {
       const cardElement = elements.getElement(CardElement);
-
       const { setupIntent, error } = await stripe.confirmCardSetup(
         clientSecret,
         {
-          payment_method: {
-            card: cardElement,
-          },
+          payment_method: { card: cardElement },
         }
       );
 
@@ -194,7 +223,6 @@ const PayoutAndCardPage = () => {
     }
   };
 
-  // Loader
   if (globalLoading) {
     return (
       <PageLoader
@@ -210,37 +238,37 @@ const PayoutAndCardPage = () => {
     ? getSubscriptionStatusStyle(subscription.status)
     : null;
 
-  // Trial progress percentage
-  const trialProgressPercent =
-    subscription?.status === "trialing" && subscription?.remainingTrialDays
-      ? Math.min(
-          100,
-          Math.round(((30 - subscription.remainingTrialDays) / 30) * 100)
-        )
-      : 0;
+  const isTrialing = subscription && subscription.status === "trialing";
+  // FIX: changed < 1 to <= 1 to match banner condition
+  const lessThanOneDay = subscription && subscription.remainingTrialDays <= 1;
+  const showTrialBanner = isTrialing && lessThanOneDay;
 
   return (
-    <div className="min-h-screen font-[Montserrat]">
-      {/* Header Section */}
-      <div className="bg-white border-b border-[#BF9B53]">
-        <div className="max-w-full mx-auto px-4 py-4">
-          <div className="flex items-center gap-3 mb-2">
-            <TrendingUp className="w-8 h-8 text-[#BF9B53]" />
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+    <div className="min-h-screen font-montserrat">
+      {/* TRIAL ALERT BANNER — hideButton so it shows "On Payment Page" */}
+      {showTrialBanner && <TrialAlertBanner hideButton />}
+
+      {/* Header */}
+      <div className="bg-white">
+        <div className="max-w-full mx-auto px-3 sm:px-4 py-2">
+          <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+            <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-[#BF9B53] flex-shrink-0" />
+
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-slate-900 tracking-tight leading-tight">
               Payouts & Payments
             </h1>
           </div>
-          <p className="text-slate-600 text-sm">
+
+          <p className="text-slate-600 text-xs sm:text-sm leading-snug">
             Manage your payment methods and view your payout history
           </p>
         </div>
       </div>
 
-      <div className="max-w-full mx-auto mt-4 space-y-6 pb-8">
-        {/* ── PAYMENT METHOD CARD ── */}
+      <div className="max-w-full mx-auto mt-4 space-y-6 pb-4">
+        {/* PAYMENT METHOD CARD */}
         <div className="group">
-          <div className="bg-white rounded-md shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
-            {/* Card Header */}
+          <div className="bg-white rounded-md shadow-sm border  hover:shadow-md transition-shadow duration-300 overflow-hidden">
             <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-2 border-b border-[#BF9B53]">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-white rounded-lg border border-[#BF9B53]">
@@ -259,7 +287,6 @@ const PayoutAndCardPage = () => {
               </div>
             </div>
 
-            {/* Card Content */}
             <div className="px-6 py-8">
               {!hasCard && !clientSecret && (
                 <div className="space-y-4">
@@ -279,7 +306,7 @@ const PayoutAndCardPage = () => {
                   <button
                     onClick={handleAddCard}
                     disabled={cardProcessing || paymentLoading}
-                    className="w-full sm:w-auto px-6 py-3 bg-[#BF9B53]/90 hover:bg-[#BF9B53]  text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-6 py-3 bg-[#BF9B53]/90 hover:bg-[#BF9B53] text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                   >
                     <CreditCard className="w-4 h-4" />
                     {cardProcessing ? "Processing..." : "Add Payment Card"}
@@ -301,13 +328,9 @@ const PayoutAndCardPage = () => {
                               fontSize: "16px",
                               fontFamily: "system-ui, -apple-system",
                               color: "#1e293b",
-                              "::placeholder": {
-                                color: "#cbd5e1",
-                              },
+                              "::placeholder": { color: "#cbd5e1" },
                             },
-                            invalid: {
-                              color: "#ef4444",
-                            },
+                            invalid: { color: "#ef4444" },
                           },
                         }}
                       />
@@ -325,7 +348,7 @@ const PayoutAndCardPage = () => {
 
               {hasCard && !clientSecret && paymentCard && (
                 <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+                  <div className="p-4 bg-gray-100 rounded-lg border ">
                     <div className="flex items-start justify-between">
                       <div className="space-y-3">
                         <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -340,10 +363,6 @@ const PayoutAndCardPage = () => {
                               {paymentCard.cardBrand?.toUpperCase()} ••••{" "}
                               {paymentCard.cardLast4}
                             </p>
-                            <p className="text-xs text-slate-600 mt-0.5">
-                              Expires {paymentCard.cardExpMonth}/
-                              {paymentCard.cardExpYear}
-                            </p>
                           </div>
                         </div>
                       </div>
@@ -353,7 +372,7 @@ const PayoutAndCardPage = () => {
                   <button
                     onClick={handleAddCard}
                     disabled={cardProcessing}
-                    className="w-full px-6 py-3 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-300 text-slate-900 font-medium rounded-lg transition-colors duration-200"
+                    className="w-xl px-6 py-3 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-300 text-slate-900 font-medium rounded-lg transition-colors duration-200"
                   >
                     {cardProcessing ? "Processing..." : "Update Card"}
                   </button>
@@ -370,10 +389,13 @@ const PayoutAndCardPage = () => {
             </div>
           </div>
         </div>
-        {/* ── SUBSCRIPTION STATUS CARD ── */}
-        <div className="bg-white rounded-md shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-4 py-2 border-b border-slate-200">
+
+        {/* SUBSCRIPTION STATUS CARD — id added for scroll target */}
+        <div
+          id="subscription-section"
+          className="bg-white rounded-md shadow-sm border hover:shadow-md transition-shadow duration-300 overflow-hidden"
+        >
+          <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-4 py-2 border-b border-[#BF9B53]">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white rounded-lg border border-[#BF9B53]">
                 <Crown className="w-5 h-5 text-[#BF9B53]" />
@@ -389,7 +411,6 @@ const PayoutAndCardPage = () => {
             </div>
           </div>
 
-          {/* Content */}
           <div className="px-6 py-8">
             {subscriptionLoading && !subscription ? (
               <div className="flex justify-center py-8">
@@ -399,8 +420,7 @@ const PayoutAndCardPage = () => {
                   color="#7c3aed"
                 />
               </div>
-            ) : !subscription ? (
-              // NO SUBSCRIPTION STATE
+            ) : !subscription || !subscription.hasSubscription ? (
               <div className="space-y-4">
                 <div className="text-center py-8 space-y-4">
                   <div className="inline-flex items-center justify-center w-14 h-14 bg-slate-100 rounded-full mb-3">
@@ -415,8 +435,6 @@ const PayoutAndCardPage = () => {
                     </p>
                   </div>
                 </div>
-
-                {/* Upgrade Recommendation */}
                 <div className="p-4 bg-gray-100 rounded-md border border-[#BF9B53] space-y-3">
                   <div className="flex items-start gap-3">
                     <Zap className="w-5 h-5 text-[#BF9B53] mt-0.5 flex-shrink-0" />
@@ -425,8 +443,8 @@ const PayoutAndCardPage = () => {
                         Upgrade to Premium
                       </p>
                       <p className="text-xs text-[#BF9B53] mt-1">
-                        Start your free 30-day trial and unlock unlimited
-                        offers, advanced analytics, and priority support.
+                        Start your free 1-day trial and unlock unlimited offers,
+                        advanced analytics, and priority support.
                       </p>
                     </div>
                   </div>
@@ -434,7 +452,6 @@ const PayoutAndCardPage = () => {
                     Start Free Trial
                   </button>
                 </div>
-
                 <div className="mt-4">
                   <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2">
                     <span className="text-lg font-bold text-amber-900">
@@ -448,57 +465,138 @@ const PayoutAndCardPage = () => {
                 </div>
               </div>
             ) : (
-              // ACTIVE SUBSCRIPTION STATE
               <div className="space-y-6">
-                {/* Status Badge + Trial Alert Row */}
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <span
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
+                    className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
                   >
                     <span
                       className={`w-2 h-2 rounded-full ${statusStyle.dot}`}
                     />
-                    {subscription.status?.charAt(0).toUpperCase() +
-                      subscription.status?.slice(1)}
+                    <span className="truncate max-w-[100px] sm:max-w-none">
+                      {subscription.status?.charAt(0).toUpperCase() +
+                        subscription.status?.slice(1)}
+                    </span>
                   </span>
 
                   {subscription.trialActive && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-                      <Zap className="w-3.5 h-3.5" />
-                      Trial Active
+                    <span className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                      <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      <span className="whitespace-nowrap">Trial</span>
+                    </span>
+                  )}
+
+                  {subscription.planType && (
+                    <span className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                      <Crown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      <span className="truncate max-w-[100px] sm:max-w-none">
+                        {subscription.planType.charAt(0).toUpperCase() +
+                          subscription.planType.slice(1)}{" "}
+                        Plan
+                      </span>
                     </span>
                   )}
                 </div>
 
-                {/* Info Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Remaining Trial Days */}
                   {subscription.status === "trialing" &&
                     subscription.remainingTrialDays !== undefined && (
-                      <div className="p-4 bg-[#BF9B53]/10 rounded-lg border border-[#BF9B53]">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Clock className="w-4 h-4 text-yellow-600" />
+                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Clock className="w-4 h-4 text-blue-600" />
                           <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                            Trial Remaining
+                            Trial Ending In
                           </p>
                         </div>
-                        <p className="text-2xl font-bold text-slate-900">
-                          {subscription.remainingTrialDays}
-                          <span className="text-sm font-medium text-slate-500 ml-1">
-                            days
-                          </span>
-                        </p>
-                        {/* Trial progress bar */}
-                        <div className="mt-3 h-1.5 bg-gray-300 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-[#BF9B53] rounded-full transition-all duration-500"
-                            style={{ width: `${trialProgressPercent}%` }}
-                          />
-                        </div>
+                        {trialCountdown && (
+                          <div className="space-y-2">
+                            {trialCountdown.days > 0 ? (
+                              <p className="text-2xl font-black text-slate-900 font-mono">
+                                {String(trialCountdown.days).padStart(2, "0")}
+                                <span className="text-xs font-medium text-slate-500 ml-1">
+                                  d
+                                </span>{" "}
+                                {String(trialCountdown.hours).padStart(2, "0")}
+                                <span className="text-xs font-medium text-slate-500 ml-1">
+                                  h
+                                </span>{" "}
+                                {String(trialCountdown.minutes).padStart(
+                                  2,
+                                  "0"
+                                )}
+                                <span className="text-xs font-medium text-slate-500 ml-1">
+                                  m
+                                </span>
+                              </p>
+                            ) : (
+                              <div>
+                                <p className="text-3xl font-black text-[#BF9B53] font-mono tabular-nums">
+                                  {String(trialCountdown.hours).padStart(
+                                    2,
+                                    "0"
+                                  )}
+                                  <span className="text-sm font-medium text-red-500 mx-1">
+                                    :
+                                  </span>
+                                  {String(trialCountdown.minutes).padStart(
+                                    2,
+                                    "0"
+                                  )}
+                                  <span className="text-sm font-medium text-red-500 mx-1">
+                                    :
+                                  </span>
+                                  {String(trialCountdown.seconds).padStart(
+                                    2,
+                                    "0"
+                                  )}
+                                </p>
+                              </div>
+                            )}
+                            <p className="text-xs text-slate-500 mt-2">
+                              Ends: {formatDate(subscription.trialEnd)} at{" "}
+                              {formatTime(subscription.trialEnd)}
+                            </p>
+                            <div className="mt-3 h-2 bg-slate-200 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-[#BF9B53]/90 rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${Math.max(
+                                    0,
+                                    (1 -
+                                      subscription.remainingTrialDays /
+                                        subscription.remainingTrialDays) *
+                                      100
+                                  )}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
-                  {/* Trial End */}
+                  {subscription.planType && (
+                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Crown className="w-4 h-4 text-slate-500" />
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Plan
+                        </p>
+                      </div>
+                      <p className="text-base font-bold text-slate-900">
+                        {subscription.planType.charAt(0).toUpperCase() +
+                          subscription.planType.slice(1)}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {subscription.planType === "daily"
+                          ? "$0.99/day"
+                          : subscription.planType === "monthly"
+                          ? "$X.XX/month"
+                          : "Custom Plan"}
+                      </p>
+                    </div>
+                  )}
+
                   {subscription.trialEnd && (
                     <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                       <div className="flex items-center gap-2 mb-2">
@@ -507,14 +605,16 @@ const PayoutAndCardPage = () => {
                           Trial Ends
                         </p>
                       </div>
-                      <p className="text-base font-semibold text-slate-900">
+                      <p className="text-base font-bold text-slate-900">
                         {formatDate(subscription.trialEnd)}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {formatTime(subscription.trialEnd)}
                       </p>
                     </div>
                   )}
 
-                  {/* Current Period Start */}
-                  {subscription.currentPeriodStart && (
+                  {/* {subscription.currentPeriodStart && (
                     <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                       <div className="flex items-center gap-2 mb-2">
                         <Calendar className="w-4 h-4 text-slate-500" />
@@ -522,49 +622,90 @@ const PayoutAndCardPage = () => {
                           Period Start
                         </p>
                       </div>
-                      <p className="text-base font-semibold text-slate-900">
+                      <p className="text-base font-bold text-slate-900">
                         {formatDate(subscription.currentPeriodStart)}
                       </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {formatTime(subscription.currentPeriodStart)}
+                      </p>
                     </div>
-                  )}
+                  )} */}
 
-                  {/* Current Period End */}
                   {subscription.currentPeriodEnd && (
                     <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                       <div className="flex items-center gap-2 mb-2">
                         <Calendar className="w-4 h-4 text-slate-500" />
                         <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                          Period End
+                          Next Billing
                         </p>
                       </div>
-                      <p className="text-base font-semibold text-slate-900">
+                      <p className="text-base font-bold text-slate-900">
                         {formatDate(subscription.currentPeriodEnd)}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {formatTime(subscription.currentPeriodEnd)}
                       </p>
                     </div>
                   )}
                 </div>
 
-                {/* Trial warning if ≤ 7 days left */}
+                {/* FIX: changed <= 1 here too (was already correct in original) */}
                 {subscription.status === "trialing" &&
-                  subscription.remainingTrialDays <= 7 && (
+                  subscription.remainingTrialDays <= 1 && (
                     <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-lg border border-amber-200">
                       <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-amber-800">
-                        Your trial is ending soon. Make sure a payment card is
-                        on file to avoid any interruption to your service.
-                      </p>
+                      <div>
+                        <p className="text-sm font-semibold text-amber-800">
+                          Trial ending soon!
+                        </p>
+                        <p className="text-xs text-amber-700 mt-1">
+                          Your free trial will end on{" "}
+                          {formatDate(subscription.trialEnd)}. Make sure a
+                          payment card is on file to avoid any interruption to
+                          your service.
+                        </p>
+                      </div>
                     </div>
                   )}
+
+                {subscription.status === "active" && (
+                  <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-green-800">
+                        Your subscription is active
+                      </p>
+                      <p className="text-xs text-green-700 mt-1">
+                        You will be charged $0.99 daily starting{" "}
+                        {formatDate(subscription.currentPeriodEnd)}.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {subscription.cancelAtPeriodEnd && (
+                  <div className="flex items-start gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
+                    <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-red-800">
+                        Scheduled for cancellation
+                      </p>
+                      <p className="text-xs text-red-700 mt-1">
+                        Your subscription will be canceled on{" "}
+                        {formatDate(subscription.currentPeriodEnd)}.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* ── PAYOUT HISTORY CARD ── */}
+        {/* PAYOUT HISTORY CARD */}
         <div>
-          <div className="bg-white rounded-md shadow-sm border border-[#BF9B53] hover:shadow-md transition-shadow duration-300 overflow-hidden">
-            {/* Card Header */}
-            <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-4 py-2 border-b border-slate-200">
+          <div className="bg-white rounded-md shadow-sm border  hover:shadow-md transition-shadow duration-300 overflow-hidden">
+            <div className="bg-gradient-to-r from-yellow-50 to-yellow-50 px-4 py-2 border-b border-[#BF9B53]">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-white rounded-lg border border-[#BF9B53]">
                   <TrendingUp className="w-5 h-5 text-[#BF9B53]" />
@@ -584,7 +725,6 @@ const PayoutAndCardPage = () => {
               </div>
             </div>
 
-            {/* Content */}
             <div className="px-6 py-8">
               {payoutLoading && payoutHistory.length === 0 && (
                 <div className="flex justify-center py-12">
@@ -655,7 +795,6 @@ const PayoutAndCardPage = () => {
                                 </button>
                               </div>
                             </td>
-
                             <td className="px-4 py-4">
                               <span className="font-semibold text-slate-900">
                                 {Number(payout.amount).toLocaleString(
@@ -667,7 +806,6 @@ const PayoutAndCardPage = () => {
                                 )}
                               </span>
                             </td>
-
                             <td className="px-4 py-4">
                               <span
                                 className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${

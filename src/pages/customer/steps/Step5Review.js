@@ -18,7 +18,6 @@ const Step5Review = ({
   recipientEmail,
   onEditStep,
 }) => {
-  // Helper function to format date
   const formatDate = (dateString) => {
     if (!dateString) return "Not specified";
     try {
@@ -125,7 +124,6 @@ const Step5Review = ({
               <span className="text-xs font-semibold">Edit</span>
             </button>
 
-            {/* Horse Header */}
             <p className="font-bold text-gray-800 mb-3">
               Horse {idx + 1}:{" "}
               <span className="text-[#BF9B53]">
@@ -133,7 +131,6 @@ const Step5Review = ({
               </span>
             </p>
 
-            {/* Horse Details Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm mb-3">
               <div>
                 <span className="font-semibold text-gray-600">Barn Name :</span>
@@ -161,7 +158,6 @@ const Step5Review = ({
               </div>
             </div>
 
-            {/* Photo */}
             {h.photo && (
               <div className="mb-3">
                 <span className="font-semibold text-gray-600 text-sm">
@@ -175,7 +171,6 @@ const Step5Review = ({
               </div>
             )}
 
-            {/* Documents Status */}
             <div className="space-y-2 mt-3 pt-3 border-t border-gray-200">
               <div className="flex items-center justify-between text-sm">
                 <span className="font-semibold text-gray-600">Coggins:</span>
@@ -205,7 +200,6 @@ const Step5Review = ({
               </div>
             </div>
 
-            {/* General Info */}
             {h.generalInfo && (
               <div className="mt-3 pt-3 border-t border-gray-200">
                 <span className="font-semibold text-gray-600 text-sm">
@@ -217,7 +211,6 @@ const Step5Review = ({
           </div>
         ))}
 
-        {/* Edit Horse Documents Button */}
         <button
           onClick={() => onEditStep(4)}
           className="mt-4 w-full px-4 py-3 bg-gray-100 rounded-lg text-gray-700 hover:bg-gray-200 font-semibold transition-all border-2 border-gray-300"
@@ -226,7 +219,6 @@ const Step5Review = ({
         </button>
       </div>
 
-      {/* ===== RECIPIENT ACCESS ===== */}
       {recipientEmail && (
         <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2">
           <h3 className="font-bold text-gray-800 mb-2">Recipient Access</h3>

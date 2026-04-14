@@ -1,7 +1,3 @@
-// /pages/customer/steps/Step3HorseInfo.jsx
-// COMPLETE WORKING FILE - Copy and use directly
-// INCLUDES EDIT HIGHLIGHTING FUNCTIONALITY
-
 import React, { useEffect, useState } from "react";
 import Select from "../../../components/common/Select";
 import Toast from "../../../components/common/Toast";
@@ -93,18 +89,13 @@ const Step3HorseInfo = ({
     if (editingHorseIdx !== null) {
       const horseElement = document.getElementById(`horse-${editingHorseIdx}`);
       if (horseElement) {
-        // Smooth scroll to horse
         horseElement.scrollIntoView({ behavior: "smooth", block: "center" });
-
-        // Add visual ring highlight
         horseElement.classList.add(
           "ring-4",
           "ring-[#BF9B53]",
           "transition-all",
           "duration-300"
         );
-
-        // Auto-clear highlight after 3 seconds
         const timer = setTimeout(() => {
           horseElement.classList.remove("ring-4", "ring-[#BF9B53]");
           setEditingHorseIdx(null);
@@ -115,14 +106,12 @@ const Step3HorseInfo = ({
     }
   }, [editingHorseIdx, setEditingHorseIdx]);
 
-  // Load my horses on mount
   useEffect(() => {
     if (typeof getMyHorses === "function") {
       getMyHorses();
     }
   }, [getMyHorses]);
 
-  // Populate from backend
   useEffect(() => {
     if (Array.isArray(myHorses) && myHorses.length) {
       const populatedHorses = myHorses.map((h) => ({
@@ -140,7 +129,6 @@ const Step3HorseInfo = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myHorses]);
 
-  // Validate horse
   const validateHorse = (horse) => {
     return (
       horse.registeredName &&
@@ -154,8 +142,6 @@ const Step3HorseInfo = ({
     );
   };
 
-  // Save single horse
-  // ===== Step3HorseInfo.jsx =====
   const handleSaveHorse = async (idx) => {
     const horse = horses[idx];
 
@@ -167,7 +153,6 @@ const Step3HorseInfo = ({
     try {
       setSaving(true);
 
-      // Prepare formData if there is a file, else send JSON object
       let formData;
       const hasFile = Object.values(horse).some((val) => val instanceof File);
 
@@ -179,7 +164,7 @@ const Step3HorseInfo = ({
           }
         });
       } else {
-        formData = { ...horse }; // send plain object for JSON
+        formData = { ...horse };
       }
 
       const {
@@ -193,7 +178,6 @@ const Step3HorseInfo = ({
         return false;
       }
 
-      // Update local horse data
       handleHorseChange(idx, "selectedHorseId", savedHorse._id);
       Object.keys(defaultHorse).forEach((k) => {
         if (savedHorse[k] !== undefined) {
@@ -201,7 +185,6 @@ const Step3HorseInfo = ({
         }
       });
 
-      // Update unsavedHorseIdxs safely
       setUnsavedHorseIdxs((prev) => {
         const updated = prev.filter((i) => i !== idx);
         if (updated.length === 0) setModalOpen(false);
@@ -219,7 +202,6 @@ const Step3HorseInfo = ({
     }
   };
 
-  // Save selected horses
   const handleSaveSelectedHorses = () => {
     const unsaved = horses
       .map((h, i) =>
@@ -242,7 +224,6 @@ const Step3HorseInfo = ({
 
   return (
     <div className="flex flex-col w-full gap-6 px-2 md:px-4 font-montserrat">
-      {/* ===== NUMBER OF HORSES ===== */}
       <div className="w-full max-w-full">
         <label className="block text-gray-600 font-semibold mb-2">
           Number of Horses <span className="text-red-500">*</span>
@@ -258,7 +239,6 @@ const Step3HorseInfo = ({
         />
       </div>
 
-      {/* ===== HORSE FORMS ===== */}
       {horses.slice(0, numberOfHorses).map((horse, idx) => (
         <div
           key={idx}
@@ -269,7 +249,6 @@ const Step3HorseInfo = ({
             Horse {idx + 1}: {horse.registeredName || "Unnamed"}
           </p>
 
-          {/* Select from My Horses */}
           <Select
             label="Select from My Horses"
             value={horse.selectedHorseId || "new"}
@@ -297,7 +276,6 @@ const Step3HorseInfo = ({
             ]}
           />
 
-          {/* Registered & Barn Name */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <label className="block font-semibold text-gray-600 mb-2">
@@ -347,7 +325,6 @@ const Step3HorseInfo = ({
             </div>
           </div>
 
-          {/* Breed */}
           <div>
             <label className="block font-semibold text-gray-600 mb-2">
               Breed <span className="text-red-500">*</span>
@@ -364,7 +341,6 @@ const Step3HorseInfo = ({
             )}
           </div>
 
-          {/* Other Breed */}
           {horse.breed === "Other Breed" && (
             <div>
               <label className="block font-semibold text-gray-600 mb-2">
@@ -391,9 +367,7 @@ const Step3HorseInfo = ({
             </div>
           )}
 
-          {/* Colour & Age */}
           <div className="flex flex-col md:flex-row gap-4">
-            {/* COLOR PICKER */}
             <ColorPicker
               value={horse.colour}
               onChange={(val) => handleHorseChange(idx, "colour", val)}
@@ -401,7 +375,6 @@ const Step3HorseInfo = ({
               error={errors?.[`colour${idx}`]}
             />
 
-            {/* AGE INPUT (unchanged) */}
             <div className="flex-1">
               <label className="block font-semibold text-gray-600 mb-2">
                 Age <span className="text-red-500">*</span>
@@ -428,7 +401,6 @@ const Step3HorseInfo = ({
             </div>
           </div>
 
-          {/* Sex & Stall Type */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <label className="block font-semibold text-gray-600 mb-2">
@@ -464,7 +436,6 @@ const Step3HorseInfo = ({
             </div>
           </div>
 
-          {/* Notes */}
           <div>
             <label className="block font-semibold text-gray-600 mb-2">
               Additional Notes
@@ -480,7 +451,6 @@ const Step3HorseInfo = ({
         </div>
       ))}
 
-      {/* ===== SAVE BUTTON ===== */}
       <button
         onClick={handleSaveSelectedHorses}
         disabled={saving}
@@ -493,7 +463,6 @@ const Step3HorseInfo = ({
       {modalOpen && unsavedHorseIdxs.length > 0 && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 p-4">
           <div className="relative bg-white rounded-xl w-full max-w-md p-6 space-y-4 shadow-xl max-h-[80vh] overflow-y-auto">
-            {/* Close Button */}
             <button
               onClick={() => setModalOpen(false)}
               className="absolute top-3 right-3 text-black hover:text-gray-700 text-2xl font-bold z-10"
