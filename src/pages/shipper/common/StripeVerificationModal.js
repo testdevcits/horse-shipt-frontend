@@ -113,7 +113,7 @@ const StripeVerificationModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="border-t bg-white px-6 py-4">
+        <div className="border-t bg-white px-6 py-4 space-y-3">
           <button
             onClick={handleNavigate}
             className="w-full py-3 bg-gradient-to-r from-[#BF9B53] to-[#a8863e] text-white font-bold rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2 group"
@@ -126,7 +126,14 @@ const StripeVerificationModal = ({ isOpen, onClose }) => {
             />
           </button>
 
-          <p className="text-center text-xs text-gray-500 mt-3">
+          <button
+            onClick={onClose}
+            className="w-full py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-all"
+          >
+            Maybe Later
+          </button>
+
+          <p className="text-center text-xs text-gray-500 mt-2">
             ✓ Required to receive payments and start earning
           </p>
         </div>
