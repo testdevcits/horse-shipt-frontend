@@ -6,12 +6,12 @@ const StripeAlertBanner = ({ onOpenModal, hideButton }) => {
 
   if (!needsOnboarding) return null;
 
-  const isDisabled = hideButton; // Payment tab pe true hoga
+  const isDisabled = hideButton;
 
   return (
     <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-800 px-4 sm:px-6 py-1.5 sm:py-3 flex justify-between items-center font-montserrat">
       <span className="text-xs sm:text-sm font-medium">
-        ⚠ Please verify your Stripe account to receive payments.
+        Please verify your Stripe account to receive payments.
       </span>
 
       <button

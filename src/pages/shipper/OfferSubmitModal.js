@@ -3,6 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Button from "../../components/common/Button";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
+import { useShipperPayments } from "../../contexts/shipperContext/ShipperPaymentContext";
 import SignatureCanvas from "react-signature-canvas";
 import Toast from "../../components/common/Toast";
 import { FiX } from "react-icons/fi";
@@ -19,7 +20,7 @@ import {
 
 const OfferSubmitModal = ({ shipment, onClose }) => {
   const { addQuote } = useShipperQuote();
-
+  const { needsOnboarding } = useShipperPayments();
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [sigPad, setSigPad] = useState(null);
   const [isSignatureDirty, setIsSignatureDirty] = useState(false);
@@ -67,6 +68,14 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
   });
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    if (needsOnboarding) {
+      showToast(
+        "Please complete Stripe onboarding before submitting offer",
+        "error"
+      );
+      setSubmitting(false);
+      return;
+    }
     if (!sigPad || sigPad.isEmpty()) {
       showToast("Please provide your digital signature", "error");
       setSubmitting(false);
@@ -132,6 +141,18 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
               <p className="text-sm text-slate-600 ml-11">
                 Complete the form below and sign to confirm your offer
               </p>
+
+              {needsOnboarding && (
+                <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-4">
+                  <div>
+                    <p className="text-xs sm:text-sm">
+                      You need to complete account verification before
+                      submitting an offer, as a verified account is required to
+                      receive payments.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -399,14 +420,25 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
               variant="primary"
               type="submit"
               fullWidth
-              className="py-3 sm:py-3.5 font-semibold text-sm sm:text-base"
+              disabled={needsOnboarding}
+              className={`py-3 sm:py-3.5 font-semibold text-sm sm:text-base 
+                     ${needsOnboarding ? "opacity-50 cursor-not-allowed" : ""}
+                      `}
               onClick={() => {
+                if (needsOnboarding) {
+                  showToast(
+                    "Please verify your Stripe account first to receive payments",
+                    "error"
+                  );
+                  return;
+                }
+
                 document
                   .querySelector("form")
                   ?.dispatchEvent(new Event("submit", { bubbles: true }));
               }}
             >
-              Submit Offer
+              {needsOnboarding ? "Verify Account to Continue" : "Submit Offer"}
             </Button>
           </div>
         </div>
