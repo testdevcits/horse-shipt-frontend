@@ -6,6 +6,8 @@ import ShipmentSettings from "./ShipmentSettings";
 import PaymentsSettings from "./PaymentsComingSoon";
 import ShipperNotifications from "./ShipperNotifications";
 
+import BillingHistory from "./BillingHistory";
+
 const ShipperSettings = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ const ShipperSettings = () => {
     { id: "profile", label: "Profile Settings" },
     { id: "shipment", label: "Shipment Settings" },
     { id: "payment", label: "Payments" },
+    { id: "billing", label: "Subscription" },
     { id: "notification", label: "Notification Settings" },
   ];
 
@@ -38,6 +41,8 @@ const ShipperSettings = () => {
         return <ShipmentSettings />;
       case "payment":
         return <PaymentsSettings />;
+      case "billing":
+        return <BillingHistory />;
       case "notification":
         return <ShipperNotifications />;
       default:

@@ -22,6 +22,9 @@ export const SubscriptionProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [planLoading, setPlanLoading] = useState(false);
 
+  const [billingHistory, setBillingHistory] = useState([]);
+  const [billingLoading, setBillingLoading] = useState(false);
+
   const hasFetched = useRef(false);
 
   /* ===============================
@@ -47,7 +50,6 @@ export const SubscriptionProvider = ({ children }) => {
 
       const data = { ...raw };
 
-      // trial calculation
       if (
         data.status === "trialing" &&
         data.trialEnd &&
@@ -63,11 +65,9 @@ export const SubscriptionProvider = ({ children }) => {
         data.remainingTrialDays = remainingDays > 0 ? remainingDays : 0;
       }
 
-      // access flag
       data.hasAccess =
         data.hasAccess ?? ["active", "trialing"].includes(data.status);
 
-      // cancel message
       if (data.cancelAtPeriodEnd && data.currentPeriodEnd) {
         data.cancelMessage = `Your subscription will end on ${new Date(
           data.currentPeriodEnd
@@ -109,7 +109,6 @@ export const SubscriptionProvider = ({ children }) => {
         return;
       }
 
-      // IMPORTANT FIX: DO NOT FORCE monthly only
       const normalizedPlan = {
         currency: data.currency || "usd",
         trialDays: data.trialDays || 0,
@@ -129,6 +128,38 @@ export const SubscriptionProvider = ({ children }) => {
   }, [token, isShipper]);
 
   /* ===============================
+        NEW: GET BILLING HISTORY
+  =================================*/
+  const getBillingHistory = useCallback(async () => {
+    if (!token || !isShipper) return;
+
+    setBillingLoading(true);
+
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/shipper/stripe/subscription/invoices`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (res.data?.success) {
+        setBillingHistory(res.data.data || []);
+      } else {
+        setBillingHistory([]);
+      }
+    } catch (err) {
+      console.error(
+        "Billing History Error:",
+        err?.response?.data || err.message
+      );
+      setBillingHistory([]);
+    } finally {
+      setBillingLoading(false);
+    }
+  }, [token, isShipper]);
+
+  /* ===============================
        CREATE SUBSCRIPTION
   =================================*/
   const createSubscription = async (withTrial = true) => {
@@ -142,6 +173,7 @@ export const SubscriptionProvider = ({ children }) => {
       );
 
       await getMySubscription();
+      await getBillingHistory();
 
       return res.data;
     } catch (err) {
@@ -170,6 +202,7 @@ export const SubscriptionProvider = ({ children }) => {
       );
 
       await getMySubscription();
+      await getBillingHistory();
 
       return res.data;
     } catch (err) {
@@ -193,7 +226,14 @@ export const SubscriptionProvider = ({ children }) => {
 
     getMySubscription();
     getSubscriptionPlan();
-  }, [token, isShipper, getMySubscription, getSubscriptionPlan]);
+    getBillingHistory();
+  }, [
+    token,
+    isShipper,
+    getMySubscription,
+    getSubscriptionPlan,
+    getBillingHistory,
+  ]);
 
   return (
     <SubscriptionContext.Provider
@@ -204,6 +244,9 @@ export const SubscriptionProvider = ({ children }) => {
         loading,
         planLoading,
 
+        billingHistory,
+        billingLoading,
+
         hasAccess: subscription?.hasAccess,
         isTrial: subscription?.status === "trialing",
         isCanceled: subscription?.status === "canceled",
@@ -212,6 +255,8 @@ export const SubscriptionProvider = ({ children }) => {
 
         getMySubscription,
         getSubscriptionPlan,
+        getBillingHistory,
+
         createSubscription,
         cancelSubscription,
       }}
