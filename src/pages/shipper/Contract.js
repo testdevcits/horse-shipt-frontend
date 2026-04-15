@@ -11,7 +11,6 @@ import {
   FiClock,
   FiHash,
   FiUsers,
-  FiNavigation,
   FiAlertCircle,
 } from "react-icons/fi";
 import { MdClose } from "react-icons/md";
@@ -80,9 +79,9 @@ const ShipmentCard = ({
   const isCancelled =
     quote.isCancelled === true || quote.status === "cancelled";
   const isCompleted = tabKey === "completed";
-  const isUpcoming = tabKey === "upcoming";
-  const isProcessingThis =
-    deliveryLoading && selectedQuote?.shipment?._id === quote.shipment?._id;
+  // const isUpcoming = tabKey === "upcoming";
+  // const isProcessingThis =
+  //   deliveryLoading && selectedQuote?.shipment?._id === quote.shipment?._id;
 
   const badgeState = isCancelled
     ? "cancelled"
@@ -201,7 +200,7 @@ const ShipmentCard = ({
       {/* ── ACTIONS ── */}
       <div className="flex flex-wrap gap-3 pt-1 border-t border-gray-100">
         {/* Track — show for upcoming and completed */}
-        {!isCancelled && (
+        {/* {!isCancelled && (
           <button
             onClick={() => onTrack(quote)}
             className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53]
@@ -210,10 +209,10 @@ const ShipmentCard = ({
             <FiNavigation size={14} />
             Track Shipment
           </button>
-        )}
+        )} */}
 
         {/* Mark Delivered — only upcoming tab */}
-        {isUpcoming && (
+        {/* {isUpcoming && (
           <button
             className="flex items-center gap-2 bg-[#BF9B53] text-white
               px-5 py-2 rounded-xl text-sm font-semibold hover:bg-[#a8863f]
@@ -224,7 +223,7 @@ const ShipmentCard = ({
             <FiTruck size={14} />
             {isProcessingThis ? "Processing..." : "Mark Delivered"}
           </button>
-        )}
+        )} */}
 
         {/* Completed pill */}
         {isCompleted && (
