@@ -41,7 +41,7 @@ const Profile = () => {
 
   const validationSchema = Yup.object({
     mobile: Yup.string()
-      .matches(/^[6-9]\d{9}$/, "Invalid mobile number")
+      .matches(/^\+91[6-9]\d{9}$/, "Invalid mobile number")
       .required("Mobile is required"),
     description: Yup.string().min(5, "Minimum 5 characters"),
   });
@@ -49,7 +49,7 @@ const Profile = () => {
   if (!profile) return null;
 
   return (
-    <div className="font-[Montserrat] animate-slide-fade-in">
+    <div className="font-[Montserrat]">
       <div className="max-w-full mx-auto space-y-6">
         {/* PROFILE */}
         <div className="bg-white rounded-md shadow-md border border-[#BF9B53] p-4 sm:p-6">
@@ -98,7 +98,9 @@ const Profile = () => {
           ) : (
             <Formik
               initialValues={{
-                mobile: profile.mobile || "",
+                mobile: profile.mobile?.startsWith("+91")
+                  ? profile.mobile
+                  : "+91" + (profile.mobile || ""),
                 description: profile.description || "",
               }}
               validationSchema={validationSchema}
@@ -192,13 +194,33 @@ const Profile = () => {
                     {/* MOBILE */}
                     <div>
                       <label className="text-sm text-gray-600">Phone</label>
-                      <input
-                        type="text"
-                        name="mobile"
-                        value={values.mobile}
-                        onChange={handleChange}
-                        className="w-full border rounded-lg px-3 py-2 mt-1"
-                      />
+
+                      <div className="flex">
+                        <span className="px-3 py-2 bg-gray-200 border border-r-0 rounded-l-lg text-sm font-semibold">
+                          +91
+                        </span>
+
+                        <input
+                          type="tel"
+                          name="mobile"
+                          placeholder="0000000000"
+                          value={values.mobile?.replace(/^\+91/, "") || ""}
+                          onChange={(e) => {
+                            let value = e.target.value.replace(/\D/g, ""); // only digits
+                            if (value.length > 10) value = value.slice(0, 10);
+
+                            // store WITH +91 internally
+                            handleChange({
+                              target: {
+                                name: "mobile",
+                                value: value ? "+91" + value : "",
+                              },
+                            });
+                          }}
+                          className="w-full border rounded-r-lg px-3 py-2"
+                        />
+                      </div>
+
                       <ErrorMessage
                         name="mobile"
                         component="div"

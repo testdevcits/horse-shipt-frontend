@@ -45,22 +45,17 @@ const CustomerProfile = () => {
 
     onSubmit: async (values, { setSubmitting }) => {
       try {
-        await updateProfileDetails(values);
+        const payload = {
+          ...values,
+          phone: `+91${values.phone}`,
+        };
 
-        setToastList((prev) => [
-          ...prev,
-          { message: "Profile updated successfully!", type: "success" },
-        ]);
+        await updateProfileDetails(payload);
 
+        Toast.success("Profile updated successfully!");
         setIsEditing(false);
       } catch (err) {
-        setToastList((prev) => [
-          ...prev,
-          {
-            message: err.response?.data?.message || "Failed to update profile",
-            type: "error",
-          },
-        ]);
+        Toast.error(err.message || "Failed to update profile details");
       } finally {
         setSubmitting(false);
       }
@@ -294,19 +289,30 @@ const CustomerProfile = () => {
                 <label className="block text-xs font-bold text-[#8B7043] mb-1">
                   Phone Number
                 </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="9876543210"
-                  value={formik.values.phone}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={`px-3 py-2 text-sm border-2 rounded-lg font-semibold transition-all focus:outline-none ${
-                    formik.touched.phone && formik.errors.phone
-                      ? "border-red-400 bg-red-50 focus:border-red-500"
-                      : "border-[#BF9B53]/30 focus:border-[#BF9B53] focus:bg-[#BF9B53]/5"
-                  }`}
-                />
+
+                <div className="flex">
+                  <span className="px-3 py-2 bg-gray-200 border-2 border-r-0 rounded-l-lg text-sm font-semibold">
+                    +91
+                  </span>
+
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="0000000000"
+                    value={formik.values.phone?.replace(/^\+91/, "")}
+                    onChange={(e) => {
+                      let value = e.target.value.replace(/\D/g, ""); // only numbers
+                      if (value.length > 10) value = value.slice(0, 10);
+                      formik.setFieldValue("phone", value);
+                    }}
+                    onBlur={formik.handleBlur}
+                    className={`px-3 py-2 text-sm border-2 rounded-r-lg font-semibold transition-all focus:outline-none w-full ${
+                      formik.touched.phone && formik.errors.phone
+                        ? "border-red-400 bg-red-50 focus:border-red-500"
+                        : "border-[#BF9B53]/30 focus:border-[#BF9B53] focus:bg-[#BF9B53]/5"
+                    }`}
+                  />
+                </div>
                 {formik.touched.phone && formik.errors.phone && (
                   <p className="text-red-600 text-xs mt-1 font-semibold">
                     ⚠️ {formik.errors.phone}
