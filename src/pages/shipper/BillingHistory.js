@@ -1,153 +1,868 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSubscription } from "../../contexts/shipperContext/SubscriptionContext";
+import {
+  Download,
+  Eye,
+  Filter,
+  Calendar,
+  Clock,
+  Crown,
+  AlertCircle,
+  CheckCircle2,
+  Zap,
+  XCircle,
+} from "lucide-react";
+import PageLoader from "../../components/common/PageLoader";
 
 const BillingHistory = () => {
-  const { billingHistory, billingLoading } = useSubscription();
+  const {
+    billingHistory,
+    billingLoading,
+    subscription,
+    plan,
+    loading: subscriptionLoading,
+    planLoading,
+    cancelSubscription,
+  } = useSubscription();
 
-  const [filter, setFilter] = useState("all"); // all | invoice | transaction
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [filter, setFilter] = useState("all");
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [trialCountdown, setTrialCountdown] = useState(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelConfirm, setCancelConfirm] = useState(false);
 
-  if (billingLoading) {
-    return (
-      <div className="p-6 text-center text-gray-500">
-        Loading billing history...
-      </div>
-    );
-  }
+  // ─── Live Trial Timer ────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!subscription?.trialEnd || subscription.status !== "trialing") return;
 
-  if (!billingHistory || billingHistory.length === 0) {
-    return (
-      <div className="p-6 text-center text-gray-500">
-        No billing history found
-      </div>
-    );
-  }
+    const updateTimer = () => {
+      const diffMs = new Date(subscription.trialEnd) - new Date();
+      if (diffMs <= 0) {
+        setTrialCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      setTrialCountdown({
+        days: Math.floor(diffMs / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((diffMs % (1000 * 60)) / 1000),
+      });
+    };
 
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [subscription?.trialEnd, subscription?.status]);
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────────
   const getStatusColor = (status) => {
     if (status === "paid" || status === "succeeded")
-      return "bg-green-100 text-green-700";
+      return "bg-green-100 text-green-800 border-green-200";
     if (status === "failed" || status === "open")
-      return "bg-red-100 text-red-700";
-    return "bg-gray-100 text-gray-700";
+      return "bg-red-100 text-red-800 border-red-200";
+    return "bg-slate-100 text-slate-800 border-slate-200";
   };
+
+  const getStatusStyle = (status) => {
+    const map = {
+      trialing: {
+        bg: "bg-blue-100",
+        text: "text-blue-800",
+        border: "border-blue-200",
+        dot: "bg-blue-500",
+      },
+      active: {
+        bg: "bg-green-100",
+        text: "text-green-800",
+        border: "border-green-200",
+        dot: "bg-green-500",
+      },
+      canceled: {
+        bg: "bg-red-100",
+        text: "text-red-800",
+        border: "border-red-200",
+        dot: "bg-red-500",
+      },
+      past_due: {
+        bg: "bg-orange-100",
+        text: "text-orange-800",
+        border: "border-orange-200",
+        dot: "bg-orange-500",
+      },
+    };
+    return (
+      map[status] || {
+        bg: "bg-slate-100",
+        text: "text-slate-800",
+        border: "border-slate-200",
+        dot: "bg-slate-400",
+      }
+    );
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "—";
+    return new Date(dateStr).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formatTime = (dateStr) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // ─── Plan price label ─────────────────────────────────────────────────────
+  const getPlanPriceLabel = () => {
+    if (!plan) return null;
+    const planType = subscription?.planType || plan?.subscriptionStatus;
+
+    if (plan.daily && (!planType || planType === "daily")) {
+      const amt = plan.daily.amount;
+      const cur = (plan.daily.currency || plan.currency || "usd").toUpperCase();
+      return `$${amt}/${plan.daily.interval || "day"} ${cur}`;
+    }
+    if (plan.weekly) {
+      return `$${plan.weekly.amount}/${plan.weekly.interval || "week"} ${(
+        plan.currency || "usd"
+      ).toUpperCase()}`;
+    }
+    if (plan.monthly) {
+      return `$${plan.monthly.amount}/${plan.monthly.interval || "month"} ${(
+        plan.currency || "usd"
+      ).toUpperCase()}`;
+    }
+    return null;
+  };
+
+  // ─── Next billing date: prefer plan.nextBillingDate, fall back to subscription ──
+  const nextBillingDate =
+    plan?.nextBillingDate || subscription?.currentPeriodEnd || null;
+
+  // ─── Cancel handler ────────────────────────────────────────────────────────
+  const handleCancel = async () => {
+    if (!cancelConfirm) {
+      setCancelConfirm(true);
+      return;
+    }
+    try {
+      setCancelLoading(true);
+      await cancelSubscription(false, "User requested cancellation");
+      setCancelConfirm(false);
+    } catch (err) {
+      console.error("Cancel failed:", err);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  // ─── Merged + filtered billing data ──────────────────────────────────────
+  const mergedData = [
+    ...(billingHistory?.subscriptions || []).map((i) => ({
+      ...i,
+      type: "subscription",
+    })),
+    ...(billingHistory?.payments || []).map((i) => ({ ...i, type: "payment" })),
+    ...(billingHistory?.payouts || []).map((i) => ({ ...i, type: "payout" })),
+  ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const filteredData =
     filter === "all"
-      ? billingHistory
-      : billingHistory.filter((item) => item.type === filter);
+      ? mergedData
+      : mergedData.filter((item) => item.type === filter);
+
+  const filterOptions = [
+    { value: "all", label: "All", count: mergedData.length },
+    {
+      value: "subscription",
+      label: "Invoices",
+      count: billingHistory?.subscriptions?.length || 0,
+    },
+    {
+      value: "payment",
+      label: "Payments",
+      count: billingHistory?.payments?.length || 0,
+    },
+    {
+      value: "payout",
+      label: "Payouts",
+      count: billingHistory?.payouts?.length || 0,
+    },
+  ];
+
+  // ─── Derive subscription existence ────────────────────────────────────────
+  // Your API may not return `hasSubscription`; derive it from status
+  const subStatus = subscription?.status || plan?.subscriptionStatus;
+  const hasActiveSubscription =
+    subscription?.hasSubscription ||
+    ["active", "trialing", "past_due"].includes(subStatus);
+
+  const isTrialing = subStatus === "trialing";
+  const isActive = subStatus === "active";
+  const isCanceled = subStatus === "canceled";
+  const lessThanOneDay = subscription?.remainingTrialDays <= 1;
+  const showTrialWarning = isTrialing && lessThanOneDay;
+  const canCancel =
+    hasActiveSubscription && !isCanceled && !subscription?.cancelAtPeriodEnd;
+
+  const statusStyle = getStatusStyle(subStatus);
+
+  if (billingLoading || subscriptionLoading || planLoading) {
+    return (
+      <PageLoader
+        text="Loading billing information..."
+        fullScreen={false}
+        size={20}
+        color="#BF9B53"
+      />
+    );
+  }
 
   return (
-    <div className="">
-      <h2 className="text-xl font-semibold mb-4">Billing History</h2>
-
-      <div className="flex gap-2 mb-4">
-        {["all", "invoice", "transaction"].map((type) => (
-          <button
-            key={type}
-            onClick={() => setFilter(type)}
-            className={`px-3 py-1 rounded-full text-sm capitalize border 
-              ${
-                filter === type
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-600"
-              }`}
-          >
-            {type}
-          </button>
-        ))}
-      </div>
-
-      <div className="space-y-4">
-        {filteredData.map((item) => (
-          <div
-            key={item.id}
-            className="border rounded-xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-          >
-            {/* LEFT */}
-            <div>
-              <p className="font-medium">
-                {item.type === "invoice" ? "Invoice" : "Transaction (Payment)"}
-              </p>
-
-              <p className="text-sm text-gray-500">
-                {new Date(item.createdAt).toLocaleDateString()}
-              </p>
-
-              {item.periodStart && item.periodEnd && (
-                <p className="text-xs text-gray-400">
-                  {new Date(item.periodStart).toLocaleDateString()} →{" "}
-                  {new Date(item.periodEnd).toLocaleDateString()}
-                </p>
-              )}
-
-              {item.type === "transaction" && (
-                <p className="text-xs text-gray-500 mt-1">
-                  {item.cardBrand?.toUpperCase()} •••• {item.last4}
-                </p>
-              )}
-            </div>
-
-            {/* CENTER */}
-            <div className="text-left sm:text-center">
-              <p className="font-semibold">
-                ${item.amount} {item.currency?.toUpperCase()}
-              </p>
-
-              <span
-                className={`px-2 py-1 text-xs rounded ${getStatusColor(
-                  item.status
-                )}`}
-              >
-                {item.status}
-              </span>
-            </div>
-
-            {/* RIGHT */}
-            <div className="flex gap-3">
-              {item.hostedInvoiceUrl && (
-                <button
-                  onClick={() => window.open(item.hostedInvoiceUrl, "_blank")}
-                  className="text-blue-600 text-sm underline"
-                >
-                  View
-                </button>
-              )}
-
-              {item.invoicePdf && (
-                <a
-                  href={item.invoicePdf}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-green-600 text-sm underline"
-                >
-                  Download
-                </a>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {previewUrl && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white w-[95%] h-[90%] rounded-xl overflow-hidden shadow-lg relative">
-            {/* CLOSE */}
-            <button
-              onClick={() => setPreviewUrl(null)}
-              className="absolute top-3 right-3 bg-gray-200 px-3 py-1 rounded"
-            >
-              Close
-            </button>
-
-            {/* IFRAME */}
-            <iframe
-              src={previewUrl}
-              title="Preview"
-              className="w-full h-full"
-            />
+    <div className="min-h-screen  font-montserrat animate-slide-fade-in">
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <div className="sticky top-0 z-10 ">
+        <div className="flex items-center gap-3 mb-1">
+          <div>
+            <h1 className="text-sidebar font-semibold text-systemText text-xl">
+              Billing & History
+            </h1>
+            <p className="text-sm text-slate-600 mt-1">
+              View your subscription, invoices, and transactions
+            </p>
           </div>
         </div>
-      )}
+      </div>
+
+      <div className="max-w-full mx-auto py-6 sm:py-4 space-y-4">
+        {/* ── Subscription Status Card ─────────────────────────────────────── */}
+        {hasActiveSubscription && (
+          <div className="bg-white rounded-md border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+            {/* Card header */}
+            <div className="bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50 px-6 py-5 border-b border-[#BF9B53]">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white rounded-lg border-2 border-[#BF9B53]">
+                  <Crown className="w-6 h-6 text-[#BF9B53]" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-slate-900">
+                    Subscription Status
+                  </h2>
+                  <p className="text-sm text-slate-600 mt-0.5">
+                    Your current plan and billing details
+                  </p>
+                </div>
+
+                {/* Cancel Button */}
+                {canCancel && (
+                  <div className="flex items-center gap-2">
+                    {cancelConfirm && (
+                      <span className="text-xs text-red-600 font-medium">
+                        Are you sure?
+                      </span>
+                    )}
+                    <button
+                      onClick={handleCancel}
+                      disabled={cancelLoading}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all duration-200 ${
+                        cancelConfirm
+                          ? "bg-red-600 text-white border-red-600 hover:bg-red-700"
+                          : "bg-white text-red-600 border-red-300 hover:border-red-600 hover:bg-red-50"
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      {cancelLoading ? (
+                        <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <XCircle className="w-4 h-4" />
+                      )}
+                      {cancelConfirm ? "Confirm Cancel" : "Cancel Plan"}
+                    </button>
+                    {cancelConfirm && (
+                      <button
+                        onClick={() => setCancelConfirm(false)}
+                        className="px-3 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                      >
+                        Keep
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Card body */}
+            <div className="px-6 py-8">
+              {/* Status Badges */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
+                {subStatus && (
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full ${statusStyle.dot}`}
+                    />
+                    {subStatus.charAt(0).toUpperCase() + subStatus.slice(1)}
+                  </span>
+                )}
+
+                {(subscription?.trialActive || isTrialing) && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                    <Zap className="w-4 h-4" />
+                    Trial Active
+                  </span>
+                )}
+
+                {(subscription?.planType || plan?.daily) && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
+                    <Crown className="w-4 h-4" />
+                    {subscription?.planType
+                      ? subscription.planType.charAt(0).toUpperCase() +
+                        subscription.planType.slice(1)
+                      : plan?.daily?.label || "Premium"}{" "}
+                    Plan
+                  </span>
+                )}
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                {/* Trial Countdown */}
+                {isTrialing &&
+                  subscription?.remainingTrialDays !== undefined && (
+                    <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Clock className="w-4 h-4 text-blue-600" />
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Trial Ending In
+                        </p>
+                      </div>
+                      {trialCountdown &&
+                        (trialCountdown.days > 0 ? (
+                          <p className="text-2xl font-black text-slate-900 font-mono">
+                            {String(trialCountdown.days).padStart(2, "0")}
+                            <span className="text-xs font-medium text-slate-500 ml-1">
+                              d
+                            </span>{" "}
+                            {String(trialCountdown.hours).padStart(2, "0")}
+                            <span className="text-xs font-medium text-slate-500 ml-1">
+                              h
+                            </span>
+                          </p>
+                        ) : (
+                          <p className="text-3xl font-black text-[#BF9B53] font-mono tabular-nums">
+                            {String(trialCountdown.hours).padStart(2, "0")}
+                            <span className="text-sm font-medium text-red-500 mx-1">
+                              :
+                            </span>
+                            {String(trialCountdown.minutes).padStart(2, "0")}
+                            <span className="text-sm font-medium text-red-500 mx-1">
+                              :
+                            </span>
+                            {String(trialCountdown.seconds).padStart(2, "0")}
+                          </p>
+                        ))}
+                    </div>
+                  )}
+
+                {/* Plan & Price */}
+                {(subscription?.planType || plan?.daily) && (
+                  <div className="p-4 bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg border border-slate-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Crown className="w-4 h-4 text-slate-600" />
+                      <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        Plan
+                      </p>
+                    </div>
+                    <p className="text-lg font-bold text-slate-900">
+                      {subscription?.planType
+                        ? subscription.planType.charAt(0).toUpperCase() +
+                          subscription.planType.slice(1)
+                        : plan?.daily?.label ||
+                          plan?.daily?.productName ||
+                          "Premium"}
+                    </p>
+                    {getPlanPriceLabel() && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {getPlanPriceLabel()}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Trial End */}
+                {subscription?.trialEnd && (
+                  <div className="p-4 bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg border border-slate-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="w-4 h-4 text-slate-600" />
+                      <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        Trial Ends
+                      </p>
+                    </div>
+                    <p className="text-lg font-bold text-slate-900">
+                      {formatDate(subscription.trialEnd)}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {formatTime(subscription.trialEnd)}
+                    </p>
+                  </div>
+                )}
+
+                {/* Next Billing Date — sourced from plan.nextBillingDate first */}
+                {nextBillingDate && !isTrialing && (
+                  <div className="p-4 bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg border border-slate-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="w-4 h-4 text-slate-600" />
+                      <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        Next Billing
+                      </p>
+                    </div>
+                    <p className="text-lg font-bold text-slate-900">
+                      {formatDate(nextBillingDate)}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {formatTime(nextBillingDate)}
+                    </p>
+                  </div>
+                )}
+
+                {/* Trial period: show next billing after trial */}
+                {nextBillingDate && isTrialing && (
+                  <div className="p-4 bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg border border-slate-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="w-4 h-4 text-slate-600" />
+                      <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        Billing Starts
+                      </p>
+                    </div>
+                    <p className="text-lg font-bold text-slate-900">
+                      {formatDate(nextBillingDate)}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {formatTime(nextBillingDate)}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Alert Banners */}
+              {showTrialWarning && (
+                <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+                  <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-bold text-amber-900">
+                      Trial ending soon!
+                    </p>
+                    <p className="text-xs text-amber-800 mt-1">
+                      Your free trial ends on{" "}
+                      {formatDate(subscription.trialEnd)}. Add a payment method
+                      to continue.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {isActive && (
+                <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-bold text-green-900">
+                      Subscription Active
+                    </p>
+                    <p className="text-xs text-green-800 mt-1">
+                      {getPlanPriceLabel()
+                        ? `You will be charged ${getPlanPriceLabel()} starting ${formatDate(
+                            nextBillingDate
+                          )}.`
+                        : `Next charge on ${formatDate(nextBillingDate)}.`}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {subscription?.cancelAtPeriodEnd && (
+                <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-bold text-red-900">
+                      Scheduled for Cancellation
+                    </p>
+                    <p className="text-xs text-red-800 mt-1">
+                      Your subscription will be canceled on{" "}
+                      {formatDate(nextBillingDate)}.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {isCanceled && (
+                <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+                  <XCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-bold text-red-900">
+                      Subscription Canceled
+                    </p>
+                    <p className="text-xs text-red-800 mt-1">
+                      Your subscription has been canceled. You can resubscribe
+                      anytime.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── No Subscription State ─────────────────────────────────────────── */}
+        {!hasActiveSubscription && !subscriptionLoading && !planLoading && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-10 text-center">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-amber-50 rounded-full mb-4">
+              <Crown className="w-7 h-7 text-[#BF9B53]" />
+            </div>
+            <p className="text-slate-900 font-semibold text-lg">
+              No active subscription
+            </p>
+            <p className="text-sm text-slate-500 mt-2">
+              Subscribe to unlock all features.
+            </p>
+          </div>
+        )}
+
+        {/* ── Billing History Card ─────────────────────────────────────────── */}
+        <div className="bg-white rounded-md border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+          {/* Card header */}
+          <div className="bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50 px-6 py-5 border-b border-[#BF9B53]">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white rounded-lg border-2 border-[#BF9B53]">
+                <Calendar className="w-6 h-6 text-[#BF9B53]" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-slate-900">
+                  Billing History
+                </h2>
+                <p className="text-sm text-slate-600 mt-0.5">
+                  Invoices, payments, and transactions
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-8">
+            {/* Filters */}
+            <div className="mb-6">
+              {/* Mobile */}
+              <div className="md:hidden mb-4">
+                <button
+                  onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors duration-200 font-semibold text-slate-900"
+                >
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4" />
+                    <span>Filter Transactions</span>
+                  </div>
+                  <span
+                    className={`transition-transform duration-200 ${
+                      mobileFilterOpen ? "rotate-180" : ""
+                    }`}
+                  >
+                    ▼
+                  </span>
+                </button>
+
+                {mobileFilterOpen && (
+                  <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                    {filterOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setFilter(option.value);
+                          setMobileFilterOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center justify-between ${
+                          filter === option.value
+                            ? "bg-[#BF9B53] text-black shadow-md"
+                            : "bg-white text-black hover:bg-slate-100"
+                        }`}
+                      >
+                        <span className="capitalize">{option.label}</span>
+                        <span className="text-xs font-semibold bg-gray-200 px-2 py-1 rounded">
+                          {option.count}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop */}
+              <div className="hidden md:flex gap-2 flex-wrap">
+                {filterOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setFilter(option.value)}
+                    className={`px-4 py-2 rounded-lg font-semibold text-sm border-2 transition-all duration-200 flex items-center gap-2 ${
+                      filter === option.value
+                        ? "bg-[#BF9B53] text-white border-[#BF9B53]"
+                        : "bg-white text-slate-700 border-slate-300 hover:border-[#BF9B53]"
+                    }`}
+                  >
+                    <span className="capitalize">{option.label}</span>
+                    <span className="text-xs font-bold opacity-75">
+                      {option.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Empty State */}
+            {filteredData.length === 0 && (
+              <div className="text-center py-16 space-y-4">
+                <div className="inline-flex items-center justify-center w-14 h-14 bg-slate-100 rounded-full">
+                  <Calendar className="w-7 h-7 text-slate-400" />
+                </div>
+                <div>
+                  <p className="text-slate-900 font-semibold">
+                    No {filter !== "all" ? filter : "billing"} records
+                  </p>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Transactions will appear here
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Data */}
+            {filteredData.length > 0 && (
+              <>
+                {/* Mobile List */}
+                <div className="space-y-3 md:hidden">
+                  {filteredData.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border border-slate-200 hover:border-[#BF9B53] transition-colors duration-200"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <div className="flex-1">
+                          <p className="font-semibold text-slate-900 capitalize">
+                            {item.type === "subscription" && "Invoice"}
+                            {item.type === "payment" && "Payment"}
+                            {item.type === "payout" && "Payout"}
+                          </p>
+                          <p className="text-xs text-slate-600 mt-1">
+                            {formatDate(item.createdAt)}
+                          </p>
+                        </div>
+                        <span
+                          className={`px-2.5 py-1 text-xs rounded-full font-semibold whitespace-nowrap flex-shrink-0 border ${getStatusColor(
+                            item.status
+                          )}`}
+                        >
+                          {item.status?.charAt(0).toUpperCase() +
+                            item.status?.slice(1)}
+                        </span>
+                      </div>
+
+                      {item.periodStart && item.periodEnd && (
+                        <p className="text-xs text-slate-600 mb-2 pb-2 border-b border-slate-300">
+                          {formatDate(item.periodStart)} →{" "}
+                          {formatDate(item.periodEnd)}
+                        </p>
+                      )}
+                      {item.type === "payment" && item.last4 && (
+                        <p className="text-xs text-slate-600 mb-2 pb-2 border-b border-slate-300">
+                          {item.cardBrand?.toUpperCase()} •••• {item.last4}
+                        </p>
+                      )}
+                      {item.type === "payout" && item.arrivalDate && (
+                        <p className="text-xs text-slate-600 mb-2 pb-2 border-b border-slate-300">
+                          Arrives: {formatDate(item.arrivalDate)}
+                        </p>
+                      )}
+
+                      <div className="flex items-end justify-between gap-2 pt-2">
+                        <p className="font-bold text-slate-900">
+                          ${item.amount} {item.currency?.toUpperCase()}
+                        </p>
+                        <div className="flex gap-2">
+                          {item.type === "subscription" &&
+                            item.hostedInvoiceUrl && (
+                              <button
+                                onClick={() =>
+                                  window.open(item.hostedInvoiceUrl, "_blank")
+                                }
+                                className="p-1.5 bg-white hover:bg-blue-50 rounded-lg border border-slate-300 text-blue-600 transition-colors"
+                                title="View Invoice"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                            )}
+                          {item.type === "subscription" && item.invoicePdf && (
+                            <a
+                              href={item.invoicePdf}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-1.5 bg-white hover:bg-green-50 rounded-lg border border-slate-300 text-green-600 transition-colors"
+                              title="Download PDF"
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
+                          )}
+                          {item.type === "payment" && item.receiptUrl && (
+                            <button
+                              onClick={() =>
+                                window.open(item.receiptUrl, "_blank")
+                              }
+                              className="p-1.5 bg-white hover:bg-blue-50 rounded-lg border border-slate-300 text-blue-600 transition-colors"
+                              title="View Receipt"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b-2 border-slate-300 bg-gradient-to-r from-slate-50 to-slate-100">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 uppercase tracking-wider">
+                          Description
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 uppercase tracking-wider">
+                          Amount
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-4 text-right text-xs font-bold text-slate-900 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredData.map((item, idx) => (
+                        <tr
+                          key={item.id}
+                          className={`border-b border-slate-200 transition-colors duration-150 ${
+                            idx % 2 === 0 ? "bg-white" : "bg-slate-50"
+                          } hover:bg-amber-50`}
+                        >
+                          <td className="px-6 py-4">
+                            <div className="space-y-1">
+                              <p className="font-semibold text-slate-900 capitalize">
+                                {item.type === "subscription" && "Invoice"}
+                                {item.type === "payment" && "Payment"}
+                                {item.type === "payout" && "Payout"}
+                              </p>
+                              {item.periodStart && item.periodEnd && (
+                                <p className="text-xs text-slate-600">
+                                  {formatDate(item.periodStart)} →{" "}
+                                  {formatDate(item.periodEnd)}
+                                </p>
+                              )}
+                              {item.type === "payment" && item.last4 && (
+                                <p className="text-xs text-slate-600">
+                                  {item.cardBrand?.toUpperCase()} ••••{" "}
+                                  {item.last4}
+                                </p>
+                              )}
+                              {item.type === "payout" && item.arrivalDate && (
+                                <p className="text-xs text-slate-600">
+                                  Arrives: {formatDate(item.arrivalDate)}
+                                </p>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-semibold text-slate-900">
+                              {formatDate(item.createdAt)}
+                            </div>
+                            <div className="text-xs text-slate-500 mt-0.5">
+                              {formatTime(item.createdAt)}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <p className="font-bold text-slate-900">
+                              ${item.amount}{" "}
+                              <span className="text-sm text-slate-600">
+                                {item.currency?.toUpperCase()}
+                              </span>
+                            </p>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
+                                item.status
+                              )}`}
+                            >
+                              {item.status?.charAt(0).toUpperCase() +
+                                item.status?.slice(1)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {item.type === "subscription" &&
+                                item.hostedInvoiceUrl && (
+                                  <button
+                                    onClick={() =>
+                                      window.open(
+                                        item.hostedInvoiceUrl,
+                                        "_blank"
+                                      )
+                                    }
+                                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-blue-600"
+                                    title="View Invoice"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </button>
+                                )}
+                              {item.type === "subscription" &&
+                                item.invoicePdf && (
+                                  <a
+                                    href={item.invoicePdf}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-green-600"
+                                    title="Download PDF"
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </a>
+                                )}
+                              {item.type === "payment" && item.receiptUrl && (
+                                <button
+                                  onClick={() =>
+                                    window.open(item.receiptUrl, "_blank")
+                                  }
+                                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-blue-600"
+                                  title="View Receipt"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

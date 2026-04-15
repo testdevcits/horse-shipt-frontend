@@ -26,6 +26,7 @@ import GoogleReview from "../pages/shipper/GoogleReview";
 import CustomerShipperReviewPage from "../pages/customer/CustomerShipperReviewPage";
 import InviteShipmentPage from "../pages/InviteShipmentPage";
 import NewsletterVerificationPage from "../pages/NewsletterVerificationPage";
+import OAuthErrorPage from "../pages/auth/OAuthErrorPage";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -148,6 +149,7 @@ const AppRoutes = () => {
           }
         />
         <Route path="/oauth-success" element={<OAuthSuccessPage />} />
+        <Route path="/oauth-error" element={<OAuthErrorPage />} />
 
         {/* ---------- Driver Routes ---------- */}
         <Route

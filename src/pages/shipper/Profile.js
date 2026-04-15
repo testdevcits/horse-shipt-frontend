@@ -49,7 +49,7 @@ const Profile = () => {
   if (!profile) return null;
 
   return (
-    <div className="font-[Montserrat]">
+    <div className="font-[Montserrat] animate-slide-fade-in">
       <div className="max-w-full mx-auto space-y-6">
         {/* PROFILE */}
         <div className="bg-white rounded-md shadow-md border border-[#BF9B53] p-4 sm:p-6">

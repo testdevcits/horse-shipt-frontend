@@ -137,23 +137,43 @@ export const SubscriptionProvider = ({ children }) => {
 
     try {
       const res = await axios.get(
-        `${API_BASE_URL}/shipper/stripe/subscription/invoices`,
+        `${API_BASE_URL}/shipper/stripe/subscription/billing/history`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
       if (res.data?.success) {
-        setBillingHistory(res.data.data || []);
+        const {
+          subscriptions = [],
+          payments = [],
+          payouts = [],
+        } = res.data.data || {};
+
+        // Store separated data
+        setBillingHistory({
+          subscriptions,
+          payments,
+          payouts,
+        });
       } else {
-        setBillingHistory([]);
+        setBillingHistory({
+          subscriptions: [],
+          payments: [],
+          payouts: [],
+        });
       }
     } catch (err) {
       console.error(
         "Billing History Error:",
         err?.response?.data || err.message
       );
-      setBillingHistory([]);
+
+      setBillingHistory({
+        subscriptions: [],
+        payments: [],
+        payouts: [],
+      });
     } finally {
       setBillingLoading(false);
     }

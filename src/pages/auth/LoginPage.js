@@ -8,6 +8,7 @@ import Toast from "../../components/common/Toast";
 import loginBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
 import loginLogo from "../../assets/images/loginLogo.png";
+
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
@@ -15,10 +16,10 @@ const LoginPage = () => {
   const { login, oauthLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const initialValues = { email: "", password: "", role: "" };
+
   const validationSchema = Yup.object({
     email: Yup.string().email("Invalid email").required("Required"),
     password: Yup.string().required("Required"),
@@ -31,8 +32,9 @@ const LoginPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const error = params.get("error");
+
     if (error) {
-      setToast({ message: decodeURIComponent(error), type: "error" });
+      Toast.error(decodeURIComponent(error));
       return;
     }
 
@@ -80,15 +82,14 @@ const LoginPage = () => {
           );
           if (emailError) setFieldError("email", emailError);
 
-          // Show toast for all errors
-          setToast({ message: result.errors.join(", "), type: "error" });
+          Toast.error(result.errors.join(", "));
         } else {
-          setToast({ message: "Login failed", type: "error" });
+          Toast.error("Login failed");
         }
       }
     } catch (err) {
       console.error("[LOGIN FRONTEND ERROR]", err);
-      setToast({ message: "Login error", type: "error" });
+      Toast.error("Login error");
     } finally {
       setSubmitting(false);
       setLoading(false);
@@ -98,15 +99,13 @@ const LoginPage = () => {
   // ----------------- Google OAuth login -----------------
   const handleGoogleLogin = (role) => {
     if (!role) {
-      setToast({
-        message: "Please select a role before Google login",
-        type: "error",
-      });
+      Toast.error("Please select a role before Google login");
       return;
     }
+
     window.location.href = `${API_BASE_URL}/auth/google?role=${encodeURIComponent(
       role
-    )}`;
+    )}&action=login`;
   };
 
   return (
@@ -124,6 +123,7 @@ const LoginPage = () => {
           <h1 className="text-xl sm:text-2xl font-semibold text-start text-gray-800">
             Welcome Back
           </h1>
+
           <p className="text-xs text-gray-600">
             Don't have an account?{" "}
             <span
@@ -143,6 +143,7 @@ const LoginPage = () => {
             {({ values, setFieldValue, isValid, isSubmitting, dirty }) => {
               const canSubmit =
                 isValid && dirty && values.role && !isSubmitting && !loading;
+
               return (
                 <Form className="flex flex-col gap-3">
                   {/* Email */}
@@ -185,6 +186,7 @@ const LoginPage = () => {
                   <p className="text-xs font-medium text-gray-700 mt-1">
                     Select your role:
                   </p>
+
                   <div className="flex gap-2">
                     {["shipper", "customer"].map((r) => (
                       <button
@@ -201,6 +203,7 @@ const LoginPage = () => {
                       </button>
                     ))}
                   </div>
+
                   <ErrorMessage
                     name="role"
                     component="div"
@@ -228,6 +231,7 @@ const LoginPage = () => {
                       </span>
                       <div className="flex-1 h-px bg-gray-300" />
                     </div>
+
                     <Button
                       type="button"
                       onClick={() => handleGoogleLogin(values.role)}
@@ -238,6 +242,7 @@ const LoginPage = () => {
                       Continue with Google
                     </Button>
                   </div>
+
                   <div className="mt-2 w-full text-end">
                     <Link
                       to="/"
@@ -252,14 +257,6 @@ const LoginPage = () => {
           </Formik>
         </div>
       </div>
-
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
     </div>
   );
 };
