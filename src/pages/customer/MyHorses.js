@@ -257,8 +257,13 @@ const MyHorses = () => {
     setErrors({});
   };
 
+  // ✅ FIX: stallType ko normalize karo — backend kabhi kabhi defaultStallSize
+  // field mein value bhejta hai stallType ki jagah. Dono ko check karo.
   const startEditHorse = (horse) => {
-    setEditingHorse({ ...horse });
+    setEditingHorse({
+      ...horse,
+      stallType: horse.stallType || horse.defaultStallSize || "",
+    });
     setIsNewHorse(false);
     setShowForm(true);
     setErrors({});
@@ -477,13 +482,18 @@ const MyHorses = () => {
               )}
             </div>
 
-            {/* Stall Type */}
+            {/* ✅ Stall Type — value stallTypes list se match hona chahiye */}
             <div>
               <label className="block font-semibold text-sm text-gray-600 mb-2">
                 Stall Type <span className="text-red-500">*</span>
               </label>
               <select
-                value={editingHorse.stallType || ""}
+                value={
+                  // ✅ Ensure the value exactly matches one of stallTypes options
+                  stallTypes.includes(editingHorse.stallType)
+                    ? editingHorse.stallType
+                    : ""
+                }
                 onChange={(e) => handleFieldChange("stallType", e.target.value)}
                 className={`w-full border-2 rounded-lg px-4 py-2 text-gray-700 focus:outline-none transition-all ${
                   errors.stallType

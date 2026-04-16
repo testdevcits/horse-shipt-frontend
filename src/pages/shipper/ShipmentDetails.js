@@ -227,9 +227,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
    */
   if (!shipment) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-montserrat">
+      <div className="flex items-center justify-center mt-20 font-montserrat">
         <div className="text-center max-w-md mx-auto px-4">
-          <div className="text-7xl mb-6">⚠️</div>
           <h2 className="text-3xl font-bold text-gray-900 mb-3">
             Shipment Not Found
           </h2>
@@ -437,7 +436,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                     </p>
                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 bg-blue-50 w-fit px-3 py-2 rounded-lg">
                       <LuCalendarDays size={16} />
-                      {formatDate(shipment.pickupDate)}
+                      {formatDate(shipment.pickupDateRange.start)} -{" "}
+                      {formatDate(shipment.pickupDateRange.end)}
                     </div>
                   </div>
                 </div>
@@ -463,7 +463,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                     </p>
                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 bg-green-50 w-fit px-3 py-2 rounded-lg">
                       <LuCalendarDays size={16} />
-                      {formatDate(shipment.deliveryDate)}
+                      {formatDate(shipment.deliveryDateRange.start)} -{" "}
+                      {formatDate(shipment.deliveryDateRange.end)}
                     </div>
                   </div>
                 </div>

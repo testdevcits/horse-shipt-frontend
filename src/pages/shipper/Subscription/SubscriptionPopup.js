@@ -353,12 +353,6 @@ const SubscriptionPopup = () => {
                   We never store full card numbers. Secured by Stripe.
                 </p>
               </div>
-
-              {/* Step indicator */}
-              <div className="flex items-center gap-1.5 pt-1">
-                <div className="h-1 flex-1 rounded-full bg-slate-200" />
-                <div className="h-1 flex-1 rounded-full bg-[#BF9B53]" />
-              </div>
             </div>
           )}
         </div>

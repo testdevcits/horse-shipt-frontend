@@ -220,14 +220,34 @@ const ShipperLayout = () => {
               </div>
 
               {showSubscriptionBlock && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center">
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg flex flex-col items-center gap-2 border border-[#BF9B53]/30">
-                    <span className="text-2xl">
-                      <LuLockKeyhole />
-                    </span>
-                    <p className="text-sm font-semibold text-gray-700 text-center">
-                      Subscribe to access this page
+                <div className="absolute inset-0 z-20 flex items-center justify-center font-montserrat">
+                  <div className="w-[90%] max-w-md sm:max-w-lg bg-white rounded-2xl shadow-2xl border border-[#BF9B53]/30 p-6 sm:p-8 flex flex-col items-center text-center gap-4 animate-fade-in">
+                    {/* Icon */}
+                    <div className="w-16 h-16 flex items-center justify-center rounded-full bg-[#BF9B53]/10">
+                      <LuLockKeyhole className="text-3xl text-[#BF9B53]" />
+                    </div>
+
+                    {/* Title */}
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+                      Subscription Required
+                    </h2>
+
+                    {/* Description */}
+                    <p className="text-sm sm:text-base text-gray-600 max-w-sm">
+                      This feature is available only for subscribed users.
+                      Upgrade your plan to unlock full access.
                     </p>
+
+                    {/* Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
+                      {/* Secondary */}
+                      <button
+                        onClick={() => window.location.reload()}
+                        className="w-full py-2.5 rounded-xl border border-gray-300 text-gray-600 font-medium hover:bg-gray-100 transition"
+                      >
+                        Subscribe Now
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

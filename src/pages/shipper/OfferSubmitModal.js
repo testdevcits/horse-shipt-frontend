@@ -141,18 +141,6 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
               <p className="text-sm text-slate-600 ml-11">
                 Complete the form below and sign to confirm your offer
               </p>
-
-              {needsOnboarding && (
-                <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-4">
-                  <div>
-                    <p className="text-xs sm:text-sm">
-                      You need to complete account verification before
-                      submitting an offer, as a verified account is required to
-                      receive payments.
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -407,39 +395,51 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
           </div>
 
           {/* ============ STICKY FOOTER ============ */}
-          <div className="px-4 sm:px-8 py-4 border-t-2 border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 flex gap-3 sm:gap-4">
-            <Button
-              variant="secondary"
-              fullWidth
-              onClick={onClose}
-              className="py-3 sm:py-3.5 font-semibold text-sm sm:text-base"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              fullWidth
-              disabled={needsOnboarding || loading}
-              className={`py-3 sm:py-3.5 font-semibold text-sm sm:text-base 
-    ${needsOnboarding || loading ? "opacity-50 cursor-not-allowed" : ""}
-  `}
-              onClick={() => {
-                if (needsOnboarding) {
-                  showToast(
-                    "Please verify your Stripe account first to receive payments",
-                    "error"
-                  );
-                  return;
-                }
+          <div className="px-4 sm:px-8 py-4 border-t-2 border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 flex flex-col gap-4">
+            {needsOnboarding && (
+              <div className="w-full bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-4 rounded-md">
+                <p className="text-xs sm:text-sm text-gray-700">
+                  You need to complete account verification before submitting an
+                  offer, as a verified account is required to receive payments.
+                </p>
+              </div>
+            )}
 
-                document
-                  .querySelector("form")
-                  ?.dispatchEvent(new Event("submit", { bubbles: true }));
-              }}
-            >
-              {loading ? "Submitting..." : "Submit Offer"}
-            </Button>
+            <div className="flex gap-3 sm:gap-4">
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={onClose}
+                className="py-3 sm:py-3.5 font-semibold text-sm sm:text-base"
+              >
+                Cancel
+              </Button>
+
+              <Button
+                variant="primary"
+                type="submit"
+                fullWidth
+                disabled={needsOnboarding || loading}
+                className={`py-3 sm:py-3.5 font-semibold text-sm sm:text-base 
+        ${needsOnboarding || loading ? "opacity-50 cursor-not-allowed" : ""}
+      `}
+                onClick={() => {
+                  if (needsOnboarding) {
+                    showToast(
+                      "Please verify your Stripe account first to receive payments",
+                      "error"
+                    );
+                    return;
+                  }
+
+                  document
+                    .querySelector("form")
+                    ?.dispatchEvent(new Event("submit", { bubbles: true }));
+                }}
+              >
+                {loading ? "Submitting..." : "Submit Offer"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

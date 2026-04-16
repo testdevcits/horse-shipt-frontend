@@ -19,7 +19,6 @@ const CustomerProfile = () => {
     loading,
   } = useProfile();
 
-  const [toastList, setToastList] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const profileInputRef = useRef(null);
@@ -79,32 +78,15 @@ const CustomerProfile = () => {
     try {
       await updateProfileImage(file);
 
-      setToastList((prev) => [
-        ...prev,
-        {
-          message: "Profile image updated successfully!",
-          type: "success",
-        },
-      ]);
+      Toast.success("Profile image updated successfully!");
+
       setImagePreview(null);
     } catch (err) {
-      setToastList((prev) => [
-        ...prev,
-        {
-          message:
-            err.response?.data?.message || "Failed to update profile image",
-          type: "error",
-        },
-      ]);
+      Toast.error(
+        err.response?.data?.message || "Failed to update profile image"
+      );
       setImagePreview(null);
     }
-  };
-
-  // ===============================
-  // Remove Toast
-  // ===============================
-  const removeToast = (index) => {
-    setToastList((prev) => prev.filter((_, i) => i !== index));
   };
 
   const currentImage =
@@ -115,18 +97,6 @@ const CustomerProfile = () => {
 
   return (
     <div className="min-h-screen py-4 font-montserrat">
-      {/* Toasts */}
-      <div className="fixed top-2 right-2 z-50 space-y-2">
-        {toastList.map((t, i) => (
-          <Toast
-            key={i}
-            message={t.message}
-            type={t.type}
-            onClose={() => removeToast(i)}
-          />
-        ))}
-      </div>
-
       <div className="space-y-4 animate-fade-in">
         {/* ===============================
             HERO SECTION - Profile Header

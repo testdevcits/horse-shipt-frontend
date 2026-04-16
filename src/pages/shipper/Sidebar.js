@@ -52,10 +52,6 @@ const navItems = [
     name: "Chat",
     path: "/shipper/chat",
     icon: <ChatIcon />,
-    subPaths: [
-      { name: "Customer Chat", path: "/shipper/chat/customer" },
-      { name: "Driver Chat", path: "/shipper/chat/driver" },
-    ],
   },
   {
     name: "Earnings",
