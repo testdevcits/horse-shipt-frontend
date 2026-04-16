@@ -227,8 +227,8 @@ const AskQuestionModal = ({ shipmentId, onClose }) => {
                   {/* Info Box */}
                   <div className="bg-gradient-to-r from-[#BF9B53]/10 to-orange-100/10 border-l-4 border-[#BF9B53] rounded-lg p-4">
                     <p className="text-sm text-slate-800 font-semibold leading-relaxed">
-                      📝 Ask a specific question about this shipment. The
-                      shipper will review and respond as soon as possible.
+                      Ask a specific question about this shipment. The shipper
+                      will review and respond as soon as possible.
                     </p>
                   </div>
 
@@ -312,7 +312,7 @@ const AskQuestionModal = ({ shipmentId, onClose }) => {
                   {/* Tips Box */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p className="text-xs font-semibold text-blue-900 mb-2">
-                      💡 Tips for better questions:
+                      Tips for better questions:
                     </p>
                     <ul className="text-xs text-blue-800 space-y-1">
                       <li>• Be specific about what you need to know</li>

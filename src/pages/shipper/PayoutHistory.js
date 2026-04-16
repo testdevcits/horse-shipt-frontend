@@ -7,7 +7,6 @@ import Toast from "../../components/common/Toast";
 import {
   ChevronDown,
   CreditCard,
-  TrendingUp,
   Eye,
   EyeOff,
   CheckCircle2,
@@ -152,14 +151,11 @@ const PayoutAndCardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 font-montserrat">
+    <div className="min-h-screen font-montserrat">
       {/* Header Section */}
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <div className="sticky top-0 z-10">
+        <div className="max-w-full mx-auto">
           <div className="flex items-center gap-3 mb-1">
-            <div className="p-2.5 bg-gradient-to-br from-amber-100 to-orange-100 rounded-lg">
-              <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-[#BF9B53]" />
-            </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
                 Payments & Payouts
@@ -172,15 +168,12 @@ const PayoutAndCardPage = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      <div className="max-w-full mx-auto mt-4 space-y-6">
         {/* Payment Method Card */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+        <div className="bg-white rounded-md border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-5 border-b border-slate-200">
+          <div className="bg-[#BF9B53]/10 px-6 py-5 border-b border-slate-200">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-white rounded-lg border-2 border-[#BF9B53]">
-                <CreditCard className="w-6 h-6 text-[#BF9B53]" />
-              </div>
               <div className="flex-1">
                 <h2 className="text-xl font-bold text-slate-900">
                   Payment Method
@@ -260,8 +253,8 @@ const PayoutAndCardPage = () => {
 
             {hasCard && !clientSecret && paymentCard && (
               <div className="space-y-5">
-                <div className="flex items-center gap-4 p-5 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg">
-                  <div className="p-3 bg-white rounded-lg border border-green-300">
+                <div className="flex items-center gap-4 p-5 bg-[#BF9B53]/10 to-emerald-50 border-2 border-[#BF9B53] rounded-lg">
+                  <div className="p-3 bg-white rounded-lg border border-[#BF9B53]">
                     <CreditCard className="w-6 h-6 text-[#BF9B53]" />
                   </div>
                   <div className="flex-1">
@@ -273,7 +266,7 @@ const PayoutAndCardPage = () => {
                       {paymentCard.cardLast4}
                     </p>
                   </div>
-                  <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+                  <CheckCircle2 className="w-6 h-6 text-[#BF9B53] flex-shrink-0" />
                 </div>
 
                 <button
@@ -287,8 +280,7 @@ const PayoutAndCardPage = () => {
             )}
 
             {paymentError && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
-                <div className="text-red-600 mt-0.5">⚠️</div>
+              <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2 mt-2">
                 <div>
                   <p className="text-sm font-semibold text-red-800">
                     Payment Error
@@ -301,13 +293,10 @@ const PayoutAndCardPage = () => {
         </div>
 
         {/* Payout History Card */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+        <div className="bg-white rounded-md border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-50 via-cyan-50 to-blue-50 px-6 py-5 border-b border-slate-200">
+          <div className="bg-[#BF9B53]/10 px-6 py-5 border-b border-slate-200">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-white rounded-lg border-2 border-blue-500">
-                <ArrowUpRight className="w-6 h-6 text-blue-500" />
-              </div>
               <div className="flex-1">
                 <h2 className="text-xl font-bold text-slate-900">
                   Payout History

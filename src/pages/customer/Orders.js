@@ -6,7 +6,6 @@ import PageLoader from "../../components/common/PageLoader";
 import ReviewModal from "./common/ReviewModal";
 import { useReview } from "../../contexts/customerContext/ReviewContext";
 import Toast from "../../components/common/Toast";
-import ConfirmModal from "../../components/common/ConfirmModal";
 import { createShipmentQueryToken } from "../../utils/createQueryToken";
 import { LiaHorseHeadSolid } from "react-icons/lia";
 import { FiTrash2, FiShare2, FiEye, FiEdit2 } from "react-icons/fi";
@@ -453,7 +452,7 @@ const ShipmentDrawer = ({
             </>
           )}
 
-          {/* ── View Full Details button — shown for ALL non-draft tabs ── */}
+          {/* View Full Details button — shown for ALL non-draft tabs */}
           {!isDraft && (
             <button
               onClick={onNavigate}
@@ -482,6 +481,85 @@ const ShipmentDrawer = ({
               {alreadyReviewed ? "Already Reviewed" : "Rate Shipper"}
             </button>
           )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────
+   Inline Confirm Modal with Loading State
+───────────────────────────────────────── */
+const ActionConfirmModal = ({
+  show,
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  confirmText,
+  confirmColor,
+  loading,
+}) => {
+  if (!show) return null;
+
+  const btnColor =
+    confirmColor === "red"
+      ? "bg-red-600 hover:bg-red-700 disabled:bg-red-400"
+      : "border hover:bg-[#BF9B53] disabled:bg-blue-400";
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center font-montserrat">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={!loading ? onCancel : undefined}
+      />
+
+      {/* Modal Box */}
+      <div className="relative z-10 bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+        {/* Header */}
+        <div className="px-5 pt-5 pb-3">
+          <h3 className="text-base font-bold text-gray-900">{title}</h3>
+          <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+            {message}
+          </p>
+        </div>
+
+        {/* Loading Indicator inside modal */}
+        {loading && (
+          <div className="px-5 py-3 flex items-center gap-3 bg-gray-50 border-t border-gray-100">
+            <div className="w-5 h-5 border-2 border-gray-300 border-t-[#BF9B53] rounded-full animate-spin shrink-0" />
+            <p className="text-xs text-gray-500 font-medium">
+              {confirmText === "Publish"
+                ? "Publishing shipment..."
+                : "Deleting shipment..."}
+            </p>
+          </div>
+        )}
+
+        {/* Footer Buttons */}
+        <div className="px-5 pb-5 pt-3 flex gap-2 justify-end">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-xs font-bold hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className={`px-5 py-2 rounded-lg text-black text-xs font-bold flex items-center gap-2 transition-colors disabled:cursor-not-allowed ${btnColor}`}
+          >
+            {loading ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                {confirmText === "Publish" ? "Publishing..." : "Deleting..."}
+              </>
+            ) : (
+              confirmText
+            )}
+          </button>
         </div>
       </div>
     </div>
@@ -602,10 +680,13 @@ const AllShipments = () => {
   const [selected, setSelected] = useState(null);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [tab, setTab] = useState("draft");
+
+  // ── Confirm modal state now includes actionLoading ──
   const [confirmModal, setConfirmModal] = useState({
     open: false,
     action: null,
     shipmentId: null,
+    actionLoading: false, // ← NEW: tracks loading inside modal
   });
 
   useEffect(() => {
@@ -613,7 +694,7 @@ const AllShipments = () => {
   }, [fetchCompletedShipments]);
 
   // =====================================================
-  // HANDLE REVIEW SUBMIT - Close review modal and drawer
+  // HANDLE REVIEW SUBMIT
   // =====================================================
   const handleReviewSubmit = async (data) => {
     if (!selected) return;
@@ -624,115 +705,105 @@ const AllShipments = () => {
         rating: data.rating,
         reviewText: data.reviewText,
       });
-
       Toast.success("Review submitted successfully!");
-
-      // Close review modal first
       setReviewOpen(false);
-
-      // Then close the drawer
-      setTimeout(() => {
-        setSelected(null);
-      }, 100);
+      setTimeout(() => setSelected(null), 100);
     } catch (err) {
       Toast.error(err.message || "Failed to submit review");
-      // Keep modals open for retry
     }
   };
 
   // =====================================================
-  // HANDLE PUBLISH - Open confirmation modal (drawer stays)
+  // OPEN PUBLISH CONFIRM
   // =====================================================
   const openPublishConfirm = () => {
     setConfirmModal({
       open: true,
       action: "publish",
       shipmentId: selected?._id,
+      actionLoading: false,
     });
   };
 
   // =====================================================
-  // HANDLE DELETE - Open confirmation modal (drawer stays)
+  // OPEN DELETE CONFIRM
   // =====================================================
   const openDeleteConfirm = () => {
     setConfirmModal({
       open: true,
       action: "delete",
       shipmentId: selected?._id,
+      actionLoading: false,
     });
   };
 
   // =====================================================
-  // CONFIRM PUBLISH - Execute publish action
+  // CONFIRM PUBLISH — with loading state
   // =====================================================
   const handlePublish = async () => {
     if (!selected) return;
 
+    // Show spinner inside modal
+    setConfirmModal((prev) => ({ ...prev, actionLoading: true }));
+
     try {
       await publishShipment(selected._id);
-
       Toast.success("Shipment published successfully!");
 
-      // Close confirmation modal first
-      setConfirmModal({ open: false, action: null, shipmentId: null });
-
-      // Then close the drawer
-      setTimeout(() => {
-        setSelected(null);
-      }, 100);
-
-      // Refresh list
+      // Close modal then drawer
+      setConfirmModal({
+        open: false,
+        action: null,
+        shipmentId: null,
+        actionLoading: false,
+      });
+      setTimeout(() => setSelected(null), 100);
       fetchCompletedShipments();
     } catch (err) {
       Toast.error(err.message || "Failed to publish shipment");
-
-      // Close modal but keep drawer open
-      setConfirmModal({ open: false, action: null, shipmentId: null });
+      // Stop spinner, keep modal open for retry
+      setConfirmModal((prev) => ({ ...prev, actionLoading: false }));
     }
   };
 
   // =====================================================
-  // CONFIRM DELETE - Execute delete action
+  // CONFIRM DELETE — with loading state
   // =====================================================
   const handleDelete = async () => {
     if (!selected) return;
 
+    // Show spinner inside modal
+    setConfirmModal((prev) => ({ ...prev, actionLoading: true }));
+
     try {
       await deleteShipment(selected._id);
-
       Toast.success("Shipment deleted successfully!");
 
-      // Close confirmation modal first
-      setConfirmModal({ open: false, action: null, shipmentId: null });
-
-      // Then close the drawer
-      setTimeout(() => {
-        setSelected(null);
-      }, 100);
-
-      // Refresh list
+      // Close modal then drawer
+      setConfirmModal({
+        open: false,
+        action: null,
+        shipmentId: null,
+        actionLoading: false,
+      });
+      setTimeout(() => setSelected(null), 100);
       fetchCompletedShipments();
     } catch (err) {
       Toast.error(err.message || "Failed to delete shipment");
-
-      // Close modal but keep drawer open
-      setConfirmModal({ open: false, action: null, shipmentId: null });
+      setConfirmModal((prev) => ({ ...prev, actionLoading: false }));
     }
   };
 
   // =====================================================
-  // CONFIRM ACTION - Route to correct handler
+  // ROUTE CONFIRM TO CORRECT HANDLER
   // =====================================================
   const confirmAction = () => {
-    if (confirmModal.action === "publish") {
-      handlePublish();
-    } else if (confirmModal.action === "delete") {
-      handleDelete();
-    }
+    if (confirmModal.action === "publish") handlePublish();
+    else if (confirmModal.action === "delete") handleDelete();
   };
 
   // =====================================================
-  // NAVIGATE TO DETAILS PAGE
+  // NAVIGATE TO DETAILS
   // =====================================================
   const handleNavigateToDetails = (shipment = selected) => {
     if (!shipment) return;
@@ -819,30 +890,35 @@ const AllShipments = () => {
 
   return (
     <div className="w-full min-h-screen font-montserrat">
-      {/* Confirmation Modal - Z-index 50 (above drawer's z-40) */}
-      {confirmModal.open && (
-        <ConfirmModal
-          show={confirmModal.open}
-          title={
-            confirmModal.action === "publish"
-              ? "Publish Shipment"
-              : "Delete Shipment"
-          }
-          message={
-            confirmModal.action === "publish"
-              ? "Are you sure you want to publish this shipment? It will be visible to shippers."
-              : "Are you sure you want to delete this shipment? This action cannot be undone."
-          }
-          onConfirm={confirmAction}
-          onCancel={() =>
-            setConfirmModal({ open: false, action: null, shipmentId: null })
-          }
-          confirmText={confirmModal.action === "publish" ? "Publish" : "Delete"}
-          confirmColor={confirmModal.action === "publish" ? "blue" : "red"}
-        />
-      )}
+      {/* ── Inline Confirm Modal (z-60, above drawer z-40) ── */}
+      <ActionConfirmModal
+        show={confirmModal.open}
+        title={
+          confirmModal.action === "publish"
+            ? "Publish Shipment"
+            : "Delete Shipment"
+        }
+        message={
+          confirmModal.action === "publish"
+            ? "Are you sure you want to publish this shipment? It will be visible to shippers."
+            : "Are you sure you want to delete this shipment? This action cannot be undone."
+        }
+        onConfirm={confirmAction}
+        onCancel={() =>
+          !confirmModal.actionLoading &&
+          setConfirmModal({
+            open: false,
+            action: null,
+            shipmentId: null,
+            actionLoading: false,
+          })
+        }
+        confirmText={confirmModal.action === "publish" ? "Publish" : "Delete"}
+        confirmColor={confirmModal.action === "publish" ? "blue" : "red"}
+        loading={confirmModal.actionLoading}
+      />
 
-      {/* Review Modal - Z-index 50 (above drawer's z-40) */}
+      {/* Review Modal */}
       {reviewOpen && selected && (
         <ReviewModal
           open={reviewOpen}
@@ -852,7 +928,7 @@ const AllShipments = () => {
         />
       )}
 
-      {/* Drawer - Z-index 40 */}
+      {/* Drawer */}
       {selected && (
         <ShipmentDrawer
           shipment={selected}
