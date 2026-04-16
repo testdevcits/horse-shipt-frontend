@@ -182,16 +182,17 @@ export const SubscriptionProvider = ({ children }) => {
   /* ===============================
        CREATE SUBSCRIPTION
   =================================*/
-  const createSubscription = async (withTrial = true) => {
+  const createSubscription = async () => {
     if (!token || !isShipper) return;
 
     try {
       const res = await axios.post(
         `${API_BASE_URL}/shipper/stripe/subscription/create`,
-        { withTrial },
+        {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      // refresh state
       await getMySubscription();
       await getBillingHistory();
 
@@ -208,19 +209,17 @@ export const SubscriptionProvider = ({ children }) => {
   /* ===============================
        CANCEL SUBSCRIPTION
   =================================*/
-  const cancelSubscription = async (
-    cancelImmediately = false,
-    reason = "User requested"
-  ) => {
+  const cancelSubscription = async (reason = "User requested") => {
     if (!token || !isShipper) return;
 
     try {
       const res = await axios.post(
         `${API_BASE_URL}/shipper/stripe/subscription/cancel`,
-        { cancelImmediately, reason },
+        { reason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      // refresh state
       await getMySubscription();
       await getBillingHistory();
 

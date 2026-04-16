@@ -8,7 +8,13 @@ import React from "react";
  * - label: string (optional)
  * - disabled: boolean (optional)
  */
-const Checkbox = ({ checked, onChange, label, disabled = false }) => {
+const Checkbox = ({
+  checked,
+  onChange,
+  label,
+  disabled = false,
+  className = "",
+}) => {
   return (
     <label
       className={`flex items-center gap-2 cursor-pointer ${
@@ -16,9 +22,10 @@ const Checkbox = ({ checked, onChange, label, disabled = false }) => {
       }`}
     >
       <div
-        className={`w-[20px] h-[20px] rounded-[5px] border border-[#F2EBDD] flex items-center justify-center
+        className={`w-[20px] h-[20px] rounded-[5px] border border-[#BF9B53] flex items-center justify-center
           ${checked ? "bg-[#997C42]" : "bg-transparent"} 
           transition-all duration-200 cursor-pointer
+          ${className}
         `}
         onClick={() => !disabled && onChange({ target: { checked: !checked } })}
       >

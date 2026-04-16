@@ -12,8 +12,205 @@ import {
   Zap,
   XCircle,
   Globe,
+  X,
 } from "lucide-react";
 import PageLoader from "../../components/common/PageLoader";
+import Toast from "../../components/common/Toast";
+import Checkbox from "../../components/common/Checkbox";
+
+const CANCELLATION_REASONS = [
+  { value: "too_expensive", label: "Too expensive", icon: "" },
+  { value: "not_using", label: "Not using the service", icon: "" },
+  { value: "poor_quality", label: "Poor quality or performance", icon: "" },
+  {
+    value: "found_alternative",
+    label: "Found a better alternative",
+    icon: "",
+  },
+  { value: "technical_issues", label: "Technical issues", icon: "" },
+  { value: "customer_service", label: "Poor customer service", icon: "" },
+  { value: "other", label: "Other reason", icon: "" },
+];
+
+// Cancellation Reason Modal Component
+const CancellationModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  isLoading,
+  planName,
+}) => {
+  const [selectedReason, setSelectedReason] = useState("");
+  const [otherReason, setOtherReason] = useState("");
+  const [agreedToConfirm, setAgreedToConfirm] = useState(false);
+
+  const handleSubmit = () => {
+    if (!selectedReason) {
+      Toast.error("Please select a reason", 3000);
+      return;
+    }
+    if (selectedReason === "other" && !otherReason.trim()) {
+      Toast.error("Please describe your reason", 3000);
+      return;
+    }
+
+    const finalReason =
+      selectedReason === "other"
+        ? `Other: ${otherReason}`
+        : CANCELLATION_REASONS.find((r) => r.value === selectedReason)?.label ||
+          selectedReason;
+
+    onSubmit(finalReason);
+    setSelectedReason("");
+    setOtherReason("");
+    setAgreedToConfirm(false);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50  flex items-start justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white w-full max-w-5xl rounded-md shadow-2xl border-2 border-[#BF9B53] animate-in fade-in slide-in-from-bottom-4 duration-300 mt-6 sm:mt-10 mb-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-red-50 via-orange-50 to-red-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-[#BF9B53] flex items-start justify-between">
+          <div className="flex items-start gap-3 sm:gap-4 flex-1">
+            <div className="p-2 sm:p-3 bg-gray-200 rounded-lg mt-0.5">
+              <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-[#BF9B53]" />
+            </div>
+            <div>
+              <h2 className="text-lg sm:text-2xl font-bold text-slate-900">
+                We're sorry to see you go
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 mt-1">
+                Please help us understand why you're canceling your subscription
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            disabled={isLoading}
+            className="p-2 hover:bg-slate-200 rounded-lg transition-colors text-slate-600 hover:text-slate-900 flex-shrink-0"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 sm:p-6 space-y-6">
+          {/* Plan Info */}
+          <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 sm:p-4">
+            <p className="text-sm font-semibold text-gray-900">
+              Canceling {planName} Plan
+            </p>
+            <p className="text-xs text-gray-800 mt-1">
+              You'll lose access at the end of your current billing period
+            </p>
+          </div>
+
+          {/* Reason Selection */}
+          <div className="space-y-3">
+            <label className="block text-sm font-bold text-slate-900">
+              Why are you canceling? <span className="text-red-500">*</span>
+            </label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {CANCELLATION_REASONS.map((reason) => (
+                <button
+                  key={reason.value}
+                  onClick={() => {
+                    setSelectedReason(reason.value);
+                    if (reason.value !== "other") setOtherReason("");
+                  }}
+                  className={`p-3 rounded-md border-2 transition-all duration-200 text-left flex items-start gap-3 ${
+                    selectedReason === reason.value
+                      ? "border-[#BF9B53] bg-gray-100 shadow-sm"
+                      : "border-slate-200 bg-white hover:border-[#BF9B53] hover:bg-[#BF9B53]/20"
+                  }`}
+                >
+                  <div className="text-xl sm:text-2xl">{reason.icon}</div>
+
+                  <div className="flex-1">
+                    <p className="font-semibold text-sm sm:text-base text-slate-900">
+                      {reason.label}
+                    </p>
+                  </div>
+
+                  {selectedReason === reason.value && (
+                    <div className="w-5 h-5 rounded-full bg-[#BF9B53] flex items-center justify-center mt-1">
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Other Reason */}
+          {selectedReason === "other" && (
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-900">
+                Please tell us more <span className="text-red-500">*</span>
+              </label>
+
+              <textarea
+                value={otherReason}
+                onChange={(e) => setOtherReason(e.target.value)}
+                className="w-full border-2 border-slate-300 rounded-lg p-3 text-sm focus:border-[#BF9B53] focus:outline-none resize-none"
+                rows={4}
+                maxLength={500}
+              />
+
+              <div className="flex justify-between text-xs text-slate-500">
+                <span>Help us improve</span>
+                <span>{otherReason.length}/500</span>
+              </div>
+            </div>
+          )}
+
+          {/* Checkbox */}
+          <div className="p-3 sm:p-4 bg-white">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                checked={agreedToConfirm}
+                onChange={(e) => setAgreedToConfirm(e.target.checked)}
+                className="border-2 border-[#BF9B53]"
+              />
+
+              <label className="text-sm text-slate-700 flex-1">
+                I understand that my subscription will be canceled and I will
+                lose access at the end of my billing period
+              </label>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-slate-200">
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              className="w-full px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold rounded-lg"
+            >
+              Keep Subscription
+            </button>
+
+            <button
+              onClick={handleSubmit}
+              disabled={!agreedToConfirm || isLoading}
+              className={`w-full px-6 py-3 font-semibold rounded-lg flex items-center justify-center gap-2 ${
+                agreedToConfirm && !isLoading
+                  ? "bg-red-600 hover:bg-red-700 text-white"
+                  : "bg-red-200 text-red-400 cursor-not-allowed"
+              }`}
+            >
+              {isLoading ? "Canceling..." : "Cancel Subscription"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const BillingHistory = () => {
   const {
@@ -30,8 +227,8 @@ const BillingHistory = () => {
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [trialCountdown, setTrialCountdown] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
-  const [cancelConfirm, setCancelConfirm] = useState(false);
-  const [timezoneFormat, setTimezoneFormat] = useState("local"); // "local" or "india"
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [timezoneFormat, setTimezoneFormat] = useState("local");
   const [userTimezone, setUserTimezone] = useState("");
 
   // ─── Detect User Timezone ────────────────────────────────────────────────
@@ -41,12 +238,10 @@ const BillingHistory = () => {
   }, []);
 
   // ─── Normalize a date value ───────────────────────────────────────────────
-  // Handles both plain strings and objects like { iso, us }
   const normalizeDateStr = (value) => {
     if (!value) return null;
     if (typeof value === "string") return value;
     if (typeof value === "object") {
-      // Prefer ISO string for accurate timezone conversion
       return value.iso || value.us || null;
     }
     return null;
@@ -111,7 +306,6 @@ const BillingHistory = () => {
     const targetTz =
       timezone === "india" ? "Asia/Kolkata" : userTimezone || "UTC";
     try {
-      // Use Intl to get offset string
       const formatter = new Intl.DateTimeFormat("en-US", {
         timeZone: targetTz,
         timeZoneName: "shortOffset",
@@ -194,7 +388,7 @@ const BillingHistory = () => {
     );
   };
 
-  // Shorthand formatters using current timezoneFormat
+  // Shorthand formatters
   const formatDate = (dateInput) =>
     formatDateWithTimezone(dateInput, timezoneFormat);
   const formatTime = (dateInput) =>
@@ -224,31 +418,34 @@ const BillingHistory = () => {
   };
 
   // ─── Next billing / end date ───────────────────────────────────────────────
-  // plan.nextBillingDate may be { iso, us } — normalize it
   const rawNextBilling =
     plan?.nextBillingDate || subscription?.currentPeriodEnd || null;
   const nextBillingDate = normalizeDateStr(rawNextBilling);
 
-  // cancelAtPeriodEnd from either subscription or plan
   const cancelAtPeriodEnd =
     subscription?.cancelAtPeriodEnd ?? plan?.cancelAtPeriodEnd ?? false;
 
-  // subscriptionEndDate for canceled display
   const rawEndDate = plan?.subscriptionEndDate || null;
   const subscriptionEndDate = normalizeDateStr(rawEndDate);
 
-  // ─── Cancel handler ────────────────────────────────────────────────────────
-  const handleCancel = async () => {
-    if (!cancelConfirm) {
-      setCancelConfirm(true);
-      return;
-    }
+  // ─── Cancel handler - Open Modal ────────────────────────────────────────
+  const handleCancelClick = () => {
+    setShowCancelModal(true);
+  };
+
+  // ─── Cancel handler - Submit with Reason ─────────────────────────────────
+  const handleCancelSubmit = async (reason) => {
     try {
       setCancelLoading(true);
-      await cancelSubscription(false, "User requested cancellation");
-      setCancelConfirm(false);
+      await cancelSubscription(reason);
+      Toast.success("Subscription canceled successfully", 3000);
+      setShowCancelModal(false);
     } catch (err) {
       console.error("Cancel failed:", err);
+      Toast.error(
+        err?.response?.data?.message || "Failed to cancel subscription",
+        3000
+      );
     } finally {
       setCancelLoading(false);
     }
@@ -303,6 +500,11 @@ const BillingHistory = () => {
 
   const statusStyle = getStatusStyle(subStatus);
 
+  const planName = subscription?.planType
+    ? subscription.planType.charAt(0).toUpperCase() +
+      subscription.planType.slice(1)
+    : plan?.daily?.label || "Premium";
+
   if (billingLoading || subscriptionLoading || planLoading) {
     return (
       <PageLoader
@@ -316,8 +518,17 @@ const BillingHistory = () => {
 
   return (
     <div className="min-h-screen font-montserrat animate-slide-fade-in">
+      {/* Cancellation Modal */}
+      <CancellationModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onSubmit={handleCancelSubmit}
+        isLoading={cancelLoading}
+        planName={planName}
+      />
+
       {/* ── Header ────────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-10  mb-4">
+      <div className="sticky top-0 z-10 mb-4">
         <div className="max-w-full mx-auto">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -380,37 +591,22 @@ const BillingHistory = () => {
 
                 {/* Cancel Button */}
                 {canCancel && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {cancelConfirm && (
-                      <span className="text-xs text-red-600 font-medium">
-                        Are you sure?
-                      </span>
+                  <button
+                    onClick={handleCancelClick}
+                    disabled={cancelLoading}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold border-2 transition-all duration-200 ${
+                      cancelLoading
+                        ? "bg-slate-300 text-slate-600 border-slate-300 cursor-not-allowed"
+                        : "bg-white text-red-600 border-red-300 hover:border-red-600 hover:bg-red-50 active:scale-95"
+                    }`}
+                  >
+                    {cancelLoading ? (
+                      <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <XCircle className="w-4 h-4" />
                     )}
-                    <button
-                      onClick={handleCancel}
-                      disabled={cancelLoading}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all duration-200 ${
-                        cancelConfirm
-                          ? "bg-red-600 text-white border-red-600 hover:bg-red-700"
-                          : "bg-white text-red-600 border-red-300 hover:border-red-600 hover:bg-red-50"
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    >
-                      {cancelLoading ? (
-                        <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <XCircle className="w-4 h-4" />
-                      )}
-                      {cancelConfirm ? "Confirm" : "Cancel Plan"}
-                    </button>
-                    {cancelConfirm && (
-                      <button
-                        onClick={() => setCancelConfirm(false)}
-                        className="px-3 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
-                      >
-                        Keep
-                      </button>
-                    )}
-                  </div>
+                    Cancel Plan
+                  </button>
                 )}
               </div>
             </div>
@@ -440,11 +636,7 @@ const BillingHistory = () => {
                 {(subscription?.planType || plan?.daily) && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
                     <Crown className="w-4 h-4" />
-                    {subscription?.planType
-                      ? subscription.planType.charAt(0).toUpperCase() +
-                        subscription.planType.slice(1)
-                      : plan?.daily?.label || "Premium"}{" "}
-                    Plan
+                    {planName} Plan
                   </span>
                 )}
 
@@ -507,12 +699,7 @@ const BillingHistory = () => {
                       </p>
                     </div>
                     <p className="text-lg font-bold text-slate-900">
-                      {subscription?.planType
-                        ? subscription.planType.charAt(0).toUpperCase() +
-                          subscription.planType.slice(1)
-                        : plan?.daily?.label ||
-                          plan?.daily?.productName ||
-                          "Premium"}
+                      {planName}
                     </p>
                     {getPlanPriceLabel() && (
                       <p className="text-xs text-slate-500 mt-1">
