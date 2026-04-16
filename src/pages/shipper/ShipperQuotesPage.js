@@ -19,7 +19,7 @@ import {
 } from "react-icons/ri";
 import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
-import { toast } from "react-toastify"; // ✅ NEW
+import { toast } from "react-toastify";
 
 const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
@@ -52,7 +52,6 @@ const ShipperQuotesPage = () => {
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
-  // ✅ FIXED TOAST
   const showToast = (message, type = "info") => {
     toast[type](message);
   };

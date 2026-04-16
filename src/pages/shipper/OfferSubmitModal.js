@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 const OfferSubmitModal = ({ shipment, onClose }) => {
-  const { addQuote } = useShipperQuote();
+  const { addQuote, loading } = useShipperQuote();
   const { needsOnboarding } = useShipperPayments();
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [sigPad, setSigPad] = useState(null);
@@ -420,10 +420,10 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
               variant="primary"
               type="submit"
               fullWidth
-              disabled={needsOnboarding}
+              disabled={needsOnboarding || loading}
               className={`py-3 sm:py-3.5 font-semibold text-sm sm:text-base 
-                     ${needsOnboarding ? "opacity-50 cursor-not-allowed" : ""}
-                      `}
+    ${needsOnboarding || loading ? "opacity-50 cursor-not-allowed" : ""}
+  `}
               onClick={() => {
                 if (needsOnboarding) {
                   showToast(
@@ -438,7 +438,7 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
                   ?.dispatchEvent(new Event("submit", { bubbles: true }));
               }}
             >
-              {needsOnboarding ? "Verify Account to Continue" : "Submit Offer"}
+              {loading ? "Submitting..." : "Submit Offer"}
             </Button>
           </div>
         </div>
