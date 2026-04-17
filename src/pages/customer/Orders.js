@@ -751,7 +751,8 @@ const AllShipments = () => {
   const handleEditShipment = async () => {
     if (!selected) return;
     try {
-      await fetchShipmentById(selected._id);
+    const shipmentData=  await fetchShipmentById(selected._id);
+    console.log("this is the shipmentData",shipmentData)
       navigate(`/customer/new-shipment/${selected._id}`, {
         state: { editMode: true, shipment: selected },
       });

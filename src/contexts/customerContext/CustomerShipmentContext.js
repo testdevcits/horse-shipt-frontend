@@ -125,7 +125,41 @@ export const CustomerShipmentProvider = ({ children }) => {
       setLoading(false);
     }
   };
+  // =====================================================
+  // CREATE SHIPMENT
+  // =====================================================
+  const updateShipment = async (id, formData) => {
+    if (!token) return;
 
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await axios.put(
+        `${API_BASE_URL}/customer/shipments/${id}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (res.data.success) {
+        setShipments((prev) => [res.data.shipment, ...prev]);
+        return res.data.shipment;
+      } else {
+        setError(res.data.message || "Failed to create shipment");
+      }
+    } catch (err) {
+      console.error("Create shipment error:", err);
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
   // =====================================================
   // PUBLISH SHIPMENT
   // =====================================================
@@ -512,6 +546,7 @@ export const CustomerShipmentProvider = ({ children }) => {
     fetchShipments,
     fetchShipmentById,
     createShipment,
+    updateShipment,
     publishShipment,
     deleteShipment,
 

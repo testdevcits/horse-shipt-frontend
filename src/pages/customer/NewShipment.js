@@ -3,7 +3,7 @@
 // FINAL: Step 1 & 2 values with proper error handling for date ranges
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import Step1Pickup from "./steps/Step1Pickup";
 import Step2Delivery from "./steps/Step2Delivery";
@@ -47,9 +47,14 @@ const defaultHorse = {
 
 const NewShipment = () => {
   const navigate = useNavigate();
-  const { myHorses, getMyHorses, createHorse, createShipment } =
+  const { myHorses, getMyHorses, createHorse, createShipment, fetchShipmentById, updateShipment } =
     useCustomerShipments();
 
+  const location = useLocation();
+  const { id } = useParams();
+
+  const isEditMode = location.state?.editMode;
+  const shipmentDataFromState = location.state?.shipment;
   // ===== MAIN STATE =====
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -79,6 +84,103 @@ const NewShipment = () => {
   const [showDocWarning, setShowDocWarning] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
 
+  /* ==========================================
+       EFFECT: EDIT FORM 
+       ========================================== */
+  // useEffect(() => {
+  //   const loadData = async () => {
+  //     let data = shipmentDataFromState;
+
+  //     // If user refreshes page → state lost → fetch again
+  //     if (!data && id) {
+  //       data = await fetchShipmentById(id);
+  //     }
+
+  //     if (data) {
+  //       // Pickup
+  //       setPickupLocation(data.pickupLocation || "");
+  //       setPickupCoords({
+  //         lat: data.pickupLat,
+  //         lng: data.pickupLng,
+  //       });
+  //       setPickupTimeOption(data.pickupTimeOption || "on");
+  //       setPickupStartDate(data.pickupStartDate || "");
+  //       setPickupEndDate(data.pickupEndDate || "");
+
+  //       // Delivery
+  //       setDeliveryLocation(data.deliveryLocation || "");
+  //       setDeliveryCoords({
+  //         lat: data.deliveryLat,
+  //         lng: data.deliveryLng,
+  //       });
+  //       setDeliveryTimeOption(data.deliveryTimeOption || "on");
+  //       setDeliveryStartDate(data.deliveryStartDate || "");
+  //       setDeliveryEndDate(data.deliveryEndDate || "");
+
+  //       // Other
+  //       setNumberOfHorses(data.numberOfHorses || 1);
+  //       setAdditionalInfo(data.additionalInfo || "");
+  //       setRecipientEmail(data.recipientEmail || "");
+
+  //       // Horses
+  //       setHorses(data.horses || []);
+  //     }
+  //   };
+
+  //   if (isEditMode) {
+  //     loadData();
+  //   }
+  // }, [id]);
+  useEffect(() => {
+  const loadData = async () => {
+    let data = shipmentDataFromState;
+
+    if (!data && id) {
+      data = await fetchShipmentById(id);
+    }
+
+    if (data) {
+      setPickupLocation(data.pickupLocation || "");
+      setPickupCoords({
+        lat: data.pickupCoords?.latitude,
+        lng: data.pickupCoords?.longitude,
+      });
+
+      setPickupStartDate(
+        data.pickupDateRange?.start?.split("T")[0] || ""
+      );
+      setPickupEndDate(
+        data.pickupDateRange?.end?.split("T")[0] || ""
+      );
+
+      setDeliveryLocation(data.deliveryLocation || "");
+      setDeliveryCoords({
+        lat: data.deliveryCoords?.latitude,
+        lng: data.deliveryCoords?.longitude,
+      });
+
+      setDeliveryStartDate(
+        data.deliveryDateRange?.start?.split("T")[0] || ""
+      );
+      setDeliveryEndDate(
+        data.deliveryDateRange?.end?.split("T")[0] || ""
+      );
+
+      setNumberOfHorses(data.numberOfHorses || 1);
+      setAdditionalInfo(data.additionalInfo || "");
+      setRecipientEmail(data.recipientEmail || "");
+
+      setHorses(
+        (data.horses || []).map((h) => ({
+          ...h,
+          photo: h.photo?.url || null,
+        }))
+      );
+    }
+  };
+
+  if (isEditMode) loadData();
+}, [id]);
   // NEW: PROPER EDIT HANDLER
   const handleEditStep = (step, horseIdx = null) => {
     if (horseIdx !== null) {
@@ -370,7 +472,12 @@ const NewShipment = () => {
         }
       });
 
-      await createShipment(formData);
+      // await createShipment(formData);
+      if (isEditMode) {
+        await updateShipment(id, formData); // UPDATE API
+      } else {
+        await createShipment(formData); // CREATE API
+      }
       setIsModalOpen(true);
     } catch (error) {
       console.error("Shipment creation error:", error);
@@ -506,13 +613,12 @@ const NewShipment = () => {
               )}
               {index < steps.length && (
                 <div
-                  className={`absolute top-5 left-0 w-full h-2 rounded-full ${
-                    isCompleted
-                      ? "bg-[#BF9B53]"
-                      : isCurrent
+                  className={`absolute top-5 left-0 w-full h-2 rounded-full ${isCompleted
+                    ? "bg-[#BF9B53]"
+                    : isCurrent
                       ? "bg-[#4C3E21]"
                       : "bg-gray-300"
-                  }`}
+                    }`}
                   style={{ zIndex: 0 }}
                 />
               )}
@@ -548,11 +654,10 @@ const NewShipment = () => {
         <button
           onClick={handlePrevious}
           disabled={currentStep === 1}
-          className={`px-6 py-2 rounded-lg font-montserrat border transition-all ${
-            currentStep === 1
-              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-              : "bg-white text-gray-500 border-gray-300 hover:bg-[#BF9B53] hover:text-white"
-          }`}
+          className={`px-6 py-2 rounded-lg font-montserrat border transition-all ${currentStep === 1
+            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+            : "bg-white text-gray-500 border-gray-300 hover:bg-[#BF9B53] hover:text-white"
+            }`}
         >
           Previous
         </button>
