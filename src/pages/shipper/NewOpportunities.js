@@ -22,6 +22,7 @@ const NewOpportunities = () => {
     dropoffDistance: "",
     stallSize: "",
     minHorses: "",
+    rating: 3,
   });
 
   const {
@@ -97,6 +98,7 @@ const NewOpportunities = () => {
       dropoffDistance: "",
       stallSize: "",
       minHorses: "",
+      rating: 3,
     };
 
     setFilters(reset);
@@ -108,7 +110,9 @@ const NewOpportunities = () => {
     });
   };
 
-  const hasActiveFilters = Object.values(filters).some((v) => v !== "");
+  const hasActiveFilters = Object.entries(filters).some(([key, value]) =>
+    key === "rating" ? value !== 3 : value !== ""
+  );
 
   /* ================= CONDITIONS ================= */
   const noData = !loading && filteredShipments.length === 0;
@@ -184,7 +188,32 @@ const NewOpportunities = () => {
                 <option value="1/2 Box">1/2 Box</option>
                 <option value="Single">Single</option>
               </select>
+              <div className="col-span-2">
+                <label className="text-xs text-gray-500">
+                  Shipper Rating: {filters.rating}
+                </label>
 
+                <input
+                  type="range"
+                  min="1"
+                  max="5"
+                  step="1"
+                  name="rating"
+                  value={filters.rating}
+                  onChange={(e) =>
+                    setFilters({ ...filters, rating: Number(e.target.value) })
+                  }
+                  className="w-full accent-yellow-500 mt-1"
+                />
+
+                <div className="flex justify-between text-[10px] text-gray-400">
+                  <span>1</span>
+                  <span>2</span>
+                  <span>3</span>
+                  <span>4</span>
+                  <span>5</span>
+                </div>
+              </div>
               <button
                 onClick={applyFilters}
                 className="bg-system-primary text-white px-4 py-2 rounded-lg text-sm"
@@ -265,6 +294,33 @@ const NewOpportunities = () => {
                   <option value="1/2 Box">1/2 Box</option>
                   <option value="Single">Single</option>
                 </select>
+
+                <div className="col-span-2">
+                  <label className="text-xs text-gray-500">
+                    Shipper Rating: {filters.rating}
+                  </label>
+
+                  <input
+                    type="range"
+                    min="1"
+                    max="5"
+                    step="1"
+                    name="rating"
+                    value={filters.rating}
+                    onChange={(e) =>
+                      setFilters({ ...filters, rating: Number(e.target.value) })
+                    }
+                    className="w-full accent-yellow-500 mt-1"
+                  />
+
+                  <div className="flex justify-between text-[10px] text-gray-400">
+                    <span>1</span>
+                    <span>2</span>
+                    <span>3</span>
+                    <span>4</span>
+                    <span>5</span>
+                  </div>
+                </div>
                 <input
                   type="number"
                   name="minHorses"

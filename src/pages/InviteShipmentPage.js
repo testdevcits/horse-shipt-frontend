@@ -451,7 +451,7 @@ const InviteShipmentPage = () => {
                   </p>
                   <div className="flex items-center gap-2 text-sm text-gray-600 bg-blue-50 w-fit px-3 py-2 rounded-lg font-semibold">
                     <LuCalendar size={16} />
-                    {formatDate(shipment?.pickupDate)}
+                    {formatDate(shipment?.pickupDateRange.start)}
                   </div>
                 </div>
 
@@ -473,7 +473,7 @@ const InviteShipmentPage = () => {
                   </p>
                   <div className="flex items-center gap-2 text-sm text-gray-600 bg-green-50 w-fit px-3 py-2 rounded-lg font-semibold">
                     <LuCalendar size={16} />
-                    {formatDate(shipment?.deliveryDate)}
+                    {formatDate(shipment?.deliveryDateRange.end)}
                   </div>
                 </div>
               </div>
@@ -624,10 +624,11 @@ const InviteShipmentPage = () => {
                   Timeline
                 </p>
                 <p className="text-2xl font-black text-blue-900">
-                  {shipment?.pickupDate && shipment?.deliveryDate
+                  {shipment?.pickupDateRange?.start &&
+                  shipment?.deliveryDateRange?.end
                     ? Math.ceil(
-                        (new Date(shipment.deliveryDate) -
-                          new Date(shipment.pickupDate)) /
+                        (new Date(shipment.deliveryDateRange.end) -
+                          new Date(shipment.pickupDateRange.start)) /
                           (1000 * 60 * 60 * 24)
                       )
                     : "N/A"}{" "}
