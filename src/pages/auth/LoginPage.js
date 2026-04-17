@@ -8,6 +8,7 @@ import Toast from "../../components/common/Toast";
 import loginBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
 import loginLogo from "../../assets/images/loginLogo.png";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
@@ -17,6 +18,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const initialValues = { email: "", password: "", role: "" };
 
@@ -169,12 +171,26 @@ const LoginPage = () => {
                     <label className="text-xs font-medium text-gray-700">
                       Password
                     </label>
-                    <Field
-                      name="password"
-                      type="password"
-                      placeholder="Enter your password"
-                      className="w-full border rounded p-2 text-xs mt-1"
-                    />
+                    <div className="relative">
+                      <Field
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        className="w-full border rounded p-2 text-xs mt-1 pr-8"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                      >
+                        {showPassword ? (
+                          <FiEyeOff size={16} />
+                        ) : (
+                          <FiEye size={16} />
+                        )}
+                      </button>
+                    </div>
                     <ErrorMessage
                       name="password"
                       component="div"
@@ -192,10 +208,10 @@ const LoginPage = () => {
                       <button
                         key={r}
                         type="button"
-                        className={`flex-1 py-1 text-xs font-medium rounded ${
+                        className={`flex-1 py-1  text-xs font-medium rounded ${
                           values.role === r
                             ? "bg-[#BF9B53] text-white"
-                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                            : "bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-500"
                         }`}
                         onClick={() => setFieldValue("role", r)}
                       >

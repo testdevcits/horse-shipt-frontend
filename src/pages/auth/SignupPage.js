@@ -8,6 +8,7 @@ import signupBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../contexts/AuthContext";
 import loginLogo from "../../assets/images/loginLogo.png";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
@@ -17,7 +18,11 @@ const SignupPage = () => {
   const location = useLocation();
   const { signup, oauthLogin, oauthError } = useAuth();
 
-  const [toast, setToast] = useState(null);
+  const [showPassword, setShowPassword] = useState({
+    password: false,
+    confirmPassword: false,
+  });
+
   const [loading, setLoading] = useState(false);
 
   const initialValues = {
@@ -46,19 +51,17 @@ const SignupPage = () => {
       .required("Please select a role"),
   });
 
-  // ----------------- Handle OAuth redirect -----------------
+  // ----------------- OAuth -----------------
   useEffect(() => {
     const params = new URLSearchParams(location.search);
 
-    // Backend returned error
     const error = params.get("error");
     if (error) {
-      setToast({ message: decodeURIComponent(error), type: "error" });
+      Toast.error(decodeURIComponent(error));
       navigate(location.pathname, { replace: true });
       return;
     }
 
-    // OAuth success
     const token = params.get("token");
     if (token) {
       const userData = {
@@ -82,21 +85,27 @@ const SignupPage = () => {
     }
 
     if (oauthError) {
-      setToast({ message: oauthError, type: "error" });
+      Toast.error(oauthError);
       navigate(location.pathname, { replace: true });
     }
   }, [location.search, oauthError, oauthLogin, navigate, location.pathname]);
 
+  // ----------------- Signup -----------------
   const handleSignup = async (values, { setSubmitting, resetForm }) => {
     setLoading(true);
+
     try {
       const res = await signup({ ...values, action: "signup" });
 
       if (res.success) {
         resetForm();
+
+        Toast.success("Signup successful");
+
         oauthLogin(
           res.data.token ? { token: res.data.token, ...res.data } : res.data
         );
+
         navigate(
           res.data.role === "shipper"
             ? "/shipper/dashboard"
@@ -104,34 +113,27 @@ const SignupPage = () => {
           { replace: true }
         );
       } else {
-        setToast({
-          message: res.errors?.join(", ") || "Signup failed",
-          type: "error",
-        });
+        Toast.error(res.errors?.join(", ") || "Signup failed");
       }
     } catch (err) {
-      setToast({
-        message:
-          err.response?.data?.errors?.[0] ||
+      Toast.error(
+        err.response?.data?.errors?.[0] ||
           err.response?.data?.message ||
-          "Signup error",
-        type: "error",
-      });
+          "Signup error"
+      );
     } finally {
       setLoading(false);
       setSubmitting(false);
     }
   };
 
-  // ----------------- Google OAuth signup -----------------
+  // ----------------- Google Signup -----------------
   const handleGoogleSignup = (role) => {
     if (!role) {
-      setToast({
-        message: "Please select a role before Google signup.",
-        type: "error",
-      });
+      Toast.error("Please select a role before Google signup.");
       return;
     }
+
     window.location.href = `${API_BASE_URL}/auth/google?role=${encodeURIComponent(
       role
     )}&action=signup`;
@@ -143,14 +145,17 @@ const SignupPage = () => {
       style={{ backgroundImage: `url(${signupBg})` }}
     >
       <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-20">
+        {/* Logo */}
         <div className="flex items-center justify-center w-full md:w-[1168px] h-[64px] gap-4 opacity-100">
           <img src={loginLogo} alt="Logo" className="h-full object-contain" />
         </div>
 
+        {/* Form */}
         <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 md:p-8 shadow-md flex flex-col justify-center w-full max-w-sm gap-4">
           <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
             Create Account
           </h1>
+
           <p className="text-xs text-gray-600">
             Already have an account?{" "}
             <span
@@ -165,45 +170,129 @@ const SignupPage = () => {
             initialValues={initialValues}
             validationSchema={validationSchema}
             onSubmit={handleSignup}
-            validateOnChange
-            validateOnBlur
             validateOnMount
           >
             {({ values, setFieldValue, isValid, isSubmitting }) => {
               const canSubmit =
                 isValid && values.role && !isSubmitting && !loading;
+
               return (
                 <Form className="flex flex-col gap-3">
-                  {["name", "email", "password", "confirmPassword"].map(
-                    (field) => (
-                      <div key={field}>
-                        <label className="text-xs font-medium text-gray-700">
-                          {field === "confirmPassword"
-                            ? "Confirm Password"
-                            : field.charAt(0).toUpperCase() + field.slice(1)}
-                        </label>
-                        <Field
-                          name={field}
-                          type={
-                            field.toLowerCase().includes("password")
-                              ? "password"
-                              : "text"
-                          }
-                          placeholder={`Enter your ${field}`}
-                          className="w-full border rounded p-2 text-xs mt-1"
-                        />
-                        <ErrorMessage
-                          name={field}
-                          component="div"
-                          className="text-xs text-red-500"
-                        />
-                      </div>
-                    )
-                  )}
+                  {/* Name */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">
+                      Name
+                    </label>
+                    <Field
+                      name="name"
+                      type="text"
+                      placeholder="Enter your name"
+                      className="w-full border rounded p-2 text-xs mt-1"
+                    />
+                    <ErrorMessage
+                      name="name"
+                      component="div"
+                      className="text-xs text-red-500"
+                    />
+                  </div>
 
+                  {/* Email */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">
+                      Email
+                    </label>
+                    <Field
+                      name="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      className="w-full border rounded p-2 text-xs mt-1"
+                    />
+                    <ErrorMessage
+                      name="email"
+                      component="div"
+                      className="text-xs text-red-500"
+                    />
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Field
+                        name="password"
+                        type={showPassword.password ? "text" : "password"}
+                        placeholder="Enter your password"
+                        className="w-full border rounded p-2 text-xs mt-1 pr-8"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowPassword((prev) => ({
+                            ...prev,
+                            password: !prev.password,
+                          }))
+                        }
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                      >
+                        {showPassword.password ? (
+                          <FiEyeOff size={16} />
+                        ) : (
+                          <FiEye size={16} />
+                        )}
+                      </button>
+                    </div>
+                    <ErrorMessage
+                      name="password"
+                      component="div"
+                      className="text-xs text-red-500"
+                    />
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-700">
+                      Confirm Password
+                    </label>
+                    <div className="relative">
+                      <Field
+                        name="confirmPassword"
+                        type={
+                          showPassword.confirmPassword ? "text" : "password"
+                        }
+                        placeholder="Confirm your password"
+                        className="w-full border rounded p-2 text-xs mt-1 pr-8"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowPassword((prev) => ({
+                            ...prev,
+                            confirmPassword: !prev.confirmPassword,
+                          }))
+                        }
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                      >
+                        {showPassword.confirmPassword ? (
+                          <FiEyeOff size={16} />
+                        ) : (
+                          <FiEye size={16} />
+                        )}
+                      </button>
+                    </div>
+                    <ErrorMessage
+                      name="confirmPassword"
+                      component="div"
+                      className="text-xs text-red-500"
+                    />
+                  </div>
+
+                  {/* Role */}
                   <p className="text-xs font-medium text-gray-700 mt-1">
                     Select your role:
                   </p>
+
                   <div className="flex gap-2">
                     {["shipper", "customer"].map((r) => (
                       <button
@@ -212,51 +301,41 @@ const SignupPage = () => {
                         className={`flex-1 py-1 text-xs font-medium rounded ${
                           values.role === r
                             ? "bg-[#BF9B53] text-white"
-                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                            : "bg-gray-200 text-gray-700 border border-gray-500"
                         }`}
-                        onClick={() => setFieldValue("role", r, true)}
+                        onClick={() => setFieldValue("role", r)}
                       >
                         {r.charAt(0).toUpperCase() + r.slice(1)}
                       </button>
                     ))}
                   </div>
+
                   <ErrorMessage
                     name="role"
                     component="div"
                     className="text-xs text-red-500"
                   />
 
-                  <div className="flex justify-end mt-2">
-                    <Button type="submit" disabled={!canSubmit}>
-                      {loading ? "Signing up..." : "Signup"}
-                    </Button>
-                  </div>
+                  {/* Submit */}
+                  <Button type="submit" disabled={!canSubmit}>
+                    {loading ? "Signing up..." : "Signup"}
+                  </Button>
 
-                  <div className="flex flex-col gap-2 mt-4">
-                    <Button
-                      type="button"
-                      fullWidth
-                      disabled={!values.role}
-                      onClick={() => handleGoogleSignup(values.role)}
-                      className="flex items-center justify-center border border-gray-300 text-black gap-2 rounded-full text-xs py-1.5"
-                    >
-                      <FcGoogle size={16} /> Continue with Google
-                    </Button>
-                  </div>
+                  {/* Google */}
+                  <Button
+                    type="button"
+                    disabled={!values.role}
+                    onClick={() => handleGoogleSignup(values.role)}
+                    className="flex items-center justify-center gap-2 border border-gray-300 text-black rounded-full text-xs py-1.5"
+                  >
+                    <FcGoogle size={16} /> Continue with Google
+                  </Button>
                 </Form>
               );
             }}
           </Formik>
         </div>
       </div>
-
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
     </div>
   );
 };

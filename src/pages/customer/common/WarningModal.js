@@ -33,16 +33,9 @@ const Modal = ({
             {icons[type]}
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 mt-1">
             <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
           </div>
-
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-[#BF9B53] text-2xl"
-          >
-            ×
-          </button>
         </div>
 
         <div className="h-[1px] bg-[#BF9B53] mb-4" />

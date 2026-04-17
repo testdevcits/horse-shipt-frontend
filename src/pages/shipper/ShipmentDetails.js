@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { validateShipmentQueryToken } from "../../utils/createQueryToken";
 import { SlLocationPin } from "react-icons/sl";
 import { LuCalendarDays, LuChevronLeft, LuChevronRight } from "react-icons/lu";
-import { FiChevronDown, FiChevronUp, FiMail } from "react-icons/fi";
+import { FiChevronDown, FiChevronUp, FiMail, FiFileText } from "react-icons/fi";
 import { MdChat, MdHelpOutline } from "react-icons/md";
 import { BiMapPin, BiRocket } from "react-icons/bi";
 import { useShipperShipment } from "../../contexts/shipperContext/ShipperShipmentContext";
@@ -21,6 +21,60 @@ import { Clock, AlertTriangle } from "lucide-react";
  * ============================================================
  */
 
+// ── Fallback SVG shown when a horse photo fails to load ──────────────────────
+const HorseFallback = () => (
+  <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-yellow-50 to-yellow-100 text-yellow-600">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-16 h-16 mb-2 opacity-50"
+      viewBox="0 0 64 64"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <ellipse cx="32" cy="38" rx="18" ry="14" />
+      <path d="M14 38 Q10 28 16 20 Q22 12 30 14 L34 14 Q42 12 46 20 Q50 28 50 38" />
+      <path d="M30 14 Q28 8 24 6" />
+      <path d="M34 14 Q36 8 40 6" />
+      <circle cx="22" cy="24" r="2" fill="currentColor" />
+      <path d="M50 38 Q56 40 58 48 L50 46" />
+      <path d="M14 38 Q8 40 6 48 L14 46" />
+    </svg>
+    <p className="text-xs font-bold text-yellow-500 uppercase tracking-wide">
+      No Photo
+    </p>
+  </div>
+);
+
+// ── Small thumbnail fallback ──────────────────────────────────────────────────
+const ThumbFallback = () => (
+  <div className="w-full h-full flex items-center justify-center bg-yellow-50 text-yellow-400">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-8 h-8 opacity-60"
+      viewBox="0 0 64 64"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <ellipse cx="32" cy="38" rx="18" ry="14" />
+      <path d="M14 38 Q10 28 16 20 Q22 12 30 14 L34 14 Q42 12 46 20 Q50 28 50 38" />
+    </svg>
+  </div>
+);
+
+// ── Document icon map ─────────────────────────────────────────────────────────
+const DOC_COLORS = {
+  coggins: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100",
+  healthCertificate:
+    "bg-green-50 border-green-200 text-green-700 hover:bg-green-100",
+  other: "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100",
+};
+
 const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const { id: paramId } = useParams();
   const [searchParams] = useSearchParams();
@@ -37,15 +91,16 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const [expandedHorse, setExpandedHorse] = useState(null);
   const [horseImageIndex, setHorseImageIndex] = useState({});
 
-  // ============ TIMER STATE ============
+  // ── Document viewer state ──────────────────────────────────────────────────
+  const [viewingDoc, setViewingDoc] = useState(null); // { url, label }
+
+  // ── Timer state ───────────────────────────────────────────────────────────
   const [timeLeft, setTimeLeft] = useState(null);
   const [isExpired, setIsExpired] = useState(false);
 
   const idToUse = shipmentIdFromQuery || paramId || defaultId;
 
-  /**
-   * ================= VALIDATION & TIMEOUT =================
-   */
+  // ── Validation & countdown ────────────────────────────────────────────────
   useEffect(() => {
     if (!validateShipmentQueryToken(tokenFromQuery, idToUse)) {
       navigate("/shipper/dashboard", { replace: true });
@@ -59,7 +114,6 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       if (remaining > 0) {
         setTimeLeft(remaining);
 
-        // Update timer every second
         const timerInterval = setInterval(() => {
           setTimeLeft((prev) => {
             if (prev <= 1000) {
@@ -79,42 +133,30 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         setIsExpired(true);
         navigate("/shipper/dashboard", { replace: true });
       }
-    } catch (error) {
+    } catch {
       navigate("/shipper/dashboard", { replace: true });
     }
   }, [tokenFromQuery, idToUse, navigate]);
 
-  /**
-   * ================= FETCH SHIPMENTS =================
-   */
+  // ── Fetch shipments ───────────────────────────────────────────────────────
   useEffect(() => {
     if (!shipments.length) getAvailableShipments();
   }, [shipments.length, getAvailableShipments]);
 
-  /**
-   * ================= FIND SHIPMENT =================
-   */
+  // ── Find shipment ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!idToUse || !shipments.length) return;
-    const foundShipment = shipments.find(
-      (s) => String(s._id) === String(idToUse)
-    );
-    setShipment(foundShipment || null);
-    if (foundShipment) {
-      setExpandedHorse(0);
-    }
+    const found = shipments.find((s) => String(s._id) === String(idToUse));
+    setShipment(found || null);
+    if (found) setExpandedHorse(0);
   }, [idToUse, shipments]);
 
-  /**
-   * ================= FORMAT TIME =================
-   */
+  // ── Timer helpers ─────────────────────────────────────────────────────────
   const formatTimeRemaining = (ms) => {
     const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
     return {
-      minutes,
-      seconds,
+      minutes: Math.floor(totalSeconds / 60),
+      seconds: totalSeconds % 60,
       totalSeconds,
     };
   };
@@ -122,91 +164,69 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const timeData = timeLeft ? formatTimeRemaining(timeLeft) : null;
   const progressPercent = timeLeft ? (timeLeft / (5 * 60 * 1000)) * 100 : 0;
 
-  /**
-   * ================= IMAGE CAROUSEL HANDLERS =================
-   */
-  const getHorseImages = (horseId) => {
+  // ── Horse PHOTO-only images (no documents) ────────────────────────────────
+  const getHorsePhotos = (horseId) => {
     if (!shipment) return [];
     const horse = shipment.horses.find((h) => h._id === horseId);
-    const images = [];
+    if (!horse?.photo?.url) return [];
+    return [{ url: horse.photo.url, label: "Main Photo" }];
+  };
 
-    if (horse?.photo?.url) {
-      images.push({
-        url: horse.photo.url,
-        type: "Main Photo",
-      });
-    }
-
-    if (horse?.documents?.coggins?.url) {
-      images.push({
+  // ── Horse documents (coggins, healthCert, other) ──────────────────────────
+  const getHorseDocs = (horseId) => {
+    if (!shipment) return [];
+    const horse = shipment.horses.find((h) => h._id === horseId);
+    if (!horse) return [];
+    const docs = [];
+    if (horse.documents?.coggins?.url)
+      docs.push({
+        key: "coggins",
+        label: "Coggins",
         url: horse.documents.coggins.url,
-        type: "Coggins",
       });
-    }
-
-    if (horse?.documents?.healthCertificate?.url) {
-      images.push({
+    if (horse.documents?.healthCertificate?.url)
+      docs.push({
+        key: "healthCertificate",
+        label: "Health Certificate",
         url: horse.documents.healthCertificate.url,
-        type: "Health Cert",
       });
-    }
-
-    if (horse?.documents?.other?.url) {
-      images.push({
+    if (horse.documents?.other?.url)
+      docs.push({
+        key: "other",
+        label: "Other Document",
         url: horse.documents.other.url,
-        type: "Other Docs",
       });
-    }
-
-    return images.length > 0
-      ? images
-      : [
-          {
-            url: "https://via.placeholder.com/400?text=No+Images",
-            type: "Placeholder",
-          },
-        ];
+    return docs;
   };
 
-  const currentImages =
-    expandedHorse !== null
-      ? getHorseImages(shipment?.horses[expandedHorse]?._id)
-      : [];
-  const currentImageIndex = horseImageIndex[expandedHorse] || 0;
-
-  const handleNextImage = (e, index, imagesLength) => {
+  const handleNextImage = (e, index, len) => {
     e.stopPropagation();
     setHorseImageIndex((prev) => ({
       ...prev,
-      [index]: ((prev[index] || 0) + 1) % imagesLength,
+      [index]: ((prev[index] || 0) + 1) % len,
     }));
   };
 
-  const handlePrevImage = (e, index, imagesLength) => {
+  const handlePrevImage = (e, index, len) => {
     e.stopPropagation();
     setHorseImageIndex((prev) => ({
       ...prev,
-      [index]: ((prev[index] || 0) - 1 + imagesLength) % imagesLength,
+      [index]: ((prev[index] || 0) - 1 + len) % len,
     }));
   };
 
-  /**
-   * ================= FORMAT DATE =================
-   */
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+  // ── Date formatter ────────────────────────────────────────────────────────
+  const formatDate = (dateString) =>
+    new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
-  };
 
-  /**
-   * ================= LOADING STATE =================
-   */
+  // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="flex items-center font-montserrat justify-center h-screen ">
+      <div className="flex items-center font-montserrat justify-center h-screen">
         <div className="text-center">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] flex items-center justify-center">
             <div className="text-4xl animate-bounce">🏇</div>
@@ -222,9 +242,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
     );
   }
 
-  /**
-   * ================= NOT FOUND STATE =================
-   */
+  // ── Not found ─────────────────────────────────────────────────────────────
   if (!shipment) {
     return (
       <div className="flex items-center justify-center mt-20 font-montserrat">
@@ -246,14 +264,88 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
     );
   }
 
-  /**
-   * ================= RENDER =================
-   */
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="font-montserrat w-full min-h-screen">
-      {/* ===================== COUNTDOWN TIMER BAR ===================== */}
+      {/* ── DOCUMENT VIEWER MODAL ───────────────────────────────────────────── */}
+      {viewingDoc && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setViewingDoc(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center gap-3">
+                <FiFileText className="text-[#BF9B53]" size={22} />
+                <h3 className="text-lg font-black text-gray-900">
+                  {viewingDoc.label}
+                </h3>
+              </div>
+              <button
+                onClick={() => setViewingDoc(null)}
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-lg transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Document Content */}
+            <div className="flex-1 overflow-auto bg-gray-100 flex items-center justify-center min-h-[60vh]">
+              {viewingDoc.url.toLowerCase().endsWith(".pdf") ? (
+                <iframe
+                  src={viewingDoc.url}
+                  title={viewingDoc.label}
+                  className="w-full h-full min-h-[60vh]"
+                  style={{ border: "none" }}
+                />
+              ) : (
+                <img
+                  src={viewingDoc.url}
+                  alt={viewingDoc.label}
+                  className="max-w-full max-h-[70vh] object-contain rounded-lg shadow"
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "flex";
+                  }}
+                />
+              )}
+              {/* Error fallback inside modal */}
+              <div className="hidden w-full h-64 items-center justify-center flex-col text-gray-400 gap-3">
+                <FiFileText size={48} className="opacity-30" />
+                <p className="font-semibold text-sm">Could not load document</p>
+                <a
+                  href={viewingDoc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#BF9B53] underline text-sm font-bold"
+                >
+                  Open in new tab
+                </a>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 flex justify-end">
+              <a
+                href={viewingDoc.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-bold text-[#BF9B53] hover:underline"
+              >
+                Open in new tab ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── COUNTDOWN TIMER BAR ─────────────────────────────────────────────── */}
       {timeLeft !== null && !isExpired && (
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-gray-500 via-gray-500 to-gray-500  shadow-lg">
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-gray-500 via-gray-500 to-gray-500 shadow-lg">
           <div className="w-full h-2 bg-white">
             <div
               className="h-full bg-[#BF9B53] rounded-r backdrop-blur-sm transition-all duration-1000 ease-linear"
@@ -263,7 +355,6 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
           <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-4 py-2 sm:py-2">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-              {/* Left: Timer Display */}
               <div className="flex items-center gap-3 flex-1">
                 <div className="p-2 bg-white/20 backdrop-blur rounded-lg flex-shrink-0">
                   <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
@@ -284,7 +375,6 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 </div>
               </div>
 
-              {/* Right: Status Message */}
               <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/15 backdrop-blur rounded-lg border border-white/20 flex-shrink-0">
                 <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" />
                 <p className="text-xs sm:text-sm text-white font-semibold">
@@ -295,7 +385,6 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
               </div>
             </div>
 
-            {/* Warning Message for Low Time */}
             {timeData.totalSeconds < 60 && (
               <div className="mt-2 p-1 bg-[#BF9B53] rounded-md border border-[#BF9B53]">
                 <p className="text-xs sm:text-sm text-white font-semibold">
@@ -308,11 +397,10 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         </div>
       )}
 
-      {/* ===================== EXPIRED STATE ===================== */}
+      {/* ── EXPIRED OVERLAY ─────────────────────────────────────────────────── */}
       {isExpired && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 text-center space-y-4">
-            <div className="text-6xl mb-4"></div>
             <h2 className="text-2xl sm:text-3xl font-black text-gray-900">
               Session Expired
             </h2>
@@ -321,13 +409,13 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
               dashboard.
             </p>
             <div className="flex gap-2 justify-center">
-              <div className="animate-spin w-2 h-2 bg-[#BF9B53] rounded-full" />
+              <div className="animate-bounce w-2 h-2 bg-[#BF9B53] rounded-full" />
               <div
-                className="animate-spin w-2 h-2 bg-[#BF9B53] rounded-full"
+                className="animate-bounce w-2 h-2 bg-[#BF9B53] rounded-full"
                 style={{ animationDelay: "0.2s" }}
               />
               <div
-                className="animate-spin w-2 h-2 bg-[#BF9B53] rounded-full"
+                className="animate-bounce w-2 h-2 bg-[#BF9B53] rounded-full"
                 style={{ animationDelay: "0.4s" }}
               />
             </div>
@@ -335,7 +423,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         </div>
       )}
 
-      {/* ===================== HEADER SECTION ===================== */}
+      {/* ── HEADER ──────────────────────────────────────────────────────────── */}
       <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
         <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-4 py-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -365,43 +453,48 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         </div>
       </div>
 
-      {/* ===================== MAIN CONTENT ===================== */}
-      <div className="max-w-full mx-auto mt-8 space-y-8 ">
-        {/* ===================== HERO SECTION - ROUTE ===================== */}
+      {/* ── MAIN CONTENT ────────────────────────────────────────────────────── */}
+      <div className="max-w-full mx-auto mt-8 space-y-8">
+        {/* ── HERO SECTION ───────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LEFT: Horse Carousel */}
+          {/* LEFT: First horse photo + map */}
           <div className="lg:col-span-1">
-            <div className="relative overflow-hidden rounded-md border-2 border-yellow-200 shadow-xl bg-white group">
-              <img
-                src={
-                  shipment.horses[0]?.photo?.url ||
-                  "https://via.placeholder.com/400?text=Horse"
-                }
-                alt={shipment.horses[0]?.registeredName}
-                className="w-full h-[340px] sm:h-[400px] object-cover group-hover:scale-105 transition-transform duration-500"
-                onError={(e) => {
-                  e.target.src =
-                    "https://via.placeholder.com/400?text=Horse+Image";
+            <div className="relative overflow-hidden rounded-md border-2 border-[#BF9B53] shadow-xl bg-white group h-[340px] sm:h-[400px]">
+              {shipment.horses[0]?.photo?.url ? (
+                <img
+                  src={shipment.horses[0].photo.url}
+                  alt={shipment.horses[0]?.registeredName}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "flex";
+                  }}
+                />
+              ) : null}
+              {/* Fallback */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  display: shipment.horses[0]?.photo?.url ? "none" : "flex",
                 }}
-              />
+              >
+                <HorseFallback />
+              </div>
 
-              {/* Badge */}
               <div className="absolute top-4 left-4 bg-white/95 backdrop-blur px-4 py-2 rounded-full text-sm font-bold text-gray-900 shadow-md">
                 Horse 1 of {shipment.numberOfHorses}
               </div>
-
-              {/* Status Badge */}
               <div className="absolute bottom-4 left-4 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-4 py-2 rounded-full text-xs font-bold uppercase shadow-md">
                 {shipment.status?.replace("_", " ")}
               </div>
             </div>
-            {/* ================= MAP VIEW ================= */}
+
+            {/* Route Map */}
             <div className="mt-6">
               <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-3">
                 Route Map
               </p>
-
-              <div className="w-full rounded-md overflow-hidden border-2 border-yellow-200">
+              <div className="w-full rounded-md overflow-hidden border-2 border-[#BF9B53]">
                 <RouteMap
                   pickup={shipment.pickupLocation}
                   delivery={shipment.deliveryLocation}
@@ -410,10 +503,10 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
             </div>
           </div>
 
-          {/* MIDDLE & RIGHT: Route & Info */}
+          {/* MIDDLE & RIGHT */}
           <div className="lg:col-span-2 flex flex-col gap-6">
-            {/* ===================== ROUTE CARD ===================== */}
-            <div className="bg-white rounded-md border-2 border-yellow-200 p-4 sm:p-6 shadow-md hover:shadow-xl transition-shadow duration-300">
+            {/* Route Card */}
+            <div className="bg-white rounded-md border-2 border-[#BF9B53] p-4 sm:p-6 shadow-md hover:shadow-xl transition-shadow duration-300">
               <h2 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-2">
                 <BiMapPin className="text-[#BF9B53]" size={28} />
                 Route Information
@@ -423,8 +516,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 {/* Pickup */}
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-14 h-14 rounded-md bg-gradient-to-br from-yellow-100 to-yellow-200 border-2 border-yellow-300">
-                      <SlLocationPin size={24} className="text-yellow-600" />
+                    <div className="flex items-center justify-center w-14 h-14 rounded-md bg-gray-100 border-2 border-[#BF9B53]">
+                      <SlLocationPin size={24} className="text-[#BF9B53]" />
                     </div>
                   </div>
                   <div className="flex-1">
@@ -436,7 +529,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                     </p>
                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 bg-blue-50 w-fit px-3 py-2 rounded-lg">
                       <LuCalendarDays size={16} />
-                      {formatDate(shipment.pickupDateRange.start)} -{" "}
+                      {formatDate(shipment.pickupDateRange.start)} –{" "}
                       {formatDate(shipment.pickupDateRange.end)}
                     </div>
                   </div>
@@ -450,8 +543,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 {/* Delivery */}
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-14 h-14 rounded-md bg-gradient-to-br from-yellow-100 to-yellow-200 border-2 border-yellow-300">
-                      <BiRocket size={24} className="text-yellow-600" />
+                    <div className="flex items-center justify-center w-14 h-14 rounded-md bg-gray-100 border-2 border-[#BF9B53]">
+                      <BiRocket size={24} className="text-[#BF9B53]" />
                     </div>
                   </div>
                   <div className="flex-1">
@@ -463,14 +556,14 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                     </p>
                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 bg-green-50 w-fit px-3 py-2 rounded-lg">
                       <LuCalendarDays size={16} />
-                      {formatDate(shipment.deliveryDateRange.start)} -{" "}
+                      {formatDate(shipment.deliveryDateRange.start)} –{" "}
                       {formatDate(shipment.deliveryDateRange.end)}
                     </div>
                   </div>
                 </div>
 
                 {/* Distance */}
-                <div className="pt-6 border-t-2 border-yellow-200 mt-4">
+                <div className="pt-6 border-t-2 border-[#BF9B53] mt-4">
                   <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-3">
                     Total Distance
                   </p>
@@ -493,10 +586,9 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
               </div>
             </div>
 
-            {/* ===================== CUSTOMER & STATS GRID ===================== */}
+            {/* Customer & Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Customer Info */}
-              <div className="bg-white rounded-md border-2 border-yellow-200 p-6 shadow-md hover:shadow-lg transition-all duration-300">
+              <div className="bg-white rounded-md border-2 border-[#BF9B53] p-6 shadow-md hover:shadow-lg transition-all duration-300">
                 <h3 className="text-sm font-black text-gray-500 uppercase tracking-wider mb-4">
                   Customer Info
                 </h3>
@@ -518,18 +610,17 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 </div>
               </div>
 
-              {/* Stats */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-md border-2 border-yellow-200 p-4 shadow-md">
-                  <p className="text-xs font-black text-yellow-600 uppercase mb-2">
+                <div className="bg-white rounded-md border-2 border-[#BF9B53] p-4 shadow-md">
+                  <p className="text-xs font-black text-[#BF9B53] uppercase mb-2">
                     Horses
                   </p>
                   <p className="text-4xl font-black text-gray-700">
                     {shipment.numberOfHorses}
                   </p>
                 </div>
-                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-md border-2 border-yellow-200 p-4 shadow-md">
-                  <p className="text-xs font-black text-yellow-600 uppercase mb-2">
+                <div className="bg-white rounded-md border-2 border-[#BF9B53] p-4 shadow-md">
+                  <p className="text-xs font-black text-[#BF9B53] uppercase mb-2">
                     Status
                   </p>
                   <p className="text-xs font-bold text-orange-900 capitalize">
@@ -541,7 +632,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
           </div>
         </div>
 
-        {/* ===================== HORSES DETAILS ACCORDION ===================== */}
+        {/* ── HORSES DETAILS ACCORDION ────────────────────────────────────────── */}
         <div className="bg-white rounded-md border-2 border-gray-200 shadow-md overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent p-6 sm:p-4 border-b-2 border-gray-200">
@@ -555,224 +646,232 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
           {/* Horses List */}
           <div className="divide-y-2 divide-gray-200">
-            {shipment.horses.map((horse, index) => (
-              <div key={horse._id} className="overflow-hidden">
-                {/* Horse Header - Always Visible */}
-                <div
-                  onClick={() =>
-                    setExpandedHorse(expandedHorse === index ? null : index)
-                  }
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-4 bg-gray-50 hover:bg-[#BF9B53]/5 cursor-pointer transition-all duration-300 group"
-                >
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border-2 border-gray-200 group-hover:border-[#BF9B53] transition-colors shadow-md">
-                      <img
-                        src={
-                          horse.photo?.url || "https://via.placeholder.com/80"
-                        }
-                        alt={horse.registeredName}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        onError={(e) => {
-                          e.target.src =
-                            "https://via.placeholder.com/80?text=Horse";
-                        }}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-900">
-                        {horse.registeredName}
-                      </h3>
-                      <p className="text-sm text-gray-600 font-semibold">
-                        Barn Name:{" "}
-                        <span className="text-gray-900">{horse.barnName}</span>
-                      </p>
-                      <div className="flex gap-2 mt-2 flex-wrap">
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-bold">
-                          {horse.breed}
-                        </span>
-                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-lg font-bold">
-                          {horse.sex}
-                        </span>
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg font-bold">
-                          Age: {horse.age}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  {expandedHorse === index ? (
-                    <FiChevronUp
-                      size={24}
-                      className="text-[#BF9B53] flex-shrink-0"
-                    />
-                  ) : (
-                    <FiChevronDown
-                      size={24}
-                      className="text-gray-400 flex-shrink-0"
-                    />
-                  )}
-                </div>
+            {shipment.horses.map((horse, index) => {
+              const photos = getHorsePhotos(horse._id);
+              const docs = getHorseDocs(horse._id);
+              const imgIdx = horseImageIndex[index] || 0;
 
-                {/* Horse Details - Expandable */}
-                {expandedHorse === index && (
-                  <div className="p-6 sm:p-4 bg-white space-y-8">
-                    {/* Image Carousel */}
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-black text-gray-500 uppercase tracking-wider">
-                        Photos & Documents
-                      </h4>
-                      {currentImages.length > 0 ? (
-                        <div className="relative overflow-hidden rounded-2xl border-2 border-gray-200 bg-gray-100">
+              return (
+                <div key={horse._id} className="overflow-hidden">
+                  {/* Horse Header */}
+                  <div
+                    onClick={() =>
+                      setExpandedHorse(expandedHorse === index ? null : index)
+                    }
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-4 bg-gray-50 hover:bg-[#BF9B53]/5 cursor-pointer transition-all duration-300 group"
+                  >
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      {/* Thumbnail */}
+                      <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border-2 border-gray-200 group-hover:border-[#BF9B53] transition-colors shadow-md">
+                        {horse.photo?.url ? (
                           <img
-                            src={currentImages[currentImageIndex]?.url}
-                            alt={currentImages[currentImageIndex]?.type}
-                            className="w-full h-64 sm:h-80 object-cover"
+                            src={horse.photo.url}
+                            alt={horse.registeredName}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                             onError={(e) => {
-                              e.target.src =
-                                "https://via.placeholder.com/600x400?text=Image+Not+Available";
+                              e.target.style.display = "none";
+                              e.target.nextSibling.style.display = "flex";
                             }}
                           />
-
-                          {/* Image Info */}
-                          <div className="absolute top-4 left-4 bg-white/95 backdrop-blur px-4 py-2 rounded-full text-sm font-bold text-gray-900 shadow-md">
-                            {currentImages[currentImageIndex]?.type}
-                          </div>
-
-                          {/* Image Counter */}
-                          <div className="absolute bottom-4 right-4 bg-gray-900/80 text-white px-3 py-1 rounded-full text-xs font-bold">
-                            {currentImageIndex + 1} of {currentImages.length}
-                          </div>
-
-                          {/* Navigation Buttons */}
-                          {currentImages.length > 1 && (
-                            <>
-                              <button
-                                onClick={handlePrevImage}
-                                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-10"
-                                title="Previous image"
-                              >
-                                <LuChevronLeft size={24} />
-                              </button>
-                              <button
-                                onClick={handleNextImage}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-10"
-                                title="Next image"
-                              >
-                                <LuChevronRight size={24} />
-                              </button>
-                            </>
-                          )}
-
-                          {/* Image Dots */}
-                          {currentImages.length > 1 && (
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-gray-900/50 px-4 py-2 rounded-full backdrop-blur">
-                              {currentImages.map((_, idx) => (
-                                <button
-                                  key={idx}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setHorseImageIndex({
-                                      ...horseImageIndex,
-                                      [expandedHorse]: idx,
-                                    });
-                                  }}
-                                  className={`w-2 h-2 rounded-full transition-all ${
-                                    idx === currentImageIndex
-                                      ? "bg-white w-6"
-                                      : "bg-white/50 hover:bg-white/75"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="w-full h-64 sm:h-80 bg-gray-200 rounded-2xl flex items-center justify-center text-gray-500 font-semibold">
-                          No images available
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Details Grid */}
-                    <div className="space-y-6">
-                      <h4 className="text-sm font-black text-gray-500 uppercase tracking-wider">
-                        Horse Information
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div className="space-y-1">
-                          <p className="text-xs font-black text-gray-500 uppercase mb-2">
-                            Breed :-
-                          </p>
-                          <p className="text-lg font-bold text-[#BF9B53]">
-                            {horse.breed}
-                          </p>
-                        </div>
-
-                        <div className="space-y-1">
-                          <p className="text-xs font-black text-gray-500 uppercase mb-2">
-                            Color :-
-                          </p>
-                          <p className="text-lg font-bold text-[#BF9B53]">
-                            {horse.colour}
-                          </p>
-                        </div>
-
-                        <div className="space-y-1">
-                          <p className="text-xs font-black text-gray-500 uppercase mb-2">
-                            Age :-
-                          </p>
-                          <p className="text-lg font-bold text-[#BF9B53]">
-                            {horse.age} years old :-
-                          </p>
-                        </div>
-
-                        <div className="space-y-1">
-                          <p className="text-xs font-black text-gray-500 uppercase mb-2">
-                            Sex :-
-                          </p>
-                          <p className="text-lg font-bold text-[#BF9B53]">
-                            {horse.sex}
-                          </p>
-                        </div>
-
-                        <div className="space-y-1">
-                          <p className="text-xs font-black text-gray-500 uppercase mb-2">
-                            Stall Size :-
-                          </p>
-                          <p className="text-lg font-bold text-[#BF9B53]">
-                            {horse.requestedStallSize}
-                          </p>
-                        </div>
-
-                        <div className="space-y-1">
-                          <p className="text-xs font-black text-gray-500 uppercase mb-2">
-                            Registered Name :-
-                          </p>
-                          <p className="text-lg font-bold text-[#BF9B53]">
-                            {horse.registeredName}
-                          </p>
+                        ) : null}
+                        <div
+                          style={{
+                            display: horse.photo?.url ? "none" : "flex",
+                          }}
+                          className="w-full h-full"
+                        >
+                          <ThumbFallback />
                         </div>
                       </div>
 
-                      {/* General Info */}
-                      {horse.generalInfo && (
-                        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-md p-4">
-                          <p className="text-xs font-black text-gray-700 uppercase tracking-wider mb-2">
-                            General Information :-
-                          </p>
-                          <p className="text-[#BF9B53] leading-relaxed text-base font-semibold">
-                            {horse.generalInfo}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                          {horse.registeredName}
+                        </h3>
+                        <p className="text-sm text-gray-600 font-semibold">
+                          Barn Name:{" "}
+                          <span className="text-gray-900">
+                            {horse.barnName}
+                          </span>
+                        </p>
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-bold">
+                            {horse.breed}
+                          </span>
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-lg font-bold">
+                            {horse.sex}
+                          </span>
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg font-bold">
+                            Age: {horse.age}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {expandedHorse === index ? (
+                      <FiChevronUp
+                        size={24}
+                        className="text-[#BF9B53] flex-shrink-0"
+                      />
+                    ) : (
+                      <FiChevronDown
+                        size={24}
+                        className="text-gray-400 flex-shrink-0"
+                      />
+                    )}
+                  </div>
+
+                  {/* Horse Expanded Details */}
+                  {expandedHorse === index && (
+                    <div className="p-6 sm:p-4 bg-white space-y-8">
+                      {/* ── PHOTO CAROUSEL (horse images only) ─────────────────── */}
+                      <div className="space-y-4">
+                        <h4 className="text-sm font-black text-gray-500 uppercase tracking-wider">
+                          Horse Photo
+                        </h4>
+
+                        {photos.length > 0 ? (
+                          <div className="relative overflow-hidden rounded-2xl border-2 border-gray-200 bg-gray-100">
+                            <img
+                              src={photos[imgIdx]?.url}
+                              alt={photos[imgIdx]?.label}
+                              className="w-full h-64 sm:h-80 object-cover"
+                              onError={(e) => {
+                                e.target.style.display = "none";
+                                e.target.nextSibling.style.display = "flex";
+                              }}
+                            />
+                            {/* Fallback inside carousel */}
+                            <div
+                              className="w-full h-64 sm:h-80 items-center justify-center"
+                              style={{ display: "none" }}
+                            >
+                              <HorseFallback />
+                            </div>
+
+                            {/* Label badge */}
+                            <div className="absolute top-4 left-4 bg-white/95 backdrop-blur px-4 py-2 rounded-full text-sm font-bold text-gray-900 shadow-md">
+                              {photos[imgIdx]?.label}
+                            </div>
+
+                            {/* Navigation (only if multiple photos) */}
+                            {photos.length > 1 && (
+                              <>
+                                <button
+                                  onClick={(e) =>
+                                    handlePrevImage(e, index, photos.length)
+                                  }
+                                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-10"
+                                >
+                                  <LuChevronLeft size={24} />
+                                </button>
+                                <button
+                                  onClick={(e) =>
+                                    handleNextImage(e, index, photos.length)
+                                  }
+                                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-10"
+                                >
+                                  <LuChevronRight size={24} />
+                                </button>
+                                <div className="absolute bottom-4 right-4 bg-gray-900/80 text-white px-3 py-1 rounded-full text-xs font-bold">
+                                  {imgIdx + 1} of {photos.length}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="w-full h-64 sm:h-80 rounded-2xl border-2 border-dashed border-gray-200 overflow-hidden">
+                            <HorseFallback />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* ── DOCUMENT BUTTONS ────────────────────────────────────── */}
+                      {docs.length > 0 && (
+                        <div className="space-y-3">
+                          <h4 className="text-sm font-black text-gray-500 uppercase tracking-wider">
+                            Documents
+                          </h4>
+                          <div className="flex flex-wrap gap-3">
+                            {docs.map((doc) => (
+                              <button
+                                key={doc.key}
+                                onClick={() =>
+                                  setViewingDoc({
+                                    url: doc.url,
+                                    label: doc.label,
+                                  })
+                                }
+                                className={`flex items-center gap-2 px-5 py-3 rounded-xl border-2 font-bold text-sm transition-all duration-200 shadow-sm hover:shadow-md ${
+                                  DOC_COLORS[doc.key] ||
+                                  "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                                }`}
+                              >
+                                <FiFileText size={18} />
+                                {doc.label}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-xs text-gray-400 font-medium">
+                            Click a document to view it — it will open in a
+                            preview panel.
                           </p>
                         </div>
                       )}
+
+                      {/* ── HORSE DETAILS GRID ──────────────────────────────────── */}
+                      <div className="space-y-6">
+                        <h4 className="text-sm font-black text-gray-500 uppercase tracking-wider">
+                          Horse Information
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                          {[
+                            { label: "Breed", value: horse.breed },
+                            { label: "Color", value: horse.colour },
+                            {
+                              label: "Age",
+                              value: horse.age ? `${horse.age} years old` : "—",
+                            },
+                            { label: "Sex", value: horse.sex },
+                            {
+                              label: "Stall Size",
+                              value: horse.requestedStallSize,
+                            },
+                            {
+                              label: "Registered Name",
+                              value: horse.registeredName,
+                            },
+                          ].map(({ label, value }) => (
+                            <div key={label} className="space-y-1">
+                              <p className="text-xs font-black text-gray-500 uppercase mb-2">
+                                {label} :-
+                              </p>
+                              <p className="text-lg font-bold text-[#BF9B53]">
+                                {value || "—"}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {horse.generalInfo && (
+                          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-md p-4">
+                            <p className="text-xs font-black text-gray-700 uppercase tracking-wider mb-2">
+                              General Information :-
+                            </p>
+                            <p className="text-[#BF9B53] leading-relaxed text-base font-semibold">
+                              {horse.generalInfo}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* ===================== ACTION BUTTONS ===================== */}
+        {/* ── ACTION BUTTONS ──────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button
             onClick={() => setIsOfferOpen(true)}
@@ -793,7 +892,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
           </button>
         </div>
 
-        {/* ===================== ASK QUESTION BUTTON ===================== */}
+        {/* ── ASK QUESTION ────────────────────────────────────────────────────── */}
         <button
           onClick={() => setIsQuestionOpen(true)}
           className="w-full flex items-center justify-center gap-2 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-md font-bold hover:border-[#BF9B53] hover:text-[#BF9B53] hover:bg-[#BF9B53]/5 transition-all duration-300"
@@ -802,10 +901,10 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
           Ask a Question
         </button>
 
-        {/* ===================== SPACER ===================== */}
         <div className="h-8" />
       </div>
 
+      {/* ── BACK BUTTON ─────────────────────────────────────────────────────── */}
       <button
         onClick={() => navigate(-1)}
         className="fixed bottom-6 right-6 bg-gray-600 text-white p-3 rounded-full shadow-lg hover:bg-[#BF9B53] transition"
@@ -813,14 +912,13 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         <IoArrowBack className="w-5 h-5" />
       </button>
 
-      {/* ===================== MODALS ===================== */}
+      {/* ── MODALS ──────────────────────────────────────────────────────────── */}
       {isQuestionOpen && (
         <AskQuestionModal
           shipmentId={shipment._id}
           onClose={() => setIsQuestionOpen(false)}
         />
       )}
-
       {isOfferOpen && (
         <OfferSubmitModal
           shipment={shipment}

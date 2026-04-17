@@ -62,12 +62,12 @@ const AskQuestionModal = ({ shipmentId, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2">
+      <div className="bg-white w-full max-w-2xl rounded-md shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-300">
         {/* ===================== HEADER ===================== */}
-        <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-6 py-6 border-b border-slate-200 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 px-4 py-4 border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-[#BF9B53] to-orange-500 rounded-lg shadow-md">
+            <div className="p-3 bg-[#BF9B53] rounded-lg shadow-md">
               <MdOutlineQuestionAnswer className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -223,12 +223,12 @@ const AskQuestionModal = ({ shipmentId, onClose }) => {
             !loading && (
               <>
                 {/* ===================== ASK NEW QUESTION VIEW ===================== */}
-                <div className="space-y-5">
+                <div className="space-y-4">
                   {/* Info Box */}
-                  <div className="bg-gradient-to-r from-[#BF9B53]/10 to-orange-100/10 border-l-4 border-[#BF9B53] rounded-lg p-4">
+                  <div className="bg-gradient-to-r from-[#BF9B53]/10 to-orange-100/10 border-l-4 border-[#BF9B53] rounded-lg p-2">
                     <p className="text-sm text-slate-800 font-semibold leading-relaxed">
-                      📝 Ask a specific question about this shipment. The
-                      shipper will review and respond as soon as possible.
+                      Ask a specific question about this shipment. The shipper
+                      will review and respond as soon as possible.
                     </p>
                   </div>
 
@@ -310,11 +310,8 @@ const AskQuestionModal = ({ shipmentId, onClose }) => {
                   </div>
 
                   {/* Tips Box */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-xs font-semibold text-blue-900 mb-2">
-                      💡 Tips for better questions:
-                    </p>
-                    <ul className="text-xs text-blue-800 space-y-1">
+                  <div className="bg-gradient-to-r from-[#BF9B53]/10 to-orange-100/10 border-l-4 border-[#BF9B53] rounded-lg p-2">
+                    <ul className="text-xs text-gray-800 space-y-1">
                       <li>• Be specific about what you need to know</li>
                       <li>• Include relevant shipment details if needed</li>
                       <li>• Ask one question at a time</li>
@@ -336,8 +333,8 @@ const AskQuestionModal = ({ shipmentId, onClose }) => {
                     disabled={!canSubmit || isSubmitting || loading}
                     className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 shadow-sm ${
                       !canSubmit || isSubmitting || loading
-                        ? "bg-slate-300 text-slate-600 cursor-not-allowed"
-                        : "bg-gradient-to-r from-[#BF9B53] to-orange-500 hover:from-[#a88a47] hover:to-orange-600 text-white hover:shadow-md active:scale-95"
+                        ? "bg-slate-300 cursor-not-allowed"
+                        : "border text-gray-800 hover:bg-[#BF9B53]  text-gray-800 active:scale-95"
                     }`}
                   >
                     {isSubmitting ? (
@@ -348,7 +345,7 @@ const AskQuestionModal = ({ shipmentId, onClose }) => {
                     ) : (
                       <>
                         <FiSend size={20} />
-                        Submit Question
+                        Submit
                       </>
                     )}
                   </button>
