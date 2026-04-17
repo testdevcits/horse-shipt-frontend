@@ -22,7 +22,7 @@ const NewOpportunities = () => {
     dropoffDistance: "",
     stallSize: "",
     minHorses: "",
-    rating: 3,
+    rating: 1,
   });
 
   const {
@@ -189,10 +189,6 @@ const NewOpportunities = () => {
                 <option value="Single">Single</option>
               </select>
               <div className="col-span-2">
-                <label className="text-xs text-gray-500">
-                  Shipper Rating: {filters.rating}
-                </label>
-
                 <input
                   type="range"
                   min="1"
