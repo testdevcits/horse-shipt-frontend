@@ -1,9 +1,5 @@
-// /pages/customer/NewShipment.jsx
-// COMPLETE WORKING FILE - Copy and use directly
-// FINAL: Step 1 & 2 values with proper error handling for date ranges
-
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import Step1Pickup from "./steps/Step1Pickup";
 import Step2Delivery from "./steps/Step2Delivery";
@@ -47,8 +43,20 @@ const defaultHorse = {
 
 const NewShipment = () => {
   const navigate = useNavigate();
-  const { myHorses, getMyHorses, createHorse, createShipment } =
-    useCustomerShipments();
+  const {
+    myHorses,
+    getMyHorses,
+    createHorse,
+    createShipment,
+    fetchShipmentById,
+    updateShipment,
+  } = useCustomerShipments();
+
+  const location = useLocation();
+  const { id } = useParams();
+
+  const isEditMode = location.state?.editMode;
+  const shipmentDataFromState = location.state?.shipment;
 
   // ===== MAIN STATE =====
   const [currentStep, setCurrentStep] = useState(1);
@@ -79,47 +87,110 @@ const NewShipment = () => {
   const [showDocWarning, setShowDocWarning] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
 
-  // NEW: PROPER EDIT HANDLER
-  const handleEditStep = (step, horseIdx = null) => {
-    if (horseIdx !== null) {
-      setEditingHorseIdx(horseIdx);
+  /* ==========================================
+     EFFECT: LOAD DATA IN EDIT MODE
+     ========================================== */
+  useEffect(() => {
+    const loadData = async () => {
+      let data = shipmentDataFromState;
+
+      if (!data && id) {
+        data = await fetchShipmentById(id);
+      }
+
+      if (data) {
+        // Pickup
+        setPickupLocation(data.pickupLocation || "");
+        setPickupCoords({
+          lat: data.pickupCoords?.latitude,
+          lng: data.pickupCoords?.longitude,
+        });
+
+        setPickupStartDate(data.pickupDateRange?.start?.split("T")[0] || "");
+        setPickupEndDate(data.pickupDateRange?.end?.split("T")[0] || "");
+
+        // Delivery
+        setDeliveryLocation(data.deliveryLocation || "");
+        setDeliveryCoords({
+          lat: data.deliveryCoords?.latitude,
+          lng: data.deliveryCoords?.longitude,
+        });
+
+        setDeliveryStartDate(
+          data.deliveryDateRange?.start?.split("T")[0] || ""
+        );
+        setDeliveryEndDate(data.deliveryDateRange?.end?.split("T")[0] || "");
+
+        // Other
+        setNumberOfHorses(data.numberOfHorses || 1);
+        setAdditionalInfo(data.additionalInfo || "");
+        setRecipientEmail(data.recipientEmail || "");
+
+        // Horses with proper image handling
+        const processedHorses = (data.horses || []).map((h) => ({
+          registeredName: h.registeredName || "",
+          barnName: h.barnName || "",
+          breed: h.breed || "",
+          otherBreed: h.otherBreed || "",
+          colour: h.colour || "",
+          age: h.age || "",
+          sex: h.sex || "",
+          stallType: h.requestedStallSize || h.stallType || "",
+          size: h.size || "",
+          photo: h.photo?.url || null,
+          cogins: h.documents?.coggins?.url || null,
+          healthCertificate: h.documents?.healthCertificate?.url || null,
+          otherDocuments: h.documents?.other?.url || null,
+          generalInfo: h.generalInfo || "",
+          images: [],
+          selectedHorseId: h._id || "",
+          notes: h.notes || "",
+        }));
+
+        setHorses(processedHorses);
+      }
+    };
+
+    if (isEditMode) {
+      loadData();
     }
-    setCurrentStep(step);
-  };
+  }, [id, isEditMode, fetchShipmentById, shipmentDataFromState]);
 
   /* ==========================================
      EFFECT: Load My Horses on Mount
      ========================================== */
   useEffect(() => {
-    if (typeof getMyHorses === "function") {
+    if (typeof getMyHorses === "function" && !isEditMode) {
       getMyHorses();
     }
-  }, [getMyHorses]);
+  }, [getMyHorses, isEditMode]);
 
   /* ==========================================
      EFFECT: Populate horses from backend
      ========================================== */
   useEffect(() => {
-    if (Array.isArray(myHorses) && myHorses.length) {
+    if (!isEditMode && Array.isArray(myHorses) && myHorses.length) {
       const populatedHorses = myHorses.map((h) => ({
         ...defaultHorse,
         ...h,
         selectedHorseId: h._id,
         stallType: h.stallType || h.defaultStallSize || "",
       }));
+
       setHorses(populatedHorses);
       setNumberOfHorses(populatedHorses.length);
-    } else if (horses.length === 0) {
-      setHorses([defaultHorse]);
-      setNumberOfHorses(1);
+    } else if (!isEditMode) {
+      setHorses((prev) => (prev.length === 0 ? [defaultHorse] : prev));
+      setNumberOfHorses((prev) => (prev === 0 ? 1 : prev));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myHorses]);
+  }, [myHorses, isEditMode]);
 
   /* ==========================================
      EFFECT: Adjust horses array size
      ========================================== */
   useEffect(() => {
+    if (isEditMode) return; // Don't change horses during edit
+
     setHorses((prev) => {
       const count = Number(numberOfHorses) || 0;
       if (count > prev.length) {
@@ -133,7 +204,7 @@ const NewShipment = () => {
       }
       return prev;
     });
-  }, [numberOfHorses]);
+  }, [numberOfHorses, isEditMode]);
 
   /* ==========================================
      HANDLERS: Horse field changes
@@ -188,27 +259,22 @@ const NewShipment = () => {
     const stepErrors = {};
 
     if (currentStep === 1) {
-      // Pickup location validation
       if (!pickupLocation || !pickupLocation.trim()) {
         stepErrors.pickupLocation = "Pickup location is required";
       }
 
-      // Pickup time option validation
       if (!pickupTimeOption) {
         stepErrors.pickupTimeOption = "Pickup time option is required";
       }
 
-      // Pickup start date validation
       if (!pickupStartDate || pickupStartDate.trim() === "") {
         stepErrors.pickupStartDate = "Pickup start date is required";
       }
 
-      // Pickup end date validation
       if (!pickupEndDate || pickupEndDate.trim() === "") {
         stepErrors.pickupEndDate = "Pickup end date is required";
       }
 
-      // Validate that end date is not before start date
       if (
         pickupStartDate &&
         pickupEndDate &&
@@ -217,22 +283,18 @@ const NewShipment = () => {
         stepErrors.pickupEndDate = "End date cannot be before start date";
       }
     } else if (currentStep === 2) {
-      // Delivery location validation
       if (!deliveryLocation || !deliveryLocation.trim()) {
         stepErrors.deliveryLocation = "Delivery location is required";
       }
 
-      // Delivery start date validation
       if (!deliveryStartDate || deliveryStartDate.trim() === "") {
         stepErrors.deliveryStartDate = "Delivery start date is required";
       }
 
-      // Delivery end date validation
       if (!deliveryEndDate || deliveryEndDate.trim() === "") {
         stepErrors.deliveryEndDate = "Delivery end date is required";
       }
 
-      // Validate that end date is not before start date
       if (
         deliveryStartDate &&
         deliveryEndDate &&
@@ -265,6 +327,12 @@ const NewShipment = () => {
         }
         if (!h.stallType) {
           stepErrors[`stallType${idx}`] = "Stall type required";
+        }
+      });
+    } else if (currentStep === 4) {
+      horses.forEach((h, idx) => {
+        if (!h.photo) {
+          stepErrors[`photo${idx}`] = "Horse photo is required";
         }
       });
     }
@@ -306,7 +374,7 @@ const NewShipment = () => {
   };
 
   /* ==========================================
-     SUBMISSION: Create Shipment
+     SUBMISSION: Create/Update Shipment
      ========================================== */
   const handleFinish = async () => {
     if (!validateStep()) return;
@@ -353,6 +421,7 @@ const NewShipment = () => {
         formData.append(`horses[${idx}][generalInfo]`, h.generalInfo || "");
         formData.append(`horses[${idx}][notes]`, h.notes || "");
 
+        // Only append files if they're File objects (newly uploaded)
         if (h.photo instanceof File) {
           formData.append(`horses[${idx}][photo]`, h.photo);
         }
@@ -370,7 +439,11 @@ const NewShipment = () => {
         }
       });
 
-      await createShipment(formData);
+      if (isEditMode) {
+        await updateShipment(id, formData);
+      } else {
+        await createShipment(formData);
+      }
       setIsModalOpen(true);
     } catch (error) {
       console.error("Shipment creation error:", error);
@@ -381,6 +454,16 @@ const NewShipment = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  /* ==========================================
+     HANDLER: Edit Step
+     ========================================== */
+  const handleEditStep = (step, horseIdx = null) => {
+    if (horseIdx !== null) {
+      setEditingHorseIdx(horseIdx);
+    }
+    setCurrentStep(step);
   };
 
   /* ==========================================
@@ -524,7 +607,7 @@ const NewShipment = () => {
       {/* Header */}
       <div className="flex flex-row justify-between w-full max-w-5xl gap-2 relative mt-2 items-center px-4">
         <div className="font-montserrat font-semibold text-[20px] leading-[30px]">
-          New Shipment
+          {isEditMode ? "Edit Shipment" : "New Shipment"}
         </div>
         <div
           className="font-montserrat cursor-pointer text-gray-500 hover:text-gray-700"
@@ -533,6 +616,7 @@ const NewShipment = () => {
           Cancel
         </div>
       </div>
+
       {/* Step Title */}
       <div className="w-full max-w-5xl px-4 mb-4 mt-4">
         <p className="font-montserrat text-md font-semibold text-gray-700">
@@ -563,7 +647,11 @@ const NewShipment = () => {
           className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           disabled={isLoading}
         >
-          {currentStep === steps.length ? "Finish" : "Next"}
+          {currentStep === steps.length
+            ? isEditMode
+              ? "Update"
+              : "Finish"
+            : "Next"}
         </button>
       </div>
 

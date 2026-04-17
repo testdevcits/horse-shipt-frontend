@@ -21,7 +21,6 @@ const FEATURES = [
   "Quote handling & real-time tracking",
   "Instant notifications & updates",
   "Priority customer support",
-  "Advanced analytics & reporting",
   "Unlimited shipments & quotes",
 ];
 
@@ -244,14 +243,14 @@ const SubscriptionPopup = () => {
             <div className="space-y-3">
               {/* Features */}
               <div className="bg-slate-50 rounded-xl p-4">
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                <p className="text-[11px] font-bold text-[#BF9B53] uppercase tracking-widest mb-3">
                   What's Included
                 </p>
                 <div className="grid grid-cols-1 gap-2">
                   {FEATURES.map((feature, i) => (
                     <div key={i} className="flex items-center gap-2.5">
-                      <div className="flex-shrink-0 w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <Check size={10} className="text-emerald-600" />
+                      <div className="flex-shrink-0 w-4 h-4 rounded-full bg-[#BF9B53] flex items-center justify-center">
+                        <Check size={10} className="text-white" />
                       </div>
                       <span className="text-xs text-slate-700">{feature}</span>
                     </div>
@@ -261,10 +260,10 @@ const SubscriptionPopup = () => {
 
               {/* Payment method status */}
               <div
-                className={`p-3 rounded-xl border-2 flex items-center gap-3 transition-colors ${
+                className={`p-3 rounded-md border-2 flex items-center gap-3 transition-colors ${
                   hasCard
                     ? "border-emerald-200 bg-emerald-50"
-                    : "border-amber-200 bg-amber-50"
+                    : "border-[#BF9B53] bg-amber-50"
                 }`}
               >
                 <div
@@ -275,7 +274,7 @@ const SubscriptionPopup = () => {
                   {hasCard ? (
                     <Check size={15} className="text-emerald-600" />
                   ) : (
-                    <AlertCircle size={15} className="text-amber-600" />
+                    <AlertCircle size={15} className="text-[#BF9B53]" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -297,9 +296,8 @@ const SubscriptionPopup = () => {
               </div>
 
               {/* Info */}
-              <div className="p-3 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-2">
-                <span className="mt-0.5 inline-block w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                <p className="text-xs text-blue-800 leading-relaxed">
+              <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 rounded-lg space-y-4">
+                <p className="text-xs text-gray-800 leading-relaxed">
                   You won't be charged during your{" "}
                   <span className="font-semibold">{trialLabel}</span>. After the
                   trial, billing is {formatPrice()}/{intervalLabel}.
@@ -347,8 +345,8 @@ const SubscriptionPopup = () => {
               )}
 
               {/* Security note */}
-              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-center gap-2">
-                <Lock size={13} className="text-slate-400 shrink-0" />
+              <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] flex p-2 rounded-lg gap-2">
+                <Lock size={13} className="text-slate-400 shrink-0 mt-2" />
                 <p className="text-xs text-slate-500">
                   We never store full card numbers. Secured by Stripe.
                 </p>
@@ -421,12 +419,8 @@ const SubscriptionPopup = () => {
                 disabled={processing}
                 className="w-full py-2 text-slate-500 text-sm font-medium hover:text-slate-800 transition-colors disabled:opacity-40"
               >
-                ← Back
+                Back
               </button>
-
-              <p className="text-center text-[11px] text-slate-400 pt-0.5">
-                Secured by Stripe
-              </p>
             </>
           )}
         </div>

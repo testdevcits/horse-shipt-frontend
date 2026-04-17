@@ -229,6 +229,7 @@ const AppRoutes = () => {
           <Route path="profile" element={<CustomerProfile />} />
           <Route path="settings" element={<CustomerSettings />} />
           <Route path="new-shipment" element={<NewShipment />} />
+          <Route path="new-shipment/:id" element={<NewShipment />} />
           <Route path="profile/edit" element={<EditProfile />} />
           <Route path="my-shipments" element={<MyShipmentDetails />} />
           <Route path="chats" element={<CustomerChatOverview />} />

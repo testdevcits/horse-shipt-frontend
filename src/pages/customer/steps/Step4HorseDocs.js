@@ -2,6 +2,7 @@ import React from "react";
 import FileInput from "../../../components/common/FileInput";
 import ImageInput from "../../../components/common/ImageInput";
 import Modal from "../common/WarningModal";
+import { Upload } from "lucide-react";
 
 const Step4HorseDocuments = ({
   horses,
@@ -30,24 +31,34 @@ const Step4HorseDocuments = ({
   };
 
   return (
-    <div className="flex flex-col w-full gap-6 font-montserrat">
+    <div className="flex flex-col w-full gap-6 font-montserrat px-4">
       {horses.map((horse, idx) => (
         <div
           key={idx}
-          className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-xl shadow-md border border-gray-200 space-y-5"
+          className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-xl shadow-md border border-gray-200 space-y-6"
         >
           {/* Header */}
-          <h2 className="text-lg font-bold text-gray-900 mb-4 pb-3 border-b-2 border-[#BF9B53]">
-            Horse {idx + 1} - {horse.registeredName || "Unnamed"}
-          </h2>
+          <div className="border-b-2 border-[#BF9B53] pb-4">
+            <h2 className="text-lg font-bold text-gray-900">
+              Horse {idx + 1} - {horse.registeredName || "Unnamed"}
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              {horse.barnName} • {horse.breed} • Age {horse.age}
+            </p>
+          </div>
 
-          <div className="flex flex-col gap-2">
-            <label style={labelStyle}>
-              Upload a Photo of the Horse{" "}
-              <span className="text-red-500">*</span>
-            </label>
+          {/* Photo Upload */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Upload className="w-5 h-5 text-[#BF9B53]" />
+              <label style={labelStyle}>
+                Upload a Photo of the Horse{" "}
+                <span className="text-red-500">*</span>
+              </label>
+            </div>
             <p style={descriptionStyle}>
-              A clear photo helps potential buyers better evaluate the horse.
+              A clear, professional photo helps buyers better evaluate the
+              horse. JPG, PNG (Max 10MB)
             </p>
             <ImageInput
               file={horse.photo}
@@ -57,10 +68,15 @@ const Step4HorseDocuments = ({
               }}
               required
               error={errors?.[`photo${idx}`]}
+              label=""
             />
           </div>
 
-          <div>
+          {/* Coggins Certificate */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <label style={labelStyle}>Coggins Certificate (Optional)</label>
+            </div>
             <FileInput
               file={horse.cogins}
               onChange={(file) => {
@@ -68,15 +84,20 @@ const Step4HorseDocuments = ({
                 clearError(`cogins${idx}`);
               }}
               accept=".pdf,.jpg,.png"
-              placeholder="Upload Coggins Certificate (Optional)"
+              placeholder="Upload Coggins Certificate (EIA Test)"
               error={errors?.[`cogins${idx}`]}
             />
-            <p style={descriptionStyle} className="mt-2">
-              Coggins test certificate (Equine Infectious Anemia test).
+            <p style={descriptionStyle}>
+              Equine Infectious Anemia (EIA) test certificate. Highly
+              recommended for transport.
             </p>
           </div>
 
-          <div>
+          {/* Health Certificate */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <label style={labelStyle}>Health Certificate (Optional)</label>
+            </div>
             <FileInput
               file={horse.healthCertificate}
               onChange={(file) => {
@@ -84,15 +105,18 @@ const Step4HorseDocuments = ({
                 clearError(`healthCertificate${idx}`);
               }}
               accept=".pdf,.jpg,.png"
-              placeholder="Upload Health Certificate (Optional)"
+              placeholder="Upload Health Certificate"
               error={errors?.[`healthCertificate${idx}`]}
             />
-            <p style={descriptionStyle} className="mt-2">
-              Official health certificate from veterinarian.
+            <p style={descriptionStyle}>
+              Official health certificate from a licensed veterinarian.
+              Recommended for all shipments.
             </p>
           </div>
 
-          <div>
+          {/* Other Documents */}
+          <div className="space-y-3">
+            <label style={labelStyle}>Additional Documents (Optional)</label>
             <FileInput
               file={horse.otherDocuments}
               onChange={(file) => {
@@ -100,18 +124,19 @@ const Step4HorseDocuments = ({
                 clearError(`otherDocuments${idx}`);
               }}
               accept=".pdf,.jpg,.png"
-              placeholder="Upload Other Documents (Optional)"
+              placeholder="Upload Other Documents"
               error={errors?.[`otherDocuments${idx}`]}
             />
-            <p style={descriptionStyle} className="mt-2">
-              Any additional documents (registration papers, vaccination
-              records, etc.).
+            <p style={descriptionStyle}>
+              Registration papers, vaccination records, breed certifications,
+              etc.
             </p>
           </div>
 
-          <div>
-            <label style={labelStyle} className="block mb-2">
-              Shipment Details
+          {/* Shipment Details */}
+          <div className="space-y-3">
+            <label style={labelStyle} className="block">
+              Special Handling & Care Instructions
             </label>
             <textarea
               value={horse.generalInfo || ""}
@@ -119,9 +144,9 @@ const Step4HorseDocuments = ({
                 handleHorseFileChange(idx, "generalInfo", e.target.value);
                 clearError(`generalInfo${idx}`);
               }}
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-gray-600 focus:outline-none focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/20"
-              rows={3}
-              placeholder="Describe special handling requirements, feeding information, behavior notes, etc."
+              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/20 transition-all"
+              rows={4}
+              placeholder="Include any special handling requirements, feeding information, behavior notes, medical conditions, allergies, etc."
             />
             {errors?.[`generalInfo${idx}`] && (
               <p className="text-red-500 text-xs mt-2">
@@ -132,35 +157,39 @@ const Step4HorseDocuments = ({
         </div>
       ))}
 
-      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2">
-        <h3 className="text-lg font-bold mb-1 text-gray-800">
+      {/* Share Tracking Section */}
+      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-5 rounded-lg space-y-4">
+        <h3 className="text-lg font-bold text-slate-900">
           Share Tracking (Optional)
         </h3>
 
-        <label className="block font-semibold text-gray-600 mb-2">
-          Recipient Email Address
-        </label>
-
-        <input
-          type="email"
-          value={recipientEmail || ""}
-          onChange={(e) => setRecipientEmail(e.target.value)}
-          placeholder="buyer@example.com"
-          className="w-full px-4 py-2 text-[#BF9B53] border-2 border-gray-300 focus:outline-none focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/20"
-        />
-
-        <p className="text-sm text-gray-500 mt-3">
-          If provided, the recipient will receive an email with tracking
-          information after shipment is published.
-        </p>
+        <div className="space-y-2">
+          <label className="block font-semibold text-gray-700 text-sm">
+            Recipient Email Address
+          </label>
+          <input
+            type="email"
+            value={recipientEmail || ""}
+            onChange={(e) => setRecipientEmail(e.target.value)}
+            placeholder="buyer@example.com"
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/20 transition-all"
+          />
+          <p className="text-sm text-gray-600 mt-2">
+            If provided, the recipient will receive tracking information via
+            email once the shipment is published.
+          </p>
+        </div>
       </div>
 
-      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-4">
-        <p className="text-sm ">
-          <span className="text-lg font-bold text-amber-900">Important : </span>{" "}
-          While Coggins and Health Certificates are optional, we highly
-          recommend uploading them to increase buyer confidence and facilitate
-          transport.
+      {/* Important Notice */}
+      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-5 rounded-lg space-y-4">
+        <p className="text-sm font-bold text-amber-900">Important Notice</p>
+        <p className="text-sm text-amber-800">
+          While Coggins and Health Certificates are optional, we{" "}
+          <strong>highly recommend</strong> uploading them to increase buyer
+          confidence, ensure legal transport compliance, and facilitate smooth
+          delivery. Missing documents may require additional verification before
+          shipment can proceed.
         </p>
       </div>
 
