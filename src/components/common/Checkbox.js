@@ -1,13 +1,5 @@
 import React from "react";
 
-/**
- * Common Checkbox Component
- * Props:
- * - checked: boolean → current checkbox state
- * - onChange: function → called when toggled
- * - label: string (optional)
- * - disabled: boolean (optional)
- */
 const Checkbox = ({
   checked,
   onChange,
@@ -17,7 +9,7 @@ const Checkbox = ({
 }) => {
   return (
     <label
-      className={`flex items-center gap-2 cursor-pointer ${
+      className={`flex items-center gap-4 cursor-pointer ${
         disabled ? "opacity-60 cursor-not-allowed" : ""
       }`}
     >

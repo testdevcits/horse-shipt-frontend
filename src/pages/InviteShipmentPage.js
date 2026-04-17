@@ -626,26 +626,13 @@ const InviteShipmentPage = () => {
                 <p className="text-2xl font-black text-blue-900">
                   {shipment?.pickupDateRange?.start &&
                   shipment?.deliveryDateRange?.end
-                    ? (() => {
-                        const start = new Date(shipment.pickupDateRange.start);
-                        const end = new Date(shipment.deliveryDateRange.end);
-
-                        const isSameDay =
-                          start.toDateString() === end.toDateString();
-
-                        if (isSameDay) {
-                          const hours = Math.ceil(
-                            (end - start) / (1000 * 60 * 60)
-                          );
-                          return `${hours} hrs`;
-                        } else {
-                          const days = Math.ceil(
-                            (end - start) / (1000 * 60 * 60 * 24)
-                          );
-                          return `${days} days`;
-                        }
-                      })()
-                    : "N/A"}
+                    ? Math.ceil(
+                        (new Date(shipment.deliveryDateRange.end) -
+                          new Date(shipment.pickupDateRange.start)) /
+                          (1000 * 60 * 60 * 24)
+                      )
+                    : "N/A"}{" "}
+                  days
                 </p>
                 <p className="text-xs text-blue-700 mt-2 font-semibold">
                   From pickup to delivery
