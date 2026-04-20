@@ -80,11 +80,13 @@ const Step3HorseInfo = ({
   editingHorseIdx,
   setEditingHorseIdx,
   errors,
+  isEditMode,
 }) => {
   const [saving, setSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [unsavedHorseIdxs, setUnsavedHorseIdxs] = useState([]);
 
+  // Scroll to highlighted horse when editing from review step
   useEffect(() => {
     if (editingHorseIdx !== null) {
       const horseElement = document.getElementById(`horse-${editingHorseIdx}`);
@@ -106,28 +108,9 @@ const Step3HorseInfo = ({
     }
   }, [editingHorseIdx, setEditingHorseIdx]);
 
-  useEffect(() => {
-    if (typeof getMyHorses === "function") {
-      getMyHorses();
-    }
-  }, [getMyHorses]);
-
-  useEffect(() => {
-    if (Array.isArray(myHorses) && myHorses.length) {
-      const populatedHorses = myHorses.map((h) => ({
-        ...defaultHorse,
-        ...h,
-        selectedHorseId: h._id,
-        stallType: h.stallType || h.defaultStallSize || "",
-      }));
-      setHorses(populatedHorses);
-      setNumberOfHorses(populatedHorses.length);
-    } else if (!horses || horses.length === 0) {
-      setHorses([defaultHorse]);
-      setNumberOfHorses(1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myHorses]);
+  //  REMOVED: The duplicate myHorses useEffect that was overwriting
+  // the parent's horse state and resetting numberOfHorses.
+  // Parent (NewShipment.js) now handles myHorses population correctly.
 
   const validateHorse = (horse) => {
     return (
@@ -204,6 +187,7 @@ const Step3HorseInfo = ({
 
   const handleSaveSelectedHorses = () => {
     const unsaved = horses
+      .slice(0, numberOfHorses)
       .map((h, i) =>
         !h.selectedHorseId || h.selectedHorseId === "new" ? i : null
       )
@@ -224,20 +208,23 @@ const Step3HorseInfo = ({
 
   return (
     <div className="flex flex-col w-full gap-6 px-2 md:px-4 font-montserrat">
-      <div className="w-full max-w-full">
-        <label className="block text-gray-600 font-semibold mb-2">
-          Number of Horses <span className="text-red-500">*</span>
-        </label>
-        <Select
-          value={numberOfHorses}
-          onChange={(e) => setNumberOfHorses(Number(e.target.value))}
-          options={[...Array(10).keys()].map((i) => ({
-            value: i + 1,
-            label: String(i + 1),
-          }))}
-          className="w-full"
-        />
-      </div>
+      {/* Only show numberOfHorses selector in create mode */}
+      {!isEditMode && (
+        <div className="w-full max-w-full">
+          <label className="block text-gray-600 font-semibold mb-2">
+            Number of Horses <span className="text-red-500">*</span>
+          </label>
+          <Select
+            value={numberOfHorses}
+            onChange={(e) => setNumberOfHorses(Number(e.target.value))}
+            options={[...Array(10).keys()].map((i) => ({
+              value: i + 1,
+              label: String(i + 1),
+            }))}
+            className="w-full"
+          />
+        </div>
+      )}
 
       {horses.slice(0, numberOfHorses).map((horse, idx) => (
         <div
@@ -249,32 +236,37 @@ const Step3HorseInfo = ({
             Horse {idx + 1}: {horse.registeredName || "Unnamed"}
           </p>
 
-          <Select
-            label="Select from My Horses"
-            value={horse.selectedHorseId || "new"}
-            onChange={(e) => {
-              const selectedId = e.target.value;
-              if (selectedId === "new") {
-                Object.keys(defaultHorse).forEach((k) =>
-                  handleHorseChange(idx, k, defaultHorse[k])
+          {/* Only show "Select from My Horses" in create mode */}
+          {!isEditMode && (
+            <Select
+              label="Select from My Horses"
+              value={horse.selectedHorseId || "new"}
+              onChange={(e) => {
+                const selectedId = e.target.value;
+                if (selectedId === "new") {
+                  Object.keys(defaultHorse).forEach((k) =>
+                    handleHorseChange(idx, k, defaultHorse[k])
+                  );
+                  return;
+                }
+                const selectedHorse = myHorses?.find(
+                  (h) => h._id === selectedId
                 );
-                return;
-              }
-              const selectedHorse = myHorses?.find((h) => h._id === selectedId);
-              if (!selectedHorse) return;
-              Object.keys(defaultHorse).forEach((k) =>
-                handleHorseChange(idx, k, selectedHorse[k] || "")
-              );
-              handleHorseChange(idx, "selectedHorseId", selectedHorse._id);
-            }}
-            options={[
-              { value: "new", label: "New Horse" },
-              ...(myHorses?.map((h) => ({
-                value: h._id,
-                label: `${h.registeredName} (${h.barnName})`,
-              })) || []),
-            ]}
-          />
+                if (!selectedHorse) return;
+                Object.keys(defaultHorse).forEach((k) =>
+                  handleHorseChange(idx, k, selectedHorse[k] || "")
+                );
+                handleHorseChange(idx, "selectedHorseId", selectedHorse._id);
+              }}
+              options={[
+                { value: "new", label: "New Horse" },
+                ...(myHorses?.map((h) => ({
+                  value: h._id,
+                  label: `${h.registeredName} (${h.barnName})`,
+                })) || []),
+              ]}
+            />
+          )}
 
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -379,7 +371,6 @@ const Step3HorseInfo = ({
               <label className="block font-semibold text-gray-600 mb-2">
                 Age <span className="text-red-500">*</span>
               </label>
-
               <input
                 type="text"
                 value={horse.age || ""}
@@ -392,7 +383,6 @@ const Step3HorseInfo = ({
                 }`}
                 placeholder="e.g., 5"
               />
-
               {errors?.[`age${idx}`] && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors[`age${idx}`]}
@@ -451,15 +441,18 @@ const Step3HorseInfo = ({
         </div>
       ))}
 
-      <button
-        onClick={handleSaveSelectedHorses}
-        disabled={saving}
-        className="w-full py-3 bg-[#BF9B53] text-white font-bold rounded-md hover:bg-[#a7863e] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-      >
-        {saving ? "Saving..." : "Save Horses"}
-      </button>
+      {/* Only show Save Horses button in create mode */}
+      {!isEditMode && (
+        <button
+          onClick={handleSaveSelectedHorses}
+          disabled={saving}
+          className="w-full py-3 bg-[#BF9B53] text-white font-bold rounded-md hover:bg-[#a7863e] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        >
+          {saving ? "Saving..." : "Save Horses"}
+        </button>
+      )}
 
-      {/* ===== MODAL ===== */}
+      {/* ===== UNSAVED HORSES MODAL ===== */}
       {modalOpen && unsavedHorseIdxs.length > 0 && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 p-4">
           <div className="relative bg-white rounded-xl w-full max-w-md p-6 space-y-4 shadow-xl max-h-[80vh] overflow-y-auto">
