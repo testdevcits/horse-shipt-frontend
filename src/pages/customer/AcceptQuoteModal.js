@@ -435,7 +435,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                 {!isAccepted && (
                   <button
                     onClick={handleSubmit}
-                    disabled={submitting || isCancellationExpired}
+                    disabled={submitting}
                     className="flex-1 px-4 py-2.5 bg-slate-300 hover:bg-[#BF9B53] disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors text-sm"
                   >
                     {submitting ? "Submitting..." : "Accept Quote"}

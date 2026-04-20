@@ -728,7 +728,7 @@ const BillingHistory = () => {
                 )}
 
                 {/* Next Billing Date (not trialing) */}
-                {nextBillingDate && !isTrialing && !cancelAtPeriodEnd && (
+                {/* {nextBillingDate && !isTrialing && !cancelAtPeriodEnd && (
                   <div className="p-4 bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg border border-slate-200">
                     <div className="flex items-center gap-2 mb-2">
                       <Calendar className="w-4 h-4 text-slate-600" />
@@ -743,7 +743,7 @@ const BillingHistory = () => {
                       {formatTime(nextBillingDate)} {getTimezoneLabel()}
                     </p>
                   </div>
-                )}
+                )} */}
 
                 {/* Subscription End Date (when cancelAtPeriodEnd = true) */}
                 {cancelAtPeriodEnd &&
