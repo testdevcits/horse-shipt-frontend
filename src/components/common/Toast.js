@@ -1,5 +1,4 @@
-// src/components/common/Toast.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { createRoot } from "react-dom/client";
 
 // Toast component
@@ -11,13 +10,18 @@ const ToastComponent = ({
 }) => {
   const [show, setShow] = useState(true);
 
+  const handleClose = useCallback(() => {
+    setShow(false);
+    if (onClose) onClose();
+  }, [onClose]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShow(false);
-      onClose && onClose();
+      handleClose();
     }, duration);
+
     return () => clearTimeout(timer);
-  }, [duration, onClose]);
+  }, [duration, handleClose]);
 
   if (!show) return null;
 
@@ -30,14 +34,23 @@ const ToastComponent = ({
 
   return (
     <div
-      className={`fixed top-4 right-4 z-[9999] px-4 py-2 rounded-md text-white shadow-lg font-[Montserrat] transition-all duration-300 ${bgColor}`}
+      className={`fixed top-4 right-4 z-[9999] flex items-center gap-3 px-3 py-2 rounded-sm text-white shadow-lg font-[Montserrat] transition-all duration-300 ${bgColor}`}
     >
-      {message}
+      {/* Message */}
+      <span className="text-xs">{message}</span>
+
+      {/* Close Button */}
+      <button
+        onClick={handleClose}
+        className="text-white text-sm font-bold hover:opacity-80"
+      >
+        ✕
+      </button>
     </div>
   );
 };
 
-// Keep a single toast container in body
+// ---------------- Container ----------------
 let toastContainer = null;
 
 const getToastContainer = () => {
@@ -48,7 +61,7 @@ const getToastContainer = () => {
   return toastContainer;
 };
 
-// Callable API
+// ---------------- API ----------------
 const Toast = {
   success: (msg, duration) => renderToast(msg, "success", duration),
   error: (msg, duration) => renderToast(msg, "error", duration),
@@ -56,10 +69,12 @@ const Toast = {
   warning: (msg, duration) => renderToast(msg, "warning", duration),
 };
 
+// ---------------- Render Function ----------------
 const renderToast = (message, type, duration = 3000) => {
   const container = getToastContainer();
   const toastRoot = document.createElement("div");
   container.appendChild(toastRoot);
+
   const root = createRoot(toastRoot);
 
   const cleanup = () => {

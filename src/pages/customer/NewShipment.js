@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import Step1Pickup from "./steps/Step1Pickup";
@@ -62,6 +62,7 @@ const NewShipment = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [editingHorseIdx, setEditingHorseIdx] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(isEditMode);
 
   // ===== STEP 1: PICKUP =====
   const [pickupLocation, setPickupLocation] = useState("");
@@ -79,13 +80,15 @@ const NewShipment = () => {
 
   // ===== STEP 3 & 4: HORSES =====
   const [numberOfHorses, setNumberOfHorses] = useState(1);
-  const [horses, setHorses] = useState([]);
+  const [horses, setHorses] = useState([{ ...defaultHorse }]);
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [errors, setErrors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [toast, setToast] = useState(null);
   const [showDocWarning, setShowDocWarning] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
+
+  // ✅ Track if myHorses have been applied once in create mode
+  const myHorsesApplied = useRef(false);
 
   /* ==========================================
      EFFECT: LOAD DATA IN EDIT MODE
@@ -105,7 +108,6 @@ const NewShipment = () => {
           lat: data.pickupCoords?.latitude,
           lng: data.pickupCoords?.longitude,
         });
-
         setPickupStartDate(data.pickupDateRange?.start?.split("T")[0] || "");
         setPickupEndDate(data.pickupDateRange?.end?.split("T")[0] || "");
 
@@ -115,7 +117,6 @@ const NewShipment = () => {
           lat: data.deliveryCoords?.latitude,
           lng: data.deliveryCoords?.longitude,
         });
-
         setDeliveryStartDate(
           data.deliveryDateRange?.start?.split("T")[0] || ""
         );
@@ -126,7 +127,7 @@ const NewShipment = () => {
         setAdditionalInfo(data.additionalInfo || "");
         setRecipientEmail(data.recipientEmail || "");
 
-        // Horses with proper image handling
+        // ✅ Only set the horses that belong to this shipment
         const processedHorses = (data.horses || []).map((h) => ({
           registeredName: h.registeredName || "",
           barnName: h.barnName || "",
@@ -149,50 +150,61 @@ const NewShipment = () => {
 
         setHorses(processedHorses);
       }
+
+      setIsInitializing(false);
     };
 
     if (isEditMode) {
       loadData();
+    } else {
+      setIsInitializing(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isEditMode, fetchShipmentById, shipmentDataFromState]);
 
   /* ==========================================
-     EFFECT: Load My Horses on Mount
+     EFFECT: Load My Horses on Mount (Create Mode Only)
      ========================================== */
   useEffect(() => {
-    if (typeof getMyHorses === "function" && !isEditMode) {
+    if (!isEditMode && typeof getMyHorses === "function") {
       getMyHorses();
     }
   }, [getMyHorses, isEditMode]);
 
   /* ==========================================
-     EFFECT: Populate horses from backend
+     EFFECT: Populate horses from backend ONCE (Create Mode Only)
+     ✅ FIX: Use a ref to ensure myHorses is only applied once,
+     so user changes to numberOfHorses are not overwritten.
      ========================================== */
   useEffect(() => {
-    if (!isEditMode && Array.isArray(myHorses) && myHorses.length) {
+    if (isEditMode || isInitializing || myHorsesApplied.current) return;
+
+    if (Array.isArray(myHorses) && myHorses.length > 0) {
+      // Pre-fill with ALL saved horses as default starting point
+      // User can change numberOfHorses to select how many they want
       const populatedHorses = myHorses.map((h) => ({
         ...defaultHorse,
         ...h,
         selectedHorseId: h._id,
         stallType: h.stallType || h.defaultStallSize || "",
       }));
-
       setHorses(populatedHorses);
-      setNumberOfHorses(populatedHorses.length);
-    } else if (!isEditMode) {
-      setHorses((prev) => (prev.length === 0 ? [defaultHorse] : prev));
-      setNumberOfHorses((prev) => (prev === 0 ? 1 : prev));
+      // ✅ Do NOT auto-set numberOfHorses here — let user control it
+      // Default to 1 so only the first horse shows until user increases count
+      setNumberOfHorses(1);
+      myHorsesApplied.current = true;
     }
-  }, [myHorses, isEditMode]);
+  }, [myHorses, isEditMode, isInitializing]);
 
   /* ==========================================
-     EFFECT: Adjust horses array size
+     EFFECT: Adjust horses array size when numberOfHorses changes (Create Mode Only)
      ========================================== */
   useEffect(() => {
-    if (isEditMode) return; // Don't change horses during edit
+    if (isEditMode) return;
 
     setHorses((prev) => {
-      const count = Number(numberOfHorses) || 0;
+      const count = Number(numberOfHorses) || 1;
+
       if (count > prev.length) {
         const diff = count - prev.length;
         return [
@@ -212,7 +224,7 @@ const NewShipment = () => {
   const handleHorseChange = (index, field, value) => {
     setHorses((prev) => {
       const updated = [...prev];
-      updated[index][field] = value;
+      updated[index] = { ...updated[index], [field]: value };
       return updated;
     });
   };
@@ -220,7 +232,7 @@ const NewShipment = () => {
   const handleHorseFileChange = (index, field, file) => {
     setHorses((prev) => {
       const updated = [...prev];
-      updated[index][field] = file;
+      updated[index] = { ...updated[index], [field]: file };
       return updated;
     });
   };
@@ -244,7 +256,7 @@ const NewShipment = () => {
     setDeliveryStartDate("");
     setDeliveryEndDate("");
     setNumberOfHorses(1);
-    setHorses([defaultHorse]);
+    setHorses([{ ...defaultHorse }]);
     setAdditionalInfo("");
     setCurrentStep(1);
     setEditingHorseIdx(null);
@@ -253,7 +265,7 @@ const NewShipment = () => {
   };
 
   /* ==========================================
-     VALIDATION: Step by step
+     VALIDATION: Step by step with delivery date check
      ========================================== */
   const validateStep = () => {
     const stepErrors = {};
@@ -262,19 +274,15 @@ const NewShipment = () => {
       if (!pickupLocation || !pickupLocation.trim()) {
         stepErrors.pickupLocation = "Pickup location is required";
       }
-
       if (!pickupTimeOption) {
         stepErrors.pickupTimeOption = "Pickup time option is required";
       }
-
       if (!pickupStartDate || pickupStartDate.trim() === "") {
         stepErrors.pickupStartDate = "Pickup start date is required";
       }
-
       if (!pickupEndDate || pickupEndDate.trim() === "") {
         stepErrors.pickupEndDate = "Pickup end date is required";
       }
-
       if (
         pickupStartDate &&
         pickupEndDate &&
@@ -286,15 +294,12 @@ const NewShipment = () => {
       if (!deliveryLocation || !deliveryLocation.trim()) {
         stepErrors.deliveryLocation = "Delivery location is required";
       }
-
       if (!deliveryStartDate || deliveryStartDate.trim() === "") {
         stepErrors.deliveryStartDate = "Delivery start date is required";
       }
-
       if (!deliveryEndDate || deliveryEndDate.trim() === "") {
         stepErrors.deliveryEndDate = "Delivery end date is required";
       }
-
       if (
         deliveryStartDate &&
         deliveryEndDate &&
@@ -302,8 +307,20 @@ const NewShipment = () => {
       ) {
         stepErrors.deliveryEndDate = "End date cannot be before start date";
       }
+      if (pickupStartDate && deliveryStartDate) {
+        if (new Date(deliveryStartDate) < new Date(pickupStartDate)) {
+          stepErrors.deliveryStartDate =
+            "Delivery date cannot be before pickup date";
+        }
+      }
+      if (pickupEndDate && deliveryEndDate) {
+        if (new Date(deliveryEndDate) < new Date(pickupEndDate)) {
+          stepErrors.deliveryEndDate =
+            "Delivery end date cannot be before pickup end date";
+        }
+      }
     } else if (currentStep === 3) {
-      horses.forEach((h, idx) => {
+      horses.slice(0, numberOfHorses).forEach((h, idx) => {
         if (!h.registeredName) {
           stepErrors[`registeredName${idx}`] = "Registered Name required";
         }
@@ -330,7 +347,7 @@ const NewShipment = () => {
         }
       });
     } else if (currentStep === 4) {
-      horses.forEach((h, idx) => {
+      horses.slice(0, numberOfHorses).forEach((h, idx) => {
         if (!h.photo) {
           stepErrors[`photo${idx}`] = "Horse photo is required";
         }
@@ -338,7 +355,7 @@ const NewShipment = () => {
     }
 
     if (recipientEmail && !/\S+@\S+\.\S+/.test(recipientEmail)) {
-      setToast({ message: "Invalid recipient email", type: "error" });
+      Toast.error("Invalid recipient email", 3000);
       return false;
     }
 
@@ -353,7 +370,9 @@ const NewShipment = () => {
     if (!validateStep()) return;
 
     if (currentStep === 4) {
-      const missingDocs = horses.some((h) => !h.cogins || !h.healthCertificate);
+      const missingDocs = horses
+        .slice(0, numberOfHorses)
+        .some((h) => !h.cogins || !h.healthCertificate);
       if (missingDocs) {
         setShowDocWarning(true);
         return;
@@ -404,8 +423,8 @@ const NewShipment = () => {
       formData.append("additionalInfo", additionalInfo);
       formData.append("recipientEmail", recipientEmail);
 
-      // Horses
-      horses.forEach((h, idx) => {
+      // ✅ Only send horses up to numberOfHorses
+      horses.slice(0, numberOfHorses).forEach((h, idx) => {
         formData.append(
           `horses[${idx}][registeredName]`,
           h.registeredName || ""
@@ -421,7 +440,6 @@ const NewShipment = () => {
         formData.append(`horses[${idx}][generalInfo]`, h.generalInfo || "");
         formData.append(`horses[${idx}][notes]`, h.notes || "");
 
-        // Only append files if they're File objects (newly uploaded)
         if (h.photo instanceof File) {
           formData.append(`horses[${idx}][photo]`, h.photo);
         }
@@ -447,10 +465,10 @@ const NewShipment = () => {
       setIsModalOpen(true);
     } catch (error) {
       console.error("Shipment creation error:", error);
-      setToast({
-        message: error?.response?.data?.message || "Failed to create shipment",
-        type: "error",
-      });
+      Toast.error(
+        error?.response?.data?.message || "Failed to create shipment",
+        3000
+      );
     } finally {
       setIsLoading(false);
     }
@@ -501,6 +519,8 @@ const NewShipment = () => {
             setDeliveryStartDate={setDeliveryStartDate}
             deliveryEndDate={deliveryEndDate}
             setDeliveryEndDate={setDeliveryEndDate}
+            pickupStartDate={pickupStartDate}
+            pickupEndDate={pickupEndDate}
             errors={errors}
             clearError={clearError}
           />
@@ -519,12 +539,13 @@ const NewShipment = () => {
             editingHorseIdx={editingHorseIdx}
             setEditingHorseIdx={setEditingHorseIdx}
             errors={errors}
+            isEditMode={isEditMode}
           />
         );
       case 4:
         return (
           <Step4HorseDocuments
-            horses={horses}
+            horses={horses.slice(0, numberOfHorses)}
             handleHorseFileChange={handleHorseFileChange}
             errors={errors}
             clearError={clearError}
@@ -549,7 +570,7 @@ const NewShipment = () => {
             deliveryEndDate={deliveryEndDate}
             deliveryTimeOption={deliveryTimeOption}
             numberOfHorses={numberOfHorses}
-            horses={horses}
+            horses={horses.slice(0, numberOfHorses)}
             additionalInfo={additionalInfo}
             recipientEmail={recipientEmail}
             onEditStep={handleEditStep}
@@ -560,15 +581,15 @@ const NewShipment = () => {
     }
   };
 
+  if (isInitializing) {
+    return <PageLoader text="Loading shipment details..." fullScreen={true} />;
+  }
+
   /* ==========================================
      RENDER: Main Component
      ========================================== */
   return (
     <div className="w-full flex flex-col items-center relative py-6">
-      {/* Toast Notifications */}
-      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-
-      {/* Loading State */}
       {isLoading && (
         <PageLoader text="Processing shipment..." fullScreen={true} />
       )}

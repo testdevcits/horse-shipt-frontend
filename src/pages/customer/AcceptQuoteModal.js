@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { FiX } from "react-icons/fi";
 import SignatureCanvas from "react-signature-canvas";
 import Toast from "../../components/common/Toast";
-import Button from "../../components/common/Button";
 import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteContext";
 import Checkbox from "../../components/common/Checkbox";
 import { MdCheckCircle } from "react-icons/md";
@@ -27,7 +26,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
 
-  // RESPONSIVE SIGNATURE ONLY
+  // RESPONSIVE SIGNATURE
   const sigWrapperRef = useRef(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
 
@@ -61,7 +60,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
     const customerSignature = sigPad.toDataURL("image/png");
 
     try {
-      // ---------------- CARD PAYMENT ----------------
+      // ────────────── CARD PAYMENT ──────────────
       if (quote.paymentMethod === "card" && quote.paymentStatus !== "paid") {
         if (!stripe || !elements) {
           Toast.error("Stripe is not loaded");
@@ -112,7 +111,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         Toast.success("Payment successful");
       }
 
-      // ---------------- ACCEPT QUOTE ----------------
+      // ────────────── ACCEPT QUOTE ──────────────
       const resAccept = await acceptQuote(quote._id, customerSignature);
 
       if (resAccept.success) {
@@ -151,36 +150,37 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   };
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
-  const strongLabelClass = "text-gray-600";
+  const strongLabelClass = "text-gray-700 font-semibold";
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center overflow-y-auto px-4 py-8">
-      <div className="bg-white w-full max-w-[95%] xl:max-w-[1400px] rounded-[14px] flex flex-col overflow-hidden shadow-xl">
-        {/* Header */}
-        <div className="relative p-6 border-b">
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center overflow-y-auto px-2 sm:px-4 py-4 sm:py-8">
+      <div className="bg-white w-full  sm:max-w-2xl xl:max-w-7xl rounded-xl flex flex-col overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto">
+        {/* ── Header ──────────────────────────────────────────────────────── */}
+        <div className="sticky top-0 bg-white border-b border-slate-200 p-4 sm:p-6 z-10">
           <button
             onClick={onClose}
-            className="absolute right-6 top-6 text-gray-500 hover:text-black"
+            className="absolute right-4 top-4 text-gray-500 hover:text-black transition-colors"
           >
             <FiX size={24} />
           </button>
-          <h2 className="text-2xl font-semibold">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 pr-8">
             {isAccepted ? "Quote Details" : "Accept Quote"}
           </h2>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 mt-1">
             {isAccepted
               ? "This quote has already been accepted."
               : "Review the quote details and sign digitally to accept."}
           </p>
         </div>
 
+        {/* ── Cancellation Notice ─────────────────────────────────────────── */}
         {quote.cancellationLastDate && (
-          <p
-            className={`border-b px-4 sm:px-6 py-1.5 sm:py-3 font-montserrat ${
+          <div
+            className={`border-b px-4 sm:px-6 py-2 sm:py-3 font-montserrat text-xs sm:text-sm ${
               quote.isCancelled
-                ? "bg-red-100 border-red-300 text-red-600"
+                ? "bg-red-100 border-red-300 text-red-700"
                 : isCancellationExpired
-                ? "bg-gray-100 border-gray-300 text-gray-600"
+                ? "bg-gray-100 border-gray-300 text-gray-700"
                 : "bg-yellow-100 border-yellow-300 text-yellow-800"
             }`}
           >
@@ -190,279 +190,303 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
               "Cancellation period has expired."
             ) : (
               <>
-                You can cancel this shipment until{" "}
-                <span className="font-medium">
-                  {new Date(quote.cancellationLastDate).toLocaleString()}
+                You can cancel until{" "}
+                <span className="font-semibold">
+                  {new Date(quote.cancellationLastDate).toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }
+                  )}
                 </span>
-                . After this period, cancellation will not be allowed.
               </>
             )}
-          </p>
+          </div>
         )}
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {/* LEFT */}
-          <div className="space-y-4">
-            <div className="border border-[#BF9B53] rounded-md p-4 bg-gray-50 space-y-2">
-              <p>
-                <strong className={strongLabelClass}>Shipper:</strong>{" "}
-                {quote.shipper?.companyName || quote.shipper?.name}
-              </p>
-              <p>
-                <strong className={strongLabelClass}>Email:</strong>{" "}
-                {quote.shipper?.email}
-              </p>
-              <p>
-                <strong className={strongLabelClass}>Total Price:</strong> $
-                {quote.totalPrice}
-              </p>
-              <p>
-                <strong className={strongLabelClass}>Currency:</strong>{" "}
-                {quote.currency}
-              </p>
-              <p>
-                <strong className={strongLabelClass}>Payment Method:</strong>{" "}
-                {quote.paymentMethod}
-              </p>
-              <p>
-                <strong className={strongLabelClass}>Payment Due:</strong>{" "}
-                {quote.paymentDue}
-              </p>
-              <p>
-                <strong className={strongLabelClass}>Pickup Time:</strong>{" "}
-                {quote.pickupTime || "N/A"}
-              </p>
-              <p>
-                <strong className={strongLabelClass}>Estimated Arrival:</strong>{" "}
-                {quote.estimatedArrivalTime || "N/A"}
-              </p>
-              <p>
-                <strong className={strongLabelClass}>Transport Type:</strong>{" "}
-                {quote.transportType || "N/A"}
-              </p>
-              <p>
-                <strong className={strongLabelClass}>Stalls Required:</strong>{" "}
-                {quote.stallsRequired || "N/A"}
-              </p>
-              <p>
-                <strong className={strongLabelClass}>Status:</strong>{" "}
-                <span className="capitalize font-medium text-emerald-600">
-                  {quote.status}
-                </span>
-              </p>
+        {/* ── Body ────────────────────────────────────────────────────────── */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 vehicle-scroll">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+            {/* ──────── LEFT: Quote Details ────────────────────────────── */}
+            <div className="space-y-4">
+              {/* Basic Info */}
+              <div className="border-2 border-[#BF9B53] rounded-lg p-4 bg-amber-50 space-y-2 text-xs sm:text-sm">
+                <div>
+                  <p className={strongLabelClass}>Shipper</p>
+                  <p className="text-gray-700">
+                    {quote.shipper?.companyName || quote.shipper?.name || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <p className={strongLabelClass}>Email</p>
+                  <p className="text-gray-700 break-all">
+                    {quote.shipper?.email}
+                  </p>
+                </div>
+                <hr className="border-amber-200 my-2" />
+                <div>
+                  <p className={strongLabelClass}>Total Price</p>
+                  <p className="text-lg text-[#BF9B53] font-bold">
+                    ${quote.totalPrice}
+                  </p>
+                </div>
+                <div>
+                  <p className={strongLabelClass}>Payment Method</p>
+                  <p className="text-gray-700 capitalize">
+                    {quote.paymentMethod}
+                  </p>
+                </div>
+                <div>
+                  <p className={strongLabelClass}>Payment Due</p>
+                  <p className="text-gray-700">{quote.paymentDue || "N/A"}</p>
+                </div>
+                <div>
+                  <p className={strongLabelClass}>Status</p>
+                  <span className="inline-block px-2 py-1 bg-emerald-100 text-emerald-700 rounded font-semibold capitalize text-xs">
+                    {quote.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Trip Details */}
+              <div className="border rounded-lg p-4 bg-slate-50 space-y-2 text-xs sm:text-sm">
+                <h3 className="font-semibold text-slate-900">Trip Details</h3>
+                <div>
+                  <p className={strongLabelClass}>Pickup Time</p>
+                  <p className="text-gray-700">{quote.pickupTime || "N/A"}</p>
+                </div>
+                <div>
+                  <p className={strongLabelClass}>Est. Arrival</p>
+                  <p className="text-gray-700">
+                    {quote.estimatedArrivalTime || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Vehicle Info */}
+              {quote.vehicle && (
+                <div className="border rounded-lg p-4 bg-slate-50 space-y-2 text-xs sm:text-sm">
+                  <h3 className="font-semibold text-slate-900">Vehicle</h3>
+                  <div>
+                    <p className={strongLabelClass}>Number</p>
+                    <p className="text-gray-700">
+                      {quote.vehicle.vehicleNumber}
+                    </p>
+                  </div>
+                  <div>
+                    <p className={strongLabelClass}>Type</p>
+                    <p className="text-gray-700">{quote.vehicle.vehicleType}</p>
+                  </div>
+                  <div>
+                    <p className={strongLabelClass}>Stalls</p>
+                    <p className="text-gray-700">
+                      {quote.vehicle.numberOfStalls} × {quote.vehicle.stallSize}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {quote.notes && (
-                <p>
-                  <strong className={strongLabelClass}>Notes:</strong>{" "}
-                  {quote.notes}
-                </p>
+                <div className="border rounded-lg p-4 bg-slate-50 text-xs sm:text-sm">
+                  <p className={strongLabelClass}>Notes</p>
+                  <p className="text-gray-700 mt-2">{quote.notes}</p>
+                </div>
               )}
             </div>
 
-            {quote.vehicle && (
-              <div className="border rounded-md p-4 bg-gray-50 space-y-2">
-                <h3 className="font-medium text-lg">Vehicle Info</h3>
-                <p>
-                  <strong className={strongLabelClass}>Vehicle Number:</strong>{" "}
-                  {quote.vehicle.vehicleNumber}
-                </p>
-                <p>
-                  <strong className={strongLabelClass}>Vehicle Type:</strong>{" "}
-                  {quote.vehicle.vehicleType}
-                </p>
-                <p>
-                  <strong className={strongLabelClass}>Stalls:</strong>{" "}
-                  {quote.vehicle.numberOfStalls} - {quote.vehicle.stallSize}
-                </p>
-                {quote.vehicle.notes && (
-                  <p>
-                    <strong className={strongLabelClass}>Notes:</strong>{" "}
-                    {quote.vehicle.notes}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+            {/* ──────── RIGHT: Actions ────────────────────────────────── */}
+            <div className="flex flex-col gap-4">
+              {/* PDF View */}
 
-          {/* RIGHT */}
-          <div className="flex flex-col gap-6">
-            {quote.contract?.url && !showPDF && (
-              <Button
-                variant="primary"
-                fullWidth
-                onClick={() => setShowPDF(true)}
-              >
-                View Contract
-              </Button>
-            )}
-
-            {showPDF && quote.contract?.url && (
-              <>
-                <div className="border rounded-md p-2 h-[400px] overflow-auto">
-                  <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                    <Viewer
-                      fileUrl={quote.contract.url}
-                      plugins={[defaultLayoutPluginInstance]}
-                    />
-                  </Worker>
-                </div>
-                <Button
-                  variant="secondary"
-                  fullWidth
-                  onClick={() => setShowPDF(false)}
-                >
-                  Hide Contract
-                </Button>
-              </>
-            )}
-
-            {showCancelModal && (
-              <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center px-4">
-                <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
-                  <button
-                    onClick={() => setShowCancelModal(false)}
-                    className="absolute right-4 top-4 text-gray-500 hover:text-black"
-                  >
-                    <FiX size={20} />
-                  </button>
-                  <h2 className="text-xl font-semibold mb-2">Cancel Quote</h2>
-                  <p className="text-gray-600 mb-4">
-                    Please provide a reason for cancellation.
-                  </p>
-                  <textarea
-                    className="w-full border rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
-                    rows={4}
-                    placeholder="Enter cancel reason..."
-                    value={cancelReason}
-                    onChange={(e) => setCancelReason(e.target.value)}
-                  />
-                  <div className="flex gap-3 mt-5">
-                    <Button
-                      variant="secondary"
-                      fullWidth
-                      onClick={() => setShowCancelModal(false)}
-                    >
-                      Back
-                    </Button>
-                    <Button
-                      variant="danger"
-                      fullWidth
-                      onClick={handleCancelQuote}
-                    >
-                      Confirm Cancel
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {isAccepted ? (
-              <div className="border border-emerald-300 bg-emerald-50 rounded-md p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <MdCheckCircle className="text-emerald-600 w-6 h-6" />
-                  <h3 className="text-emerald-700 font-semibold text-lg">
-                    Quote Already Accepted
-                  </h3>
-                </div>
-                <p className="text-sm text-emerald-700">
-                  This quote was accepted on{" "}
-                  <span className="font-medium">
-                    {new Date(quote.contractAcceptedAt).toLocaleString()}
-                  </span>
-                  .
-                </p>
-                {quote.paymentStatus === "paid" && (
-                  <p className="text-sm text-emerald-700">
-                    Payment Status:{" "}
-                    <span className="font-semibold capitalize">
-                      {quote.paymentStatus}
-                    </span>
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="border border-[#BF9B53] rounded-md p-4 space-y-3">
-                <Checkbox
-                  checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
-                  label="I agree to accept this quote and terms"
-                />
-                {!isCancellationExpired && (
-                  <p className="text-[11px] text-gray-500">
-                    Note: Cancellation is only allowed within the specified time
-                    window.
-                  </p>
-                )}
-
-                {quote.paymentMethod === "card" &&
-                  quote.paymentStatus !== "paid" && (
-                    <div className="border rounded-md p-2 mt-2">
-                      <label className="block mb-1 font-medium text-gray-700">
-                        Card Details
-                      </label>
-                      <CardElement options={{ hidePostalCode: true }} />
+              {/* Acceptance Form */}
+              {isAccepted ? (
+                <div className="border-2 border-emerald-300 bg-emerald-50 rounded-lg p-4 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <MdCheckCircle className="text-emerald-600 w-6 h-6 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-semibold text-emerald-900">
+                        Quote Accepted
+                      </h3>
+                      <p className="text-xs sm:text-sm text-emerald-800 mt-1">
+                        Accepted on{" "}
+                        {new Date(
+                          quote.contractAcceptedAt
+                        ).toLocaleDateString()}
+                      </p>
+                      {quote.paymentStatus === "paid" && (
+                        <p className="text-xs sm:text-sm text-emerald-800 mt-1">
+                          Payment Status:{" "}
+                          <span className="font-semibold capitalize">
+                            {quote.paymentStatus}
+                          </span>
+                        </p>
+                      )}
                     </div>
-                  )}
-
-                <div>
-                  <label className="block mb-1 font-medium text-gray-700">
-                    Your Signature
-                  </label>
-                  <div
-                    ref={sigWrapperRef}
-                    className="w-full border rounded-md overflow-hidden"
-                  >
-                    {canvasWidth > 0 && (
-                      <SignatureCanvas
-                        ref={(ref) => setSigPad(ref)}
-                        penColor="#22c55e"
-                        backgroundColor="transparent"
-                        canvasProps={{
-                          width: canvasWidth,
-                          height: 150,
-                          className: "w-full",
-                        }}
-                      />
+                  </div>
+                </div>
+              ) : (
+                <div className="border-2 border-[#BF9B53] rounded-lg p-4 space-y-4 bg-amber-50">
+                  {/* Agreement Checkbox */}
+                  <Checkbox
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    label={
+                      <span className="text-xs sm:text-sm">
+                        I agree to accept this quote and terms
+                      </span>
+                    }
+                  />{" "}
+                  <span className="block text-[11px] text-gray-600 mt-1 font-normal">
+                    By clicking "Accept Quote," you acknowledge and agree to be
+                    bound by the quote details, payment terms, and all
+                    supplemental documents.
+                  </span>
+                  {/* Card Payment */}
+                  {quote.paymentMethod === "card" &&
+                    quote.paymentStatus !== "paid" && (
+                      <div className="border-2 border-slate-300 rounded-lg p-3 bg-white">
+                        <label className="block text-xs sm:text-sm font-semibold text-slate-900 mb-2">
+                          Card Details
+                        </label>
+                        <CardElement options={{ hidePostalCode: true }} />
+                      </div>
                     )}
+                  {/* Signature */}
+                  <div className="space-y-2">
+                    <label className="block text-xs sm:text-sm font-semibold text-slate-900">
+                      Your Signature <span className="text-red-500">*</span>
+                    </label>
+                    <div
+                      ref={sigWrapperRef}
+                      className="w-full border-2 border-slate-300 rounded-lg overflow-hidden bg-white"
+                    >
+                      {canvasWidth > 0 && (
+                        <SignatureCanvas
+                          ref={(ref) => setSigPad(ref)}
+                          penColor="#22c55e"
+                          backgroundColor="transparent"
+                          canvasProps={{
+                            width: canvasWidth,
+                            height: 140,
+                            className: "w-full",
+                          }}
+                        />
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => sigPad?.clear()}
+                      className="text-xs text-[#BF9B53] hover:text-amber-700 font-semibold"
+                    >
+                      Clear Signature
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {quote.contract?.url && !showPDF && (
+                <button
+                  onClick={() => setShowPDF(true)}
+                  className="w-full px-4 py-3 bg-slate-300 hover:bg-[#BF9B53] text-black font-semibold rounded-lg transition-colors"
+                >
+                  View Contract
+                </button>
+              )}
+
+              {showPDF && quote.contract?.url && (
+                <>
+                  <div className="border rounded-lg overflow-hidden h-64 sm:h-96">
+                    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                      <Viewer
+                        fileUrl={quote.contract.url}
+                        plugins={[defaultLayoutPluginInstance]}
+                      />
+                    </Worker>
                   </div>
                   <button
-                    type="button"
-                    onClick={() => sigPad.clear()}
-                    className="mt-2 text-sm text-system-primary hover:text-[#22c55e]"
+                    onClick={() => setShowPDF(false)}
+                    className="w-full px-4 py-2 bg-slate-200 hover:bg-[#BF9B53] text-slate-900 font-semibold rounded-lg transition-colors"
                   >
-                    Clear Signature
+                    Hide Contract
                   </button>
-                </div>
-              </div>
-            )}
+                </>
+              )}
 
-            <div className="flex gap-3 mt-auto">
-              <Button variant="google" fullWidth onClick={onClose}>
-                {isAccepted ? "Close" : "Cancel"}
-              </Button>
-              {isCancelable && (
-                <Button
-                  variant="google"
-                  fullWidth
-                  onClick={() => setShowCancelModal(true)}
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-2 mt-auto pt-4">
+                {isCancelable && (
+                  <button
+                    onClick={() => setShowCancelModal(true)}
+                    className="flex-1 px-4 py-2.5 border border-red-500 text-black hover:bg-red-600 hover:text-white font-semibold rounded-lg transition-colors text-sm"
+                  >
+                    Cancel Quote
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-900 font-semibold rounded-lg transition-colors text-sm"
                 >
-                  Cancel Quote
-                </Button>
-              )}
-              {!isAccepted && (
-                <Button
-                  variant="primary"
-                  fullWidth
-                  disabled={submitting || isCancellationExpired}
-                  onClick={handleSubmit}
-                >
-                  {submitting ? "Submitting..." : "Accept Quote"}
-                </Button>
-              )}
+                  {isAccepted ? "Close" : "Close"}
+                </button>
+
+                {!isAccepted && (
+                  <button
+                    onClick={handleSubmit}
+                    disabled={submitting || isCancellationExpired}
+                    className="flex-1 px-4 py-2.5 bg-slate-300 hover:bg-[#BF9B53] disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors text-sm"
+                  >
+                    {submitting ? "Submitting..." : "Accept Quote"}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ── Cancel Modal ───────────────────────────────────────────────────── */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center px-4 py-4">
+          <div className="bg-white w-full border border-2 border-[#BF9B53] max-w-sm rounded-md shadow-lg p-6 relative">
+            <button
+              onClick={() => setShowCancelModal(false)}
+              className="absolute right-4 top-4 text-gray-500 hover:text-black"
+            >
+              <FiX size={20} />
+            </button>
+            <h2 className="text-lg font-bold text-slate-900 mb-2">
+              Cancel Quote
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-600 mb-4">
+              Please provide a reason for cancellation.
+            </p>
+            <textarea
+              className="w-full border-2 border-slate-300 rounded-lg p-3 text-xs sm:text-sm focus:outline-none focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/20 transition-all resize-none"
+              rows={4}
+              placeholder="Enter cancel reason..."
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+            />
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 font-semibold rounded-lg text-sm transition-colors"
+              >
+                Back
+              </button>
+              <button
+                onClick={handleCancelQuote}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm transition-colors"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

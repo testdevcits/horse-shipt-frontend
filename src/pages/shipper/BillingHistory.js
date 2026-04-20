@@ -803,28 +803,9 @@ const BillingHistory = () => {
               )}
 
               {isActive && !cancelAtPeriodEnd && (
-                <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-bold text-green-900">
-                      Subscription Active
-                    </p>
-                    <p className="text-xs text-green-800 mt-1">
-                      {getPlanPriceLabel() && nextBillingDate
-                        ? `You will be charged ${getPlanPriceLabel()} on ${formatDate(
-                            nextBillingDate
-                          )} at ${formatTime(
-                            nextBillingDate
-                          )} ${getTimezoneLabel()}.`
-                        : nextBillingDate
-                        ? `Next charge on ${formatDate(
-                            nextBillingDate
-                          )} at ${formatTime(
-                            nextBillingDate
-                          )} ${getTimezoneLabel()}.`
-                        : "Your subscription is active."}
-                    </p>
-                  </div>
+                <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2 rounded-lg space-y-4 flex gap-2 text-sm">
+                  <CheckCircle2 size={20} color="green" />
+                  Subscription Active
                 </div>
               )}
 
