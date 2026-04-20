@@ -4,6 +4,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -36,8 +37,173 @@ export const DriverAuthProvider = ({ children }) => {
   );
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [locationPermission, setLocationPermission] = useState(
+    () => localStorage.getItem("locationPermission") || "unknown"
+  );
+  const [isTrackingEnabled, setIsTrackingEnabled] = useState(
+    () => localStorage.getItem("driverTrackingEnabled") === "true"
+  );
 
-  // ------------------ LOGOUT ------------------
+  // Use a ref for token so callbacks don't re-create on token change
+  const tokenRef = useRef(token);
+  const trackingIntervalRef = useRef(null);
+  const isSyncingLocationRef = useRef(false);
+
+  useEffect(() => {
+    tokenRef.current = token;
+  }, [token]);
+
+  useEffect(() => {
+    localStorage.setItem("driverTrackingEnabled", String(isTrackingEnabled));
+  }, [isTrackingEnabled]);
+
+  // ─────────────────────────────────────────
+  // LOCATION PERMISSION CHECK
+  // ─────────────────────────────────────────
+  const checkLocationPermission = useCallback(async () => {
+    if (!navigator.geolocation) {
+      setLocationPermission("denied");
+      return false;
+    }
+
+    try {
+      await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          () => {
+            setLocationPermission("granted");
+            localStorage.setItem("locationPermission", "granted");
+            resolve(true);
+          },
+          (err) => {
+            if (err.code === err.PERMISSION_DENIED) {
+              setLocationPermission("denied");
+              localStorage.setItem("locationPermission", "denied");
+            }
+            reject(err);
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      });
+      return true;
+    } catch (err) {
+      console.error("Location permission error:", err);
+      return false;
+    }
+  }, []);
+
+  // ─────────────────────────────────────────
+  // ✅ FIX: updateDriverLocation wrapped in useCallback
+  // so it's stable and can be safely used in useEffect deps
+  // ─────────────────────────────────────────
+  const updateDriverLocation = useCallback(
+    async ({ latitude, longitude, speed = 0, heading = 0 }) => {
+      const authToken = tokenRef.current;
+      if (!authToken) return;
+
+      try {
+        const res = await axios.post(
+          `${API_BASE_URL}/shipper/driver/update-location`,
+          { lat: latitude, lng: longitude, speed, heading },
+          { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+        return res.data;
+      } catch (err) {
+        console.error("Location update failed:", err);
+        throw err?.response?.data || err;
+      }
+    },
+    [] // stable — uses tokenRef internally
+  );
+
+  // ─────────────────────────────────────────
+  const getCurrentDriverPosition = useCallback(() => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocation is not supported"));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) =>
+          resolve({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            speed: pos.coords.speed || 0,
+            heading: pos.coords.heading || 0,
+          }),
+        (err) => reject(err),
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    });
+  }, []);
+
+  const stopTrackingLoop = useCallback(() => {
+    if (trackingIntervalRef.current) {
+      clearInterval(trackingIntervalRef.current);
+      trackingIntervalRef.current = null;
+    }
+  }, []);
+
+  const syncDriverLocationOnce = useCallback(
+    async (positionOverride = null) => {
+      if (isSyncingLocationRef.current) return null;
+
+      isSyncingLocationRef.current = true;
+
+      try {
+        const currentPosition = positionOverride || (await getCurrentDriverPosition());
+        const res = await updateDriverLocation(currentPosition);
+
+        if (res?.tripActive === false) {
+          stopTrackingLoop();
+          setIsTrackingEnabled(false);
+        }
+
+        return res;
+      } finally {
+        isSyncingLocationRef.current = false;
+      }
+    },
+    [getCurrentDriverPosition, stopTrackingLoop, updateDriverLocation]
+  );
+
+  const startTrackingLoop = useCallback(() => {
+    stopTrackingLoop();
+
+    trackingIntervalRef.current = setInterval(async () => {
+      try {
+        await syncDriverLocationOnce();
+      } catch (err) {
+        console.error("Failed to update location:", err);
+      }
+    }, 5000);
+  }, [stopTrackingLoop, syncDriverLocationOnce]);
+
+  // ─────────────────────────────────────────
+  // CONTINUOUS LOCATION TRACKING (every 5 seconds)
+  // ─────────────────────────────────────────
+  useEffect(() => {
+    if (!isTrackingEnabled || !token || locationPermission !== "granted") {
+      stopTrackingLoop();
+      return;
+    }
+
+    startTrackingLoop();
+
+    return () => {
+      stopTrackingLoop();
+    };
+  }, [
+    isTrackingEnabled,
+    token,
+    locationPermission,
+    startTrackingLoop,
+    stopTrackingLoop,
+  ]);
+
+  // ─────────────────────────────────────────
+  // LOGOUT
+  // ─────────────────────────────────────────
   const logout = useCallback(() => {
     setDriver(null);
     setVehicle(null);
@@ -45,6 +211,8 @@ export const DriverAuthProvider = ({ children }) => {
     setAllShipments([]);
     setToken("");
     setRole(null);
+    setIsTrackingEnabled(false);
+    stopTrackingLoop();
 
     localStorage.removeItem("driverToken");
     localStorage.removeItem("driverData");
@@ -52,14 +220,17 @@ export const DriverAuthProvider = ({ children }) => {
     localStorage.removeItem("driverCurrentShipment");
     localStorage.removeItem("driverShipments");
     localStorage.removeItem("driverRole");
+    localStorage.removeItem("driverTrackingEnabled");
 
     navigate("/driver/login", { replace: true });
-  }, [navigate]);
+  }, [navigate, stopTrackingLoop]);
 
-  // ------------------ FETCH DRIVER + SHIPMENTS ------------------
+  // ─────────────────────────────────────────
+  // FETCH DRIVER + SHIPMENTS
+  // ─────────────────────────────────────────
   const fetchDriver = useCallback(
     async (overrideToken) => {
-      const authToken = overrideToken || token;
+      const authToken = overrideToken || tokenRef.current;
       if (!authToken) return;
 
       try {
@@ -73,13 +244,11 @@ export const DriverAuthProvider = ({ children }) => {
           const shipmentData = res.data.shipment || null;
           const allShipmentsData = res.data.allShipments || [];
 
-          // update context state
           setDriver(driverData);
           setVehicle(vehicleData);
           setCurrentShipment(shipmentData);
           setAllShipments(allShipmentsData);
 
-          // store in localStorage
           localStorage.setItem("driverData", JSON.stringify(driverData));
           localStorage.setItem("driverVehicle", JSON.stringify(vehicleData));
           localStorage.setItem(
@@ -98,10 +267,12 @@ export const DriverAuthProvider = ({ children }) => {
         logout();
       }
     },
-    [token, logout]
+    [logout]
   );
 
-  // ------------------ AUTO LOGIN / FETCH DRIVER ON LOAD ------------------
+  // ─────────────────────────────────────────
+  // AUTO LOGIN / FETCH ON LOAD
+  // ─────────────────────────────────────────
   useEffect(() => {
     const initAuth = async () => {
       const storedToken = localStorage.getItem("driverToken");
@@ -112,9 +283,11 @@ export const DriverAuthProvider = ({ children }) => {
       );
       const storedAllShipments = localStorage.getItem("driverShipments");
       const storedRole = localStorage.getItem("driverRole");
+      const storedPermission = localStorage.getItem("locationPermission");
 
       if (storedToken && storedDriver) {
         setToken(storedToken);
+        tokenRef.current = storedToken;
         setDriver(JSON.parse(storedDriver));
         setVehicle(storedVehicle ? JSON.parse(storedVehicle) : null);
         setCurrentShipment(
@@ -124,6 +297,7 @@ export const DriverAuthProvider = ({ children }) => {
           storedAllShipments ? JSON.parse(storedAllShipments) : []
         );
         setRole(storedRole || "driver");
+        setLocationPermission(storedPermission || "unknown");
 
         await fetchDriver(storedToken);
       }
@@ -134,7 +308,9 @@ export const DriverAuthProvider = ({ children }) => {
     initAuth();
   }, [fetchDriver]);
 
-  // ------------------ DRIVER LOGIN ------------------
+  // ─────────────────────────────────────────
+  // DRIVER LOGIN
+  // ─────────────────────────────────────────
   const login = async (email, password) => {
     setLoading(true);
     try {
@@ -145,26 +321,30 @@ export const DriverAuthProvider = ({ children }) => {
 
       if (res.data.success) {
         const {
-          token,
-          driver,
+          token: newToken,
+          driver: driverData,
           shipments: shipmentsData,
-          vehicle,
-          shipment,
+          vehicle: vehicleData,
+          shipment: shipmentData,
         } = res.data;
 
-        setToken(token);
-        setDriver(driver);
-        setVehicle(vehicle || null);
-        setCurrentShipment(shipment || null);
+        tokenRef.current = newToken;
+        setToken(newToken);
+        setDriver(driverData);
+        setVehicle(vehicleData || null);
+        setCurrentShipment(shipmentData || null);
         setAllShipments(shipmentsData || []);
         setRole("driver");
 
-        localStorage.setItem("driverToken", token);
-        localStorage.setItem("driverData", JSON.stringify(driver));
-        localStorage.setItem("driverVehicle", JSON.stringify(vehicle || null));
+        localStorage.setItem("driverToken", newToken);
+        localStorage.setItem("driverData", JSON.stringify(driverData));
+        localStorage.setItem(
+          "driverVehicle",
+          JSON.stringify(vehicleData || null)
+        );
         localStorage.setItem(
           "driverCurrentShipment",
-          JSON.stringify(shipment || null)
+          JSON.stringify(shipmentData || null)
         );
         localStorage.setItem(
           "driverShipments",
@@ -186,25 +366,24 @@ export const DriverAuthProvider = ({ children }) => {
     }
   };
 
-  // ------------------ UPLOAD / DELETE PROFILE IMAGE ------------------
+  // ─────────────────────────────────────────
+  // PROFILE IMAGE
+  // ─────────────────────────────────────────
   const uploadProfileImage = async (file) => {
-    if (!file || !token) return;
-
+    if (!file || !tokenRef.current) return;
     const formData = new FormData();
     formData.append("image", file);
-
     try {
       const res = await axios.put(
         `${API_BASE_URL}/driver/driver/profile-image`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${tokenRef.current}`,
             "Content-Type": "multipart/form-data",
           },
         }
       );
-
       if (res.data.success) {
         const updatedDriver = {
           ...driver,
@@ -213,7 +392,6 @@ export const DriverAuthProvider = ({ children }) => {
         setDriver(updatedDriver);
         localStorage.setItem("driverData", JSON.stringify(updatedDriver));
       }
-
       return res.data;
     } catch (err) {
       return {
@@ -224,14 +402,14 @@ export const DriverAuthProvider = ({ children }) => {
   };
 
   const deleteProfileImage = async () => {
-    if (!token) return;
-
+    if (!tokenRef.current) return;
     try {
       const res = await axios.delete(
         `${API_BASE_URL}/driver/driver/profile-image`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${tokenRef.current}` },
+        }
       );
-
       if (res.data.success) {
         const updatedDriver = {
           ...driver,
@@ -240,7 +418,6 @@ export const DriverAuthProvider = ({ children }) => {
         setDriver(updatedDriver);
         localStorage.setItem("driverData", JSON.stringify(updatedDriver));
       }
-
       return res.data;
     } catch (err) {
       return {
@@ -250,16 +427,16 @@ export const DriverAuthProvider = ({ children }) => {
     }
   };
 
-  // ------------------ FETCH ASSIGNED SHIPMENTS ------------------
+  // ─────────────────────────────────────────
+  // FETCH ASSIGNED SHIPMENTS
+  // ─────────────────────────────────────────
   const fetchAssignedShipments = useCallback(async () => {
-    if (!token) return;
-
+    if (!tokenRef.current) return;
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/driver/assigned-shipments`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${tokenRef.current}` },
       });
-
       if (res.data.success) {
         const shipmentsData = res.data.assignedShipments || [];
         setAllShipments(shipmentsData);
@@ -278,74 +455,101 @@ export const DriverAuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
-  const startTrip = async (quoteId) => {
-    if (!token) return;
+  // ─────────────────────────────────────────
+  // START TRIP — starts trip first, then updates live location
+  // ─────────────────────────────────────────
+  const startTrip = useCallback(
+    async (quoteId, currentLocation = null) => {
+      if (!tokenRef.current)
+        return { success: false, message: "Not authenticated" };
 
-    try {
-      const res = await axios.post(
-        `${API_BASE_URL}/driver/start-trip`,
-        { quoteId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (res.data.success) await fetchAssignedShipments();
-      return res.data;
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || err.message,
-      };
-    }
-  };
+      try {
+        // Step 1: Start the trip
+        const res = await axios.post(
+          `${API_BASE_URL}/shipper/driver/start-trip`,
+          { quoteId },
+          { headers: { Authorization: `Bearer ${tokenRef.current}` } }
+        );
 
-  const updateLocation = async (lat, lng) => {
-    if (!token) return;
+        if (res.data.success) {
+          // Step 2: Push current location after trip start succeeds
+          const locationRes = await syncDriverLocationOnce(
+            currentLocation
+              ? {
+                  latitude: currentLocation.lat,
+                  longitude: currentLocation.lng,
+                  speed: currentLocation.speed || 0,
+                  heading: currentLocation.heading || 0,
+                }
+              : null
+          );
 
-    try {
-      await axios.post(
-        `${API_BASE_URL}/driver/update-location`,
-        { lat, lng },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-    } catch (err) {
-      console.error("Location update failed");
-    }
-  };
+          if (locationRes?.success) {
+            setIsTrackingEnabled(true);
+            startTrackingLoop();
+          } else {
+            return {
+              success: false,
+              message: locationRes?.message || "Location update failed",
+            };
+          }
 
-  const completeShipment = async (quoteId) => {
-    if (!token) return;
+          // Step 3: Refresh driver data
+          await fetchDriver();
+        }
 
-    try {
-      const res = await axios.post(
-        `${API_BASE_URL}/driver/complete-shipment`,
-        { quoteId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (res.data.success) await fetchAssignedShipments();
-      return res.data;
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || err.message,
-      };
-    }
-  };
+        return res.data;
+      } catch (err) {
+        return {
+          success: false,
+          message: err.response?.data?.message || err.message,
+        };
+      }
+    },
+    [syncDriverLocationOnce, fetchDriver, startTrackingLoop]
+  );
 
-  // ------------------ SEND DELIVERY OTP ------------------
-  const sendDeliveryOtp = async (shipmentId) => {
-    if (!token) return;
+  // ─────────────────────────────────────────
+  // COMPLETE SHIPMENT
+  // ─────────────────────────────────────────
+  const completeShipment = useCallback(
+    async (quoteId) => {
+      if (!tokenRef.current) return;
+      try {
+        const res = await axios.post(
+          `${API_BASE_URL}/driver/complete-shipment`,
+          { quoteId },
+          { headers: { Authorization: `Bearer ${tokenRef.current}` } }
+        );
+        if (res.data.success) {
+          setIsTrackingEnabled(false);
+          await fetchAssignedShipments();
+        }
+        return res.data;
+      } catch (err) {
+        return {
+          success: false,
+          message: err.response?.data?.message || err.message,
+        };
+      }
+    },
+    [fetchAssignedShipments]
+  );
 
+  // ─────────────────────────────────────────
+  // SEND DELIVERY OTP
+  // ─────────────────────────────────────────
+  const sendDeliveryOtp = useCallback(async (shipmentId) => {
+    if (!tokenRef.current) return;
     setActionLoading(true);
     try {
       const res = await axios.post(
         `${API_BASE_URL}/driver/driver/shipment/${shipmentId}/send-delivery-otp`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${tokenRef.current}` } }
       );
-
       return res.data;
     } catch (err) {
       return {
@@ -355,37 +559,38 @@ export const DriverAuthProvider = ({ children }) => {
     } finally {
       setActionLoading(false);
     }
-  };
+  }, []);
 
-  // ------------------ VERIFY DELIVERY OTP ------------------
-  const verifyDeliveryOtp = async (shipmentId, otp) => {
-    if (!token) return;
-
-    setActionLoading(true);
-    try {
-      const res = await axios.post(
-        `${API_BASE_URL}/driver/driver/shipment/${shipmentId}/verify-delivery-otp`,
-        { otp },
-        {
-          headers: { Authorization: `Bearer ${token}` },
+  // ─────────────────────────────────────────
+  // VERIFY DELIVERY OTP
+  // ─────────────────────────────────────────
+  const verifyDeliveryOtp = useCallback(
+    async (shipmentId, otp) => {
+      if (!tokenRef.current) return;
+      setActionLoading(true);
+      try {
+        const res = await axios.post(
+          `${API_BASE_URL}/driver/driver/shipment/${shipmentId}/verify-delivery-otp`,
+          { otp },
+          { headers: { Authorization: `Bearer ${tokenRef.current}` } }
+        );
+        if (res.data.success) {
+          setIsTrackingEnabled(false);
+          await fetchAssignedShipments();
         }
-      );
-
-      // refresh shipments after delivery
-      if (res.data.success) {
-        await fetchAssignedShipments();
+        return res.data;
+      } catch (err) {
+        return {
+          success: false,
+          message: err.response?.data?.message || err.message,
+        };
+      } finally {
+        setActionLoading(false);
       }
+    },
+    [fetchAssignedShipments]
+  );
 
-      return res.data;
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || err.message,
-      };
-    } finally {
-      setActionLoading(false);
-    }
-  };
   return (
     <DriverAuthContext.Provider
       value={{
@@ -397,6 +602,8 @@ export const DriverAuthProvider = ({ children }) => {
         role,
         loading,
         actionLoading,
+        locationPermission,
+        isTrackingEnabled,
         login,
         fetchDriver,
         uploadProfileImage,
@@ -404,10 +611,12 @@ export const DriverAuthProvider = ({ children }) => {
         fetchAssignedShipments,
         logout,
         startTrip,
-        updateLocation,
         completeShipment,
         sendDeliveryOtp,
         verifyDeliveryOtp,
+        updateDriverLocation,
+        checkLocationPermission,
+        setIsTrackingEnabled,
       }}
     >
       {children}
