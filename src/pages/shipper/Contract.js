@@ -12,6 +12,7 @@ import {
   FiHash,
   FiUsers,
   FiAlertCircle,
+  FiNavigation,
 } from "react-icons/fi";
 import { MdClose } from "react-icons/md";
 import { IoArrowBack } from "react-icons/io5";
@@ -200,7 +201,7 @@ const ShipmentCard = ({
       {/* ── ACTIONS ── */}
       <div className="flex flex-wrap gap-3 pt-1 border-t border-gray-100">
         {/* Track — show for upcoming and completed */}
-        {/* {!isCancelled && (
+        {!isCancelled && (
           <button
             onClick={() => onTrack(quote)}
             className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53]
@@ -209,7 +210,7 @@ const ShipmentCard = ({
             <FiNavigation size={14} />
             Track Shipment
           </button>
-        )} */}
+        )}
 
         {/* Mark Delivered — only upcoming tab */}
         {/* {isUpcoming && (
@@ -376,7 +377,7 @@ const AllUpcomingShipments = () => {
   };
 
   const handleTrack = (quote) => {
-    navigate(`/shipper/shipments/track/${quote.shipment._id}`);
+    navigate(`/shipper/track/${quote._id}`);
   };
 
   const handleVerifyOtp = async () => {

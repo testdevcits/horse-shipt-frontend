@@ -47,6 +47,7 @@ import { ReviewProvider } from "./contexts/customerContext/ReviewContext";
 // ------------------- Import Newsletter Context -------------------
 import { NewsletterProvider } from "./contexts/NewsletterContext";
 import { SubscriptionProvider } from "./contexts/shipperContext/SubscriptionContext";
+import { TrackingProvider } from "./contexts/common/TrackingContext";
 
 // ------------------- Stripe Setup -------------------
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
@@ -90,7 +91,9 @@ function App() {
                                                               <CustomerQuestionProvider>
                                                                 <DeliveredShipmentProvider>
                                                                   <NewsletterProvider>
-                                                                    <AppRoutes />
+                                                                    <TrackingProvider>
+                                                                      <AppRoutes />
+                                                                    </TrackingProvider>
                                                                   </NewsletterProvider>
                                                                 </DeliveredShipmentProvider>
                                                               </CustomerQuestionProvider>

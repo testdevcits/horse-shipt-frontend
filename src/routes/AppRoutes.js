@@ -27,6 +27,7 @@ import CustomerShipperReviewPage from "../pages/customer/CustomerShipperReviewPa
 import InviteShipmentPage from "../pages/InviteShipmentPage";
 import NewsletterVerificationPage from "../pages/NewsletterVerificationPage";
 import OAuthErrorPage from "../pages/auth/OAuthErrorPage";
+import TrackShipmentPage from "../pages/TrackShipmentPage";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -203,6 +204,7 @@ const AppRoutes = () => {
           <Route path="quotes" element={<ShipperQuotesPage />} />
           <Route path="earnings" element={<ShipperEarnings />} />
           <Route path="google-review" element={<GoogleReview />} />
+          <Route path="track/:quoteId" element={<TrackShipmentPage />} />
 
           {/* LIST PAGE */}
           <Route path="shipments" element={<AllUpcomingShipments />} />
@@ -239,6 +241,7 @@ const AppRoutes = () => {
             path="reviews/:shipperId"
             element={<CustomerShipperReviewPage />}
           />
+          <Route path="track/:quoteId" element={<TrackShipmentPage />} />
         </Route>
 
         {/* ---------- Fallback ---------- */}
