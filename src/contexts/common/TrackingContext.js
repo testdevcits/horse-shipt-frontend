@@ -1,7 +1,12 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 
 const API_BASE_URL = "https://horse-shipt.vercel.app";
-
 const TrackingContext = createContext();
 
 export const TrackingProvider = ({ children }) => {
@@ -9,14 +14,14 @@ export const TrackingProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // =========================
-  // TRACK SHIPMENT (STABLE)
-  // =========================
+  const prevDriverRef = useRef(null);
+
+  // TRACK SHIPMENT WITH CACHE
+
   const trackShipment = useCallback(
     async (quoteId, token, isSilent = false) => {
       try {
         if (!isSilent) setLoading(true);
-
         setError(null);
 
         const res = await fetch(
@@ -32,20 +37,44 @@ export const TrackingProvider = ({ children }) => {
 
         const data = await res.json();
 
-        if (data.success) {
-          setTrackingData({
-            tripStatus: data.tripStatus,
-            driver: data.driver,
-            pickup: data.pickup,
-            delivery: data.delivery,
-          });
-        } else {
-          setTrackingData(null);
+        if (!data.success) {
           setError(data.message || "Failed to track shipment");
+          return;
         }
+
+        const newDriver = data.driver;
+
+        // CACHE CHECK — skip if driver hasn't moved
+
+        if (prevDriverRef.current && newDriver) {
+          const prev = prevDriverRef.current;
+          const isSameLocation =
+            prev.lat === newDriver.lat &&
+            prev.lng === newDriver.lng &&
+            prev.updatedAt === newDriver.updatedAt;
+
+          if (isSameLocation) {
+            console.log("⚡ No movement detected → skipping state update");
+            return;
+          }
+        }
+
+        prevDriverRef.current = newDriver
+          ? {
+              lat: newDriver.lat,
+              lng: newDriver.lng,
+              updatedAt: newDriver.updatedAt,
+            }
+          : null;
+
+        setTrackingData({
+          tripStatus: data.tripStatus,
+          driver: data.driver,
+          pickup: data.pickup,
+          delivery: data.delivery,
+        });
       } catch (err) {
         console.error("Tracking error:", err);
-        setTrackingData(null);
         setError("Something went wrong");
       } finally {
         if (!isSilent) setLoading(false);
@@ -55,11 +84,12 @@ export const TrackingProvider = ({ children }) => {
   );
 
   // =========================
-  // CLEAR TRACKING (STABLE)
+  // CLEAR TRACKING
   // =========================
   const clearTracking = useCallback(() => {
     setTrackingData(null);
     setError(null);
+    prevDriverRef.current = null;
   }, []);
 
   return (
