@@ -793,13 +793,18 @@ const AllShipments = () => {
   // TRACK SHIPMENT - Navigate to tracking page
   // =====================================================
   const handleTrackShipment = (shipment = selected) => {
-    if (!shipment || !shipment._id) {
+    if (!shipment) {
       Toast.error("Cannot track this shipment");
       return;
     }
 
-    // Navigate to tracking page with quote ID (using shipment _id as quoteId)
-    navigate(`/customer/track/${shipment._id}`);
+    // IMPORTANT: use quoteId, not shipment._id
+    if (!shipment.quoteId) {
+      Toast.error("Tracking not available for this shipment yet");
+      return;
+    }
+
+    navigate(`/customer/track/${shipment.quoteId}`);
     setSelected(null);
   };
 
