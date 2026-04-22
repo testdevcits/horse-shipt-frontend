@@ -46,6 +46,17 @@ const defaultForm = {
 };
 
 const getNumericCoords = (latitude, longitude) => {
+  if (
+    latitude === "" ||
+    longitude === "" ||
+    latitude === null ||
+    longitude === null ||
+    latitude === undefined ||
+    longitude === undefined
+  ) {
+    return null;
+  }
+
   const lat = Number(latitude);
   const lng = Number(longitude);
 
@@ -97,6 +108,19 @@ const fitMapToRadius = (map, coords, radiusKm) => {
   if (bounds) {
     map.fitBounds(bounds, 24);
   }
+};
+
+const getPlaceLocationData = (place) => {
+  if (!place?.geometry?.location) return null;
+
+  const latitude = Number(place.geometry.location.lat().toFixed(6));
+  const longitude = Number(place.geometry.location.lng().toFixed(6));
+
+  return {
+    locationName: place.formatted_address || place.name || "",
+    latitude,
+    longitude,
+  };
 };
 
 const LocationMapCard = ({
@@ -196,17 +220,19 @@ const ShipperPreferredAreaPage = () => {
 
   const onPlaceChanged = useCallback(() => {
     const place = autocompleteRef.current?.getPlace();
-    if (!place?.geometry?.location) return;
+    const placeData = getPlaceLocationData(place);
+    if (!placeData) return;
 
-    const latitude = place.geometry.location.lat();
-    const longitude = place.geometry.location.lng();
-    const nextCoords = { lat: latitude, lng: longitude };
+    const nextCoords = {
+      lat: placeData.latitude,
+      lng: placeData.longitude,
+    };
 
     setForm((prev) => ({
       ...prev,
-      locationName: place.formatted_address || prev.locationName,
-      latitude,
-      longitude,
+      locationName: placeData.locationName || prev.locationName,
+      latitude: placeData.latitude,
+      longitude: placeData.longitude,
     }));
 
     syncMapToCoords(addMapRef.current, nextCoords);
@@ -214,17 +240,19 @@ const ShipperPreferredAreaPage = () => {
 
   const onEditPlaceChanged = useCallback(() => {
     const place = editAutocompleteRef.current?.getPlace();
-    if (!place?.geometry?.location) return;
+    const placeData = getPlaceLocationData(place);
+    if (!placeData) return;
 
-    const latitude = place.geometry.location.lat();
-    const longitude = place.geometry.location.lng();
-    const nextCoords = { lat: latitude, lng: longitude };
+    const nextCoords = {
+      lat: placeData.latitude,
+      lng: placeData.longitude,
+    };
 
     setEditForm((prev) => ({
       ...prev,
-      locationName: place.formatted_address || prev.locationName,
-      latitude,
-      longitude,
+      locationName: placeData.locationName || prev.locationName,
+      latitude: placeData.latitude,
+      longitude: placeData.longitude,
     }));
 
     syncMapToCoords(editMapRef.current, nextCoords);
@@ -233,16 +261,16 @@ const ShipperPreferredAreaPage = () => {
   const handleMarkerDragEnd = useCallback((e) => {
     setForm((prev) => ({
       ...prev,
-      latitude: e.latLng.lat(),
-      longitude: e.latLng.lng(),
+      latitude: Number(e.latLng.lat().toFixed(6)),
+      longitude: Number(e.latLng.lng().toFixed(6)),
     }));
   }, []);
 
   const handleEditMarkerDragEnd = useCallback((e) => {
     setEditForm((prev) => ({
       ...prev,
-      latitude: e.latLng.lat(),
-      longitude: e.latLng.lng(),
+      latitude: Number(e.latLng.lat().toFixed(6)),
+      longitude: Number(e.latLng.lng().toFixed(6)),
     }));
   }, []);
 
@@ -599,6 +627,8 @@ const ShipperPreferredAreaPage = () => {
                           setForm((prev) => ({
                             ...prev,
                             locationName: e.target.value,
+                            latitude: "",
+                            longitude: "",
                           }))
                         }
                         className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
@@ -821,6 +851,8 @@ const ShipperPreferredAreaPage = () => {
                           setEditForm((prev) => ({
                             ...prev,
                             locationName: e.target.value,
+                            latitude: "",
+                            longitude: "",
                           }))
                         }
                         className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
