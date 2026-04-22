@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useShipperProfile } from "../contexts/ShipperProfileContext";
 import { useShipperPayments } from "../contexts/shipperContext/ShipperPaymentContext";
 import { useSubscription } from "../contexts/shipperContext/SubscriptionContext";
-import { LuLockKeyhole } from "react-icons/lu";
+import { LuSparkles } from "react-icons/lu";
 import StripeAlertBanner from "../pages/shipper/common/StripeAlertBanner";
 import StripeVerificationModal from "../pages/shipper/common/StripeVerificationModal";
 import SubscriptionPopup from "../pages/shipper/Subscription/SubscriptionPopup";
@@ -23,7 +23,7 @@ import defaultProfileImage from "../assets/images/profileImage.png";
 // =====================================================
 // ROUTES that are accessible WITHOUT a subscription
 // =====================================================
-const SUBSCRIPTION_FREE_ROUTES = ["/shipper/settings"];
+const SUBSCRIPTION_FREE_ROUTES = [];
 
 const ShipperLayout = () => {
   const navigate = useNavigate();
@@ -196,12 +196,27 @@ const ShipperLayout = () => {
           showStripeBanner ? "mt-[52px]" : ""
         }`}
       >
-        <Sidebar
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          mobileOpen={mobileOpen}
-          setMobileOpen={setMobileOpen}
-        />
+        {/*
+          Sidebar wrapper — when subscription block is showing,
+          we overlay a transparent click-blocker on top of the sidebar
+          so none of its links/buttons can be clicked.
+        */}
+        <div className="relative">
+          <Sidebar
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            mobileOpen={mobileOpen}
+            setMobileOpen={setMobileOpen}
+          />
+
+          {/* Sidebar click-blocker — only active when subscription overlay is visible */}
+          {showSubscriptionBlock && (
+            <div
+              className="absolute inset-0 z-30 cursor-not-allowed"
+              aria-hidden="true"
+            />
+          )}
+        </div>
 
         <main
           className="flex-1 overflow-auto transition-all duration-300"
@@ -224,28 +239,39 @@ const ShipperLayout = () => {
                   <div className="w-[90%] max-w-md sm:max-w-lg bg-white rounded-2xl shadow-2xl border border-[#BF9B53]/30 p-6 sm:p-8 flex flex-col items-center text-center gap-4 animate-fade-in">
                     {/* Icon */}
                     <div className="w-16 h-16 flex items-center justify-center rounded-full bg-[#BF9B53]/10">
-                      <LuLockKeyhole className="text-3xl text-[#BF9B53]" />
+                      <LuSparkles className="text-3xl text-[#BF9B53]" />
                     </div>
 
+                    {/* Badge */}
+                    <span className="text-xs font-semibold uppercase tracking-widest text-[#BF9B53] bg-[#BF9B53]/10 px-3 py-1 rounded-full">
+                      Free Trial Available
+                    </span>
+
                     {/* Title */}
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-                      Subscription Required
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800 leading-snug">
+                      Start Your Free Trial Today
                     </h2>
 
                     {/* Description */}
-                    <p className="text-sm sm:text-base text-gray-600 max-w-sm">
-                      This feature is available only for subscribed users.
-                      Upgrade your plan to unlock full access.
+                    <p className="text-sm sm:text-base text-gray-500 max-w-sm leading-relaxed">
+                      Explore all features completely free — no credit card
+                      required to get started. Activate your trial in seconds
+                      and unlock the full platform.
                     </p>
 
-                    {/* Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
-                      {/* Secondary */}
+                    {/* Trust note */}
+                    <p className="text-xs text-gray-400">
+                      ✓ No charges during trial &nbsp;·&nbsp; ✓ Cancel anytime
+                      &nbsp;·&nbsp; ✓ Instant access
+                    </p>
+
+                    {/* CTA Button */}
+                    <div className="flex flex-col sm:flex-row gap-3 w-full mt-1">
                       <button
                         onClick={() => window.location.reload()}
-                        className="w-full py-2.5 rounded-xl border border-gray-300 text-gray-600 font-medium hover:bg-gray-100 transition"
+                        className="w-full py-3 rounded-xl bg-[#BF9B53] text-white font-semibold hover:bg-[#a8833d] transition shadow-md"
                       >
-                        Subscribe Now
+                        🚀 Start Free Trial
                       </button>
                     </div>
                   </div>
