@@ -271,7 +271,7 @@ const ShipperLayout = () => {
                         onClick={() => window.location.reload()}
                         className="w-full py-3 rounded-xl bg-[#BF9B53] text-white font-semibold hover:bg-[#a8833d] transition shadow-md"
                       >
-                        🚀 Start Free Trial
+                        Start Free Trial
                       </button>
                     </div>
                   </div>
