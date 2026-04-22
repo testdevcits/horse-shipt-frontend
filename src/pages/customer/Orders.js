@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useDeliveredShipments } from "../../contexts/customerContext/DeliveredShipmentContext";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
@@ -9,7 +9,13 @@ import Toast from "../../components/common/Toast";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import { createShipmentQueryToken } from "../../utils/createQueryToken";
 import { LiaHorseHeadSolid } from "react-icons/lia";
-import { FiTrash2, FiShare2, FiEye, FiEdit2 } from "react-icons/fi";
+import {
+  FiTrash2,
+  FiShare2,
+  FiEye,
+  FiEdit2,
+  FiNavigation,
+} from "react-icons/fi";
 import { GiCardPickup } from "react-icons/gi";
 import { MdOutlineLocationOn } from "react-icons/md";
 import { CiUser } from "react-icons/ci";
@@ -147,10 +153,11 @@ const ShipmentDrawer = ({
   isInProgress = false,
   onNavigate,
   onEdit,
+  onTrack,
 }) => {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (shipment) {
       document.body.style.overflow = "hidden";
       requestAnimationFrame(() => setVisible(true));
@@ -419,7 +426,7 @@ const ShipmentDrawer = ({
         </div>
 
         {/* ── Sticky Footer ── */}
-        <div className="shrink-0 border-t border-gray-200 bg-white px-4 py-3 flex gap-2">
+        <div className="shrink-0 border-t border-gray-200 bg-white px-4 py-3 flex gap-2 flex-wrap">
           <button
             onClick={close}
             className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-xs font-bold hover:bg-gray-50 transition-colors"
@@ -453,8 +460,28 @@ const ShipmentDrawer = ({
             </>
           )}
 
+          {/* In Progress: Track Button */}
+          {isInProgress && (
+            <>
+              <button
+                onClick={onTrack}
+                className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+              >
+                <FiNavigation size={14} />
+                Track Shipment
+              </button>
+              <button
+                onClick={onNavigate}
+                className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-[#BF9B53] hover:bg-[#a8863e] text-white transition-colors"
+              >
+                <FiEye size={14} />
+                View Details
+              </button>
+            </>
+          )}
+
           {/* ── View Full Details button — shown for ALL non-draft tabs ── */}
-          {!isDraft && (
+          {!isDraft && !isInProgress && (
             <button
               onClick={onNavigate}
               className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-[#BF9B53] hover:bg-[#a8863e] text-white transition-colors"
@@ -599,16 +626,16 @@ const AllShipments = () => {
     useCustomerShipments();
   const { addReview, myReviews } = useReview();
 
-  const [selected, setSelected] = useState(null);
-  const [reviewOpen, setReviewOpen] = useState(false);
-  const [tab, setTab] = useState("draft");
-  const [confirmModal, setConfirmModal] = useState({
+  const [selected, setSelected] = React.useState(null);
+  const [reviewOpen, setReviewOpen] = React.useState(false);
+  const [tab, setTab] = React.useState("draft");
+  const [confirmModal, setConfirmModal] = React.useState({
     open: false,
     action: null,
     shipmentId: null,
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchCompletedShipments();
   }, [fetchCompletedShipments]);
 
@@ -751,8 +778,8 @@ const AllShipments = () => {
   const handleEditShipment = async () => {
     if (!selected) return;
     try {
-    const shipmentData=  await fetchShipmentById(selected._id);
-    console.log("this is the shipmentData",shipmentData)
+      const shipmentData = await fetchShipmentById(selected._id);
+      console.log("this is the shipmentData", shipmentData);
       navigate(`/customer/new-shipment/${selected._id}`, {
         state: { editMode: true, shipment: selected },
       });
@@ -760,6 +787,20 @@ const AllShipments = () => {
     } catch (err) {
       Toast.error(err.message || "Failed to load shipment for editing");
     }
+  };
+
+  // =====================================================
+  // TRACK SHIPMENT - Navigate to tracking page
+  // =====================================================
+  const handleTrackShipment = (shipment = selected) => {
+    if (!shipment || !shipment._id) {
+      Toast.error("Cannot track this shipment");
+      return;
+    }
+
+    // Navigate to tracking page with quote ID (using shipment _id as quoteId)
+    navigate(`/customer/track/${shipment._id}`);
+    setSelected(null);
   };
 
   const hasReviewed = (id) => myReviews.some((r) => r.shipmentId === id);
@@ -866,6 +907,7 @@ const AllShipments = () => {
           onDelete={openDeleteConfirm}
           onNavigate={() => handleNavigateToDetails(selected)}
           onEdit={handleEditShipment}
+          onTrack={() => handleTrackShipment(selected)}
         />
       )}
 

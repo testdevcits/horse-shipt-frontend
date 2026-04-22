@@ -95,63 +95,82 @@ const NewShipment = () => {
      ========================================== */
   useEffect(() => {
     const loadData = async () => {
-      let data = shipmentDataFromState;
+      try {
+        let data = shipmentDataFromState;
 
-      if (!data && id) {
-        data = await fetchShipmentById(id);
+        if (!data && id) {
+          data = await fetchShipmentById(id);
+        }
+
+        if (data) {
+          // Pickup
+          setPickupLocation(data.pickupLocation || "");
+          setPickupTimeOption(data.pickupTimeOption || "on");
+          setPickupCoords(
+            data.pickupCoords
+              ? {
+                  lat: data.pickupCoords?.latitude || data.pickupCoords?.lat,
+                  lng: data.pickupCoords?.longitude || data.pickupCoords?.lng,
+                }
+              : null
+          );
+          setPickupStartDate(data.pickupDateRange?.start?.split("T")[0] || "");
+          setPickupEndDate(data.pickupDateRange?.end?.split("T")[0] || "");
+
+          // Delivery
+          setDeliveryLocation(data.deliveryLocation || "");
+          setDeliveryTimeOption(data.deliveryTimeOption || "on");
+          setDeliveryCoords(
+            data.deliveryCoords
+              ? {
+                  lat:
+                    data.deliveryCoords?.latitude || data.deliveryCoords?.lat,
+                  lng:
+                    data.deliveryCoords?.longitude || data.deliveryCoords?.lng,
+                }
+              : null
+          );
+          setDeliveryStartDate(
+            data.deliveryDateRange?.start?.split("T")[0] || ""
+          );
+          setDeliveryEndDate(data.deliveryDateRange?.end?.split("T")[0] || "");
+
+          // Other
+          setNumberOfHorses(data.numberOfHorses || 1);
+          setAdditionalInfo(data.additionalInfo || "");
+          setRecipientEmail(data.recipientEmail || "");
+
+          // ✅ Only set the horses that belong to this shipment
+          if (Array.isArray(data.horses) && data.horses.length > 0) {
+            const processedHorses = data.horses.map((h) => ({
+              registeredName: h.registeredName || "",
+              barnName: h.barnName || "",
+              breed: h.breed || "",
+              otherBreed: h.otherBreed || "",
+              colour: h.colour || "",
+              age: h.age?.toString() || "",
+              sex: h.sex || "",
+              stallType: h.requestedStallSize || h.stallType || "",
+              size: h.size || "",
+              photo: h.photo?.url || null,
+              cogins: h.documents?.coggins?.url || null,
+              healthCertificate: h.documents?.healthCertificate?.url || null,
+              otherDocuments: h.documents?.other?.url || null,
+              generalInfo: h.generalInfo || "",
+              images: [],
+              selectedHorseId: h._id || "",
+              notes: h.notes || "",
+            }));
+
+            setHorses(processedHorses);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading shipment data:", error);
+        Toast.error("Failed to load shipment data");
+      } finally {
+        setIsInitializing(false);
       }
-
-      if (data) {
-        // Pickup
-        setPickupLocation(data.pickupLocation || "");
-        setPickupCoords({
-          lat: data.pickupCoords?.latitude,
-          lng: data.pickupCoords?.longitude,
-        });
-        setPickupStartDate(data.pickupDateRange?.start?.split("T")[0] || "");
-        setPickupEndDate(data.pickupDateRange?.end?.split("T")[0] || "");
-
-        // Delivery
-        setDeliveryLocation(data.deliveryLocation || "");
-        setDeliveryCoords({
-          lat: data.deliveryCoords?.latitude,
-          lng: data.deliveryCoords?.longitude,
-        });
-        setDeliveryStartDate(
-          data.deliveryDateRange?.start?.split("T")[0] || ""
-        );
-        setDeliveryEndDate(data.deliveryDateRange?.end?.split("T")[0] || "");
-
-        // Other
-        setNumberOfHorses(data.numberOfHorses || 1);
-        setAdditionalInfo(data.additionalInfo || "");
-        setRecipientEmail(data.recipientEmail || "");
-
-        // ✅ Only set the horses that belong to this shipment
-        const processedHorses = (data.horses || []).map((h) => ({
-          registeredName: h.registeredName || "",
-          barnName: h.barnName || "",
-          breed: h.breed || "",
-          otherBreed: h.otherBreed || "",
-          colour: h.colour || "",
-          age: h.age || "",
-          sex: h.sex || "",
-          stallType: h.requestedStallSize || h.stallType || "",
-          size: h.size || "",
-          photo: h.photo?.url || null,
-          cogins: h.documents?.coggins?.url || null,
-          healthCertificate: h.documents?.healthCertificate?.url || null,
-          otherDocuments: h.documents?.other?.url || null,
-          generalInfo: h.generalInfo || "",
-          images: [],
-          selectedHorseId: h._id || "",
-          notes: h.notes || "",
-        }));
-
-        setHorses(processedHorses);
-      }
-
-      setIsInitializing(false);
     };
 
     if (isEditMode) {
