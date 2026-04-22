@@ -14,6 +14,7 @@ import {
   FiPlus,
   FiX,
   FiCheck,
+  FiMap,
 } from "react-icons/fi";
 import { MdRadar } from "react-icons/md";
 
@@ -25,6 +26,11 @@ const mapContainerStyle = {
 const savedAreaMapContainerStyle = {
   width: "100%",
   height: "220px",
+};
+
+const allAreasMapContainerStyle = {
+  width: "100%",
+  height: "100%",
 };
 
 const defaultCenter = {
@@ -159,6 +165,8 @@ const ShipperPreferredAreaPage = () => {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState(defaultForm);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showAllAreasModal, setShowAllAreasModal] = useState(false);
+  const [selectedAreaId, setSelectedAreaId] = useState(null);
   const [confirmModal, setConfirmModal] = useState({
     open: false,
     areaId: null,
@@ -168,12 +176,17 @@ const ShipperPreferredAreaPage = () => {
   const editAutocompleteRef = useRef(null);
   const addMapRef = useRef(null);
   const editMapRef = useRef(null);
+  const allAreasMapRef = useRef(null);
 
   const isMaxReached = preferredAreas.length >= 4;
   const addCoords = getNumericCoords(form.latitude, form.longitude);
   const editCoords = getNumericCoords(editForm.latitude, editForm.longitude);
   const isFormOpen = showAddForm || Boolean(editingId);
   const editingArea = preferredAreas.find((area) => area._id === editingId);
+  const selectedArea =
+    preferredAreas.find((area) => area._id === selectedAreaId) ||
+    preferredAreas[0] ||
+    null;
 
   const syncMapToCoords = useCallback((map, coords) => {
     if (!map || !coords) return;
@@ -314,6 +327,34 @@ const ShipperPreferredAreaPage = () => {
     setConfirmModal({ open: false, areaId: null });
   };
 
+  const handleOpenAllAreasModal = () => {
+    if (!preferredAreas.length) return;
+    setSelectedAreaId((prev) => prev || preferredAreas[0]._id);
+    setShowAllAreasModal(true);
+  };
+
+  const handleCloseAllAreasModal = () => {
+    setShowAllAreasModal(false);
+  };
+
+  const handleFocusArea = useCallback(
+    (area) => {
+      if (!area) return;
+      setSelectedAreaId(area._id);
+      const coords = getAreaCoords(area);
+      fitMapToRadius(allAreasMapRef.current, coords, area.radiusKm);
+    },
+    []
+  );
+
+  React.useEffect(() => {
+    if (!showAllAreasModal) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showAllAreasModal]);
+
   return (
     <div className="w-full px-2 sm:px-3 lg:px-5 py-3 sm:py-5 font-montserrat">
       {confirmModal.open && (
@@ -326,6 +367,129 @@ const ShipperPreferredAreaPage = () => {
           confirmText="Delete"
           confirmColor="red"
         />
+      )}
+
+      {showAllAreasModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 p-2 sm:p-4">
+          <div className="w-full h-full bg-white rounded-[24px] shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-4 border-b border-gray-200 bg-[#fcfaf5]">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#BF9B53]">
+                  All Preferred Areas
+                </p>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mt-1">
+                  View All Areas In One Map
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                  Click any area from the list to zoom the map to that location.
+                </p>
+              </div>
+              <button
+                onClick={handleCloseAllAreasModal}
+                className="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center justify-center shrink-0"
+              >
+                <FiX size={18} />
+              </button>
+            </div>
+
+            <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)]">
+              <div className="border-b lg:border-b-0 lg:border-r border-gray-200 bg-[#fffdf8] overflow-y-auto p-3 sm:p-4">
+                <div className="space-y-2">
+                  {preferredAreas.map((area, idx) => {
+                    const isActive = selectedArea?._id === area._id;
+                    return (
+                      <button
+                        key={area._id}
+                        onClick={() => handleFocusArea(area)}
+                        className={`w-full text-left rounded-2xl border px-3 py-3 transition ${
+                          isActive
+                            ? "border-[#BF9B53] bg-[#fff8ea] shadow-sm"
+                            : "border-gray-200 bg-white hover:border-[#BF9B53]/40"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-sm ${
+                              isActive
+                                ? "bg-[#BF9B53] text-white"
+                                : "bg-[#BF9B53]/10 text-[#BF9B53]"
+                            }`}
+                          >
+                            {idx + 1}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold text-gray-900 break-words">
+                              {area.locationName || `Area ${idx + 1}`}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Radius: {area.radiusKm} km
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1 break-all">
+                              {formatCoord(area.coordinates?.coordinates?.[1])},{" "}
+                              {formatCoord(area.coordinates?.coordinates?.[0])}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="min-h-[340px] lg:min-h-0 p-2 sm:p-3">
+                <div className="w-full h-full rounded-[20px] overflow-hidden border border-gray-200">
+                  <GoogleMap
+                    mapContainerStyle={allAreasMapContainerStyle}
+                    center={getAreaCoords(selectedArea) || defaultCenter}
+                    zoom={5}
+                    onLoad={(map) => {
+                      allAreasMapRef.current = map;
+                      if (selectedArea) {
+                        fitMapToRadius(
+                          map,
+                          getAreaCoords(selectedArea),
+                          selectedArea.radiusKm
+                        );
+                      }
+                    }}
+                    options={mapOptions}
+                  >
+                    {preferredAreas.map((area, idx) => {
+                      const coords = getAreaCoords(area);
+                      if (!coords) return null;
+
+                      const isActive = selectedArea?._id === area._id;
+
+                      return (
+                        <React.Fragment key={area._id}>
+                          <Circle
+                            center={coords}
+                            radius={getRadiusMeters(area.radiusKm)}
+                            options={{
+                              ...radiusCircleOptions,
+                              fillOpacity: isActive ? 0.22 : 0.12,
+                              strokeWeight: isActive ? 3 : 2,
+                            }}
+                          />
+                          <Marker
+                            position={coords}
+                            label={{
+                              text: String(idx + 1),
+                              color: isActive ? "#ffffff" : "#1f2937",
+                              fontSize: "12px",
+                              fontWeight: "700",
+                            }}
+                            onClick={() => handleFocusArea(area)}
+                          />
+                        </React.Fragment>
+                      );
+                    })}
+                  </GoogleMap>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="">
@@ -376,7 +540,7 @@ const ShipperPreferredAreaPage = () => {
           </div>
 
           {!isMaxReached && !isFormOpen && (
-            <div className="mt-4">
+            <div className="mt-4 flex flex-col sm:flex-row gap-2">
               <button
                 onClick={handleOpenAddForm}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#BF9B53] hover:bg-[#a8863e] text-white text-sm font-bold transition"
@@ -384,6 +548,15 @@ const ShipperPreferredAreaPage = () => {
                 <FiPlus size={15} />
                 Add New Area
               </button>
+              {preferredAreas.length > 0 && (
+                <button
+                  onClick={handleOpenAllAreasModal}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-bold transition"
+                >
+                  <FiMap size={15} />
+                  See All Areas
+                </button>
+              )}
             </div>
           )}
         </div>
