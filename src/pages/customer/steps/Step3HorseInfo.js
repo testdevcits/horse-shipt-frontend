@@ -86,6 +86,10 @@ const Step3HorseInfo = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [unsavedHorseIdxs, setUnsavedHorseIdxs] = useState([]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   // Scroll to highlighted horse when editing from review step
   useEffect(() => {
     if (editingHorseIdx !== null) {
@@ -217,8 +221,8 @@ const Step3HorseInfo = ({
       {/* Only show numberOfHorses selector in create mode */}
       {!isEditMode && (
         <div className="w-full max-w-full">
-          <label className="block text-gray-600 font-semibold mb-2">
-            Number of Horses <span className="text-red-500">*</span>
+          <label className="block text-[#BF9B53] font-semibold mb-2">
+            Select Number of Horses <span className="text-red-500">*</span>
           </label>
           <Select
             value={numberOfHorses}

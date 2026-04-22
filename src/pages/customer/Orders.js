@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDeliveredShipments } from "../../contexts/customerContext/DeliveredShipmentContext";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import PageLoader from "../../components/common/PageLoader";
@@ -17,11 +17,10 @@ import {
   FiNavigation,
 } from "react-icons/fi";
 import { GiCardPickup } from "react-icons/gi";
-import { MdOutlineLocationOn } from "react-icons/md";
 import { CiUser } from "react-icons/ci";
 
 /* ─────────────────────────────────────────
-   StatusChip — handles all statuses
+   StatusChip
 ───────────────────────────────────────── */
 const StatusChip = ({ status }) => {
   switch (status) {
@@ -64,83 +63,109 @@ const StatusChip = ({ status }) => {
 };
 
 /* ─────────────────────────────────────────
-   HorseCard (inside drawer)
+   HorseCard
 ───────────────────────────────────────── */
-const HorseCard = ({ horse, idx }) => (
-  <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50 mb-2">
-    {horse.photo?.url && (
-      <div className="relative">
-        <img
-          src={horse.photo.url}
-          alt={horse.registeredName}
-          className="w-full h-32 object-cover"
-        />
-        <span className="absolute top-1 left-1 bg-black/55 text-white text-xs font-bold px-2 py-0.5 rounded">
-          Horse #{idx + 1}
-        </span>
-      </div>
-    )}
-    <div className="p-3">
-      <div className="flex items-center justify-between mb-2">
-        <p className="font-bold text-gray-900 text-xs">
-          {horse.registeredName}{" "}
-          <span className="font-normal text-gray-500">({horse.barnName})</span>
-        </p>
-        <span className="text-xs font-semibold bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
-          {horse.sex}
-        </span>
-      </div>
+const HorseCard = ({ horse, idx }) => {
+  const openDoc = (url) => {
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
-      <div className="flex flex-wrap gap-1 mb-2">
-        {[
-          horse.breed,
-          `${horse.age} yrs`,
-          horse.colour,
-          horse.requestedStallSize,
-        ].map((tag, i) => (
-          <span
-            key={i}
-            className="text-xs bg-white border border-gray-200 text-gray-600 font-medium px-1.5 py-0.5 rounded"
-          >
-            {tag}
+  return (
+    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm mb-3">
+      {/* Image — taller and full width */}
+      {horse.photo?.url ? (
+        <div className="relative">
+          <img
+            src={horse.photo.url}
+            alt={horse.registeredName}
+            className="w-full h-48 sm:h-56 object-cover"
+          />
+          <span className="absolute top-2 left-2 bg-black/60 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+            Horse #{idx + 1}
           </span>
-        ))}
-      </div>
-
-      {horse.generalInfo && (
-        <p className="text-xs text-gray-500 bg-white border border-gray-200 rounded px-2 py-1 mb-2 leading-tight">
-          {horse.generalInfo}
-        </p>
+        </div>
+      ) : (
+        <div className="w-full h-28 bg-gray-100 flex items-center justify-center text-gray-300 text-5xl">
+          <LiaHorseHeadSolid />
+        </div>
       )}
 
-      <div className="flex flex-wrap gap-1">
-        {horse.documents?.coggins?.url && (
-          <a
-            href={horse.documents.coggins.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded hover:bg-blue-100 transition-colors"
-          >
-            📄 Coggins
-          </a>
+      <div className="p-3 sm:p-4">
+        {/* Name + Sex row */}
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div>
+            <p className="font-bold text-gray-900 text-sm leading-tight">
+              {horse.registeredName}
+            </p>
+            {horse.barnName && (
+              <p className="text-xs text-gray-500 mt-0.5">
+                Barn: {horse.barnName}
+              </p>
+            )}
+          </div>
+          <span className="text-xs font-semibold bg-blue-50 text-blue-700 px-2 py-1 rounded-full shrink-0">
+            {horse.sex}
+          </span>
+        </div>
+
+        {/* Tags */}
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {[
+            horse.breed,
+            horse.age ? `${horse.age} yrs` : null,
+            horse.colour,
+            horse.requestedStallSize,
+          ]
+            .filter(Boolean)
+            .map((tag, i) => (
+              <span
+                key={i}
+                className="text-xs bg-gray-50 border border-gray-200 text-gray-600 font-medium px-2 py-0.5 rounded-full"
+              >
+                {tag}
+              </span>
+            ))}
+        </div>
+
+        {/* General Info */}
+        {horse.generalInfo && (
+          <p className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 mb-3 leading-relaxed">
+            {horse.generalInfo}
+          </p>
         )}
-        {horse.documents?.healthCertificate?.url && (
-          <a
-            href={horse.documents.healthCertificate.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded hover:bg-blue-100 transition-colors"
-          >
-            📋 Health Cert
-          </a>
+
+        {/* Documents — open in new tab via window.open */}
+        {(horse.documents?.coggins?.url ||
+          horse.documents?.healthCertificate?.url) && (
+          <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
+            <p className="w-full text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+              Documents
+            </p>
+            {horse.documents?.coggins?.url && (
+              <button
+                onClick={() => openDoc(horse.documents.coggins.url)}
+                className="flex items-center gap-1.5 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                📄 Coggins
+              </button>
+            )}
+            {horse.documents?.healthCertificate?.url && (
+              <button
+                onClick={() => openDoc(horse.documents.healthCertificate.url)}
+                className="flex items-center gap-1.5 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                📋 Health Cert
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 /* ─────────────────────────────────────────
-   Full-Screen Side Drawer
+   ShipmentDrawer
 ───────────────────────────────────────── */
 const ShipmentDrawer = ({
   shipment,
@@ -251,7 +276,7 @@ const ShipmentDrawer = ({
           visible ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* ── Sticky Header ── */}
+        {/* Sticky Header */}
         <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-2">
           <div
             className={`w-10 h-10 rounded-md flex items-center justify-center text-xl shrink-0 ${iconBg} ${iconColor}`}
@@ -275,9 +300,8 @@ const ShipmentDrawer = ({
           </button>
         </div>
 
-        {/* ── Scrollable Body ── */}
+        {/* Scrollable Body */}
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-          {/* Cancelled Banner */}
           {isCancelled && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center gap-2">
               <span className="text-red-500">🚫</span>
@@ -335,7 +359,6 @@ const ShipmentDrawer = ({
                 </p>
               )}
             </div>
-
             <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                 {isDelivered ? "Delivered At" : "Delivery Date"}
@@ -349,7 +372,6 @@ const ShipmentDrawer = ({
                 </p>
               )}
             </div>
-
             <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                 Horses
@@ -358,7 +380,6 @@ const ShipmentDrawer = ({
                 {shipment.numberOfHorses}
               </p>
             </div>
-
             <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                 Status
@@ -395,7 +416,7 @@ const ShipmentDrawer = ({
             </div>
           ) : (
             <div className="border border-dashed border-gray-200 rounded-md p-3 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 text-sm"></div>
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 text-sm" />
               <p className="text-xs text-gray-400 italic">
                 No shipper assigned yet
               </p>
@@ -425,7 +446,7 @@ const ShipmentDrawer = ({
           )}
         </div>
 
-        {/* ── Sticky Footer ── */}
+        {/* Sticky Footer */}
         <div className="shrink-0 border-t border-gray-200 bg-white px-4 py-3 flex gap-2 flex-wrap">
           <button
             onClick={close}
@@ -460,7 +481,7 @@ const ShipmentDrawer = ({
             </>
           )}
 
-          {/* In Progress: Track Button */}
+          {/* In Progress */}
           {isInProgress && (
             <>
               <button
@@ -480,7 +501,7 @@ const ShipmentDrawer = ({
             </>
           )}
 
-          {/* ── View Full Details button — shown for ALL non-draft tabs ── */}
+          {/* Non-draft, non-inProgress */}
           {!isDraft && !isInProgress && (
             <button
               onClick={onNavigate}
@@ -495,9 +516,7 @@ const ShipmentDrawer = ({
           {isDelivered && (
             <button
               onClick={() => {
-                if (!alreadyReviewed) {
-                  onReview();
-                }
+                if (!alreadyReviewed) onReview();
               }}
               disabled={alreadyReviewed}
               className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors ${
@@ -516,7 +535,7 @@ const ShipmentDrawer = ({
 };
 
 /* ─────────────────────────────────────────
-   Shipment Row Card
+   ShipmentRow
 ───────────────────────────────────────── */
 const ShipmentRow = ({ s, onView }) => {
   const fmt = (d) =>
@@ -544,82 +563,129 @@ const ShipmentRow = ({ s, onView }) => {
     return fmt(s.pickupDate);
   };
 
-  const isDelivered = s.status === "delivered";
   const isCancelled = s.status === "cancelled";
-
-  const iconBg = isDelivered
-    ? "bg-[#BF9B53]"
-    : isCancelled
-    ? "bg-red-100"
-    : "bg-[#BF9B53]";
-
-  const iconColor = isDelivered
-    ? "text-white"
-    : isCancelled
-    ? "text-red-500"
-    : "text-white";
-
   const hoverBorder = isCancelled
     ? "hover:border-red-300"
     : "hover:border-[#BF9B53] border-2";
 
+  // ✅ First horse image from the shipment
+  const firstHorseImage = s.horses?.find((h) => h.photo?.url)?.photo?.url;
+
   return (
     <div
-      className={`bg-white font-montserrat border border-gray-200 rounded-lg px-4 py-3 flex items-center gap-3 ${hoverBorder} hover:shadow-md transition-all duration-200 w-full`}
+      className={`group bg-white font-montserrat border border-gray-200 rounded-2xl px-3 sm:px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3 ${hoverBorder} hover:shadow-lg transition-all duration-200 w-full`}
     >
-      {/* Icon */}
-      <div
-        className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0 ${iconBg} ${iconColor}`}
-      >
-        <LiaHorseHeadSolid />
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-          <span className="font-bold text-xs text-gray-900 font-mono">
-            {s.shipmentCode}
-          </span>
-          <StatusChip status={s.status} />
-        </div>
-        <p className="text-xs text-gray-500 truncate mb-1 flex gap-1">
-          <MdOutlineLocationOn color="#BF9B53" size={16} />
-          {truncateText(s.pickupLocation)} → {truncateText(s.deliveryLocation)}
-        </p>
-        <div className="flex flex-wrap gap-2 text-xs">
-          <span className="text-gray-400 flex gap-1">
-            <GiCardPickup color="#BF9B53" size={16} />
-            {getRowPickupDisplay()}
-          </span>
-          <span className="text-gray-400 flex gap-1">
-            <LiaHorseHeadSolid color="#BF9B53" size={16} />
-            {s.numberOfHorses} horse{s.numberOfHorses > 1 ? "s" : ""}
-          </span>
-          {s.shipper?.name && (
-            <span className="text-gray-400 flex gap-1">
-              <CiUser color="#BF9B53" size={16} />
-              {truncateText(s.shipper.name)}
-            </span>
+      <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl shrink-0 overflow-hidden border border-gray-200 shadow-sm">
+          {firstHorseImage ? (
+            <img
+              src={firstHorseImage}
+              alt="horse"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div
+              className={`w-full h-full flex items-center justify-center text-2xl ${
+                isCancelled
+                  ? "bg-red-100 text-red-500"
+                  : "bg-[#BF9B53] text-white"
+              }`}
+            >
+              <LiaHorseHeadSolid />
+            </div>
           )}
         </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+            <span className="font-bold text-xs text-gray-900 font-mono tracking-wide">
+              {s.shipmentCode}
+            </span>
+            <StatusChip status={s.status} />
+          </div>
+
+          <p className="text-sm font-semibold text-gray-800 truncate mb-2">
+            {truncateText(s.pickupLocation, 40)} →{" "}
+            {truncateText(s.deliveryLocation, 40)}
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <div className="flex items-center gap-2 rounded-xl bg-[#f8f4eb] px-2.5 py-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm shrink-0">
+                <GiCardPickup color="#BF9B53" size={16} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  Pickup
+                </p>
+                <p className="text-xs font-semibold text-gray-700 truncate">
+                  {getRowPickupDisplay()}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-2.5 py-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm shrink-0">
+                <LiaHorseHeadSolid color="#BF9B53" size={16} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  Horses
+                </p>
+                <p className="text-xs font-semibold text-gray-700 truncate">
+                  {s.numberOfHorses} horse{s.numberOfHorses > 1 ? "s" : ""}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-2.5 py-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm shrink-0">
+                <CiUser color="#BF9B53" size={16} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  Shipper
+                </p>
+                <p className="text-xs font-semibold text-gray-700 truncate">
+                  {s.shipper?.name
+                    ? truncateText(s.shipper.name, 28)
+                    : "Pending assignment"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* View Button */}
       <button
         onClick={() => onView(s)}
-        className="shrink-0 px-4 py-2 bg-[#BF9B53] hover:bg-[#a8863e] text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap"
+        className="shrink-0 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 bg-gray-900 hover:bg-[#BF9B53] text-white text-xs font-bold rounded-xl transition-all duration-200 whitespace-nowrap shadow-sm group-hover:shadow-md"
       >
-        View
+        <FiEye size={15} />
+        View Details
       </button>
     </div>
   );
 };
 
 /* ─────────────────────────────────────────
+   Valid tab keys
+───────────────────────────────────────── */
+const VALID_TABS = [
+  "published",
+  "draft",
+  "inProgress",
+  "completed",
+  "cancelled",
+];
+
+/* ─────────────────────────────────────────
    Main Page
 ───────────────────────────────────────── */
 const AllShipments = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { shipments, loading, fetchCompletedShipments } =
     useDeliveredShipments();
   const { publishShipment, deleteShipment, fetchShipmentById } =
@@ -628,7 +694,17 @@ const AllShipments = () => {
 
   const [selected, setSelected] = React.useState(null);
   const [reviewOpen, setReviewOpen] = React.useState(false);
-  const [tab, setTab] = React.useState("draft");
+  const [actionLoading, setActionLoading] = React.useState(false);
+  const [actionText, setActionText] = React.useState("");
+
+  const getInitialTab = () => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get("tab");
+    return VALID_TABS.includes(tabParam) ? tabParam : "published";
+  };
+
+  const [tab, setTab] = React.useState(getInitialTab);
+
   const [confirmModal, setConfirmModal] = React.useState({
     open: false,
     action: null,
@@ -636,12 +712,24 @@ const AllShipments = () => {
   });
 
   React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get("tab");
+    if (tabParam && VALID_TABS.includes(tabParam)) {
+      setTab(tabParam);
+    }
+  }, [location.search]);
+
+  React.useEffect(() => {
     fetchCompletedShipments();
   }, [fetchCompletedShipments]);
 
-  // =====================================================
-  // HANDLE REVIEW SUBMIT - Close review modal and drawer
-  // =====================================================
+  const handleTabChange = (key) => {
+    setTab(key);
+    const params = new URLSearchParams(location.search);
+    params.set("tab", key);
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  };
+
   const handleReviewSubmit = async (data) => {
     if (!selected) return;
     try {
@@ -651,116 +739,75 @@ const AllShipments = () => {
         rating: data.rating,
         reviewText: data.reviewText,
       });
-
       Toast.success("Review submitted successfully!");
-
-      // Close review modal first
       setReviewOpen(false);
-
-      // Then close the drawer
-      setTimeout(() => {
-        setSelected(null);
-      }, 100);
+      setTimeout(() => setSelected(null), 100);
     } catch (err) {
       Toast.error(err.message || "Failed to submit review");
-      // Keep modals open for retry
     }
   };
 
-  // =====================================================
-  // HANDLE PUBLISH - Open confirmation modal (drawer stays)
-  // =====================================================
   const openPublishConfirm = () => {
-    setConfirmModal({
-      open: true,
-      action: "publish",
-      shipmentId: selected?._id,
-    });
+    setSelected(null);
+    setTimeout(() => {
+      setConfirmModal({
+        open: true,
+        action: "publish",
+        shipmentId: selected?._id,
+      });
+    }, 320);
   };
 
-  // =====================================================
-  // HANDLE DELETE - Open confirmation modal (drawer stays)
-  // =====================================================
   const openDeleteConfirm = () => {
-    setConfirmModal({
-      open: true,
-      action: "delete",
-      shipmentId: selected?._id,
-    });
+    setSelected(null);
+    setTimeout(() => {
+      setConfirmModal({
+        open: true,
+        action: "delete",
+        shipmentId: selected?._id,
+      });
+    }, 320);
   };
 
-  // =====================================================
-  // CONFIRM PUBLISH - Execute publish action
-  // =====================================================
   const handlePublish = async () => {
-    if (!selected) return;
-
+    if (!confirmModal.shipmentId) return;
+    setConfirmModal({ open: false, action: null, shipmentId: null });
+    setActionText("Publishing shipment...");
+    setActionLoading(true);
     try {
-      await publishShipment(selected._id);
-
+      await publishShipment(confirmModal.shipmentId);
       Toast.success("Shipment published successfully!");
-
-      // Close confirmation modal first
-      setConfirmModal({ open: false, action: null, shipmentId: null });
-
-      // Then close the drawer
-      setTimeout(() => {
-        setSelected(null);
-      }, 100);
-
-      // Refresh list
       fetchCompletedShipments();
     } catch (err) {
       Toast.error(err.message || "Failed to publish shipment");
-
-      // Close modal but keep drawer open
-      setConfirmModal({ open: false, action: null, shipmentId: null });
+    } finally {
+      setActionLoading(false);
+      setActionText("");
     }
   };
 
-  // =====================================================
-  // CONFIRM DELETE - Execute delete action
-  // =====================================================
   const handleDelete = async () => {
-    if (!selected) return;
-
+    if (!confirmModal.shipmentId) return;
+    setConfirmModal({ open: false, action: null, shipmentId: null });
+    setActionText("Deleting shipment...");
+    setActionLoading(true);
     try {
-      await deleteShipment(selected._id);
-
+      await deleteShipment(confirmModal.shipmentId);
       Toast.success("Shipment deleted successfully!");
-
-      // Close confirmation modal first
-      setConfirmModal({ open: false, action: null, shipmentId: null });
-
-      // Then close the drawer
-      setTimeout(() => {
-        setSelected(null);
-      }, 100);
-
-      // Refresh list
       fetchCompletedShipments();
     } catch (err) {
       Toast.error(err.message || "Failed to delete shipment");
-
-      // Close modal but keep drawer open
-      setConfirmModal({ open: false, action: null, shipmentId: null });
+    } finally {
+      setActionLoading(false);
+      setActionText("");
     }
   };
 
-  // =====================================================
-  // CONFIRM ACTION - Route to correct handler
-  // =====================================================
   const confirmAction = () => {
-    if (confirmModal.action === "publish") {
-      handlePublish();
-    } else if (confirmModal.action === "delete") {
-      handleDelete();
-    }
+    if (confirmModal.action === "publish") handlePublish();
+    else if (confirmModal.action === "delete") handleDelete();
   };
 
-  // =====================================================
-  // NAVIGATE TO DETAILS PAGE
-  // =====================================================
   const handleNavigateToDetails = (shipment = selected) => {
     if (!shipment) return;
     const token = createShipmentQueryToken(shipment._id);
@@ -772,14 +819,10 @@ const AllShipments = () => {
     setSelected(null);
   };
 
-  // =====================================================
-  // EDIT SHIPMENT
-  // =====================================================
   const handleEditShipment = async () => {
     if (!selected) return;
     try {
-      const shipmentData = await fetchShipmentById(selected._id);
-      console.log("this is the shipmentData", shipmentData);
+      await fetchShipmentById(selected._id);
       navigate(`/customer/new-shipment/${selected._id}`, {
         state: { editMode: true, shipment: selected },
       });
@@ -789,21 +832,15 @@ const AllShipments = () => {
     }
   };
 
-  // =====================================================
-  // TRACK SHIPMENT - Navigate to tracking page
-  // =====================================================
   const handleTrackShipment = (shipment = selected) => {
     if (!shipment) {
       Toast.error("Cannot track this shipment");
       return;
     }
-
-    // IMPORTANT: use quoteId, not shipment._id
     if (!shipment.quoteId) {
       Toast.error("Tracking not available for this shipment yet");
       return;
     }
-
     navigate(`/customer/track/${shipment.quoteId}`);
     setSelected(null);
   };
@@ -813,7 +850,6 @@ const AllShipments = () => {
   if (loading)
     return <PageLoader text="Loading shipments..." fullScreen={false} />;
 
-  // Filter shipments
   const draft = shipments.filter((s) => !s.publish && !s.publishedAt);
   const inProgress = shipments.filter(
     (s) => s.status === "assigned" && s.publish
@@ -833,9 +869,9 @@ const AllShipments = () => {
   const shown = tabMap[tab] || [];
 
   const TABS = [
+    { key: "published", label: "Published", count: published.length },
     { key: "draft", label: "Draft", count: draft.length },
     { key: "inProgress", label: "In Progress", count: inProgress.length },
-    { key: "published", label: "Published", count: published.length },
     { key: "completed", label: "Completed", count: completed.length },
     { key: "cancelled", label: "Cancelled", count: cancelled.length },
   ];
@@ -866,7 +902,8 @@ const AllShipments = () => {
 
   return (
     <div className="w-full min-h-screen font-montserrat">
-      {/* Confirmation Modal - Z-index 50 (above drawer's z-40) */}
+      {actionLoading && <PageLoader text={actionText} fullScreen={true} />}
+
       {confirmModal.open && (
         <ConfirmModal
           show={confirmModal.open}
@@ -889,7 +926,6 @@ const AllShipments = () => {
         />
       )}
 
-      {/* Review Modal - Z-index 50 (above drawer's z-40) */}
       {reviewOpen && selected && (
         <ReviewModal
           open={reviewOpen}
@@ -899,8 +935,7 @@ const AllShipments = () => {
         />
       )}
 
-      {/* Drawer - Z-index 40 */}
-      {selected && (
+      {selected && !actionLoading && (
         <ShipmentDrawer
           shipment={selected}
           onClose={() => setSelected(null)}
@@ -916,9 +951,7 @@ const AllShipments = () => {
         />
       )}
 
-      {/* ── Page Content ── */}
       <div className="w-full max-w-full mx-auto">
-        {/* Page Header */}
         <div className="flex flex-col gap-2 mb-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">My Shipments</h1>
@@ -926,8 +959,6 @@ const AllShipments = () => {
               Manage and track all your horse transport requests
             </p>
           </div>
-
-          {/* Stat Pills */}
           <div className="flex gap-2 flex-wrap">
             <div className="bg-[#BF9B53] rounded-lg px-3 py-2 text-center min-w-14">
               <p className="text-lg font-bold text-white leading-none">
@@ -938,14 +969,14 @@ const AllShipments = () => {
           </div>
         </div>
 
-        {/* ── Tabs ── */}
+        {/* Tabs */}
         <div className="flex border-b-2 border-gray-300 mb-3 overflow-x-auto pb-0">
           {TABS.map((t) => {
             const active = tab === t.key;
             return (
               <button
                 key={t.key}
-                onClick={() => setTab(t.key)}
+                onClick={() => handleTabChange(t.key)}
                 className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-bold border-b-2 transition-colors duration-150 bg-transparent whitespace-nowrap
                   ${
                     active
@@ -968,7 +999,7 @@ const AllShipments = () => {
           })}
         </div>
 
-        {/* ── List ── */}
+        {/* List */}
         {shown.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
             <p className="text-base font-bold text-gray-800 mb-1">

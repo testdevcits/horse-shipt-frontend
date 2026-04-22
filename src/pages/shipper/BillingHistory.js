@@ -494,8 +494,8 @@ const BillingHistory = () => {
   const isTrialing = subStatus === "trialing";
   const isActive = subStatus === "active";
   const isCanceled = subStatus === "canceled";
-  const lessThanOneDay = subscription?.remainingTrialDays <= 1;
-  const showTrialWarning = isTrialing && lessThanOneDay;
+  // const lessThanOneDay = subscription?.remainingTrialDays <= 1;
+  // const showTrialWarning = isTrialing && lessThanOneDay;
   const canCancel = hasActiveSubscription && !isCanceled && !cancelAtPeriodEnd;
 
   const statusStyle = getStatusStyle(subStatus);
@@ -785,7 +785,7 @@ const BillingHistory = () => {
               </div>
 
               {/* Alert Banners */}
-              {showTrialWarning && (
+              {/* {showTrialWarning && (
                 <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg mb-4">
                   <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -800,7 +800,7 @@ const BillingHistory = () => {
                     </p>
                   </div>
                 </div>
-              )}
+              )} */}
 
               {isActive && !cancelAtPeriodEnd && (
                 <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2 rounded-lg space-y-4 flex gap-2 text-sm">

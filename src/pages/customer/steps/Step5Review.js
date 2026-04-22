@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { IoLocationOutline } from "react-icons/io5";
 import { LuCalendarDays } from "react-icons/lu";
 import { FiEdit3 } from "react-icons/fi";
@@ -37,6 +37,9 @@ const Step5Review = ({
     return option.charAt(0).toUpperCase() + option.slice(1);
   };
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
   // Safety check for horses array
   const displayHorses = Array.isArray(horses) ? horses : [];
   const horseCount = numberOfHorses || 0;
@@ -70,7 +73,9 @@ const Step5Review = ({
           <div className="flex items-center gap-3 mt-2 ml-7">
             <LuCalendarDays className="text-gray-500" />
             <p className="text-gray-600">
-              <span className="font-semibold">{formatDate(pickupStartDate)}</span>
+              <span className="font-semibold">
+                {formatDate(pickupStartDate)}
+              </span>
               {" to "}
               <span className="font-semibold">{formatDate(pickupEndDate)}</span>
               {pickupTimeOption && (
@@ -94,9 +99,13 @@ const Step5Review = ({
           <div className="flex items-center gap-3 mt-2 ml-7">
             <LuCalendarDays className="text-gray-500" />
             <p className="text-gray-600">
-              <span className="font-semibold">{formatDate(deliveryStartDate)}</span>
+              <span className="font-semibold">
+                {formatDate(deliveryStartDate)}
+              </span>
               {" to "}
-              <span className="font-semibold">{formatDate(deliveryEndDate)}</span>
+              <span className="font-semibold">
+                {formatDate(deliveryEndDate)}
+              </span>
               {deliveryTimeOption && (
                 <span className="ml-2 text-[#BF9B53] font-semibold">
                   ({formatTimeOption(deliveryTimeOption)})
@@ -140,7 +149,9 @@ const Step5Review = ({
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm mb-3">
                 <div>
-                  <span className="font-semibold text-gray-600">Barn Name:</span>
+                  <span className="font-semibold text-gray-600">
+                    Barn Name:
+                  </span>
                   <p className="text-gray-800">{h?.barnName || "N/A"}</p>
                 </div>
                 <div>
@@ -160,7 +171,9 @@ const Step5Review = ({
                   <p className="text-gray-800">{h?.sex || "N/A"}</p>
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-600">Stall Type:</span>
+                  <span className="font-semibold text-gray-600">
+                    Stall Type:
+                  </span>
                   <p className="text-gray-800">{h?.stallType || "N/A"}</p>
                 </div>
               </div>
@@ -231,9 +244,7 @@ const Step5Review = ({
             </div>
           ))
         ) : (
-          <p className="text-gray-500 text-center py-4">
-            No horses added yet
-          </p>
+          <p className="text-gray-500 text-center py-4">No horses added yet</p>
         )}
 
         <button
@@ -256,26 +267,25 @@ const Step5Review = ({
       )}
 
       {/* ===== SUMMARY ===== */}
-      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-4 rounded-lg">
-        <h3 className="font-bold text-gray-800 mb-3">Shipment Summary</h3>
+      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 rounded-lg">
         <ul className="space-y-2 text-sm text-gray-700">
           <li className="flex items-center gap-2">
-            <span className="text-green-500 font-bold">✓</span>
+            <span className="text-[#BF9B53] font-bold">✓</span>
             <span>Pickup location and date range confirmed</span>
           </li>
           <li className="flex items-center gap-2">
-            <span className="text-green-500 font-bold">✓</span>
+            <span className="text-[#BF9B53] font-bold">✓</span>
             <span>Delivery location and date range confirmed</span>
           </li>
           <li className="flex items-center gap-2">
-            <span className="text-green-500 font-bold">✓</span>
+            <span className="text-[#BF9B53] font-bold">✓</span>
             <span>
               {horseCount} horse{horseCount !== 1 ? "s" : ""} registered
             </span>
           </li>
           {recipientEmail && (
             <li className="flex items-center gap-2">
-              <span className="text-green-500 font-bold">✓</span>
+              <span className="text-[#BF9B53] font-bold">✓</span>
               <span>Recipient email provided</span>
             </li>
           )}

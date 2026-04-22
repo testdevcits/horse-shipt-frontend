@@ -396,31 +396,6 @@ const ShipmentMap = ({ shipments = [], pagination = {}, onPageChange }) => {
           </div>
         </div>
       </div>{" "}
-      {/* Map Legend */}
-      <div className="bg-gray-50 rounded-lg p-4 mt-4 border border-[#BF9B53]">
-        <p className="text-xs font-semibold text-gray-700 mb-3">ROUTE LEGEND</p>
-
-        <div className="flex items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-[#BF9B53] text-white flex items-center justify-center text-xs font-bold">
-              P
-            </div>
-            <span className="text-gray-700">Pickup</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-1 bg-[#BF9B53]" />
-            <span className="text-gray-700">Route</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-[#BF9B53] text-white flex items-center justify-center text-xs font-bold">
-              D
-            </div>
-            <span className="text-gray-700">Delivery</span>
-          </div>
-        </div>
-      </div>
     </>
   );
 };

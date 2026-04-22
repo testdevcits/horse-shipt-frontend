@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import FileInput from "../../../components/common/FileInput";
 import ImageInput from "../../../components/common/ImageInput";
 import Modal from "../common/WarningModal";
@@ -32,6 +32,10 @@ const Step4HorseDocuments = ({
 
   // Safety check for horses array
   const displayHorses = Array.isArray(horses) ? horses : [];
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   return (
     <div className="flex flex-col w-full gap-6 font-montserrat px-2 md:px-4">

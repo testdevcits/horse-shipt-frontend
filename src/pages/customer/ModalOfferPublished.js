@@ -1,12 +1,7 @@
 import React from "react";
 import logo from "../../assets/images/defultlogo.png"; // <-- replace with your logo path
 
-const ModalOfferPublished = ({
-  isOpen,
-  onClose,
-  onViewShipments,
-  onAnotherAction,
-}) => {
+const ModalOfferPublished = ({ isOpen, onViewShipments, onAnotherAction }) => {
   if (!isOpen) return null;
 
   return (
