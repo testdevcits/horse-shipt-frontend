@@ -5,6 +5,7 @@ import Toast from "../../components/common/Toast";
 import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteContext";
 import Checkbox from "../../components/common/Checkbox";
 import { MdCheckCircle } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
 import { Worker, Viewer } from "@react-pdf-viewer/core";
 import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
@@ -18,6 +19,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   const { acceptQuote, cancelQuote } = useCustomerQuote();
   const stripe = useStripe();
   const elements = useElements();
+  const navigate = useNavigate();
 
   const [sigPad, setSigPad] = useState(null);
   const [agreed, setAgreed] = useState(false);
@@ -25,6 +27,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   const [showPDF, setShowPDF] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   // RESPONSIVE SIGNATURE
   const sigWrapperRef = useRef(null);
@@ -52,6 +55,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   }, []);
 
   const handleSubmit = async () => {
+    if (submitting || showSuccessPopup) return;
     if (!agreed) return Toast.error("Please agree to the terms");
     if (!sigPad || sigPad.isEmpty())
       return Toast.error("Please provide signature");
@@ -112,12 +116,16 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
       }
 
       // ────────────── ACCEPT QUOTE ──────────────
-      const resAccept = await acceptQuote(quote._id, customerSignature);
+      const resAccept = await acceptQuote(quote._id, customerSignature, {
+        showSuccessToast: false,
+      });
 
       if (resAccept.success) {
-        Toast.success("Quote accepted successfully");
         sigPad.clear();
-        onClose();
+        setShowSuccessPopup(true);
+        setTimeout(() => {
+          navigate("/customer/orders");
+        }, 1800);
       } else {
         Toast.error(resAccept.message || "Failed to accept quote");
       }
@@ -151,14 +159,48 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
   const strongLabelClass = "text-gray-700 font-semibold";
+  const handleModalClose = () => {
+    if (submitting || showSuccessPopup) return;
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center overflow-y-auto px-2 sm:px-4 py-4 sm:py-8">
-      <div className="bg-white w-full  sm:max-w-2xl xl:max-w-7xl rounded-xl flex flex-col overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto">
+      {showSuccessPopup && (
+        <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
+          <div className="w-full max-w-md rounded-3xl bg-white border border-emerald-100 shadow-2xl p-8 text-center">
+            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 border border-emerald-200">
+              <MdCheckCircle className="w-10 h-10 text-emerald-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900">
+              Quote Accepted
+            </h3>
+            <p className="mt-3 text-sm sm:text-base text-slate-600">
+              Your quote has been accepted successfully. Redirecting to your
+              orders page.
+            </p>
+            <div className="mt-6 flex items-center justify-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#BF9B53] animate-bounce" />
+              <div
+                className="w-2.5 h-2.5 rounded-full bg-[#BF9B53] animate-bounce"
+                style={{ animationDelay: "0.15s" }}
+              />
+              <div
+                className="w-2.5 h-2.5 rounded-full bg-[#BF9B53] animate-bounce"
+                style={{ animationDelay: "0.3s" }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!showSuccessPopup && (
+        <div className="bg-white w-full sm:max-w-2xl xl:max-w-7xl rounded-xl flex flex-col overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto">
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div className="sticky top-0 bg-white border-b border-slate-200 p-4 sm:p-6 z-10">
           <button
-            onClick={onClose}
+            onClick={handleModalClose}
+            disabled={submitting}
             className="absolute right-4 top-4 text-gray-500 hover:text-black transition-colors"
           >
             <FiX size={24} />
@@ -390,7 +432,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
               {quote.contract?.url && !showPDF && (
                 <button
                   onClick={() => setShowPDF(true)}
-                  className="w-full px-4 py-3 bg-slate-300 hover:bg-[#BF9B53] text-black font-semibold rounded-lg transition-colors"
+                  className="w-full px-4 py-3 bg-white border border-[#BF9B53] text-[#BF9B53] hover:bg-[#BF9B53]/10 font-semibold rounded-lg transition-colors"
                 >
                   View Contract
                 </button>
@@ -408,7 +450,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                   </div>
                   <button
                     onClick={() => setShowPDF(false)}
-                    className="w-full px-4 py-2 bg-slate-200 hover:bg-[#BF9B53] text-slate-900 font-semibold rounded-lg transition-colors"
+                    className="w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold rounded-lg transition-colors"
                   >
                     Hide Contract
                   </button>
@@ -420,14 +462,15 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                 {isCancelable && (
                   <button
                     onClick={() => setShowCancelModal(true)}
-                    className="flex-1 px-4 py-2.5 border border-red-500 text-black hover:bg-red-600 hover:text-white font-semibold rounded-lg transition-colors text-sm"
+                    className="flex-1 px-4 py-2.5 border border-red-500 text-red-600 hover:bg-red-600 hover:text-white font-semibold rounded-lg transition-colors text-sm"
                   >
                     Cancel Quote
                   </button>
                 )}
                 <button
-                  onClick={onClose}
-                  className="flex-1 px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-900 font-semibold rounded-lg transition-colors text-sm"
+                  onClick={handleModalClose}
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold rounded-lg transition-colors text-sm"
                 >
                   {isAccepted ? "Close" : "Close"}
                 </button>
@@ -436,16 +479,17 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                   <button
                     onClick={handleSubmit}
                     disabled={submitting}
-                    className="flex-1 px-4 py-2.5 bg-slate-300 hover:bg-[#BF9B53] disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors text-sm"
+                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all text-sm"
                   >
-                    {submitting ? "Submitting..." : "Accept Quote"}
+                    {submitting ? "Accepting Quote..." : "Accept Quote"}
                   </button>
                 )}
               </div>
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* ── Cancel Modal ───────────────────────────────────────────────────── */}
       {showCancelModal && (

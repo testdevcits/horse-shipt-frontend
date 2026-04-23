@@ -850,17 +850,41 @@ const AllShipments = () => {
   if (loading)
     return <PageLoader text="Loading shipments..." fullScreen={false} />;
 
+  const hasAssignedTransport = (shipment) => {
+    if (!shipment) return false;
+
+    return Boolean(
+      shipment.vehicle ||
+        shipment.assignedVehicle ||
+        shipment.shipperVehicle ||
+        shipment.assignedDriver ||
+        shipment.quote?.vehicle ||
+        shipment.quote?.assignedDriver ||
+        shipment.acceptedQuote?.vehicle ||
+        shipment.acceptedQuote?.assignedDriver ||
+        shipment.selectedQuote?.vehicle ||
+        shipment.selectedQuote?.assignedDriver
+    );
+  };
+
+  const isInProgressShipment = (shipment) => {
+    if (!shipment?.publish) return false;
+    if (shipment.status === "delivered" || shipment.status === "cancelled") {
+      return false;
+    }
+
+    return hasAssignedTransport(shipment);
+  };
+
   const draft = shipments.filter((s) => !s.publish && !s.publishedAt);
-  const inProgress = shipments.filter(
-    (s) => s.status === "assigned" && s.publish
-  );
+  const inProgress = shipments.filter((s) => isInProgressShipment(s));
   const published = shipments.filter(
     (s) =>
       s.publish &&
       s.publishedAt &&
       s.status !== "delivered" &&
-      s.status !== "assigned" &&
-      s.status !== "cancelled"
+      s.status !== "cancelled" &&
+      !isInProgressShipment(s)
   );
   const completed = shipments.filter((s) => s.status === "delivered");
   const cancelled = shipments.filter((s) => s.status === "cancelled");
@@ -869,7 +893,7 @@ const AllShipments = () => {
   const shown = tabMap[tab] || [];
 
   const TABS = [
-    { key: "published", label: "Published", count: published.length },
+    { key: "published", label: "Upcoming", count: published.length },
     { key: "draft", label: "Draft", count: draft.length },
     { key: "inProgress", label: "In Progress", count: inProgress.length },
     { key: "completed", label: "Completed", count: completed.length },
@@ -895,7 +919,7 @@ const AllShipments = () => {
   const emptyMsg = {
     draft: "No draft shipments. Create one to get started!",
     inProgress: "No shipments in progress.",
-    published: "No published shipments.",
+    published: "No upcoming shipments.",
     completed: "No completed shipments yet.",
     cancelled: "No cancelled shipments.",
   };
@@ -1008,7 +1032,7 @@ const AllShipments = () => {
                 : tab === "inProgress"
                 ? "No In Progress Shipments"
                 : tab === "published"
-                ? "No Published Shipments"
+                ? "No Upcoming Shipments"
                 : tab === "completed"
                 ? "No Completed Shipments"
                 : "No Cancelled Shipments"}

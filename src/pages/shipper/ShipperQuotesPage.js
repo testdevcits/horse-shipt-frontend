@@ -23,6 +23,12 @@ import { toast } from "react-toastify";
 
 const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
+const hasAssignedVehicle = (quote) => {
+  if (!quote?.vehicle) return false;
+  if (typeof quote.vehicle === "string") return true;
+  return Object.keys(quote.vehicle).length > 0;
+};
+
 const ShipperQuotesPage = () => {
   const { token } = useAuth();
   const {
@@ -51,6 +57,13 @@ const ShipperQuotesPage = () => {
   const [activeTab, setActiveTab] = useState("all");
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
+
+  const isInTransitQuote = (quote) => {
+    if (!quote || quote.isCancelled || quote.status === "cancelled") return false;
+    if (quote.shipment?.status === "delivered") return false;
+
+    return hasAssignedVehicle(quote);
+  };
 
   const showToast = (message, type = "info") => {
     toast[type](message);
@@ -84,8 +97,14 @@ const ShipperQuotesPage = () => {
     })
     .filter((quote) => {
       switch (activeTab) {
-        case "accepted":
-          return quote.status === "accepted" && !quote.isCancelled;
+        case "in_transit":
+          return isInTransitQuote(quote);
+        case "upcoming":
+          return (
+            quote.status === "accepted" &&
+            !quote.isCancelled &&
+            !isInTransitQuote(quote)
+          );
         case "cancelled":
           return quote.isCancelled;
         case "pending":
@@ -133,10 +152,16 @@ const ShipperQuotesPage = () => {
   const tabData = [
     { key: "all", label: "All Quotes", count: quotes.length },
     {
-      key: "accepted",
-      label: "Accepted",
-      count: quotes.filter((q) => q.status === "accepted" && !q.isCancelled)
-        .length,
+      key: "in_transit",
+      label: "In Transit",
+      count: quotes.filter((q) => isInTransitQuote(q)).length,
+    },
+    {
+      key: "upcoming",
+      label: "Upcoming",
+      count: quotes.filter(
+        (q) => q.status === "accepted" && !q.isCancelled && !isInTransitQuote(q)
+      ).length,
     },
     {
       key: "cancelled",
@@ -335,6 +360,20 @@ const ShipperQuotesPage = () => {
                         {quote.vehicle.numberOfStalls}
                       </span>
                     </p>
+                    {quote.assignedDriver && (
+                      <p>
+                        <span className="text-gray-500">Driver:</span>{" "}
+                        <span className="text-gray-800">
+                          Assigned
+                        </span>
+                      </p>
+                    )}
+                    <p>
+                      <span className="text-gray-500">Trip:</span>{" "}
+                      <span className="font-medium text-[#BF9B53] capitalize">
+                        {quote.tripStatus || "notStarted"}
+                      </span>
+                    </p>
                   </div>
                 ) : (
                   quote.status === "accepted" &&
@@ -421,14 +460,17 @@ const ShipperQuotesPage = () => {
                   </div>
 
                   {/* RIGHT SIDE (CANCEL BUTTON) */}
-                  {!isExpired && !quote.isCancelled && (
+                  {activeTab !== "pending" &&
+                    quote.status !== "pending" &&
+                    !isExpired &&
+                    !quote.isCancelled && (
                     <button
                       onClick={() => openModal(quote, "cancel")}
                       className="ml-auto px-4 py-2 border border-red-500 text-red-500 hover:bg-[#BF9B53]/10 rounded-lg text-sm flex items-center gap-1"
                     >
                       <RiCloseCircleLine /> Cancel Quotes
                     </button>
-                  )}
+                    )}
                 </div>
 
                 {/* PDF */}
@@ -563,6 +605,7 @@ const ShipperQuotesPage = () => {
                     showToast("Vehicle assigned", "success");
                     setVehicleModalOpen(false);
                     setSelectedVehicleId(null);
+                    setActiveTab("in_transit");
                     getMyQuotes();
                   } else showToast("Failed to assign vehicle", "error");
                 }}
