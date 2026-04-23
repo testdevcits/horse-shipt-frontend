@@ -1,25 +1,46 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-// import StatusBadge from "../../components/common/StatusBadge";
-import { SlLocationPin } from "react-icons/sl";
-import { LuCalendarDays } from "react-icons/lu";
-import { FiArrowRight, FiTruck } from "react-icons/fi";
 import { createShipmentQueryToken } from "../../utils/createQueryToken";
+import { FiArrowRight } from "react-icons/fi";
 
-/**
- * ============================================================
- * MODERN SHIPMENT CARD COMPONENT
- * Updated with better responsive design and modern UI
- * ============================================================
- */
+const statusConfig = {
+  open_for_offers: {
+    label: "Open for Offers",
+    bg: "bg-gray-50",
+    text: "text-[#BF9B53]",
+    border: "border-[#BF9B53]",
+    dot: "bg-[#BF9B53]",
+  },
+  assigned: {
+    label: "Assigned",
+    bg: "bg-blue-50",
+    text: "text-blue-800",
+    border: "border-blue-200",
+    dot: "bg-blue-500",
+  },
+  completed: {
+    label: "Completed",
+    bg: "bg-gray-100",
+    text: "text-gray-600",
+    border: "border-gray-200",
+    dot: "bg-gray-400",
+  },
+};
+
+const formatDateRange = (start, end) => {
+  const fmt = (d) =>
+    new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (!start) return "—";
+  if (!end || fmt(start) === fmt(end)) return fmt(start);
+  return `${fmt(start)} – ${fmt(end)}`;
+};
 
 const ShipmentCard = ({ shipment }) => {
   const navigate = useNavigate();
-
-  // Safety check
   if (!shipment || !shipment.horses?.length) return null;
 
   const horse = shipment.horses[0];
+  const st = statusConfig[shipment.status] || statusConfig.open_for_offers;
 
   const handleNavigateWithQuery = () => {
     const token = createShipmentQueryToken(shipment._id);
@@ -30,249 +51,173 @@ const ShipmentCard = ({ shipment }) => {
     navigate(`/shipper/shipments/details?${params.toString()}`);
   };
 
-  // Check if pickup is today
-  const isPickupToday =
-    new Date(shipment.pickupDate).toDateString() === new Date().toDateString();
-
-  // Format date function
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
   return (
     <div
       onClick={handleNavigateWithQuery}
-      className="group relative bg-white border border-gray-200 hover:border-[#BF9B53] rounded-md p-4 md:p-6 font-montserrat shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer w-full overflow-hidden"
+      className="bg-white border border-[#BF9B53] rounded-sm p-4 md:p-5 cursor-pointer hover:border-[#BF9B53] hover:shadow-md transition-all duration-200 active:scale-[0.995] font-montserrat"
     >
-      {/* BACKGROUND ACCENT */}
-      <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#BF9B53] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="flex gap-4 items-start">
+        {/* ── HORSE IMAGE ── */}
+        <div className="relative flex-shrink-0">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 xl:w-40 xl:h-40 rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
+            <img
+              src={
+                horse?.photo?.url ||
+                "https://via.placeholder.com/200?text=Horse"
+              }
+              alt={horse?.registeredName || "Horse"}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.src = "https://via.placeholder.com/200?text=Horse";
+              }}
+            />
+          </div>
+          {/* Sex tag on image bottom */}
+          <div className="absolute bottom-0 left-0 right-0 bg-dark/80 text-white text-[9px] sm:text-[10px] font-bold text-center py-1 rounded-b-xl tracking-wide uppercase">
+            {horse.sex || "Horse"}
+          </div>
+        </div>
 
-      {/* TOP-RIGHT NAVIGATION ARROW */}
-      <div className="absolute top-4 right-4 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#BF9B53] to-[#9d7d42] text-white shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300">
-        <FiArrowRight
-          size={18}
-          className="group-hover:translate-x-0.5 transition-transform"
-        />
-      </div>
-
-      {/* MAIN CONTENT */}
-      <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full">
-        {/* ======================= LEFT SECTION ======================= */}
+        {/* ── MAIN BODY ── */}
         <div className="flex-1 min-w-0">
-          {/* TITLE */}
-          <h3 className="mb-4 text-[#BF9B53] font-semibold text-[15px] md:text-[16px] leading-[22px] md:leading-[24px] break-words">
-            <span className="text-[#BF9B53] font-bold">
-              {shipment.numberOfHorses}
-            </span>{" "}
-            Horse
-            {shipment.numberOfHorses > 1 ? "s" : ""} Shipping
-            <br className="hidden sm:block" />
-            from{" "}
-            <span className="font-bold text-gray-900">
-              {shipment.pickupLocation}
-            </span>{" "}
-            To{" "}
-            <span className="font-bold text-gray-900">
-              {shipment.deliveryLocation}
-            </span>
-          </h3>
-
-          {/* HORSE IMAGE & DETAILS CONTAINER */}
-          <div className="flex flex-col sm:flex-row gap-4 md:gap-5 w-full">
-            {/* HORSE IMAGE */}
-            <div className="sm:flex-shrink-0">
-              <img
-                src={
-                  horse?.photo?.url ||
-                  "https://via.placeholder.com/150?text=Horse"
-                }
-                alt={horse?.registeredName || "Horse"}
-                className="w-full h-[160px] sm:h-[120px] md:h-[140px] rounded-lg object-cover shadow-md border border-gray-200 group-hover:border-[#BF9B53] transition-all"
-                onError={(e) => {
-                  e.target.src = "https://via.placeholder.com/150?text=Horse";
-                }}
-              />
+          {/* Name row */}
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <div className="min-w-0">
+              <h3 className="text-sm sm:text-base md:text-lg font-bold text-dark leading-tight truncate">
+                {horse.registeredName}
+                {horse.barnName && (
+                  <span className="font-normal text-gray-400">
+                    {" "}
+                    · {horse.barnName}
+                  </span>
+                )}
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                {horse.breed} · {horse.age}yr · {horse.colour}
+              </p>
+              <span className="inline-block mt-1 text-[10px] sm:text-xs font-semibold font-mono text-[#BF9B53] tracking-wide">
+                {shipment.shipmentCode}
+              </span>
             </div>
 
-            {/* PICKUP & DELIVERY DETAILS */}
-            <div className="flex flex-col sm:flex-row gap-4 md:gap-6 flex-1 w-full">
-              {/* PICKUP SECTION */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#BF9B53] font-semibold text-sm md:text-[15px]">
-                      Pickup
-                    </span>
-                  </div>
-                  {isPickupToday && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold border border-green-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-600" />
-                      Today
-                    </span>
-                  )}
-                </div>
+            {/* Status badge */}
+            <span
+              className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 rounded-full border flex-shrink-0 ${st.bg} ${st.text} ${st.border}`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${st.dot}`}
+              />
+              <span className="hidden sm:inline">{st.label}</span>
+              <span className="sm:hidden">Open</span>
+            </span>
+          </div>
 
-                <div className="space-y-2">
-                  <p
-                    className="flex items-start gap-2 text-gray-600 text-sm md:text-[15px] break-words"
-                    title={shipment.pickupLocation}
-                  >
-                    <SlLocationPin
-                      size={16}
-                      className="mt-0.5 flex-shrink-0 text-[#BF9B53]"
-                    />
-                    <span className="break-all">{shipment.pickupLocation}</span>
-                  </p>
-
-                  <p className="flex items-center gap-2 text-gray-600 text-sm md:text-[15px]">
-                    <LuCalendarDays
-                      size={16}
-                      className="flex-shrink-0 text-[#BF9B53]"
-                    />
-                    <span className="font-medium">
-                      {formatDate(shipment.pickupDate)}
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              {/* ARROW DIVIDER (Mobile & Tablet) */}
-              <div className="sm:hidden flex items-center justify-center">
-                <div className="flex items-center gap-2 text-gray-400">
-                  <FiArrowRight size={18} />
-                </div>
-              </div>
-
-              {/* DELIVERY SECTION */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#BF9B53] font-semibold text-sm md:text-[15px]">
-                      Delivery
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <p
-                    className="flex items-start gap-2 text-gray-600 text-sm md:text-[15px] break-words"
-                    title={shipment.deliveryLocation}
-                  >
-                    <SlLocationPin
-                      size={16}
-                      className="mt-0.5 flex-shrink-0 text-[#BF9B53]"
-                    />
-                    <span className="break-all">
-                      {shipment.deliveryLocation}
-                    </span>
-                  </p>
-
-                  <p className="flex items-center gap-2 text-gray-600 text-sm md:text-[15px]">
-                    <LuCalendarDays
-                      size={16}
-                      className="flex-shrink-0 text-[#BF9B53]"
-                    />
-                    <span className="font-medium">
-                      {formatDate(shipment.deliveryDate)}
-                    </span>
-                  </p>
-                </div>
-              </div>
+          {/* Route */}
+          <div className="flex items-center gap-2 my-3 text-xs sm:text-sm">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="w-2 h-2 rounded-full bg-[#BF9B53] flex-shrink-0" />
+              <span className="text-dark font-medium truncate max-w-[90px] sm:max-w-[130px] md:max-w-[180px] lg:max-w-[220px]">
+                {shipment.pickupLocation}
+              </span>
+            </div>
+            <div className="flex-1 h-px bg-gray-200 min-w-[12px]" />
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="w-2 h-2 rounded-full bg-[#BF9B53] flex-shrink-0" />
+              <span className="text-dark font-medium truncate max-w-[90px] sm:max-w-[130px] md:max-w-[180px] lg:max-w-[220px]">
+                {shipment.deliveryLocation}
+              </span>
             </div>
           </div>
-        </div>
 
-        {/* DIVIDER (Hidden on Mobile) */}
-        <div className="hidden md:block w-px bg-gradient-to-b from-transparent via-gray-200 to-transparent" />
-
-        {/* ======================= RIGHT SECTION ======================= */}
-        <div className="flex flex-col md:min-w-[240px] gap-3">
-          <h4 className="text-[#BF9B53] font-semibold text-sm md:text-[15px] flex items-center gap-2">
-            <FiTruck size={16} className="text-[#BF9B53]" />
-            Shipment Details
-          </h4>
-
-          <div className="space-y-2.5">
-            {/* Distance */}
-            <div className="flex justify-between items-start gap-3 text-xs md:text-[14px]">
-              <span className="text-gray-600 font-medium flex-shrink-0">
-                Distance:
-              </span>
-              <span className="text-gray-900 font-semibold text-right">
-                {shipment.estimatedDistance
-                  ? `${shipment.estimatedDistance.miles}mi (${shipment.estimatedDistance.km}km)`
-                  : "200 miles"}
-              </span>
+          {/* Date boxes */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            {/* Pickup */}
+            <div className="group bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] px-3 sm:px-4 py-2.5 transition-all duration-200 hover:shadow-sm hover:from-[#BF9B53]/25 hover:border-[#A8843F]">
+              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-[#8A6E2F] mb-1 group-hover:text-[#6F5622] transition-colors">
+                Pickup
+              </p>
+              <p className="text-[12px] sm:text-sm md:text-base font-semibold text-gray-900">
+                {formatDateRange(
+                  shipment.pickupDateRange?.start,
+                  shipment.pickupDateRange?.end
+                )}
+              </p>
             </div>
 
-            {/* Transport Type */}
-            <div className="flex justify-between items-start gap-3 text-xs md:text-[14px]">
-              <span className="text-gray-600 font-medium flex-shrink-0">
-                Transport:
-              </span>
-              <span className="text-gray-900 font-semibold text-right">
-                {shipment.transportType || "Trucking"}
-              </span>
-            </div>
-
-            {/* Total Horses */}
-            <div className="flex justify-between items-start gap-3 text-xs md:text-[14px]">
-              <span className="text-gray-600 font-medium flex-shrink-0">
-                Horses:
-              </span>
-              <span className="text-gray-900 font-semibold text-right">
-                {shipment.numberOfHorses}
-              </span>
-            </div>
-
-            {/* Buyer */}
-            <div className="flex justify-between items-start gap-3 text-xs md:text-[14px]">
-              <span className="text-gray-600 font-medium flex-shrink-0">
-                Buyer:
-              </span>
-              <span className="text-gray-900 font-semibold text-right break-words">
-                {shipment.customer?.name || "Buyer Name"}
-              </span>
-            </div>
-
-            {/* Stalls */}
-            <div className="flex justify-between items-start gap-3 text-xs md:text-[14px]">
-              <span className="text-gray-600 font-medium flex-shrink-0">
-                Stalls:
-              </span>
-              <span className="text-gray-900 font-semibold text-right">
-                {shipment.stallsRequired || 1}
-              </span>
+            {/* Delivery */}
+            <div className="group bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] px-3 sm:px-4 py-2.5 transition-all duration-200 hover:shadow-sm hover:from-[#BF9B53]/25 hover:border-[#A8843F]">
+              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-[#8A6E2F] mb-1 group-hover:text-[#6F5622] transition-colors">
+                Delivery
+              </p>
+              <p className="text-[12px] sm:text-sm md:text-base font-semibold text-gray-900">
+                {formatDateRange(
+                  shipment.deliveryDateRange?.start,
+                  shipment.deliveryDateRange?.end
+                )}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* STATUS INDICATOR BOTTOM BAR (Optional) */}
-      {shipment.status && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-xs md:text-[13px]">
-            <span className="text-gray-600">Status:</span>
-            <span
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full font-semibold ${
-                shipment.status === "assigned"
-                  ? "bg-blue-100 text-blue-700"
-                  : shipment.status === "completed"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-700"
-              }`}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-75" />
-              {shipment.status?.charAt(0).toUpperCase() +
-                shipment.status?.slice(1) || "Pending"}
-            </span>
+      {/* ── FOOTER STATS ── */}
+      <div className="border-t border-gray-100 mt-4 pt-3 flex items-center justify-between">
+        <div className="flex items-center gap-3 sm:gap-5 md:gap-6 lg:gap-8">
+          <div className="text-center">
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-gray-400">
+              Distance
+            </p>
+            <p className="text-xs sm:text-sm md:text-base font-bold text-[#BF9B53]">
+              {shipment.estimatedDistance?.miles?.toLocaleString() || "—"} mi
+            </p>
+          </div>
+
+          <div className="w-px h-5 bg-gray-200" />
+
+          <div className="text-center">
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-gray-400">
+              Horses
+            </p>
+            <p className="text-xs sm:text-sm md:text-base font-bold text-[#BF9B53]">
+              {shipment.numberOfHorses}
+            </p>
+          </div>
+
+          <div className="w-px h-5 bg-gray-200" />
+
+          <div className="text-center">
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-gray-400">
+              Stall
+            </p>
+            <p className="text-xs sm:text-sm md:text-base font-bold text-[#BF9B53]">
+              {horse.requestedStallSize || "—"}
+            </p>
+          </div>
+
+          <div className="w-px h-5 bg-gray-200 hidden sm:block" />
+          <div className="text-center hidden sm:block">
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-gray-400">
+              Transport
+            </p>
+            <p className="text-xs sm:text-sm md:text-base font-bold text-[#BF9B53]">
+              {shipment.transportType || "Trucking"}
+            </p>
           </div>
         </div>
-      )}
+
+        {/* Arrow button */}
+        <div
+          className="w-8 h-8 sm:w-9 sm:h-9 
+  bg-white border border-gray-200 
+  flex items-center justify-center 
+  text-gray-500 
+  flex-shrink-0 cursor-pointer
+  transition-all duration-200 ease-in-out
+  group-hover:bg-gray-900 group-hover:text-white group-hover:border-gray-900 group-hover:shadow-sm"
+        >
+          <FiArrowRight className="text-[14px] transition-transform duration-200 group-hover:translate-x-1" />
+        </div>
+      </div>
     </div>
   );
 };

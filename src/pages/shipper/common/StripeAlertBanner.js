@@ -9,23 +9,27 @@ const StripeAlertBanner = ({ onOpenModal, hideButton }) => {
   const isDisabled = hideButton;
 
   return (
-    <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-800 px-4 sm:px-6 py-1.5 sm:py-3 flex justify-between items-center font-montserrat">
-      <span className="text-xs sm:text-sm font-medium">
-        Please verify your Stripe account to receive payments.
-      </span>
+    <div className="w-full bg-[#BF9B53]  shadow-sm px-2 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between font-montserrat">
+      {/* Left Content */}
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-white">
+          Please verify your Stripe account to receive payments.
+        </span>
+      </div>
 
+      {/* Button */}
       <button
         onClick={!isDisabled ? onOpenModal : undefined}
         disabled={isDisabled}
-        className={`px-3 sm:px-4 py-1 rounded text-xs sm:text-sm transition
+        className={`px-2 py-1 text-xs sm:text-sm font-medium transition-all rounded-sm
           ${
             isDisabled
-              ? "bg-yellow-300 text-white cursor-not-allowed opacity-70"
-              : "bg-yellow-500 text-white hover:bg-yellow-600"
+              ? "bg-white text-yellow-700 cursor-not-allowed opacity-90"
+              : "bg-white text-[#BF9B53]  active:scale-[0.98]"
           }
         `}
       >
-        {isDisabled ? "Already on Payment Page" : "Verify Now"}
+        {isDisabled ? "On Payment Page" : "Verify Now"}
       </button>
     </div>
   );

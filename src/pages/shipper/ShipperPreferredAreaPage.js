@@ -136,13 +136,13 @@ const LocationMapCard = ({
   }, [coords, radiusKm, mapRef]);
 
   return (
-    <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white shadow-sm">
-      <div className="flex items-center justify-between gap-3 px-3 sm:px-4 py-3 border-b border-gray-100 bg-[#fcfaf5]">
+    <div className="rounded-md border border-gray-200 overflow-hidden bg-white shadow-sm">
+      <div className="flex items-center justify-between gap-3 px-3 py-2.5 border-b border-gray-100 bg-[#fcfaf5]">
         <div>
           <p className="text-sm font-bold text-gray-800">{title}</p>
           <p className="text-xs text-gray-500 mt-0.5">{description}</p>
         </div>
-        <div className="w-10 h-10 rounded-xl bg-[#BF9B53]/10 flex items-center justify-center shrink-0">
+        <div className="w-9 h-9 rounded-md bg-[#BF9B53]/10 flex items-center justify-center shrink-0">
           <FiMapPin size={16} className="text-[#BF9B53]" />
         </div>
       </div>
@@ -179,6 +179,8 @@ const LocationMapCard = ({
 const ShipperPreferredAreaPage = () => {
   const {
     preferredAreas,
+    hasFetchedPreferredAreas,
+    fetchPreferredAreas,
     addPreferredArea,
     removePreferredArea,
     updatePreferredArea,
@@ -361,19 +363,20 @@ const ShipperPreferredAreaPage = () => {
     setShowAllAreasModal(true);
   };
 
+  const handleLoadPreferredAreas = async () => {
+    await fetchPreferredAreas();
+  };
+
   const handleCloseAllAreasModal = () => {
     setShowAllAreasModal(false);
   };
 
-  const handleFocusArea = useCallback(
-    (area) => {
-      if (!area) return;
-      setSelectedAreaId(area._id);
-      const coords = getAreaCoords(area);
-      fitMapToRadius(allAreasMapRef.current, coords, area.radiusKm);
-    },
-    []
-  );
+  const handleFocusArea = useCallback((area) => {
+    if (!area) return;
+    setSelectedAreaId(area._id);
+    const coords = getAreaCoords(area);
+    fitMapToRadius(allAreasMapRef.current, coords, area.radiusKm);
+  }, []);
 
   React.useEffect(() => {
     if (!showAllAreasModal) return;
@@ -384,7 +387,7 @@ const ShipperPreferredAreaPage = () => {
   }, [showAllAreasModal]);
 
   return (
-    <div className="w-full px-2 sm:px-3 lg:px-5 py-3 sm:py-5 font-montserrat">
+    <div className="w-full px-2 sm:px-3 lg:px-4 py-2 sm:py-4 font-montserrat">
       {confirmModal.open && (
         <ConfirmModal
           show={confirmModal.open}
@@ -398,9 +401,9 @@ const ShipperPreferredAreaPage = () => {
       )}
 
       {showAllAreasModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 p-2 sm:p-4">
-          <div className="w-full h-full bg-white rounded-[24px] shadow-2xl overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-4 border-b border-gray-200 bg-[#fcfaf5]">
+        <div className="fixed inset-0 z-50 bg-black/50 p-2 sm:p-3">
+          <div className="w-full h-full bg-white rounded-md shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between gap-3 px-3 sm:px-4 py-3 border-b border-gray-200 bg-[#fcfaf5]">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#BF9B53]">
                   All Preferred Areas
@@ -414,14 +417,14 @@ const ShipperPreferredAreaPage = () => {
               </div>
               <button
                 onClick={handleCloseAllAreasModal}
-                className="w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center justify-center shrink-0"
+                className="w-9 h-9 rounded-md border border-gray-200 bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center justify-center shrink-0"
               >
                 <FiX size={18} />
               </button>
             </div>
 
             <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)]">
-              <div className="border-b lg:border-b-0 lg:border-r border-gray-200 bg-[#fffdf8] overflow-y-auto p-3 sm:p-4">
+              <div className="border-b lg:border-b-0 lg:border-r border-gray-200 bg-[#fffdf8] overflow-y-auto p-2.5 sm:p-3">
                 <div className="space-y-2">
                   {preferredAreas.map((area, idx) => {
                     const isActive = selectedArea?._id === area._id;
@@ -429,7 +432,7 @@ const ShipperPreferredAreaPage = () => {
                       <button
                         key={area._id}
                         onClick={() => handleFocusArea(area)}
-                        className={`w-full text-left rounded-2xl border px-3 py-3 transition ${
+                        className={`w-full text-left rounded-md border px-3 py-2.5 transition ${
                           isActive
                             ? "border-[#BF9B53] bg-[#fff8ea] shadow-sm"
                             : "border-gray-200 bg-white hover:border-[#BF9B53]/40"
@@ -437,7 +440,7 @@ const ShipperPreferredAreaPage = () => {
                       >
                         <div className="flex items-start gap-3">
                           <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-sm ${
+                            className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 font-bold text-sm ${
                               isActive
                                 ? "bg-[#BF9B53] text-white"
                                 : "bg-[#BF9B53]/10 text-[#BF9B53]"
@@ -464,8 +467,8 @@ const ShipperPreferredAreaPage = () => {
                 </div>
               </div>
 
-              <div className="min-h-[340px] lg:min-h-0 p-2 sm:p-3">
-                <div className="w-full h-full rounded-[20px] overflow-hidden border border-gray-200">
+              <div className="min-h-[340px] lg:min-h-0 p-2">
+                <div className="w-full h-full rounded-md overflow-hidden border border-gray-200">
                   <GoogleMap
                     mapContainerStyle={allAreasMapContainerStyle}
                     center={getAreaCoords(selectedArea) || defaultCenter}
@@ -527,7 +530,7 @@ const ShipperPreferredAreaPage = () => {
               <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#BF9B53]">
                 Coverage Setup
               </p>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
+              <h1 className="text-xl sm:text-xl lg:text-2xl font-bold text-gray-900 mt-1">
                 Preferred Areas
               </h1>
               <p className="text-xs sm:text-sm text-gray-600 mt-2 max-w-2xl leading-relaxed">
@@ -540,7 +543,7 @@ const ShipperPreferredAreaPage = () => {
               {[0, 1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className={`min-w-[72px] rounded-2xl border px-3 py-3 text-center transition-all ${
+                  className={`min-w-[68px] rounded-md border px-2.5 py-2.5 text-center transition-all ${
                     i < preferredAreas.length
                       ? "bg-[#BF9B53] border-[#BF9B53] text-white shadow-sm"
                       : "bg-white border-gray-200 text-gray-400"
@@ -555,10 +558,10 @@ const ShipperPreferredAreaPage = () => {
             </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2.5">
-            <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden min-w-[180px]">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="flex-1 h-2 rounded-sm bg-gray-200 overflow-hidden min-w-[180px]">
               <div
-                className="h-full rounded-full bg-[#BF9B53] transition-all"
+                className="h-full rounded-sm bg-[#BF9B53] transition-all"
                 style={{ width: `${(preferredAreas.length / 4) * 100}%` }}
               />
             </div>
@@ -568,18 +571,28 @@ const ShipperPreferredAreaPage = () => {
           </div>
 
           {!isMaxReached && !isFormOpen && (
-            <div className="mt-4 flex flex-col sm:flex-row gap-2">
+            <div className="mt-3 flex flex-col sm:flex-row gap-2">
               <button
                 onClick={handleOpenAddForm}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#BF9B53] hover:bg-[#a8863e] text-white text-sm font-bold transition"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-md bg-[#BF9B53] hover:bg-[#a8863e] text-white text-sm font-bold transition"
               >
                 <FiPlus size={15} />
                 Add New Area
               </button>
-              {preferredAreas.length > 0 && (
+              {!hasFetchedPreferredAreas && (
+                <button
+                  onClick={handleLoadPreferredAreas}
+                  disabled={loading}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-bold transition disabled:opacity-60"
+                >
+                  <FiMap size={15} />
+                  {loading ? "Loading..." : "Load Saved Areas"}
+                </button>
+              )}
+              {hasFetchedPreferredAreas && preferredAreas.length > 0 && (
                 <button
                   onClick={handleOpenAllAreasModal}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-bold transition"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-bold transition"
                 >
                   <FiMap size={15} />
                   See All Areas
@@ -589,14 +602,14 @@ const ShipperPreferredAreaPage = () => {
           )}
         </div>
 
-        <div className="p-3 sm:p-4 lg:p-5">
+        <div className="pt-3">
           {!isMaxReached && showAddForm ? (
             <form
               onSubmit={handleAdd}
-              className="rounded-[22px] border border-gray-200 bg-white p-3 sm:p-4 shadow-sm mb-4 sm:mb-5"
+              className="rounded-md border border-gray-200 bg-white p-3 sm:p-3.5 shadow-sm mb-4"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-2xl bg-[#BF9B53]/10 flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-8 h-8 rounded-md bg-[#BF9B53]/10 flex items-center justify-center shrink-0">
                   <FiPlus size={18} className="text-[#BF9B53]" />
                 </div>
                 <div>
@@ -609,8 +622,8 @@ const ShipperPreferredAreaPage = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 xl:grid-cols-[1.02fr_0.98fr] gap-4 lg:gap-5">
-                <div className="space-y-4">
+              <div className="grid grid-cols-1 xl:grid-cols-[1.02fr_0.98fr] gap-3 lg:gap-4">
+                <div className="space-y-3">
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">
                       Location Search
@@ -631,7 +644,7 @@ const ShipperPreferredAreaPage = () => {
                             longitude: "",
                           }))
                         }
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
                         required
                       />
                     </Autocomplete>
@@ -654,7 +667,7 @@ const ShipperPreferredAreaPage = () => {
                             "add"
                           )
                         }
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
                       />
                     </div>
                     <div>
@@ -673,12 +686,12 @@ const ShipperPreferredAreaPage = () => {
                             "add"
                           )
                         }
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
                       />
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-[#efe4ce] bg-[#fffbf4] px-4 py-3">
+                  <div className="rounded-md border border-[#efe4ce] bg-[#fffbf4] px-3 py-2.5">
                     <p className="text-xs font-semibold text-gray-700">
                       Exact coordinates stay visible here so the user can verify
                       the point before saving.
@@ -733,7 +746,7 @@ const ShipperPreferredAreaPage = () => {
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <LocationMapCard
                     title="Map Preview"
                     description={
@@ -756,7 +769,7 @@ const ShipperPreferredAreaPage = () => {
               <button
                 type="submit"
                 disabled={loading || !addCoords}
-                className="w-full mt-5 bg-[#BF9B53] hover:bg-[#a8863e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2"
+                className="w-full mt-4 bg-[#BF9B53] hover:bg-[#a8863e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded-md text-sm font-bold transition flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -792,14 +805,14 @@ const ShipperPreferredAreaPage = () => {
               <button
                 type="button"
                 onClick={handleCancelAdd}
-                className="w-full mt-3 border border-gray-300 text-gray-700 py-3 rounded-xl text-sm font-bold hover:bg-gray-50 transition"
+                className="w-full mt-2.5 border border-gray-300 text-gray-700 py-2.5 rounded-md text-sm font-bold hover:bg-gray-50 transition"
               >
                 Cancel
               </button>
             </form>
           ) : isMaxReached ? (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 sm:p-4 mb-4 sm:mb-5 flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mb-4 flex items-start gap-3">
+              <div className="w-9 h-9 rounded-md bg-amber-100 flex items-center justify-center shrink-0">
                 <MdRadar size={18} className="text-amber-600" />
               </div>
               <div>
@@ -815,7 +828,7 @@ const ShipperPreferredAreaPage = () => {
           ) : null}
 
           {editingId && editingArea && (
-            <div className="p-3 sm:p-4 bg-[#fffdf8] rounded-[22px] border border-gray-200 shadow-sm">
+            <div className="p-3 sm:p-3.5 bg-[#fffdf8] rounded-md border border-gray-200 shadow-sm">
               <div className="flex items-center justify-between gap-3 mb-3">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#BF9B53]">
@@ -827,14 +840,14 @@ const ShipperPreferredAreaPage = () => {
                 </div>
                 <button
                   onClick={handleCancelEdit}
-                  className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center justify-center"
+                  className="w-9 h-9 rounded-md bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center justify-center"
                 >
                   <FiX size={16} />
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 xl:grid-cols-[1.02fr_0.98fr] gap-4 lg:gap-5">
-                <div className="space-y-4">
+              <div className="grid grid-cols-1 xl:grid-cols-[1.02fr_0.98fr] gap-3 lg:gap-4">
+                <div className="space-y-3">
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">
                       Location Search
@@ -855,7 +868,7 @@ const ShipperPreferredAreaPage = () => {
                             longitude: "",
                           }))
                         }
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
                       />
                     </Autocomplete>
                   </div>
@@ -871,9 +884,13 @@ const ShipperPreferredAreaPage = () => {
                         value={editForm.latitude}
                         placeholder="Enter or drag marker"
                         onChange={(e) =>
-                          handleCoordinateInput("latitude", e.target.value, "edit")
+                          handleCoordinateInput(
+                            "latitude",
+                            e.target.value,
+                            "edit"
+                          )
                         }
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
                       />
                     </div>
                     <div>
@@ -886,17 +903,21 @@ const ShipperPreferredAreaPage = () => {
                         value={editForm.longitude}
                         placeholder="Enter or drag marker"
                         onChange={(e) =>
-                          handleCoordinateInput("longitude", e.target.value, "edit")
+                          handleCoordinateInput(
+                            "longitude",
+                            e.target.value,
+                            "edit"
+                          )
                         }
-                        className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
                       />
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-[#efe4ce] bg-white px-4 py-3">
+                  <div className="rounded-md border border-[#efe4ce] bg-white px-3 py-2.5">
                     <p className="text-xs font-semibold text-gray-700">
-                      Coordinates are visible while editing so the user can verify
-                      the exact saved point.
+                      Coordinates are visible while editing so the user can
+                      verify the exact saved point.
                     </p>
                     <div className="grid grid-cols-2 gap-3 mt-3">
                       <div>
@@ -948,7 +969,7 @@ const ShipperPreferredAreaPage = () => {
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <LocationMapCard
                     title="Adjust Exact Location"
                     description={
@@ -968,17 +989,17 @@ const ShipperPreferredAreaPage = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-5">
+              <div className="flex flex-col sm:flex-row gap-2.5 pt-4">
                 <button
                   onClick={handleCancelEdit}
-                  className="flex-1 py-3 rounded-xl border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-50 transition"
+                  className="flex-1 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-50 transition"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveEdit}
                   disabled={loading || !editCoords}
-                  className="flex-1 py-3 rounded-xl bg-[#BF9B53] hover:bg-[#a8863e] disabled:opacity-50 text-white text-sm font-bold transition flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 rounded-md bg-[#BF9B53] hover:bg-[#a8863e] disabled:opacity-50 text-white text-sm font-bold transition flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -1016,336 +1037,354 @@ const ShipperPreferredAreaPage = () => {
 
           {!showAddForm && !editingId && (
             <div className="space-y-3">
-            {preferredAreas.length === 0 ? (
-              <div className="text-center text-gray-400 text-sm py-12 border-2 border-dashed border-gray-200 rounded-2xl bg-white">
+            {!hasFetchedPreferredAreas ? (
+              <div className="text-center text-gray-400 text-sm py-10 border border-dashed border-gray-200 rounded-md bg-white">
+                <FiMap size={24} className="mx-auto mb-2 text-gray-300" />
+                <p className="font-semibold text-gray-700">
+                  Saved preferred areas are not loaded yet
+                </p>
+                <p className="text-xs mt-1 mb-4">
+                  This page will only fetch them when you ask for them.
+                </p>
+                <button
+                  onClick={handleLoadPreferredAreas}
+                  disabled={loading}
+                  className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-bold transition disabled:opacity-60"
+                >
+                  <FiMap size={15} />
+                  {loading ? "Loading..." : "Load Preferred Areas"}
+                </button>
+              </div>
+            ) : preferredAreas.length === 0 ? (
+              <div className="text-center text-gray-400 text-sm py-10 border-2 border-dashed border-gray-200 rounded-md bg-white">
                 <FiMapPin size={26} className="mx-auto mb-2 text-gray-300" />
                 <p className="font-semibold text-gray-600">
                   No preferred areas yet
                 </p>
-                <p className="text-xs mt-1">
-                  Add your first service area above.
-                </p>
-              </div>
-            ) : (
-              preferredAreas.map((area, idx) => {
-                const areaCoords = getAreaCoords(area);
-                const isEditing = editingId === area._id;
+                  <p className="text-xs mt-1">
+                    Add your first service area above.
+                  </p>
+                </div>
+              ) : (
+                preferredAreas.map((area, idx) => {
+                  const areaCoords = getAreaCoords(area);
+                  const isEditing = editingId === area._id;
 
-                return (
-                  <div
-                    key={area._id}
-                    className="bg-white border border-gray-200 rounded-[22px] shadow-sm overflow-hidden"
-                  >
-                    {!isEditing ? (
-                      <div className="p-3 sm:p-4">
-                        <div className="flex flex-col lg:flex-row lg:items-start gap-3 lg:gap-4">
-                          <div className="flex items-start gap-3 flex-1 min-w-0">
-                            <div className="w-11 h-11 rounded-2xl bg-[#BF9B53]/10 flex items-center justify-center shrink-0 mt-0.5">
-                              <span className="text-sm font-bold text-[#BF9B53]">
-                                #{idx + 1}
-                              </span>
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p className="text-base font-bold text-gray-900 leading-tight break-words">
-                                  {area.locationName || "Unnamed Location"}
-                                </p>
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold bg-[#BF9B53]/10 text-[#BF9B53] px-2.5 py-1 rounded-full">
-                                  <MdRadar size={12} />
-                                  {area.radiusKm} km radius
+                  return (
+                    <div
+                      key={area._id}
+                      className="bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden"
+                    >
+                      {!isEditing ? (
+                        <div className="p-3 sm:p-3.5">
+                          <div className="flex flex-col lg:flex-row lg:items-start gap-3">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <div className="w-10 h-10 rounded-md bg-[#BF9B53]/10 flex items-center justify-center shrink-0 mt-0.5">
+                                <span className="text-sm font-bold text-[#BF9B53]">
+                                  #{idx + 1}
                                 </span>
                               </div>
 
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
-                                <div className="rounded-xl bg-gray-50 border border-gray-100 px-3 py-2.5">
-                                  <p className="text-[11px] uppercase tracking-wide text-gray-400">
-                                    Latitude
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="text-base font-bold text-gray-900 leading-tight break-words">
+                                    {area.locationName || "Unnamed Location"}
                                   </p>
-                                  <p className="text-sm font-semibold text-gray-800 mt-1">
-                                    {formatCoord(
-                                      area.coordinates?.coordinates?.[1]
-                                    )}
-                                  </p>
+                                  <span className="inline-flex items-center gap-1 text-xs font-semibold bg-[#BF9B53]/10 text-[#BF9B53] px-2.5 py-1 rounded-md">
+                                    <MdRadar size={12} />
+                                    {area.radiusKm} km radius
+                                  </span>
                                 </div>
-                                <div className="rounded-xl bg-gray-50 border border-gray-100 px-3 py-2.5">
-                                  <p className="text-[11px] uppercase tracking-wide text-gray-400">
-                                    Longitude
-                                  </p>
-                                  <p className="text-sm font-semibold text-gray-800 mt-1">
-                                    {formatCoord(
-                                      area.coordinates?.coordinates?.[0]
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
 
-                              <p className="text-xs text-gray-500 mt-3 flex items-center gap-1.5 break-all">
-                                <FiMapPin size={12} className="shrink-0" />
-                                Exact saved point for this preferred area
-                              </p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                                  <div className="rounded-md bg-gray-50 border border-gray-100 px-3 py-2">
+                                    <p className="text-[11px] uppercase tracking-wide text-gray-400">
+                                      Latitude
+                                    </p>
+                                    <p className="text-sm font-semibold text-gray-800 mt-1">
+                                      {formatCoord(
+                                        area.coordinates?.coordinates?.[1]
+                                      )}
+                                    </p>
+                                  </div>
+                                  <div className="rounded-md bg-gray-50 border border-gray-100 px-3 py-2">
+                                    <p className="text-[11px] uppercase tracking-wide text-gray-400">
+                                      Longitude
+                                    </p>
+                                    <p className="text-sm font-semibold text-gray-800 mt-1">
+                                      {formatCoord(
+                                        area.coordinates?.coordinates?.[0]
+                                      )}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <p className="text-xs text-gray-500 mt-3 flex items-center gap-1.5 break-all">
+                                  <FiMapPin size={12} className="shrink-0" />
+                                  Exact saved point for this preferred area
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row lg:flex-col gap-2 shrink-0 w-full lg:w-[132px]">
+                              <button
+                                onClick={() => handleStartEdit(area)}
+                                className="inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-md bg-gray-900 hover:bg-blue-600 text-white text-sm font-semibold transition"
+                                title="Edit"
+                              >
+                                <FiEdit2 size={14} />
+                                Edit Area
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  setConfirmModal({
+                                    open: true,
+                                    areaId: area._id,
+                                  })
+                                }
+                                className="inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 text-sm font-semibold transition border border-red-100"
+                                title="Delete"
+                              >
+                                <FiTrash2 size={14} />
+                                Delete
+                              </button>
                             </div>
                           </div>
 
-                          <div className="flex flex-col sm:flex-row lg:flex-col gap-2 shrink-0 w-full lg:w-[142px]">
-                            <button
-                              onClick={() => handleStartEdit(area)}
-                              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-blue-600 text-white text-sm font-semibold transition"
-                              title="Edit"
-                            >
-                              <FiEdit2 size={14} />
-                              Edit Area
-                            </button>
-
-                            <button
-                              onClick={() =>
-                                setConfirmModal({
-                                  open: true,
-                                  areaId: area._id,
-                                })
-                              }
-                              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-sm font-semibold transition border border-red-100"
-                              title="Delete"
-                            >
-                              <FiTrash2 size={14} />
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-
-                        {areaCoords && (
-                          <div className="mt-3 rounded-2xl overflow-hidden border border-gray-200">
-                            <GoogleMap
-                              mapContainerStyle={savedAreaMapContainerStyle}
-                              center={areaCoords}
-                              zoom={11}
-                              onLoad={(map) =>
-                                fitMapToRadius(map, areaCoords, area.radiusKm)
-                              }
-                              options={mapOptions}
-                            >
-                              <Circle
+                          {areaCoords && (
+                            <div className="mt-3 rounded-md overflow-hidden border border-gray-200">
+                              <GoogleMap
+                                mapContainerStyle={savedAreaMapContainerStyle}
                                 center={areaCoords}
-                                radius={getRadiusMeters(area.radiusKm)}
-                                options={radiusCircleOptions}
-                              />
-                              <Marker position={areaCoords} />
-                            </GoogleMap>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="p-3 sm:p-4 bg-[#fffdf8]">
-                        <div className="flex items-center justify-between gap-3 mb-3">
-                          <div>
-                            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#BF9B53]">
-                              Editing Area #{idx + 1}
-                            </p>
-                            <h3 className="text-lg font-bold text-gray-900 mt-1">
-                              Update location and radius
-                            </h3>
-                          </div>
-                          <button
-                            onClick={handleCancelEdit}
-                            className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center justify-center"
-                          >
-                            <FiX size={16} />
-                          </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 xl:grid-cols-[1.02fr_0.98fr] gap-4 lg:gap-5">
-                          <div className="space-y-4">
-                            <div>
-                              <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">
-                                Location Search
-                              </label>
-                              <Autocomplete
-                                onLoad={(auto) =>
-                                  (editAutocompleteRef.current = auto)
+                                zoom={11}
+                                onLoad={(map) =>
+                                  fitMapToRadius(map, areaCoords, area.radiusKm)
                                 }
-                                onPlaceChanged={onEditPlaceChanged}
+                                options={mapOptions}
                               >
+                                <Circle
+                                  center={areaCoords}
+                                  radius={getRadiusMeters(area.radiusKm)}
+                                  options={radiusCircleOptions}
+                                />
+                                <Marker position={areaCoords} />
+                              </GoogleMap>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="p-3 sm:p-3.5 bg-[#fffdf8]">
+                          <div className="flex items-center justify-between gap-3 mb-3">
+                            <div>
+                              <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#BF9B53]">
+                                Editing Area #{idx + 1}
+                              </p>
+                              <h3 className="text-lg font-bold text-gray-900 mt-1">
+                                Update location and radius
+                              </h3>
+                            </div>
+                            <button
+                              onClick={handleCancelEdit}
+                              className="w-9 h-9 rounded-md bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center justify-center"
+                            >
+                              <FiX size={16} />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 xl:grid-cols-[1.02fr_0.98fr] gap-3 lg:gap-4">
+                            <div className="space-y-3">
+                              <div>
+                                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">
+                                  Location Search
+                                </label>
+                                <Autocomplete
+                                  onLoad={(auto) =>
+                                    (editAutocompleteRef.current = auto)
+                                  }
+                                  onPlaceChanged={onEditPlaceChanged}
+                                >
+                                  <input
+                                    type="text"
+                                    placeholder="Search new location"
+                                    value={editForm.locationName}
+                                    onChange={(e) =>
+                                      setEditForm((prev) => ({
+                                        ...prev,
+                                        locationName: e.target.value,
+                                      }))
+                                    }
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                                  />
+                                </Autocomplete>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">
+                                    Latitude
+                                  </label>
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    value={editForm.latitude}
+                                    placeholder="Enter or drag marker"
+                                    onChange={(e) =>
+                                      handleCoordinateInput(
+                                        "latitude",
+                                        e.target.value,
+                                        "edit"
+                                      )
+                                    }
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">
+                                    Longitude
+                                  </label>
+                                  <input
+                                    type="number"
+                                    step="any"
+                                    value={editForm.longitude}
+                                    placeholder="Enter or drag marker"
+                                    onChange={(e) =>
+                                      handleCoordinateInput(
+                                        "longitude",
+                                        e.target.value,
+                                        "edit"
+                                      )
+                                    }
+                                    className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="rounded-md border border-[#efe4ce] bg-white px-3 py-2.5">
+                                <p className="text-xs font-semibold text-gray-700">
+                                  Coordinates are visible while editing so the
+                                  user can verify the exact saved point.
+                                </p>
+                                <div className="grid grid-cols-2 gap-3 mt-3">
+                                  <div>
+                                    <p className="text-[11px] uppercase tracking-wide text-gray-400">
+                                      Latitude
+                                    </p>
+                                    <p className="text-sm font-bold text-gray-800 mt-1">
+                                      {formatCoord(editForm.latitude)}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[11px] uppercase tracking-wide text-gray-400">
+                                      Longitude
+                                    </p>
+                                    <p className="text-sm font-bold text-gray-800 mt-1">
+                                      {formatCoord(editForm.longitude)}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div>
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                    Radius
+                                  </label>
+                                  <span className="text-sm font-bold text-[#BF9B53]">
+                                    {editForm.radiusKm} km
+                                  </span>
+                                </div>
                                 <input
-                                  type="text"
-                                  placeholder="Search new location"
-                                  value={editForm.locationName}
+                                  type="range"
+                                  min="10"
+                                  max="200"
+                                  step="5"
+                                  value={editForm.radiusKm}
                                   onChange={(e) =>
                                     setEditForm((prev) => ({
                                       ...prev,
-                                      locationName: e.target.value,
+                                      radiusKm: e.target.value,
                                     }))
                                   }
-                                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                                  className="w-full accent-[#BF9B53]"
                                 />
-                              </Autocomplete>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <div>
-                                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">
-                                  Latitude
-                                </label>
-                                <input
-                                  type="number"
-                                  step="any"
-                                  value={editForm.latitude}
-                                  placeholder="Enter or drag marker"
-                                  onChange={(e) =>
-                                    handleCoordinateInput(
-                                      "latitude",
-                                      e.target.value,
-                                      "edit"
-                                    )
-                                  }
-                                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">
-                                  Longitude
-                                </label>
-                                <input
-                                  type="number"
-                                  step="any"
-                                  value={editForm.longitude}
-                                  placeholder="Enter or drag marker"
-                                  onChange={(e) =>
-                                    handleCoordinateInput(
-                                      "longitude",
-                                      e.target.value,
-                                      "edit"
-                                    )
-                                  }
-                                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
-                                />
-                              </div>
-                            </div>
-
-                            <div className="rounded-2xl border border-[#efe4ce] bg-white px-4 py-3">
-                              <p className="text-xs font-semibold text-gray-700">
-                                Coordinates are visible while editing so the
-                                user can verify the exact saved point.
-                              </p>
-                              <div className="grid grid-cols-2 gap-3 mt-3">
-                                <div>
-                                  <p className="text-[11px] uppercase tracking-wide text-gray-400">
-                                    Latitude
-                                  </p>
-                                  <p className="text-sm font-bold text-gray-800 mt-1">
-                                    {formatCoord(editForm.latitude)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-[11px] uppercase tracking-wide text-gray-400">
-                                    Longitude
-                                  </p>
-                                  <p className="text-sm font-bold text-gray-800 mt-1">
-                                    {formatCoord(editForm.longitude)}
-                                  </p>
+                                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                                  <span>10 km</span>
+                                  <span>200 km</span>
                                 </div>
                               </div>
                             </div>
 
-                            <div>
-                              <div className="flex items-center justify-between mb-1.5">
-                                <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                  Radius
-                                </label>
-                                <span className="text-sm font-bold text-[#BF9B53]">
-                                  {editForm.radiusKm} km
-                                </span>
-                              </div>
-                              <input
-                                type="range"
-                                min="10"
-                                max="200"
-                                step="5"
-                                value={editForm.radiusKm}
-                                onChange={(e) =>
-                                  setEditForm((prev) => ({
-                                    ...prev,
-                                    radiusKm: e.target.value,
-                                  }))
+                            <div className="space-y-2.5">
+                              <LocationMapCard
+                                title="Adjust Exact Location"
+                                description={
+                                  editCoords
+                                    ? `Coverage circle shows ${editForm.radiusKm} km around this point. Drag the marker to update the exact saved location.`
+                                    : "Search the place or fill latitude and longitude to place the marker."
                                 }
-                                className="w-full accent-[#BF9B53]"
+                                coords={editCoords}
+                                radiusKm={editForm.radiusKm}
+                                mapRef={editMapRef}
+                                onMarkerDragEnd={handleEditMarkerDragEnd}
                               />
-                              <div className="flex justify-between text-xs text-gray-400 mt-1">
-                                <span>10 km</span>
-                                <span>200 km</span>
-                              </div>
+                              <p className="text-xs text-gray-500 leading-relaxed">
+                                You can update the address search, type latitude
+                                and longitude manually, or drag the marker to
+                                the exact point.
+                              </p>
                             </div>
                           </div>
 
-                          <div className="space-y-3">
-                            <LocationMapCard
-                              title="Adjust Exact Location"
-                              description={
-                                editCoords
-                                  ? `Coverage circle shows ${editForm.radiusKm} km around this point. Drag the marker to update the exact saved location.`
-                                  : "Search the place or fill latitude and longitude to place the marker."
-                              }
-                              coords={editCoords}
-                              radiusKm={editForm.radiusKm}
-                              mapRef={editMapRef}
-                              onMarkerDragEnd={handleEditMarkerDragEnd}
-                            />
-                            <p className="text-xs text-gray-500 leading-relaxed">
-                              You can update the address search, type latitude
-                              and longitude manually, or drag the marker to the
-                              exact point.
-                            </p>
+                          <div className="flex flex-col sm:flex-row gap-2.5 pt-4">
+                            <button
+                              onClick={handleCancelEdit}
+                              className="flex-1 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-50 transition"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={handleSaveEdit}
+                              disabled={loading || !editCoords}
+                              className="flex-1 py-2.5 rounded-md bg-[#BF9B53] hover:bg-[#a8863e] disabled:opacity-50 text-white text-sm font-bold transition flex items-center justify-center gap-2"
+                            >
+                              {loading ? (
+                                <>
+                                  <svg
+                                    className="animate-spin w-4 h-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <circle
+                                      className="opacity-25"
+                                      cx="12"
+                                      cy="12"
+                                      r="10"
+                                      stroke="currentColor"
+                                      strokeWidth="4"
+                                    />
+                                    <path
+                                      className="opacity-75"
+                                      fill="currentColor"
+                                      d="M4 12a8 8 0 018-8v8H4z"
+                                    />
+                                  </svg>
+                                  Saving Changes...
+                                </>
+                              ) : (
+                                <>
+                                  <FiCheck size={14} />
+                                  Save Changes
+                                </>
+                              )}
+                            </button>
                           </div>
                         </div>
-
-                        <div className="flex flex-col sm:flex-row gap-3 pt-5">
-                          <button
-                            onClick={handleCancelEdit}
-                            className="flex-1 py-3 rounded-xl border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-50 transition"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={handleSaveEdit}
-                            disabled={loading || !editCoords}
-                            className="flex-1 py-3 rounded-xl bg-[#BF9B53] hover:bg-[#a8863e] disabled:opacity-50 text-white text-sm font-bold transition flex items-center justify-center gap-2"
-                          >
-                            {loading ? (
-                              <>
-                                <svg
-                                  className="animate-spin w-4 h-4"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                  />
-                                  <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8v8H4z"
-                                  />
-                                </svg>
-                                Saving Changes...
-                              </>
-                            ) : (
-                              <>
-                                <FiCheck size={14} />
-                                Save Changes
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
           )}
         </div>

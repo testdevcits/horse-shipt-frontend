@@ -33,10 +33,13 @@ const navItems = [
     icon: <DashboardIcon />,
   },
   {
-    name: "My Shipment",
-    path: "/shipper/contract",
+    name: "Shipment",
+    path: "/shipper/my-shipment",
     icon: <OrdersIcon />,
-    // subPaths: [{ name: "My Shipment", path: "/shipper/orders/pending" }],
+    subPaths: [
+      { name: "My Shipment", path: "/shipper/my-shipment" },
+      { name: "All Shipments", path: "/shipper/all-shipment" },
+    ],
   },
   {
     name: "Vehicles",

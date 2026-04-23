@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
-import Toast from "../../components/common/Toast"; // ✅ adjust path if needed
+import Toast from "../../components/common/Toast";
 
 const ShipperPreferredAreaContext = createContext();
 
@@ -13,6 +13,7 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
   const [preferredAreas, setPreferredAreas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [hasFetchedPreferredAreas, setHasFetchedPreferredAreas] = useState(false);
 
   // ================================
   // FETCH AREAS
@@ -29,16 +30,24 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
       });
 
       setPreferredAreas(res.data?.data || []);
+      setHasFetchedPreferredAreas(true);
     } catch (err) {
       const msg =
         err?.response?.data?.message || "Failed to fetch preferred areas";
 
       setError(msg);
+      setHasFetchedPreferredAreas(true);
       Toast.error(msg);
     } finally {
       setLoading(false);
     }
   }, [token]);
+
+  const clearPreferredAreas = useCallback(() => {
+    setPreferredAreas([]);
+    setError(null);
+    setHasFetchedPreferredAreas(false);
+  }, []);
 
   // ================================
   // ADD AREA
@@ -71,6 +80,7 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
       const newArea = res.data?.data;
 
       setPreferredAreas((prev) => [newArea, ...prev]);
+      setHasFetchedPreferredAreas(true);
 
       Toast.success(res.data?.message || "Area added successfully");
     } catch (err) {
@@ -102,6 +112,7 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
       );
 
       setPreferredAreas((prev) => prev.filter((a) => a._id !== areaId));
+      setHasFetchedPreferredAreas(true);
 
       Toast.success(res.data?.message || "Area removed successfully");
     } catch (err) {
@@ -138,6 +149,7 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
       setPreferredAreas((prev) =>
         prev.map((a) => (a._id === areaId ? updatedArea : a))
       );
+      setHasFetchedPreferredAreas(true);
 
       Toast.success(res.data?.message || "Area updated successfully");
     } catch (err) {
@@ -157,7 +169,9 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
         preferredAreas,
         loading,
         error,
+        hasFetchedPreferredAreas,
         fetchPreferredAreas,
+        clearPreferredAreas,
         addPreferredArea,
         removePreferredArea,
         updatePreferredArea,

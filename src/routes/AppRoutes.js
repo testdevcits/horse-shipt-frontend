@@ -28,6 +28,7 @@ import InviteShipmentPage from "../pages/InviteShipmentPage";
 import NewsletterVerificationPage from "../pages/NewsletterVerificationPage";
 import OAuthErrorPage from "../pages/auth/OAuthErrorPage";
 import TrackShipmentPage from "../pages/TrackShipmentPage";
+import AllShipments from "../pages/shipper/AllShipments";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -66,6 +67,7 @@ const EditProfile = lazy(() => import("../pages/customer/EditProfile"));
 const MyShipmentDetails = lazy(() =>
   import("../pages/customer/MyShipmentDetails")
 );
+const FindShippers = lazy(() => import("../pages/customer/FindShippers"));
 
 const ShipperProfilePage = lazy(() =>
   import("../pages/customer/ShipperProfile")
@@ -195,7 +197,8 @@ const AppRoutes = () => {
           <Route index element={<Navigate to="dashboard" replace />} />
 
           <Route path="dashboard" element={<ShipperDashboard />} />
-          <Route path="contract" element={<ShipperContract />} />
+          <Route path="my-shipment" element={<ShipperContract />} />
+          <Route path="all-shipment" element={<AllShipments />} />
           <Route path="profile" element={<ShipperProfile />} />
           <Route path="vehicles" element={<VehiclesAndCapacity />} />
           <Route path="shipment-settings" element={<ShipmentSettings />} />
@@ -234,6 +237,10 @@ const AppRoutes = () => {
           <Route path="new-shipment/:id" element={<NewShipment />} />
           <Route path="profile/edit" element={<EditProfile />} />
           <Route path="my-shipments" element={<MyShipmentDetails />} />
+          <Route
+            path="find-shippers/:shipmentId"
+            element={<FindShippers />}
+          />
           <Route path="chats" element={<CustomerChatOverview />} />
           <Route path="my-horses" element={<MyHorses />} />
           <Route path="shipper-profile/:id" element={<ShipperProfilePage />} />

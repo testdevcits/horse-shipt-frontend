@@ -48,6 +48,8 @@ import { ReviewProvider } from "./contexts/customerContext/ReviewContext";
 import { NewsletterProvider } from "./contexts/NewsletterContext";
 import { SubscriptionProvider } from "./contexts/shipperContext/SubscriptionContext";
 import { TrackingProvider } from "./contexts/common/TrackingContext";
+import { CustomerMatchingProvider } from "./contexts/customerContext/CustomerMatchingContext";
+import { ShipperInvitationProvider } from "./contexts/shipperContext/ShipperInvitationContext";
 
 // ------------------- Stripe Setup -------------------
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
@@ -87,17 +89,21 @@ function App() {
                                                       <DriverAuthProvider>
                                                         <ShipperChatProvider>
                                                           <CustomerChatProvider>
-                                                            <ShipperQuestionProvider>
-                                                              <CustomerQuestionProvider>
-                                                                <DeliveredShipmentProvider>
-                                                                  <NewsletterProvider>
-                                                                    <TrackingProvider>
-                                                                      <AppRoutes />
-                                                                    </TrackingProvider>
-                                                                  </NewsletterProvider>
-                                                                </DeliveredShipmentProvider>
-                                                              </CustomerQuestionProvider>
-                                                            </ShipperQuestionProvider>
+                                                            <CustomerMatchingProvider>
+                                                              <ShipperInvitationProvider>
+                                                                <ShipperQuestionProvider>
+                                                                  <CustomerQuestionProvider>
+                                                                    <DeliveredShipmentProvider>
+                                                                      <NewsletterProvider>
+                                                                        <TrackingProvider>
+                                                                          <AppRoutes />
+                                                                        </TrackingProvider>
+                                                                      </NewsletterProvider>
+                                                                    </DeliveredShipmentProvider>
+                                                                  </CustomerQuestionProvider>
+                                                                </ShipperQuestionProvider>
+                                                              </ShipperInvitationProvider>
+                                                            </CustomerMatchingProvider>
                                                           </CustomerChatProvider>
                                                         </ShipperChatProvider>
                                                       </DriverAuthProvider>
