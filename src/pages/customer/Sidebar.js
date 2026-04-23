@@ -35,10 +35,6 @@ const navItems = [
     name: "My Shipments",
     path: "/customer/orders",
     icon: <CustomerOrdersIcon />,
-    // subPaths: [
-    //   { name: "Pending", path: "/customer/orders/pending" },
-    //   { name: "Completed", path: "/customer/orders/completed" },
-    // ],
   },
   {
     name: "New Shipment",
@@ -50,6 +46,14 @@ const navItems = [
     path: "/customer/my-horses",
     icon: <LiaHorseHeadSolid />,
   },
+
+  // NEW TAB
+  {
+    name: "My Quotes",
+    path: "/customer/quotes",
+    icon: <CustomerOrdersIcon />, // change icon if you want
+  },
+
   {
     name: "Chat",
     path: "/customer/chats",
