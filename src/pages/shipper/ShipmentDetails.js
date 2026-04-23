@@ -12,7 +12,12 @@ import { getPublishedTime } from "../../utils/timeAgo";
 import AskQuestionModal from "./AskQuestionModal";
 import RouteMap from "./common/RouteMap";
 import { IoArrowBack } from "react-icons/io5";
-import { Clock, AlertTriangle } from "lucide-react";
+import {
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  MessageCircleMore,
+} from "lucide-react";
 import { useShipperPayments } from "../../contexts/shipperContext/ShipperPaymentContext";
 
 /**
@@ -91,6 +96,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const [isOfferOpen, setIsOfferOpen] = useState(false);
   const [expandedHorse, setExpandedHorse] = useState(null);
   const [horseImageIndex, setHorseImageIndex] = useState({});
+  const [showQuoteSuccess, setShowQuoteSuccess] = useState(false);
 
   const { needsOnboarding } = useShipperPayments();
 
@@ -166,6 +172,14 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
   const timeData = timeLeft ? formatTimeRemaining(timeLeft) : null;
   const progressPercent = timeLeft ? (timeLeft / (5 * 60 * 1000)) * 100 : 0;
+
+  const handleQuoteSuccess = () => {
+    setShowQuoteSuccess(true);
+
+    setTimeout(() => {
+      navigate("/shipper/quotes");
+    }, 1800);
+  };
 
   // ── Horse PHOTO-only images (no documents) ────────────────────────────────
   const getHorsePhotos = (horseId) => {
@@ -341,6 +355,34 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
               >
                 Open in new tab ↗
               </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showQuoteSuccess && (
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl border border-emerald-100 p-8 text-center">
+            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 border border-emerald-200">
+              <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+            </div>
+            <h3 className="text-2xl font-black text-gray-900">
+              Quote Submitted
+            </h3>
+            <p className="mt-3 text-sm sm:text-base text-gray-600 font-medium leading-relaxed">
+              Your quote was sent successfully. We&apos;re taking you to your
+              orders page now.
+            </p>
+            <div className="mt-6 flex items-center justify-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#BF9B53] animate-bounce" />
+              <div
+                className="w-2.5 h-2.5 rounded-full bg-[#BF9B53] animate-bounce"
+                style={{ animationDelay: "0.15s" }}
+              />
+              <div
+                className="w-2.5 h-2.5 rounded-full bg-[#BF9B53] animate-bounce"
+                style={{ animationDelay: "0.3s" }}
+              />
             </div>
           </div>
         </div>
@@ -631,6 +673,35 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                   </p>
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="rounded-md border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-4 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-wider text-amber-700 mb-2">
+                    Pickup Window
+                  </p>
+                  <p className="text-sm font-bold text-gray-900 leading-relaxed">
+                    {formatDate(shipment.pickupDateRange.start)} to{" "}
+                    {formatDate(shipment.pickupDateRange.end)}
+                  </p>
+                </div>
+                <div className="rounded-md border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-wider text-emerald-700 mb-2">
+                    Delivery Window
+                  </p>
+                  <p className="text-sm font-bold text-gray-900 leading-relaxed">
+                    {formatDate(shipment.deliveryDateRange.start)} to{" "}
+                    {formatDate(shipment.deliveryDateRange.end)}
+                  </p>
+                </div>
+                <div className="rounded-md border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-wider text-slate-600 mb-2">
+                    Route Snapshot
+                  </p>
+                  <p className="text-sm font-bold text-gray-900 leading-relaxed">
+                    {shipment.pickupLocation} to {shipment.deliveryLocation}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -875,43 +946,95 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         </div>
 
         {/*ACTION BUTTONS*/}
-        <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
-          {needsOnboarding ? (
-            <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-3">
-              <p className="text-sm sm:text-base text-gray-700 font-medium text-center sm:text-left">
-                Please complete your account setup to submit an offer.
+        <div className="rounded-3xl border border-[#BF9B53]/30 bg-gradient-to-br from-white via-[#FFF9ED] to-[#F7F2E8] shadow-lg overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="p-6 sm:p-8 border-b lg:border-b-0 lg:border-r border-[#BF9B53]/20">
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#BF9B53] mb-3">
+                Ready To Respond
+              </p>
+              <h2 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight">
+                Send your quote or start the conversation before the session
+                ends
+              </h2>
+              <p className="mt-3 text-sm sm:text-base text-gray-600 font-medium max-w-2xl">
+                Review the route, horse details, and dates above. When you are
+                ready, submit your offer or open chat to clarify anything with
+                the customer first.
               </p>
 
-              <button
-                onClick={() => navigate("/shipper/settings?tab=payment")}
-                className="px-4 py-2 bg-[#BF9B53] text-white rounded-md font-semibold text-sm hover:bg-[#9d7d42] transition-all duration-200"
-              >
-                Complete Setup
-              </button>
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-white/80 border border-white shadow-sm p-4">
+                  <p className="text-xs font-black uppercase tracking-wider text-gray-500 mb-2">
+                    Shipment Code
+                  </p>
+                  <p className="text-lg font-black text-gray-900">
+                    {shipment.shipmentCode}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-white/80 border border-white shadow-sm p-4">
+                  <p className="text-xs font-black uppercase tracking-wider text-gray-500 mb-2">
+                    Customer
+                  </p>
+                  <p className="text-lg font-black text-gray-900">
+                    {shipment.customer?.name || "Customer"}
+                  </p>
+                </div>
+              </div>
             </div>
-          ) : (
-            <>
-              {/* Submit Offer Button */}
-              <button
-                onClick={() => setIsOfferOpen(true)}
-                className="relative group bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-6 py-4 rounded-md font-black text-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 overflow-hidden"
-              >
-                <span className="absolute inset-0 bg-white/20 group-hover:bg-white/30 transition-colors" />
-                <span className="relative">Submit an Offer</span>
-              </button>
 
-              {/* Chat Button (always show) */}
-              <button
-                onClick={() =>
-                  navigate(`/shipper/chat?customerId=${shipment.customer?._id}`)
-                }
-                className="border-2 border-[#BF9B53] text-[#BF9B53] px-6 py-4 rounded-md font-black text-lg hover:bg-[#BF9B53]/5 transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 bg-white"
-              >
-                <MdChat size={22} />
-                Chat with Customer
-              </button>
-            </>
-          )}
+            <div className="p-6 sm:p-8 bg-white/70">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-11 h-11 rounded-2xl bg-[#BF9B53] flex items-center justify-center">
+                  <MessageCircleMore className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wider text-[#BF9B53]">
+                    Quick Actions
+                  </p>
+                  <p className="text-sm text-gray-600 font-semibold">
+                    Choose how you want to continue
+                  </p>
+                </div>
+              </div>
+
+              {needsOnboarding ? (
+                <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-4 rounded-2xl shadow-sm flex flex-col items-center text-center gap-3">
+                  <p className="text-sm sm:text-base text-gray-700 font-medium">
+                    Please complete your account setup to submit an offer.
+                  </p>
+
+                  <button
+                    onClick={() => navigate("/shipper/settings?tab=payment")}
+                    className="px-5 py-2 bg-[#BF9B53] text-white font-semibold text-sm rounded-xl hover:bg-[#9d7d42] transition-all duration-200 shadow-sm hover:shadow-md"
+                  >
+                    Complete Setup
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  <button
+                    onClick={() => setIsOfferOpen(true)}
+                    className="relative group bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-6 py-4 rounded-2xl font-black text-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 overflow-hidden"
+                  >
+                    <span className="absolute inset-0 bg-white/20 group-hover:bg-white/30 transition-colors" />
+                    <span className="relative">Submit an Offer</span>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      navigate(
+                        `/shipper/chat?customerId=${shipment.customer?._id}`
+                      )
+                    }
+                    className="border-2 border-[#BF9B53] text-[#BF9B53] px-6 py-4 rounded-2xl font-black text-lg hover:bg-[#BF9B53]/5 transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 bg-white"
+                  >
+                    <MdChat size={22} />
+                    Chat with Customer
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ── ASK QUESTION ────────────────────────────────────────────────────── */}
@@ -945,6 +1068,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         <OfferSubmitModal
           shipment={shipment}
           onClose={() => setIsOfferOpen(false)}
+          onSuccess={handleQuoteSuccess}
         />
       )}
     </div>

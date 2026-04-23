@@ -15,6 +15,7 @@ const Button = ({
   hoverBgColor,
   hoverTextColor,
   icon,
+  ...rest
 }) => {
   const baseStyles =
     "px-4 py-2 text-base font-medium transition-all duration-200 flex items-center justify-center gap-2 min-h-[44px]";
@@ -71,6 +72,7 @@ const Button = ({
       style={customStyles}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      {...rest}
     >
       {icon && <span className="flex items-center">{icon}</span>}
       {children}

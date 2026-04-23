@@ -16,6 +16,7 @@ import {
   ChatIcon,
   SettingsIcon,
   TruckDriverIcon,
+  CustomerOrdersIcon,
 } from "../../components/common/ColoredIcons";
 
 /**
@@ -40,6 +41,11 @@ const navItems = [
       { name: "My Shipment", path: "/shipper/my-shipment" },
       { name: "All Shipments", path: "/shipper/all-shipment" },
     ],
+  },
+  {
+    name: "My Quotes",
+    path: "/shipper/quotes",
+    icon: <CustomerOrdersIcon />, // change icon if you want
   },
   {
     name: "Vehicles",
