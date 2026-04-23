@@ -13,6 +13,7 @@ import AcceptQuoteModal from "./AcceptQuoteModal";
 import Toast from "../../components/common/Toast";
 import ShipmentQuestions from "./ShipmentQuestions";
 import ShipmentQuotes from "./Shipmentquotes";
+import FindShippers from "./FindShippers";
 
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
@@ -188,6 +189,7 @@ const MyShipmentDetails = () => {
           label="Questions"
           count={questions.answered.length + questions.pending.length}
         />
+        <TabButton id="find-shippers" label="Find Shipper" />
       </div>
 
       {/* ================= OVERVIEW TAB ================= */}
@@ -396,6 +398,12 @@ const MyShipmentDetails = () => {
       {activeTab === "questions" && (
         <div className="mt-6">
           <ShipmentQuestions shipmentId={shipmentId} />
+        </div>
+      )}
+
+      {activeTab === "find-shippers" && (
+        <div className="mt-6">
+          <FindShippers shipmentId={shipmentId} shipment={shipment} />
         </div>
       )}
 

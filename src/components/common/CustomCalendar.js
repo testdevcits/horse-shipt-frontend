@@ -8,6 +8,7 @@ const CustomCalendar = ({
   unavailableDates = [],
   onSelectDates = () => {},
   initialSelected = [],
+  minDate = null, // NEW: dates before this are disabled
 }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const [selectedDates, setSelectedDates] = useState(initialSelected);
@@ -20,17 +21,17 @@ const CustomCalendar = ({
     setCurrentMonth(currentMonth.subtract(1, "month"));
   const handleNextMonth = () => setCurrentMonth(currentMonth.add(1, "month"));
 
-  // UPDATED: Single date selection - jab naya date select hone par pehla automatically deselect ho jaye
   const handleDateClick = (date) => {
     const formatted = date.format("YYYY-MM-DD");
     if (unavailableDates.includes(formatted)) return;
+    // Also block if before minDate
+    if (minDate && formatted <= minDate) return;
 
-    // Agar same date phir se click karo to deselect karo, warna naya select karo
     let updated;
     if (selectedDates.includes(formatted)) {
       updated = [];
     } else {
-      updated = [formatted]; // Sirf ek date select rahega
+      updated = [formatted];
     }
     setSelectedDates(updated);
     onSelectDates(updated);
@@ -38,10 +39,10 @@ const CustomCalendar = ({
 
   return (
     <div
-      className=" border border-[#EAEAEA] p-2 bg-system-background shadow-sm flex flex-col"
+      className="border border-[#EAEAEA] p-2 bg-system-background shadow-sm flex flex-col"
       style={{ opacity: 1, gap: "16px" }}
     >
-      {/* Header with Month and Arrows */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-2 px-2">
         <button
           onClick={handlePrevMonth}
@@ -60,10 +61,11 @@ const CustomCalendar = ({
         </button>
       </div>
       <div className="border-b border-gray-300 mt-1" />
+
       {/* Week Days */}
       <div className="grid grid-cols-7 gap-1 text-center text-sm text-systemText">
-        {["S", "M", "T", "W", "T", "F", "S"].map((d) => (
-          <div key={d} className="font-semibold">
+        {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+          <div key={i} className="font-semibold">
             {d}
           </div>
         ))}
@@ -71,7 +73,6 @@ const CustomCalendar = ({
 
       {/* Dates */}
       <div className="grid grid-cols-7 gap-1 mt-1">
-        {/* Empty slots for first day */}
         {Array.from({ length: firstDay }).map((_, i) => (
           <div key={`empty-${i}`} />
         ))}
@@ -80,24 +81,28 @@ const CustomCalendar = ({
           const date = currentMonth.date(i + 1);
           const formatted = date.format("YYYY-MM-DD");
           const isSelected = selectedDates.includes(formatted);
-          const isUnavailable = unavailableDates.includes(formatted);
+          const isUnavailable =
+            unavailableDates.includes(formatted) ||
+            (minDate ? formatted <= minDate : false); // NEW: block before/on minDate
 
           return (
             <button
               key={formatted}
               onClick={() => handleDateClick(date)}
               className={classNames(
-                "w-[33.7px] h-[35px] flex items-center justify-center text-sm transition-all duration-200 ",
+                "w-[33.7px] h-[35px] flex items-center justify-center text-sm transition-all duration-200 rounded",
                 {
                   [selectedColor]: isSelected,
                   "bg-danger text-white cursor-not-allowed":
                     isUnavailable && !isSelected,
-                  "hover:bg-system-primary/20": !isSelected && !isUnavailable,
-                  "bg-system-background  border-gray-200":
+                  "hover:bg-system-primary/20 cursor-pointer":
                     !isSelected && !isUnavailable,
-                  "text-white": isSelected,
+                  "bg-system-background border border-gray-200":
+                    !isSelected && !isUnavailable,
+                  "text-white cursor-pointer": isSelected,
                 }
               )}
+              disabled={isUnavailable}
             >
               {i + 1}
             </button>

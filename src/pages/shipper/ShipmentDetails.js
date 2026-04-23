@@ -13,6 +13,7 @@ import AskQuestionModal from "./AskQuestionModal";
 import RouteMap from "./common/RouteMap";
 import { IoArrowBack } from "react-icons/io5";
 import { Clock, AlertTriangle } from "lucide-react";
+import { useShipperPayments } from "../../contexts/shipperContext/ShipperPaymentContext";
 
 /**
  * ============================================================
@@ -90,6 +91,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const [isOfferOpen, setIsOfferOpen] = useState(false);
   const [expandedHorse, setExpandedHorse] = useState(null);
   const [horseImageIndex, setHorseImageIndex] = useState({});
+
+  const { needsOnboarding } = useShipperPayments();
 
   // ── Document viewer state ──────────────────────────────────────────────────
   const [viewingDoc, setViewingDoc] = useState(null); // { url, label }
@@ -853,7 +856,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                         </div>
 
                         {horse.generalInfo && (
-                          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-md p-4">
+                          <div className="bg-yellow-50 border-2 border-[#BF9B53] rounded-md p-4">
                             <p className="text-xs font-black text-gray-700 uppercase tracking-wider mb-2">
                               General Information :-
                             </p>
@@ -871,25 +874,44 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
           </div>
         </div>
 
-        {/* ── ACTION BUTTONS ──────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button
-            onClick={() => setIsOfferOpen(true)}
-            className="relative group bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-6 py-4 rounded-md font-black text-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 overflow-hidden"
-          >
-            <span className="absolute inset-0 bg-white/20 group-hover:bg-white/30 transition-colors" />
-            <span className="relative">Submit an Offer</span>
-          </button>
+        {/*ACTION BUTTONS*/}
+        <div className="grid grid-cols-1 sm:grid-cols-1 gap-4">
+          {needsOnboarding ? (
+            <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-sm sm:text-base text-gray-700 font-medium text-center sm:text-left">
+                Please complete your account setup to submit an offer.
+              </p>
 
-          <button
-            onClick={() =>
-              navigate(`/shipper/chat?customerId=${shipment.customer?._id}`)
-            }
-            className="border-2 border-[#BF9B53] text-[#BF9B53] px-6 py-4 rounded-md font-black text-lg hover:bg-[#BF9B53]/5 transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 bg-white"
-          >
-            <MdChat size={22} />
-            Chat with Customer
-          </button>
+              <button
+                onClick={() => navigate("/shipper/settings?tab=payment")}
+                className="px-4 py-2 bg-[#BF9B53] text-white rounded-md font-semibold text-sm hover:bg-[#9d7d42] transition-all duration-200"
+              >
+                Complete Setup
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Submit Offer Button */}
+              <button
+                onClick={() => setIsOfferOpen(true)}
+                className="relative group bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-6 py-4 rounded-md font-black text-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 overflow-hidden"
+              >
+                <span className="absolute inset-0 bg-white/20 group-hover:bg-white/30 transition-colors" />
+                <span className="relative">Submit an Offer</span>
+              </button>
+
+              {/* Chat Button (always show) */}
+              <button
+                onClick={() =>
+                  navigate(`/shipper/chat?customerId=${shipment.customer?._id}`)
+                }
+                className="border-2 border-[#BF9B53] text-[#BF9B53] px-6 py-4 rounded-md font-black text-lg hover:bg-[#BF9B53]/5 transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 bg-white"
+              >
+                <MdChat size={22} />
+                Chat with Customer
+              </button>
+            </>
+          )}
         </div>
 
         {/* ── ASK QUESTION ────────────────────────────────────────────────────── */}

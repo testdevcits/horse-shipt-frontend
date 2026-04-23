@@ -1,7 +1,6 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import { GoogleMap, Autocomplete, Marker } from "@react-google-maps/api";
 import DateInput from "../../../components/common/DateInput";
-import Select from "../../../components/common/Select";
 
 const containerStyle = {
   width: "100%",
@@ -12,13 +11,6 @@ const defaultCenter = {
   lat: 39.8283,
   lng: -98.5795,
 };
-
-const deliveryTimeOptions = [
-  { value: "on", label: "On" },
-  { value: "before", label: "Before" },
-  { value: "after", label: "After" },
-  { value: "between", label: "Between" },
-];
 
 const Step2Delivery = ({
   deliveryLocation,
@@ -31,13 +23,28 @@ const Step2Delivery = ({
   setDeliveryStartDate,
   deliveryEndDate,
   setDeliveryEndDate,
+  pickupStartDate,
+  pickupEndDate,
   errors,
   clearError,
 }) => {
   const mapRef = useRef(null);
   const autocompleteRef = useRef(null);
+  const timeOptionInitialized = useRef(false);
 
-  const onPlaceChanged = () => {
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // Always force "between"
+  useEffect(() => {
+    if (!timeOptionInitialized.current) {
+      setDeliveryTimeOption("between");
+      timeOptionInitialized.current = true;
+    }
+  }, [setDeliveryTimeOption]);
+
+  const onPlaceChanged = useCallback(() => {
     if (!autocompleteRef.current) return;
 
     const place = autocompleteRef.current.getPlace();
@@ -54,30 +61,42 @@ const Step2Delivery = ({
       mapRef.current.panTo({ lat, lng });
       mapRef.current.setZoom(14);
     }
-  };
+  }, [setDeliveryLocation, setDeliveryCoords, clearError]);
 
-  const handleMarkerDragEnd = (e) => {
-    setDeliveryCoords({
-      lat: e.latLng.lat(),
-      lng: e.latLng.lng(),
-    });
-  };
+  const handleMarkerDragEnd = useCallback(
+    (e) => {
+      setDeliveryCoords({
+        lat: e.latLng.lat(),
+        lng: e.latLng.lng(),
+      });
+    },
+    [setDeliveryCoords]
+  );
 
-  const handleStartDateChange = (val) => {
-    setDeliveryStartDate(val);
-    clearError("deliveryStartDate");
-    if (deliveryEndDate) {
-      clearError("deliveryEndDate");
-    }
-  };
-
-  const handleEndDateChange = (val) => {
-    setDeliveryEndDate(val);
-    clearError("deliveryEndDate");
-    if (deliveryStartDate) {
+  const handleStartDateChange = useCallback(
+    (val) => {
+      setDeliveryStartDate(val);
       clearError("deliveryStartDate");
-    }
-  };
+      if (deliveryEndDate) {
+        clearError("deliveryEndDate");
+      }
+    },
+    [setDeliveryStartDate, clearError, deliveryEndDate]
+  );
+
+  const handleEndDateChange = useCallback(
+    (val) => {
+      setDeliveryEndDate(val);
+      clearError("deliveryEndDate");
+      if (deliveryStartDate) {
+        clearError("deliveryStartDate");
+      }
+    },
+    [setDeliveryEndDate, clearError, deliveryStartDate]
+  );
+
+  // Delivery dates must be after pickup end date
+  const deliveryMinDate = pickupEndDate || null;
 
   return (
     <div className="flex flex-col w-full gap-6 bg-white p-4 md:p-6 rounded-lg font-montserrat">
@@ -114,6 +133,7 @@ const Step2Delivery = ({
         )}
       </div>
 
+      {/* Google Map */}
       <div className="w-full rounded-lg overflow-hidden border-2 border-gray-200">
         <GoogleMap
           mapContainerStyle={containerStyle}
@@ -136,30 +156,18 @@ const Step2Delivery = ({
         </GoogleMap>
       </div>
 
-      <div>
-        <label className="block text-sm font-semibold mb-2 text-gray-600">
-          When should your horse(s) be delivered?{" "}
-          <span className="text-red-500">*</span>
-        </label>
-        <Select
-          value={deliveryTimeOption}
-          onChange={(e) => {
-            setDeliveryTimeOption(e.target.value);
-            clearError("deliveryTimeOption");
-          }}
-          options={deliveryTimeOptions}
-        />
-        {errors?.deliveryTimeOption && (
-          <p className="text-red-500 text-xs md:text-sm mt-2 font-semibold">
-            {errors.deliveryTimeOption}
-          </p>
-        )}
-      </div>
-
+      {/* Date Range */}
       <div className="space-y-3">
         <label className="block text-sm font-semibold text-gray-600">
           Select Drop-Off Date Range <span className="text-red-500">*</span>
         </label>
+
+        {/* Hint when pickup end date is set */}
+        {pickupEndDate && (
+          <p className="text-xs text-[#BF9B53] font-medium">
+            Delivery dates must be after pickup end date ({pickupEndDate}).
+          </p>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
           <div className="space-y-2">
@@ -171,6 +179,7 @@ const Step2Delivery = ({
               onChange={handleStartDateChange}
               error={errors?.deliveryStartDate}
               placeholder="Start Date"
+              minDate={deliveryMinDate}
             />
           </div>
 
@@ -183,6 +192,8 @@ const Step2Delivery = ({
               onChange={handleEndDateChange}
               error={errors?.deliveryEndDate}
               placeholder="End Date"
+              disabled={!deliveryStartDate}
+              minDate={deliveryStartDate || deliveryMinDate}
             />
           </div>
         </div>
@@ -193,10 +204,10 @@ const Step2Delivery = ({
         </p>
       </div>
 
-      <div className="bg-[#BF9B53]/10 border border-[#BF9B53] rounded-lg p-4">
+      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 rounded-lg space-y-4">
         <p className="text-xs md:text-sm text-gray-900">
-          <span className="font-semibold">Note:</span> Please enter your
-          delivery address or adjust the map marker to set the exact location.
+          Please enter your delivery address or adjust the map marker to set the
+          exact location. Delivery time will be between start and end date.
         </p>
       </div>
     </div>

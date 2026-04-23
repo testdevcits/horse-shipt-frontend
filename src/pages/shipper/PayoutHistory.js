@@ -170,10 +170,13 @@ const PayoutAndCardPage = () => {
 
       <div className="max-w-full mx-auto mt-4 space-y-6">
         {/* Payment Method Card */}
-        <div className="bg-white rounded-md border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
           {/* Header */}
-          <div className="bg-[#BF9B53]/10 px-6 py-5 border-b border-slate-200">
+          <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-5 border-b border-slate-200">
             <div className="flex items-center gap-4">
+              <div className="p-3 bg-white rounded-lg border-2 border-[#BF9B53]">
+                <CreditCard className="w-6 h-6 text-[#BF9B53]" />
+              </div>
               <div className="flex-1">
                 <h2 className="text-xl font-bold text-slate-900">
                   Payment Method
@@ -253,7 +256,16 @@ const PayoutAndCardPage = () => {
 
             {hasCard && !clientSecret && paymentCard && (
               <div className="space-y-5">
-                <div className="flex items-center gap-4 p-5 bg-[#BF9B53]/10 to-emerald-50 border-2 border-[#BF9B53] rounded-lg">
+                {paymentError && (
+                  <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 rounded-lg space-y-4">
+                    <div>
+                      <p className="text-xs text-red-700 mt-1">
+                        {paymentError}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center gap-4 p-5 bg-[#BF9B53]/20 border-2 border-[#BF9B53] rounded-lg">
                   <div className="p-3 bg-white rounded-lg border border-[#BF9B53]">
                     <CreditCard className="w-6 h-6 text-[#BF9B53]" />
                   </div>
@@ -266,26 +278,17 @@ const PayoutAndCardPage = () => {
                       {paymentCard.cardLast4}
                     </p>
                   </div>
-                  <CheckCircle2 className="w-6 h-6 text-[#BF9B53] flex-shrink-0" />
+                  <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
                 </div>
 
-                <button
-                  onClick={handleAddCard}
-                  disabled={cardProcessing}
-                  className="w-full px-6 py-3 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-200 text-slate-900 font-semibold rounded-lg transition-colors duration-200"
-                >
-                  {cardProcessing ? "Processing..." : "Update Card"}
-                </button>
-              </div>
-            )}
-
-            {paymentError && (
-              <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2 mt-2">
-                <div>
-                  <p className="text-sm font-semibold text-red-800">
-                    Payment Error
-                  </p>
-                  <p className="text-xs text-red-700 mt-1">{paymentError}</p>
+                <div className="flex justify-center">
+                  <button
+                    onClick={handleAddCard}
+                    disabled={cardProcessing}
+                    className="w-md px-6 py-3 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-200 text-slate-900 font-semibold rounded-lg transition-colors duration-200"
+                  >
+                    {cardProcessing ? "Processing..." : "Update Card"}
+                  </button>
                 </div>
               </div>
             )}
@@ -293,10 +296,13 @@ const PayoutAndCardPage = () => {
         </div>
 
         {/* Payout History Card */}
-        <div className="bg-white rounded-md border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
           {/* Header */}
-          <div className="bg-[#BF9B53]/10 px-6 py-5 border-b border-slate-200">
+          <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-5 border-b border-slate-200">
             <div className="flex items-center gap-4">
+              <div className="p-3 bg-white rounded-lg border-2 border-[#BF9B53]">
+                <ArrowUpRight className="w-6 h-6 text-[#BF9B53]" />
+              </div>
               <div className="flex-1">
                 <h2 className="text-xl font-bold text-slate-900">
                   Payout History

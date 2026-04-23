@@ -49,12 +49,10 @@ export const TrackingProvider = ({ children }) => {
         if (prevDriverRef.current && newDriver) {
           const prev = prevDriverRef.current;
           const isSameLocation =
-            prev.lat === newDriver.lat &&
-            prev.lng === newDriver.lng &&
-            prev.updatedAt === newDriver.updatedAt;
+            prev.lat === newDriver.lat && prev.lng === newDriver.lng;
 
           if (isSameLocation) {
-            console.log("⚡ No movement detected → skipping state update");
+            console.log(" No movement detected → skipping state update");
             return;
           }
         }

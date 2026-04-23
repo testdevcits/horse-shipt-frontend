@@ -71,20 +71,24 @@ const defaultHorse = {
 const Step3HorseInfo = ({
   numberOfHorses,
   setNumberOfHorses,
-  horses,
+  horses = [],
   setHorses,
   handleHorseChange,
-  myHorses,
+  myHorses = [],
   getMyHorses,
   createHorse,
   editingHorseIdx,
   setEditingHorseIdx,
-  errors,
+  errors = {},
   isEditMode,
 }) => {
   const [saving, setSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [unsavedHorseIdxs, setUnsavedHorseIdxs] = useState([]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   // Scroll to highlighted horse when editing from review step
   useEffect(() => {
@@ -108,20 +112,16 @@ const Step3HorseInfo = ({
     }
   }, [editingHorseIdx, setEditingHorseIdx]);
 
-  //  REMOVED: The duplicate myHorses useEffect that was overwriting
-  // the parent's horse state and resetting numberOfHorses.
-  // Parent (NewShipment.js) now handles myHorses population correctly.
-
   const validateHorse = (horse) => {
     return (
-      horse.registeredName &&
-      horse.barnName &&
-      horse.breed &&
-      (horse.breed !== "Other Breed" || horse.otherBreed) &&
-      horse.sex &&
-      horse.age &&
-      horse.stallType &&
-      horse.colour
+      horse?.registeredName &&
+      horse?.barnName &&
+      horse?.breed &&
+      (horse?.breed !== "Other Breed" || horse?.otherBreed) &&
+      horse?.sex &&
+      horse?.age &&
+      horse?.stallType &&
+      horse?.colour
     );
   };
 
@@ -137,11 +137,13 @@ const Step3HorseInfo = ({
       setSaving(true);
 
       let formData;
-      const hasFile = Object.values(horse).some((val) => val instanceof File);
+      const hasFile = Object.values(horse || {}).some(
+        (val) => val instanceof File
+      );
 
       if (hasFile) {
         formData = new FormData();
-        Object.entries(horse).forEach(([key, value]) => {
+        Object.entries(horse || {}).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
             formData.append(key, value);
           }
@@ -189,7 +191,7 @@ const Step3HorseInfo = ({
     const unsaved = horses
       .slice(0, numberOfHorses)
       .map((h, i) =>
-        !h.selectedHorseId || h.selectedHorseId === "new" ? i : null
+        !h?.selectedHorseId || h?.selectedHorseId === "new" ? i : null
       )
       .filter((i) => i !== null);
 
@@ -206,13 +208,21 @@ const Step3HorseInfo = ({
     await handleSaveHorse(idx);
   };
 
+  const displayHorses = Array.isArray(horses) ? horses : [];
+  const horseOptions = Array.isArray(myHorses)
+    ? myHorses.map((h) => ({
+        value: h._id,
+        label: `${h.registeredName} (${h.barnName})`,
+      }))
+    : [];
+
   return (
     <div className="flex flex-col w-full gap-6 px-2 md:px-4 font-montserrat">
       {/* Only show numberOfHorses selector in create mode */}
       {!isEditMode && (
         <div className="w-full max-w-full">
-          <label className="block text-gray-600 font-semibold mb-2">
-            Number of Horses <span className="text-red-500">*</span>
+          <label className="block text-[#BF9B53] font-semibold mb-2">
+            Select Number of Horses <span className="text-red-500">*</span>
           </label>
           <Select
             value={numberOfHorses}
@@ -226,21 +236,21 @@ const Step3HorseInfo = ({
         </div>
       )}
 
-      {horses.slice(0, numberOfHorses).map((horse, idx) => (
+      {displayHorses.slice(0, numberOfHorses).map((horse, idx) => (
         <div
           key={idx}
           id={`horse-${idx}`}
           className="bg-white p-6 rounded-md space-y-4 shadow-md border border-gray-200 transition-all duration-300"
         >
           <p className="font-bold text-lg text-[#BF9B53]">
-            Horse {idx + 1}: {horse.registeredName || "Unnamed"}
+            Horse {idx + 1}: {horse?.registeredName || "Unnamed"}
           </p>
 
           {/* Only show "Select from My Horses" in create mode */}
           {!isEditMode && (
             <Select
               label="Select from My Horses"
-              value={horse.selectedHorseId || "new"}
+              value={horse?.selectedHorseId || "new"}
               onChange={(e) => {
                 const selectedId = e.target.value;
                 if (selectedId === "new") {
@@ -258,13 +268,7 @@ const Step3HorseInfo = ({
                 );
                 handleHorseChange(idx, "selectedHorseId", selectedHorse._id);
               }}
-              options={[
-                { value: "new", label: "New Horse" },
-                ...(myHorses?.map((h) => ({
-                  value: h._id,
-                  label: `${h.registeredName} (${h.barnName})`,
-                })) || []),
-              ]}
+              options={[{ value: "new", label: "New Horse" }, ...horseOptions]}
             />
           )}
 
@@ -275,7 +279,7 @@ const Step3HorseInfo = ({
               </label>
               <input
                 type="text"
-                value={horse.registeredName || ""}
+                value={horse?.registeredName || ""}
                 onChange={(e) =>
                   handleHorseChange(idx, "registeredName", e.target.value)
                 }
@@ -298,7 +302,7 @@ const Step3HorseInfo = ({
               </label>
               <input
                 type="text"
-                value={horse.barnName || ""}
+                value={horse?.barnName || ""}
                 onChange={(e) =>
                   handleHorseChange(idx, "barnName", e.target.value)
                 }
@@ -322,7 +326,7 @@ const Step3HorseInfo = ({
               Breed <span className="text-red-500">*</span>
             </label>
             <Select
-              value={horse.breed || ""}
+              value={horse?.breed || ""}
               onChange={(e) => handleHorseChange(idx, "breed", e.target.value)}
               options={breedsList.map((b) => ({ value: b, label: b }))}
             />
@@ -333,14 +337,14 @@ const Step3HorseInfo = ({
             )}
           </div>
 
-          {horse.breed === "Other Breed" && (
+          {horse?.breed === "Other Breed" && (
             <div>
               <label className="block font-semibold text-gray-600 mb-2">
                 Enter Other Breed <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                value={horse.otherBreed || ""}
+                value={horse?.otherBreed || ""}
                 onChange={(e) =>
                   handleHorseChange(idx, "otherBreed", e.target.value)
                 }
@@ -361,7 +365,7 @@ const Step3HorseInfo = ({
 
           <div className="flex flex-col md:flex-row gap-4">
             <ColorPicker
-              value={horse.colour}
+              value={horse?.colour}
               onChange={(val) => handleHorseChange(idx, "colour", val)}
               label="Colour"
               error={errors?.[`colour${idx}`]}
@@ -373,7 +377,7 @@ const Step3HorseInfo = ({
               </label>
               <input
                 type="text"
-                value={horse.age || ""}
+                value={horse?.age || ""}
                 onChange={(e) => {
                   const onlyNumbers = e.target.value.replace(/[^0-9]/g, "");
                   handleHorseChange(idx, "age", onlyNumbers);
@@ -397,7 +401,7 @@ const Step3HorseInfo = ({
                 Sex <span className="text-red-500">*</span>
               </label>
               <Select
-                value={horse.sex || ""}
+                value={horse?.sex || ""}
                 onChange={(e) => handleHorseChange(idx, "sex", e.target.value)}
                 options={sexes.map((s) => ({ value: s, label: s }))}
               />
@@ -412,7 +416,7 @@ const Step3HorseInfo = ({
                 Requested Stall Size <span className="text-red-500">*</span>
               </label>
               <Select
-                value={horse.stallType || ""}
+                value={horse?.stallType || ""}
                 onChange={(e) =>
                   handleHorseChange(idx, "stallType", e.target.value)
                 }
@@ -431,7 +435,7 @@ const Step3HorseInfo = ({
               Additional Notes
             </label>
             <textarea
-              value={horse.notes || ""}
+              value={horse?.notes || ""}
               onChange={(e) => handleHorseChange(idx, "notes", e.target.value)}
               className="w-full border-2 border-gray-300 rounded-lg px-4 py-2"
               rows={3}
@@ -473,7 +477,7 @@ const Step3HorseInfo = ({
                 className="flex justify-between items-center p-3 border-2 border-gray-200 rounded-lg"
               >
                 <span className="font-semibold">
-                  Horse {idx + 1}: {horses[idx].registeredName || "Unnamed"}
+                  Horse {idx + 1}: {horses[idx]?.registeredName || "Unnamed"}
                 </span>
                 <button
                   onClick={() => handleModalSave(idx)}

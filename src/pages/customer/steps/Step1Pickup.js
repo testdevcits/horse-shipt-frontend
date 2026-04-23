@@ -1,7 +1,6 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import { GoogleMap, Autocomplete, Marker } from "@react-google-maps/api";
 import DateInput from "../../../components/common/DateInput";
-import Select from "../../../components/common/Select";
 
 const containerStyle = {
   width: "100%",
@@ -12,13 +11,6 @@ const defaultCenter = {
   lat: 39.8283,
   lng: -98.5795,
 };
-
-const pickupTimeOptions = [
-  { value: "on", label: "On" },
-  { value: "before", label: "Before" },
-  { value: "after", label: "After" },
-  { value: "between", label: "Between" },
-];
 
 const Step1Pickup = ({
   pickupLocation,
@@ -36,8 +28,21 @@ const Step1Pickup = ({
 }) => {
   const mapRef = useRef(null);
   const autocompleteRef = useRef(null);
+  const timeOptionInitialized = useRef(false);
 
-  const onPlaceChanged = () => {
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // Always force "between"
+  useEffect(() => {
+    if (!timeOptionInitialized.current) {
+      setPickupTimeOption("between");
+      timeOptionInitialized.current = true;
+    }
+  }, [setPickupTimeOption]);
+
+  const onPlaceChanged = useCallback(() => {
     if (!autocompleteRef.current) return;
 
     const place = autocompleteRef.current.getPlace();
@@ -54,30 +59,39 @@ const Step1Pickup = ({
       mapRef.current.panTo({ lat, lng });
       mapRef.current.setZoom(14);
     }
-  };
+  }, [setPickupLocation, setPickupCoords, clearError]);
 
-  const handleMarkerDragEnd = (e) => {
-    setPickupCoords({
-      lat: e.latLng.lat(),
-      lng: e.latLng.lng(),
-    });
-  };
+  const handleMarkerDragEnd = useCallback(
+    (e) => {
+      setPickupCoords({
+        lat: e.latLng.lat(),
+        lng: e.latLng.lng(),
+      });
+    },
+    [setPickupCoords]
+  );
 
-  const handleStartDateChange = (val) => {
-    setPickupStartDate(val);
-    clearError("pickupStartDate");
-    if (pickupEndDate) {
-      clearError("pickupEndDate");
-    }
-  };
-
-  const handleEndDateChange = (val) => {
-    setPickupEndDate(val);
-    clearError("pickupEndDate");
-    if (pickupStartDate) {
+  const handleStartDateChange = useCallback(
+    (val) => {
+      setPickupStartDate(val);
       clearError("pickupStartDate");
-    }
-  };
+      if (pickupEndDate) {
+        clearError("pickupEndDate");
+      }
+    },
+    [setPickupStartDate, clearError, pickupEndDate]
+  );
+
+  const handleEndDateChange = useCallback(
+    (val) => {
+      setPickupEndDate(val);
+      clearError("pickupEndDate");
+      if (pickupStartDate) {
+        clearError("pickupStartDate");
+      }
+    },
+    [setPickupEndDate, clearError, pickupStartDate]
+  );
 
   return (
     <div className="flex flex-col w-full gap-6 bg-white p-4 md:p-6 rounded-lg font-montserrat">
@@ -114,7 +128,7 @@ const Step1Pickup = ({
         )}
       </div>
 
-      {/* ===== GOOGLE MAP ===== */}
+      {/* Google Map */}
       <div className="w-full rounded-lg overflow-hidden border-2 border-gray-200">
         <GoogleMap
           mapContainerStyle={containerStyle}
@@ -137,26 +151,7 @@ const Step1Pickup = ({
         </GoogleMap>
       </div>
 
-      <div>
-        <label className="block text-sm font-semibold mb-2 text-gray-600">
-          When can your horse(s) be picked up?{" "}
-          <span className="text-red-500">*</span>
-        </label>
-        <Select
-          value={pickupTimeOption}
-          onChange={(e) => {
-            setPickupTimeOption(e.target.value);
-            clearError("pickupTimeOption");
-          }}
-          options={pickupTimeOptions}
-        />
-        {errors?.pickupTimeOption && (
-          <p className="text-red-500 text-xs md:text-sm mt-2 font-semibold">
-            {errors.pickupTimeOption}
-          </p>
-        )}
-      </div>
-
+      {/* Date Range */}
       <div className="space-y-3">
         <label className="block text-sm font-semibold text-gray-600">
           Pickup Date Range <span className="text-red-500">*</span>
@@ -184,6 +179,8 @@ const Step1Pickup = ({
               onChange={handleEndDateChange}
               error={errors?.pickupEndDate}
               placeholder="End Date"
+              disabled={!pickupStartDate}
+              minDate={pickupStartDate || null}
             />
           </div>
         </div>
@@ -194,10 +191,10 @@ const Step1Pickup = ({
         </p>
       </div>
 
-      <div className="bg-[#BF9B53]/10 border border-[#BF9B53] rounded-lg p-4">
+      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 rounded-lg space-y-4">
         <p className="text-xs md:text-sm text-gray-900">
-          <span className="font-semibold">Note:</span> Please enter your pickup
-          address or adjust the map marker to set the exact location.
+          Please enter your pickup address or adjust the map marker to set the
+          exact location. Pickup time will be between start and end date.
         </p>
       </div>
     </div>

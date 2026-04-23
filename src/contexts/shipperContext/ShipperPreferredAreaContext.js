@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
+import Toast from "../../components/common/Toast";
 
 const ShipperPreferredAreaContext = createContext();
 
@@ -12,7 +13,11 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
   const [preferredAreas, setPreferredAreas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [hasFetchedPreferredAreas, setHasFetchedPreferredAreas] = useState(false);
 
+  // ================================
+  // FETCH AREAS
+  // ================================
   const fetchPreferredAreas = useCallback(async () => {
     if (!token) return;
 
@@ -24,56 +29,135 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setPreferredAreas(res.data?.areas || []);
+      setPreferredAreas(res.data?.data || []);
+      setHasFetchedPreferredAreas(true);
     } catch (err) {
-      console.error("Fetch preferred areas error:", err);
-      setError(
-        err?.response?.data?.message || "Failed to fetch preferred areas"
-      );
+      const msg =
+        err?.response?.data?.message || "Failed to fetch preferred areas";
+
+      setError(msg);
+      setHasFetchedPreferredAreas(true);
+      Toast.error(msg);
     } finally {
       setLoading(false);
     }
   }, [token]);
 
-  const addPreferredArea = async (area) => {
+  const clearPreferredAreas = useCallback(() => {
+    setPreferredAreas([]);
+    setError(null);
+    setHasFetchedPreferredAreas(false);
+  }, []);
+
+  // ================================
+  // ADD AREA
+  // ================================
+  const addPreferredArea = async ({
+    locationName,
+    latitude,
+    longitude,
+    radiusKm,
+  }) => {
     if (!token) return;
 
     try {
       setLoading(true);
+      setError(null);
 
       const res = await axios.post(
         `${API_BASE_URL}/shipper/preferred-areas`,
-        { area },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          locationName,
+          latitude,
+          longitude,
+          radiusKm,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
-      setPreferredAreas((prev) => [...prev, res.data?.area]);
+      const newArea = res.data?.data;
+
+      setPreferredAreas((prev) => [newArea, ...prev]);
+      setHasFetchedPreferredAreas(true);
+
+      Toast.success(res.data?.message || "Area added successfully");
     } catch (err) {
-      console.error("Add preferred area error:", err);
-      setError(err?.response?.data?.message || "Failed to add preferred area");
+      const msg =
+        err?.response?.data?.message || "Failed to add preferred area";
+
+      setError(msg);
+      Toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  // ================================
+  // DELETE AREA
+  // ================================
   const removePreferredArea = async (areaId) => {
     if (!token) return;
 
     try {
       setLoading(true);
+      setError(null);
 
-      await axios.delete(`${API_BASE_URL}/shipper/preferred-areas/${areaId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setPreferredAreas(
-        (prev) => prev.filter((a) => a._id !== areaId) // ✅ FIX (_id instead of id)
+      const res = await axios.delete(
+        `${API_BASE_URL}/shipper/preferred-areas/${areaId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
+
+      setPreferredAreas((prev) => prev.filter((a) => a._id !== areaId));
+      setHasFetchedPreferredAreas(true);
+
+      Toast.success(res.data?.message || "Area removed successfully");
     } catch (err) {
-      console.error("Remove preferred area error:", err);
-      setError(
-        err?.response?.data?.message || "Failed to remove preferred area"
+      const msg =
+        err?.response?.data?.message || "Failed to remove preferred area";
+
+      setError(msg);
+      Toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ================================
+  // UPDATE AREA
+  // ================================
+  const updatePreferredArea = async (areaId, updatedData) => {
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const res = await axios.put(
+        `${API_BASE_URL}/shipper/preferred-areas/${areaId}`,
+        updatedData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
+
+      const updatedArea = res.data?.data;
+
+      setPreferredAreas((prev) =>
+        prev.map((a) => (a._id === areaId ? updatedArea : a))
+      );
+      setHasFetchedPreferredAreas(true);
+
+      Toast.success(res.data?.message || "Area updated successfully");
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message || "Failed to update preferred area";
+
+      setError(msg);
+      Toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -85,9 +169,12 @@ export const ShipperPreferredAreaProvider = ({ children }) => {
         preferredAreas,
         loading,
         error,
+        hasFetchedPreferredAreas,
         fetchPreferredAreas,
+        clearPreferredAreas,
         addPreferredArea,
         removePreferredArea,
+        updatePreferredArea,
       }}
     >
       {children}

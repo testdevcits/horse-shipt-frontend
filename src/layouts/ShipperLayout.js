@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useShipperProfile } from "../contexts/ShipperProfileContext";
 import { useShipperPayments } from "../contexts/shipperContext/ShipperPaymentContext";
 import { useSubscription } from "../contexts/shipperContext/SubscriptionContext";
-import { LuLockKeyhole } from "react-icons/lu";
+import { LuSparkles } from "react-icons/lu";
 import StripeAlertBanner from "../pages/shipper/common/StripeAlertBanner";
 import StripeVerificationModal from "../pages/shipper/common/StripeVerificationModal";
 import SubscriptionPopup from "../pages/shipper/Subscription/SubscriptionPopup";
@@ -14,16 +14,14 @@ import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
 import { MdOutlineNotificationsActive } from "react-icons/md";
 import { IoShareSocial } from "react-icons/io5";
+import { BiChevronDown } from "react-icons/bi";
 
 import StatusBadge from "../components/common/StatusBadge";
-import logo from "../assets/images/logo.png";
+import logo from "../assets/images/HorseShipt 1.svg";
 import logo1 from "../assets/images/profileImage.png";
 import defaultProfileImage from "../assets/images/profileImage.png";
 
-// =====================================================
-// ROUTES that are accessible WITHOUT a subscription
-// =====================================================
-const SUBSCRIPTION_FREE_ROUTES = ["/shipper/settings"];
+const SUBSCRIPTION_FREE_ROUTES = [];
 
 const ShipperLayout = () => {
   const navigate = useNavigate();
@@ -57,7 +55,6 @@ const ShipperLayout = () => {
 
   const showStripeBanner = isSubscribed && needsOnboarding;
 
-  // ── Profile image ──
   const profileImage =
     profile?.profileImage ||
     user?.profileImage ||
@@ -66,14 +63,12 @@ const ShipperLayout = () => {
     defaultProfileImage ||
     logo;
 
-  // ── Screen resize ──
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ── Fetch Stripe status ──
   useEffect(() => {
     fetchStripeStatus();
   }, [fetchStripeStatus]);
@@ -106,8 +101,14 @@ const ShipperLayout = () => {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    setProfilePopup(false);
+  };
+
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* STRIPE ALERT BANNER */}
       {showStripeBanner && (
         <div className="fixed top-0 left-0 w-full z-50">
           <StripeAlertBanner
@@ -117,97 +118,149 @@ const ShipperLayout = () => {
         </div>
       )}
 
+      {/* HEADER */}
       <header
         className={`sticky ${
-          showStripeBanner ? "top-[52px]" : "top-0"
-        } z-40 flex items-center justify-between bg-white shadow-md px-4 py-3 lg:px-6`}
+          showStripeBanner ? "top-[44px]" : "top-0"
+        } z-40 bg-white border-b border-gray-200 shadow-sm px-4 sm:px-6 lg:px-8 py-3 transition-all duration-300`}
       >
-        <div className="flex items-center gap-4">
-          {!mobileOpen ? (
+        <div className="flex items-center justify-between h-auto gap-3">
+          {/* LEFT - MENU & LOGO */}
+          <div className="flex items-center gap-2 min-w-0">
             <button
-              className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
-              onClick={() => setMobileOpen(true)}
+              className="lg:hidden p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle menu"
             >
-              <CgMenu size={24} />
+              {mobileOpen ? (
+                <IoMdClose size={22} className="text-gray-800" />
+              ) : (
+                <CgMenu size={22} className="text-gray-800" />
+              )}
             </button>
-          ) : (
+
+            <img
+              src={logo}
+              alt="Logo"
+              className="h-8 w-auto object-contain hidden sm:block"
+            />
+          </div>
+
+          {/* RIGHT - ACTIONS & PROFILE */}
+          <div className="flex items-center gap-2 lg:gap-4">
+            {/* Share button */}
             <button
-              className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
-              onClick={() => setMobileOpen(false)}
+              onClick={handleShare}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-system-primary"
+              aria-label="Share"
+              title="Share"
             >
-              <IoMdClose size={24} />
+              <IoShareSocial size={18} />
             </button>
-          )}
-          <img
-            src={logo}
-            alt="Logo"
-            className="hidden sm:block w-32 h-auto object-contain"
-          />
-        </div>
 
-        <div className="flex items-center gap-4 relative">
-          <IoShareSocial
-            size={20}
-            className="text-gray-500 cursor-pointer hover:text-system-primary transition"
-            onClick={handleShare}
-          />
-          <MdOutlineNotificationsActive
-            size={20}
-            className="text-gray-500 cursor-pointer hover:text-system-primary transition"
-            onClick={() => navigate("/shipper/notifications")}
-          />
-          <StatusBadge text="Shipper account" />
+            {/* Notifications button */}
+            <button
+              onClick={() => navigate("/shipper/notifications")}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-system-primary"
+              aria-label="Notifications"
+              title="Notifications"
+            >
+              <MdOutlineNotificationsActive size={18} />
+            </button>
 
-          {profileImage ? (
+            {/* Status badge - hidden on mobile */}
+            <div className="hidden sm:block">
+              <StatusBadge text="Shipper" />
+            </div>
+
+            {/* Divider */}
+            <div className="h-6 w-px bg-gray-200 hidden lg:block mx-1" />
+
+            {/* Profile section */}
             <div className="relative">
-              <img
-                src={profileImage}
-                alt={user?.name?.[0] || "U"}
-                className={`w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300 ${
+              <button
+                onClick={() => !loading && setProfilePopup(!profilePopup)}
+                disabled={loading}
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
-                onClick={() => !loading && setProfilePopup(!profilePopup)}
-                onError={(e) => {
-                  e.target.src = logo1;
-                }}
-              />
+                title="Profile"
+              >
+                <img
+                  src={profileImage}
+                  alt={user?.name?.[0] || "U"}
+                  className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                  onError={(e) => {
+                    e.target.src = logo1;
+                  }}
+                />
+                <BiChevronDown
+                  size={18}
+                  className={`text-gray-600 transition-transform hidden sm:block ${
+                    profilePopup ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Profile Dropdown */}
               {profilePopup && (
-                <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50">
-                  <div className="px-4 py-2 border-b text-gray-700 font-medium">
-                    {user?.name || "User"}
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-system-primary/5 to-transparent">
+                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                      Profile
+                    </p>
+                    <p className="text-sm font-bold text-gray-900 mt-2">
+                      {user?.name || "User"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {user?.email || "shipper@account.com"}
+                    </p>
                   </div>
-                  <div
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={logout}
+
+                  <button
+                    onClick={handleLogout}
+                    className="w-full px-4 py-2.5 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     Logout
-                  </div>
+                  </button>
                 </div>
               )}
             </div>
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-gray-200 border border-gray-300" />
-          )}
+          </div>
         </div>
       </header>
 
+      {/* MAIN LAYOUT */}
       <div
         className={`flex flex-1 relative ${
-          showStripeBanner ? "mt-[52px]" : ""
+          showStripeBanner ? "mt-[44px]" : ""
         }`}
       >
-        <Sidebar
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          mobileOpen={mobileOpen}
-          setMobileOpen={setMobileOpen}
-        />
+        {/* SIDEBAR */}
+        <div className="relative">
+          <Sidebar
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            mobileOpen={mobileOpen}
+            setMobileOpen={setMobileOpen}
+          />
 
+          {showSubscriptionBlock && (
+            <div
+              className="absolute inset-0 z-30 cursor-not-allowed"
+              aria-hidden="true"
+            />
+          )}
+        </div>
+
+        {/* MAIN CONTENT */}
         <main
           className="flex-1 overflow-auto transition-all duration-300"
-          style={{ marginLeft: isDesktop ? (sidebarOpen ? 256 : 64) : 0 }}
+          style={{
+            marginLeft: isDesktop ? (sidebarOpen ? "256px" : "64px") : "0",
+          }}
         >
-          <div className="p-4 sm:p-6 md:p-8">
+          <div className="p-4 sm:p-6 lg:p-8">
             <div className="relative">
               <div
                 className={
@@ -219,35 +272,36 @@ const ShipperLayout = () => {
                 <Outlet />
               </div>
 
+              {/* SUBSCRIPTION OVERLAY */}
               {showSubscriptionBlock && (
-                <div className="absolute inset-0 z-20 flex items-center justify-center font-montserrat">
-                  <div className="w-[90%] max-w-md sm:max-w-lg bg-white rounded-2xl shadow-2xl border border-[#BF9B53]/30 p-6 sm:p-8 flex flex-col items-center text-center gap-4 animate-fade-in">
-                    {/* Icon */}
-                    <div className="w-16 h-16 flex items-center justify-center rounded-full bg-[#BF9B53]/10">
-                      <LuLockKeyhole className="text-3xl text-[#BF9B53]" />
+                <div className="absolute inset-0 z-20 flex items-center justify-center">
+                  <div className="w-[90%] max-w-sm bg-white rounded-custom shadow-2xl border border-system-primary/20 p-7 flex flex-col items-center text-center gap-4 font-montserrat">
+                    <div className="w-14 h-14 flex items-center justify-center rounded-full bg-system-primary/10">
+                      <LuSparkles className="text-3xl text-system-primary" />
                     </div>
 
-                    {/* Title */}
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-                      Subscription Required
+                    <span className="text-xs font-bold uppercase tracking-widest text-system-primary bg-system-primary/10 px-3 py-1.5 rounded-full">
+                      Free Trial
+                    </span>
+
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+                      Start Your Free Trial
                     </h2>
 
-                    {/* Description */}
-                    <p className="text-sm sm:text-base text-gray-600 max-w-sm">
-                      This feature is available only for subscribed users.
-                      Upgrade your plan to unlock full access.
+                    <p className="text-sm text-gray-600">
+                      Unlock all features free — no credit card required.
                     </p>
 
-                    {/* Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
-                      {/* Secondary */}
-                      <button
-                        onClick={() => window.location.reload()}
-                        className="w-full py-2.5 rounded-xl border border-gray-300 text-gray-600 font-medium hover:bg-gray-100 transition"
-                      >
-                        Subscribe Now
-                      </button>
-                    </div>
+                    <p className="text-xs text-gray-500">
+                      ✓ No charges · ✓ Cancel anytime · ✓ Instant access
+                    </p>
+
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="w-full py-3 rounded-lg bg-system-primary text-white font-bold hover:bg-opacity-90 transition-all active:scale-95 mt-2"
+                    >
+                      Start Trial Now
+                    </button>
                   </div>
                 </div>
               )}
@@ -256,6 +310,7 @@ const ShipperLayout = () => {
         </main>
       </div>
 
+      {/* MODALS */}
       {isSubscribed && (
         <StripeVerificationModal
           isOpen={showStripeModal}
