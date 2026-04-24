@@ -69,9 +69,15 @@ const SubscriptionPopup = () => {
   // ── Auto-open for unsubscribed users ──
   useEffect(() => {
     if (!subLoading && !needsOnboarding) {
-      const isSubscribed =
-        subscription && ["active", "trialing"].includes(subscription.status);
-      if (!isSubscribed) setIsOpen(true);
+      const hasSubscriptionAccess =
+        subscription?.hasAccess === true ||
+        ["active", "trialing"].includes(subscription?.status);
+
+      if (!hasSubscriptionAccess) {
+        setIsOpen(true);
+      } else {
+        setIsOpen(false);
+      }
     }
   }, [subscription, subLoading, needsOnboarding]);
 
@@ -89,6 +95,15 @@ const SubscriptionPopup = () => {
   })();
 
   const trialDays = plan?.data?.trialDays ?? plan?.trialDays ?? 0;
+  const trialEligible =
+    plan?.data?.trialEligible ?? plan?.trialEligible ?? trialDays > 0;
+  const subscriptionStatus =
+    subscription?.status ||
+    plan?.data?.subscriptionStatus ||
+    plan?.subscriptionStatus ||
+    null;
+  const isCanceledSubscription = subscriptionStatus === "canceled";
+  const showTrialOffer = trialEligible && trialDays > 0 && !isCanceledSubscription;
 
   const formatPrice = () => {
     if (!planData) return "Loading...";
@@ -98,9 +113,9 @@ const SubscriptionPopup = () => {
 
   const intervalLabel = planData ? formatInterval(planData.interval) : "day";
 
-  // e.g. "1-day free trial" or "30-day free trial"
-  const trialLabel =
-    trialDays > 0 ? `${trialDays}-day free trial` : "Free trial";
+  const badgeLabel = showTrialOffer
+    ? `${trialDays}-day free trial`
+    : "Paid subscription";
 
   // =====================================================
   // ADD CARD
@@ -153,8 +168,10 @@ const SubscriptionPopup = () => {
       }
       setProcessing(true);
       await createCustomer();
-      await createSubscription(true);
-      Toast.success("Subscription Activated!");
+      await createSubscription(showTrialOffer);
+      Toast.success(
+        showTrialOffer ? "Free trial started!" : "Subscription activated!"
+      );
       setIsOpen(false);
     } catch (err) {
       Toast.error(
@@ -169,7 +186,8 @@ const SubscriptionPopup = () => {
   // GUARD
   // =====================================================
   const isSubscribed =
-    subscription && ["active", "trialing"].includes(subscription.status);
+    subscription?.hasAccess === true ||
+    ["active", "trialing"].includes(subscription?.status);
 
   if (!isOpen || isSubscribed) return null;
 
@@ -227,10 +245,12 @@ const SubscriptionPopup = () => {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur rounded-full px-2.5 py-1 text-[11px] font-semibold">
                 <Shield size={11} />
-                {trialLabel}
+                {badgeLabel}
               </span>
               <span className="text-[11px] opacity-80">
-                Cancel anytime • No hidden charges
+                {showTrialOffer
+                  ? "Cancel anytime • No hidden charges"
+                  : `Starts billing immediately at ${formatPrice()}/${intervalLabel}`}
               </span>
             </div>
           </div>
@@ -290,7 +310,9 @@ const SubscriptionPopup = () => {
                             paymentCard.cardLast4
                           }`
                         : "Card saved"
-                      : "Add a card to start your free trial"}
+                      : showTrialOffer
+                      ? "Add a card to start your free trial"
+                      : "Add a card to activate your subscription"}
                   </p>
                 </div>
               </div>
@@ -298,9 +320,19 @@ const SubscriptionPopup = () => {
               {/* Info */}
               <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 rounded-lg space-y-4">
                 <p className="text-xs text-gray-800 leading-relaxed">
-                  You won't be charged during your{" "}
-                  <span className="font-semibold">{trialLabel}</span>. After the
-                  trial, billing is {formatPrice()}/{intervalLabel}.
+                  {showTrialOffer ? (
+                    <>
+                      You won't be charged during your{" "}
+                      <span className="font-semibold">{badgeLabel}</span>. After
+                      the trial, billing is {formatPrice()}/{intervalLabel}.
+                    </>
+                  ) : (
+                    <>
+                      Your free trial has already been used. Subscribe now to
+                      continue full access at {formatPrice()}/{intervalLabel},
+                      billed immediately after activation.
+                    </>
+                  )}
                 </p>
               </div>
             </div>
@@ -315,7 +347,9 @@ const SubscriptionPopup = () => {
                   Add Payment Method
                 </h3>
                 <p className="text-xs text-slate-400">
-                  You won't be charged until your trial ends
+                  {showTrialOffer
+                    ? "You won't be charged until your trial ends"
+                    : `Billing starts immediately at ${formatPrice()}/${intervalLabel}`}
                 </p>
               </div>
 
@@ -378,7 +412,9 @@ const SubscriptionPopup = () => {
                 ) : hasCard ? (
                   <>
                     <Zap size={15} />
-                    Start {trialLabel}
+                    {showTrialOffer
+                      ? `Start ${trialDays}-day free trial`
+                      : "Subscribe Now"}
                   </>
                 ) : (
                   <>
@@ -388,7 +424,9 @@ const SubscriptionPopup = () => {
                 )}
               </button>
               <p className="text-center text-[11px] text-slate-400 pt-0.5">
-                {formatPrice()}/{intervalLabel} after trial • Cancel anytime
+                {showTrialOffer
+                  ? `${formatPrice()}/${intervalLabel} after trial • Cancel anytime`
+                  : `${formatPrice()}/${intervalLabel} • Cancel anytime`}
               </p>
             </>
           ) : (
