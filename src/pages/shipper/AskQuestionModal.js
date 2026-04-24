@@ -190,7 +190,7 @@ const AskQuestionModal = ({ shipmentId, onClose }) => {
                     </div>
                     <div className="space-y-3">
                       <p className="text-amber-900 font-semibold text-base">
-                        Waiting for shipper response...
+                        Waiting for customer response...
                       </p>
                       <div className="flex gap-2">
                         {[0, 1, 2].map((i) => (

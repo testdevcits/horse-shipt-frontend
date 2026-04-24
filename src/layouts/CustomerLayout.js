@@ -16,7 +16,7 @@ const CustomerLayout = () => {
   const { user, logout } = useAuth();
   const { notificationCount } = useCustomerNotifications();
   const { profileImage } = useProfile();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
