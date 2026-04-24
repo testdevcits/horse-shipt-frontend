@@ -287,7 +287,7 @@ const Sidebar = ({
             left: `${tooltipPos.left}px`,
           }}
         >
-          <div className="bg-[#BF9B53]/100 text-white px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap shadow-xl">
+          <div className="bg-[#BF9B53]/100 text-white px-4 py-2 rounded-sm text-sm font-semibold whitespace-nowrap shadow-xl">
             {hoveredItem}
             {/* Arrow pointing left */}
             <div className="absolute right-full top-1/2 -translate-y-1/2 border-6 border-transparent border-r-gray-900" />

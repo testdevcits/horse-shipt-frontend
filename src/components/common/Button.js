@@ -21,7 +21,7 @@ const Button = ({
     "px-4 py-2 text-base font-medium transition-all duration-200 flex items-center justify-center gap-2 min-h-[44px]";
 
   const width = fullWidth ? "w-full" : "";
-  const borderRadius = rounded ? "rounded-full" : "rounded-md";
+  const borderRadius = rounded ? "rounded-full" : "rounded-sm";
   const focus = "focus:outline-none focus:ring-2 focus:ring-[#BF9B53]";
 
   const variantStyles = {

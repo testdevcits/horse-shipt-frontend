@@ -40,14 +40,24 @@ const TruckDriverPage = () => {
   /* ================= VALIDATION ================= */
 
   const validationSchema = Yup.object({
-    name: Yup.string().required("Name is required"),
-    email: Yup.string().email().required(),
-    phone: Yup.string().required(),
-    licenseNumber: Yup.string().required(),
+    name: Yup.string().trim().required("Driver name is required"),
+    email: Yup.string()
+      .trim()
+      .email("Enter a valid email address")
+      .required("Email is required"),
+    phone: Yup.string()
+      .trim()
+      .matches(/^[0-9+\-\s()]{10,15}$/, "Enter a valid phone number")
+      .required("Phone number is required"),
+    licenseNumber: Yup.string()
+      .trim()
+      .required("License number is required"),
     password: editingDriver
       ? Yup.string()
-      : Yup.string().required("Password required"),
-    notes: Yup.string(),
+      : Yup.string()
+          .min(6, "Password must be at least 6 characters")
+          .required("Password is required"),
+    notes: Yup.string().trim(),
   });
 
   const initialValues = {
@@ -62,24 +72,33 @@ const TruckDriverPage = () => {
   /* ================= SUBMIT ================= */
 
   const handleSubmit = async (values, { resetForm }) => {
+    let result = { success: false };
+
     if (editingDriver) {
-      await updateDriver(editingDriver._id, values);
+      result = await updateDriver(editingDriver._id, values);
     } else {
-      await addDriver(values);
+      result = await addDriver(values);
     }
 
-    fetchDrivers?.();
-    resetForm();
-    setEditingDriver(null);
-    setShowForm(false);
+    if (result?.success) {
+      fetchDrivers?.();
+      resetForm();
+      setEditingDriver(null);
+      setShowForm(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   /* ================= DELETE ================= */
 
   const confirmDeleteDriver = async () => {
-    await deleteDriver(confirmDelete.id);
+    const result = await deleteDriver(confirmDelete.id);
     setConfirmDelete({ show: false, id: null });
-    fetchDrivers?.();
+
+    if (result?.success) {
+      fetchDrivers?.();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   /* ================= ASSIGN ================= */
@@ -87,20 +106,27 @@ const TruckDriverPage = () => {
   const handleAssignVehicles = async () => {
     if (!selectedDriver || !selectedVehicles.length) return;
 
-    await assignVehicles(selectedDriver._id, {
+    const result = await assignVehicles(selectedDriver._id, {
       vehicleIds: selectedVehicles,
     });
 
-    setSelectedDriver(null);
-    setSelectedVehicles([]);
-    fetchDrivers?.();
+    if (result?.success) {
+      setSelectedDriver(null);
+      setSelectedVehicles([]);
+      fetchDrivers?.();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   /* ================= STATUS ================= */
 
   const handleToggleStatus = async (driver) => {
-    await toggleDriverStatus(driver._id, !driver.isActive);
-    fetchDrivers?.();
+    const result = await toggleDriverStatus(driver._id, !driver.isActive);
+
+    if (result?.success) {
+      fetchDrivers?.();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (
@@ -139,44 +165,79 @@ const TruckDriverPage = () => {
             enableReinitialize
             onSubmit={handleSubmit}
           >
-            {({ values, handleChange, handleSubmit }) => (
+            {({
+              values,
+              errors,
+              touched,
+              submitCount,
+              isSubmitting,
+              handleChange,
+              handleBlur,
+              handleSubmit,
+            }) => (
               <form
                 onSubmit={handleSubmit}
                 className="grid sm:grid-cols-2 gap-4"
+                noValidate
               >
                 <InputField
                   label="Name"
+                  name="name"
                   value={values.name}
                   onChange={handleChange("name")}
+                  onBlur={handleBlur("name")}
+                  error={errors.name}
+                  touched={touched.name || submitCount > 0}
                 />
                 <InputField
                   label="Email"
+                  name="email"
+                  type="email"
                   value={values.email}
                   onChange={handleChange("email")}
+                  onBlur={handleBlur("email")}
+                  error={errors.email}
+                  touched={touched.email || submitCount > 0}
                 />
                 <InputField
                   label="Phone"
+                  name="phone"
                   value={values.phone}
                   onChange={handleChange("phone")}
+                  onBlur={handleBlur("phone")}
+                  error={errors.phone}
+                  touched={touched.phone || submitCount > 0}
                 />
                 <InputField
                   label="License Number"
+                  name="licenseNumber"
                   value={values.licenseNumber}
                   onChange={handleChange("licenseNumber")}
+                  onBlur={handleBlur("licenseNumber")}
+                  error={errors.licenseNumber}
+                  touched={touched.licenseNumber || submitCount > 0}
                 />
                 <InputField
                   label="Password"
+                  name="password"
                   type="password"
                   value={values.password}
                   onChange={handleChange("password")}
+                  onBlur={handleBlur("password")}
+                  error={errors.password}
+                  touched={touched.password || submitCount > 0}
                   placeholder={
                     editingDriver ? "Leave blank if not changing" : ""
                   }
                 />
                 <InputField
                   label="Notes"
+                  name="notes"
                   value={values.notes}
                   onChange={handleChange("notes")}
+                  onBlur={handleBlur("notes")}
+                  error={errors.notes}
+                  touched={touched.notes || submitCount > 0}
                   className="sm:col-span-2"
                 />
 
@@ -188,7 +249,7 @@ const TruckDriverPage = () => {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit">
+                  <Button type="submit" disabled={isSubmitting}>
                     {editingDriver ? "Update" : "Save"}
                   </Button>
                 </div>
@@ -200,12 +261,17 @@ const TruckDriverPage = () => {
 
       {/* DRIVER LIST */}
       {!showForm && !loading && (
-        <div className="grid grid-cols-1 gap-6">
-          {drivers.map((driver, index) => (
-            <div
-              key={driver._id}
-              className="w-full bg-white border border-2 border-[#BF9B53] rounded-md p-5 shadow-sm hover:shadow-md transition-all"
-            >
+        drivers.length === 0 ? (
+          <div className="bg-white border border-dashed border-[#BF9B53] rounded-md p-6 text-center text-sm text-gray-600">
+            Driver not available. Please add new driver.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6">
+            {drivers.map((driver, index) => (
+              <div
+                key={driver._id}
+                className="w-full bg-white border border-2 border-[#BF9B53] rounded-md p-5 shadow-sm hover:shadow-md transition-all"
+              >
               {/* ================= HEADER ================= */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 {/* LEFT: IMAGE + NAME */}
@@ -314,9 +380,10 @@ const TruckDriverPage = () => {
                   </div>
                 )}
               </div>
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        )
       )}
 
       {/* ASSIGN VEHICLE MODAL */}

@@ -32,7 +32,7 @@ const ShipperLayout = () => {
   const { fetchStripeStatus, needsOnboarding } = useShipperPayments();
   const { subscription, loading: subLoading } = useSubscription();
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
@@ -68,6 +68,13 @@ const ShipperLayout = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    setSidebarOpen(isDesktop);
+    if (isDesktop) {
+      setMobileOpen(false);
+    }
+  }, [isDesktop]);
 
   useEffect(() => {
     fetchStripeStatus();

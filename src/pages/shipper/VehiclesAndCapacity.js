@@ -31,6 +31,7 @@ const VehiclePage = () => {
   const [confirmData, setConfirmData] = useState({ show: false, id: null });
   const [fetched, setFetched] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState({});
+  const activeDrivers = drivers.filter((driver) => driver.isActive);
 
   // --------- Fetch vehicles on mount ---------
   useEffect(() => {
@@ -49,11 +50,15 @@ const VehiclePage = () => {
       return;
     }
 
-    await assignDriverToVehicle(vehicleId, driverId);
-    setSelectedDriver((prev) => ({
-      ...prev,
-      [vehicleId]: "",
-    }));
+    const result = await assignDriverToVehicle(vehicleId, driverId);
+
+    if (result?.success) {
+      setSelectedDriver((prev) => ({
+        ...prev,
+        [vehicleId]: "",
+      }));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   // --------- Modal handlers ---------
@@ -70,8 +75,12 @@ const VehiclePage = () => {
   // --------- Delete handlers ---------
   const confirmDelete = async () => {
     if (confirmData.id && deleteVehicle) {
-      await deleteVehicle(confirmData.id);
+      const result = await deleteVehicle(confirmData.id);
       setConfirmData({ show: false, id: null });
+
+      if (result?.success) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     }
   };
 
@@ -79,22 +88,27 @@ const VehiclePage = () => {
 
   // --------- Form validation schema ---------
   const validationSchema = Yup.object({
-    vehicleType: Yup.string().required("Vehicle type is required"),
+    vehicleType: Yup.string().trim().required("Vehicle type is required"),
 
     vehicleNumber: Yup.string()
+      .trim()
       .required("Vehicle number is required")
       .max(20, "Vehicle number is too long"),
 
-    vinNumber: Yup.string().nullable(),
+    vinNumber: Yup.string().trim().nullable(),
 
-    trailerType: Yup.string().required("Trailer type is required"),
+    trailerType: Yup.string().trim().required("Stall type is required"),
 
     numberOfStalls: Yup.number()
+      .transform((value, originalValue) =>
+        originalValue === "" ? undefined : value
+      )
+      .typeError("Number of stalls must be a number")
       .required("Number of stalls is required")
       .positive("Must be positive")
       .integer("Must be an integer"),
 
-    stallSize: Yup.string().required("Stall size is required"),
+    stallSize: Yup.string().trim().required("Stall size is required"),
   });
 
   const getInitialValues = (vehicle) => ({
@@ -102,7 +116,7 @@ const VehiclePage = () => {
     vehicleType: vehicle?.vehicleType || "",
     vehicleNumber: vehicle?.vehicleNumber || "",
     vinNumber: vehicle?.vinNumber || "",
-    trailerType: vehicle?.trailerType || "Stock Trailer",
+    trailerType: vehicle?.trailerType || "",
     numberOfStalls: vehicle?.numberOfStalls || "",
     stallSize: vehicle?.stallSize || "",
     notes: vehicle?.notes || "",
@@ -123,14 +137,20 @@ const VehiclePage = () => {
       }
     });
 
+    let result = { success: false };
+
     if (editingVehicle && updateVehicle) {
-      await updateVehicle(editingVehicle._id, formData);
+      result = await updateVehicle(editingVehicle._id, formData);
     } else if (addVehicle) {
-      await addVehicle(formData);
+      result = await addVehicle(formData);
     }
 
-    resetForm();
-    closeModal();
+    if (result?.success) {
+      resetForm();
+      closeModal();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
     setSubmitting(false);
   };
 
@@ -170,9 +190,9 @@ const VehiclePage = () => {
           color="#BF9B53"
         />
       ) : vehicles.length === 0 ? (
-        <p className="text-gray-500 text-center mt-10">
+        <div className="bg-white border border-dashed border-[#BF9B53] rounded-md p-6 text-center text-sm text-gray-600">
           No vehicles found. Add one to get started!
-        </p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 w-full">
           {vehicles.map((vehicle, index) => (
@@ -320,25 +340,35 @@ const VehiclePage = () => {
                         [vehicle._id]: e.target.value,
                       }))
                     }
-                    className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
+                    className="flex-1 border border-gray-300 px-2.5 py-1.5 rounded-sm text-sm"
+                    disabled={activeDrivers.length === 0}
                   >
-                    <option value="">Select Driver</option>
-                    {drivers
-                      .filter((d) => d.isActive)
-                      .map((driver) => (
-                        <option key={driver._id} value={driver._id}>
-                          {driver.name}
-                        </option>
-                      ))}
+                    <option value="">
+                      {activeDrivers.length === 0
+                        ? "Driver not available"
+                        : "Select Driver"}
+                    </option>
+                    {activeDrivers.map((driver) => (
+                      <option key={driver._id} value={driver._id}>
+                        {driver.name}
+                      </option>
+                    ))}
                   </select>
 
                   <button
                     onClick={() => handleAssignDriver(vehicle._id)}
-                    className="bg-[#BF9B53] text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm whitespace-nowrap"
+                    disabled={activeDrivers.length === 0}
+                    className="bg-[#BF9B53] text-white px-4 py-1.5 rounded-sm hover:bg-green-700 transition text-sm whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Assign
                   </button>
                 </div>
+
+                {activeDrivers.length === 0 && (
+                  <p className="mt-2 text-xs font-medium text-red-500">
+                    Driver not available. Please add new driver.
+                  </p>
+                )}
 
                 {/* SHOW ASSIGNED */}
                 {vehicle.driver && (
@@ -357,7 +387,7 @@ const VehiclePage = () => {
         <div className="absolute inset-0 z-30 bg-white overflow-y-auto p-2 sm:p-6 md:p-8 min-h-screen vehicle-scroll">
           <button
             onClick={closeModal}
-            className="absolute top-4 right-4 text-gray-600 hover:text-[#007bff] transition"
+            className="absolute top-4 right-4 text-gray-600 hover:text-[#BF9B53] transition"
           >
             <FiX size={28} />
           </button>
@@ -373,8 +403,18 @@ const VehiclePage = () => {
               onSubmit={handleSubmit}
               enableReinitialize
             >
-              {({ values, setFieldValue, isSubmitting }) => (
-                <Form className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              {({
+                values,
+                errors,
+                touched,
+                submitCount,
+                setFieldValue,
+                isSubmitting,
+              }) => (
+                <Form
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6"
+                  noValidate
+                >
                   {/* Transport Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -384,7 +424,7 @@ const VehiclePage = () => {
                       type="text"
                       name="transportType"
                       readOnly
-                      className="w-full border border-gray-300 rounded-lg p-2 bg-gray-100 cursor-not-allowed"
+                      className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 bg-gray-100 cursor-not-allowed"
                     />
                   </div>
 
@@ -396,7 +436,12 @@ const VehiclePage = () => {
                     <Field
                       as="select"
                       name="vehicleType"
-                      className="w-full border border-gray-300 rounded-lg p-2"
+                      className={`w-full rounded-sm px-2.5 py-1.5 ${
+                        (touched.vehicleType || submitCount > 0) &&
+                        errors.vehicleType
+                          ? "border border-red-400"
+                          : "border border-gray-300"
+                      }`}
                     >
                       <option value="">Select Vehicle Type</option>
                       <option value="Truck">Truck</option>
@@ -419,7 +464,12 @@ const VehiclePage = () => {
                       type="text"
                       name="vehicleNumber"
                       placeholder="Enter vehicle number"
-                      className="w-full border border-gray-300 rounded-lg p-2 uppercase"
+                      className={`w-full rounded-sm px-2.5 py-1.5 uppercase ${
+                        (touched.vehicleNumber || submitCount > 0) &&
+                        errors.vehicleNumber
+                          ? "border border-red-400"
+                          : "border border-gray-300"
+                      }`}
                       onChange={(e) =>
                         setFieldValue(
                           "vehicleNumber",
@@ -444,7 +494,12 @@ const VehiclePage = () => {
                       type="text"
                       name="vinNumber"
                       placeholder="Enter VIN number"
-                      className="w-full border border-gray-300 rounded-lg p-2 uppercase"
+                      className={`w-full rounded-sm px-2.5 py-1.5 uppercase ${
+                        (touched.vinNumber || submitCount > 0) &&
+                        errors.vinNumber
+                          ? "border border-red-400"
+                          : "border border-gray-300"
+                      }`}
                       onChange={(e) =>
                         setFieldValue("vinNumber", e.target.value.toUpperCase())
                       }
@@ -465,7 +520,12 @@ const VehiclePage = () => {
                     <Field
                       type="number"
                       name="numberOfStalls"
-                      className="w-full border border-gray-300 rounded-lg p-2"
+                      className={`w-full rounded-sm px-2.5 py-1.5 ${
+                        (touched.numberOfStalls || submitCount > 0) &&
+                        errors.numberOfStalls
+                          ? "border border-red-400"
+                          : "border border-gray-300"
+                      }`}
                     />
                     <ErrorMessage
                       name="numberOfStalls"
@@ -482,7 +542,12 @@ const VehiclePage = () => {
                     <Field
                       as="select"
                       name="trailerType"
-                      className="w-full border border-gray-300 rounded-lg p-2"
+                      className={`w-full rounded-sm px-2.5 py-1.5 ${
+                        (touched.trailerType || submitCount > 0) &&
+                        errors.trailerType
+                          ? "border border-red-400"
+                          : "border border-gray-300"
+                      }`}
                     >
                       <option value="">Select Stall Type</option>
                       {[
@@ -510,7 +575,12 @@ const VehiclePage = () => {
                     <Field
                       as="select"
                       name="stallSize"
-                      className="w-full border border-gray-300 rounded-lg p-2"
+                      className={`w-full rounded-sm px-2.5 py-1.5 ${
+                        (touched.stallSize || submitCount > 0) &&
+                        errors.stallSize
+                          ? "border border-red-400"
+                          : "border border-gray-300"
+                      }`}
                     >
                       <option value="">Select Stall Size</option>
                       {[
@@ -580,7 +650,7 @@ const VehiclePage = () => {
                       name="notes"
                       rows="3"
                       placeholder="Add any additional notes about this vehicle"
-                      className="w-full border border-gray-300 rounded-lg p-2"
+                      className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5"
                     />
                   </div>
 
