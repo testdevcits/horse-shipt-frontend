@@ -27,6 +27,63 @@ export const SubscriptionProvider = ({ children }) => {
 
   const hasFetched = useRef(false);
 
+  const normalizeSubscriptionData = useCallback((payload) => {
+    if (!payload) return null;
+
+    const data = payload.data ? { ...payload.data } : { ...payload };
+    const status = data.status || data.subscriptionStatus || null;
+
+    if (
+      status === "trialing" &&
+      data.trialEnd &&
+      data.remainingTrialDays == null
+    ) {
+      const now = new Date();
+      const trialEndDate = new Date(data.trialEnd);
+
+      const remainingDays = Math.ceil(
+        (trialEndDate - now) / (1000 * 60 * 60 * 24)
+      );
+
+      data.remainingTrialDays = remainingDays > 0 ? remainingDays : 0;
+    }
+
+    data.status = status;
+    data.hasAccess = data.hasAccess ?? ["active", "trialing"].includes(status);
+
+    if (!data.currentPeriodEnd && data.nextBillingDate?.iso) {
+      data.currentPeriodEnd = data.nextBillingDate.iso;
+    }
+
+    if (data.cancelAtPeriodEnd && data.currentPeriodEnd) {
+      data.cancelMessage = `Your subscription will end on ${new Date(
+        data.currentPeriodEnd
+      ).toLocaleDateString()}`;
+    } else {
+      data.cancelMessage = null;
+    }
+
+    return data;
+  }, []);
+
+  const normalizePlanData = useCallback((data) => {
+    if (!data) return null;
+
+    return {
+      currency: data.currency || "usd",
+      trialDays: data.trialDays || 0,
+      hasUsedTrial: data.hasUsedTrial === true,
+      trialEligible: data.trialEligible ?? data.hasUsedTrial !== true,
+      daily: data.daily || null,
+      weekly: data.weekly || null,
+      monthly: data.monthly || null,
+      subscriptionStatus: data.subscriptionStatus || null,
+      nextBillingDate: data.nextBillingDate || null,
+      cancelAtPeriodEnd: data.cancelAtPeriodEnd ?? false,
+      subscriptionEndDate: data.subscriptionEndDate || null,
+    };
+  }, []);
+
   /* ===============================
        GET MY SUBSCRIPTION
   =================================*/
@@ -48,35 +105,7 @@ export const SubscriptionProvider = ({ children }) => {
         return;
       }
 
-      const data = { ...raw };
-
-      if (
-        data.status === "trialing" &&
-        data.trialEnd &&
-        data.remainingTrialDays == null
-      ) {
-        const now = new Date();
-        const trialEndDate = new Date(data.trialEnd);
-
-        const remainingDays = Math.ceil(
-          (trialEndDate - now) / (1000 * 60 * 60 * 24)
-        );
-
-        data.remainingTrialDays = remainingDays > 0 ? remainingDays : 0;
-      }
-
-      data.hasAccess =
-        data.hasAccess ?? ["active", "trialing"].includes(data.status);
-
-      if (data.cancelAtPeriodEnd && data.currentPeriodEnd) {
-        data.cancelMessage = `Your subscription will end on ${new Date(
-          data.currentPeriodEnd
-        ).toLocaleDateString()}`;
-      } else {
-        data.cancelMessage = null;
-      }
-
-      setSubscription(data);
+      setSubscription(normalizeSubscriptionData(raw));
     } catch (err) {
       console.error(
         "Get Subscription Error:",
@@ -86,7 +115,7 @@ export const SubscriptionProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [token, isShipper]);
+  }, [token, isShipper, normalizeSubscriptionData]);
 
   /* ===============================
        GET PLAN DETAILS
@@ -109,23 +138,14 @@ export const SubscriptionProvider = ({ children }) => {
         return;
       }
 
-      const normalizedPlan = {
-        currency: data.currency || "usd",
-        trialDays: data.trialDays || 0,
-
-        daily: data.daily || null,
-        weekly: data.weekly || null,
-        monthly: data.monthly || null,
-      };
-
-      setPlan(normalizedPlan);
+      setPlan(normalizePlanData(data));
     } catch (err) {
       console.error("Get Plan Error:", err?.response?.data || err.message);
       setPlan(null);
     } finally {
       setPlanLoading(false);
     }
-  }, [token, isShipper]);
+  }, [token, isShipper, normalizePlanData]);
 
   /* ===============================
         NEW: GET BILLING HISTORY
@@ -182,18 +202,19 @@ export const SubscriptionProvider = ({ children }) => {
   /* ===============================
        CREATE SUBSCRIPTION
   =================================*/
-  const createSubscription = async () => {
+  const createSubscription = async (withTrial = true) => {
     if (!token || !isShipper) return;
 
     try {
       const res = await axios.post(
         `${API_BASE_URL}/shipper/stripe/subscription/create`,
-        {},
+        { withTrial },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       // refresh state
       await getMySubscription();
+      await getSubscriptionPlan();
       await getBillingHistory();
 
       return res.data;
@@ -219,8 +240,21 @@ export const SubscriptionProvider = ({ children }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      if (res.data?.success && res.data?.data) {
+        setPlan((prev) => ({
+          ...(prev || {}),
+          ...normalizePlanData(res.data.data),
+        }));
+
+        setSubscription((prev) => ({
+          ...(prev || {}),
+          ...normalizeSubscriptionData(res.data.data),
+        }));
+      }
+
       // refresh state
       await getMySubscription();
+      await getSubscriptionPlan();
       await getBillingHistory();
 
       return res.data;

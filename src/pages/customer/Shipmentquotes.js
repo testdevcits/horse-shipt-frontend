@@ -164,7 +164,7 @@ const ShipmentQuotes = ({
 
                     <button
                       onClick={() => onSelectQuote(quote)}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#F2EBDD] border border-[#BF9B53] text-[#BF9B53] rounded-lg font-semibold text-sm hover:bg-[#BF9B53] hover:text-white transition-all duration-200"
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] border border-[#BF9B53] text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all duration-200"
                     >
                       View Details
                       <LuCircleChevronRight size={18} />

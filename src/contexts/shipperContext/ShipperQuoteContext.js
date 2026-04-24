@@ -15,7 +15,10 @@ export const ShipperQuoteProvider = ({ children }) => {
 
   // ---------------- ADD QUOTE ----------------
   const addQuote = async (data) => {
-    if (!token) return;
+    if (!token) {
+      Toast.error("Your session has expired. Please log in again.");
+      return { success: false, message: "Missing auth token" };
+    }
 
     setLoading(true);
     try {

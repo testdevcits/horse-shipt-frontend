@@ -45,7 +45,10 @@ export const VehicleProvider = ({ children }) => {
 
   // ---------------- ADD VEHICLE ----------------
   const addVehicle = async (formData) => {
-    if (!token) return Toast.error("Unauthorized. Please log in again.");
+    if (!token) {
+      Toast.error("Unauthorized. Please log in again.");
+      return { success: false };
+    }
 
     setLoading(true);
     try {
@@ -58,9 +61,11 @@ export const VehicleProvider = ({ children }) => {
 
       setVehicles((prev) => [...prev, res.data.vehicle]);
       Toast.success("Vehicle added successfully");
+      return { success: true, vehicle: res.data.vehicle };
     } catch (err) {
       console.error("Add Vehicle Error:", err);
-      Toast.error("Failed to add vehicle");
+      Toast.error(err.response?.data?.message || "Failed to add vehicle");
+      return { success: false, message: err.response?.data?.message };
     } finally {
       setLoading(false);
     }
@@ -68,7 +73,10 @@ export const VehicleProvider = ({ children }) => {
 
   // ---------------- UPDATE VEHICLE ----------------
   const updateVehicle = async (id, formData) => {
-    if (!token) return Toast.error("Unauthorized. Please log in again.");
+    if (!token) {
+      Toast.error("Unauthorized. Please log in again.");
+      return { success: false };
+    }
 
     setLoading(true);
     try {
@@ -84,9 +92,11 @@ export const VehicleProvider = ({ children }) => {
       );
 
       Toast.success("Vehicle updated successfully");
+      return { success: true, vehicle: res.data.vehicle };
     } catch (err) {
       console.error("Update Vehicle Error:", err);
-      Toast.error("Failed to update vehicle");
+      Toast.error(err.response?.data?.message || "Failed to update vehicle");
+      return { success: false, message: err.response?.data?.message };
     } finally {
       setLoading(false);
     }
@@ -94,7 +104,10 @@ export const VehicleProvider = ({ children }) => {
 
   // ---------------- DELETE VEHICLE ----------------
   const deleteVehicle = async (id) => {
-    if (!token) return Toast.error("Unauthorized. Please log in again.");
+    if (!token) {
+      Toast.error("Unauthorized. Please log in again.");
+      return { success: false };
+    }
 
     setLoading(true);
     try {
@@ -104,9 +117,11 @@ export const VehicleProvider = ({ children }) => {
 
       setVehicles((prev) => prev.filter((v) => v._id !== id));
       Toast.success("Vehicle deleted successfully");
+      return { success: true };
     } catch (err) {
       console.error("Delete Vehicle Error:", err);
-      Toast.error("Failed to delete vehicle");
+      Toast.error(err.response?.data?.message || "Failed to delete vehicle");
+      return { success: false, message: err.response?.data?.message };
     } finally {
       setLoading(false);
     }
@@ -114,7 +129,10 @@ export const VehicleProvider = ({ children }) => {
 
   // ---------------- ASSIGN DRIVER ----------------
   const assignDriverToVehicle = async (vehicleId, driverId) => {
-    if (!token) return Toast.error("Unauthorized. Please log in again.");
+    if (!token) {
+      Toast.error("Unauthorized. Please log in again.");
+      return { success: false };
+    }
 
     setLoading(true);
     try {
@@ -133,9 +151,11 @@ export const VehicleProvider = ({ children }) => {
       );
 
       Toast.success("Driver assigned successfully");
+      return { success: true, vehicle: res.data.vehicle };
     } catch (err) {
       console.error("Assign Driver Error:", err);
       Toast.error(err.response?.data?.message || "Failed to assign driver");
+      return { success: false, message: err.response?.data?.message };
     } finally {
       setLoading(false);
     }

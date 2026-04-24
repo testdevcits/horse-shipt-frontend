@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useSubscription } from "../../contexts/shipperContext/SubscriptionContext";
 import {
   Download,
@@ -11,7 +12,6 @@ import {
   CheckCircle2,
   Zap,
   XCircle,
-  Globe,
   X,
 } from "lucide-react";
 import PageLoader from "../../components/common/PageLoader";
@@ -44,6 +44,17 @@ const CancellationModal = ({
   const [otherReason, setOtherReason] = useState("");
   const [agreedToConfirm, setAgreedToConfirm] = useState(false);
 
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
   const handleSubmit = () => {
     if (!selectedReason) {
       Toast.error("Please select a reason", 3000);
@@ -68,9 +79,9 @@ const CancellationModal = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50  flex items-start justify-center p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-white w-full max-w-5xl rounded-md shadow-2xl border-2 border-[#BF9B53] animate-in fade-in slide-in-from-bottom-4 duration-300 mt-6 sm:mt-10 mb-6">
+  return createPortal(
+    <div className="fixed inset-0 z-[120] bg-black/30 backdrop-blur-sm flex items-start justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white w-full max-w-5xl rounded-md shadow-2xl border-2 border-[#BF9B53] animate-in fade-in slide-in-from-bottom-4 duration-300 mt-6 sm:mt-10 mb-6 relative">
         {/* Header */}
         <div className="bg-gradient-to-r from-red-50 via-orange-50 to-red-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-[#BF9B53] flex items-start justify-between">
           <div className="flex items-start gap-3 sm:gap-4 flex-1">
@@ -208,7 +219,8 @@ const CancellationModal = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -228,14 +240,7 @@ const BillingHistory = () => {
   const [trialCountdown, setTrialCountdown] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [timezoneFormat, setTimezoneFormat] = useState("local");
-  const [userTimezone, setUserTimezone] = useState("");
-
-  // ─── Detect User Timezone ────────────────────────────────────────────────
-  useEffect(() => {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    setUserTimezone(tz);
-  }, []);
+  const [timezoneFormat] = useState("usa");
 
   // ─── Normalize a date value ───────────────────────────────────────────────
   const normalizeDateStr = (value) => {
@@ -248,7 +253,7 @@ const BillingHistory = () => {
   };
 
   // ─── Timezone Formatting Utilities ───────────────────────────────────────
-  const formatDateWithTimezone = (dateInput, timezone = "local") => {
+  const formatDateWithTimezone = (dateInput, timezone = "usa") => {
     const dateStr = normalizeDateStr(dateInput);
     if (!dateStr) return "—";
 
@@ -263,13 +268,14 @@ const BillingHistory = () => {
         timeZone: "Asia/Kolkata",
       }).format(date);
     }
+
     return new Intl.DateTimeFormat("en-US", {
       ...options,
-      timeZone: userTimezone || "UTC",
+      timeZone: "America/New_York",
     }).format(date);
   };
 
-  const formatTimeWithTimezone = (dateInput, timezone = "local") => {
+  const formatTimeWithTimezone = (dateInput, timezone = "usa") => {
     const dateStr = normalizeDateStr(dateInput);
     if (!dateStr) return "";
 
@@ -289,33 +295,16 @@ const BillingHistory = () => {
         timeZone: "Asia/Kolkata",
       }).format(date);
     }
+
     return new Intl.DateTimeFormat("en-US", {
       ...options,
-      timeZone: userTimezone || "UTC",
+      timeZone: "America/New_York",
     }).format(date);
   };
 
   const getTimezoneLabel = () => {
     if (timezoneFormat === "india") return "IST (India)";
-    const parts = userTimezone?.split("/") || [];
-    return parts[parts.length - 1]?.replace(/_/g, " ") || "Local";
-  };
-
-  const getTimezoneOffset = (timezone = "local") => {
-    const now = new Date();
-    const targetTz =
-      timezone === "india" ? "Asia/Kolkata" : userTimezone || "UTC";
-    try {
-      const formatter = new Intl.DateTimeFormat("en-US", {
-        timeZone: targetTz,
-        timeZoneName: "shortOffset",
-      });
-      const parts = formatter.formatToParts(now);
-      const offsetPart = parts.find((p) => p.type === "timeZoneName");
-      return offsetPart?.value || "UTC";
-    } catch {
-      return "UTC";
-    }
+    return "USA (ET)";
   };
 
   // ─── Live Trial Timer ─────────────────────────────────────────────────────
@@ -393,6 +382,17 @@ const BillingHistory = () => {
     formatDateWithTimezone(dateInput, timezoneFormat);
   const formatTime = (dateInput) =>
     formatTimeWithTimezone(dateInput, timezoneFormat);
+
+  const renderUsaTime = (dateInput) => {
+    const normalized = normalizeDateStr(dateInput);
+    if (!normalized) return null;
+
+    return (
+      <p className="mt-2 text-xs text-slate-500">
+        {formatTimeWithTimezone(normalized, "usa")} USA (ET)
+      </p>
+    );
+  };
 
   // ─── Plan price label ──────────────────────────────────────────────────────
   const getPlanPriceLabel = () => {
@@ -539,31 +539,6 @@ const BillingHistory = () => {
                 View your subscription, invoices, and transactions
               </p>
             </div>
-
-            {/* Timezone Toggle */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() =>
-                  setTimezoneFormat(
-                    timezoneFormat === "local" ? "india" : "local"
-                  )
-                }
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm border-2 transition-all duration-200 ${
-                  timezoneFormat === "india"
-                    ? "bg-[#BF9B53] text-white border-[#BF9B53]"
-                    : "bg-white text-slate-700 border-slate-300 hover:border-[#BF9B53]"
-                }`}
-                title={`Current: ${getTimezoneLabel()} ${getTimezoneOffset(
-                  timezoneFormat
-                )}`}
-              >
-                <Globe className="w-4 h-4" />
-                <span className="hidden sm:inline">{getTimezoneLabel()}</span>
-                <span className="sm:hidden text-xs">
-                  {timezoneFormat === "india" ? "IST" : "Local"}
-                </span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -571,20 +546,64 @@ const BillingHistory = () => {
       <div className="max-w-full mx-auto space-y-4">
         {/* ── Subscription Status Card ───────────────────────────────────── */}
         {hasActiveSubscription && (
-          <div className="bg-white rounded-md border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+          <div
+            className={`overflow-hidden rounded-sm border transition-all duration-300 ${
+              cancelAtPeriodEnd && !isCanceled
+                ? "border-red-200 bg-white shadow-sm"
+                : "border-slate-200 bg-white shadow-sm"
+            }`}
+          >
+            {cancelAtPeriodEnd && !isCanceled && (
+              <div className="border-b border-red-200 bg-red-600 py-2 text-xs font-semibold text-white">
+                <div className="relative overflow-hidden whitespace-nowrap px-4">
+                  <div className="inline-flex min-w-full animate-[subscriptionTicker_24s_linear_infinite_reverse] items-center gap-3">
+                    <span>
+                      Your subscription will end after the current billing
+                      period.
+                    </span>
+                    <span className="text-red-200">•</span>
+                    <span>
+                      After that, access to subscription features will stop.
+                    </span>
+                    <span className="text-red-200">•</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Card header */}
-            <div className="bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50 px-6 py-5 border-b border-[#BF9B53]">
+            <div
+              className={`px-6 py-5 border-b ${
+                cancelAtPeriodEnd && !isCanceled
+                  ? "bg-red-50 border-red-200"
+                  : "bg-amber-50 border-[#BF9B53]"
+              }`}
+            >
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className="p-3 bg-white rounded-lg border-2 border-[#BF9B53] flex-shrink-0">
-                    <Crown className="w-6 h-6 text-[#BF9B53]" />
+                  <div
+                    className={`p-3 rounded-sm border-2 flex-shrink-0 ${
+                      cancelAtPeriodEnd && !isCanceled
+                        ? "bg-red-50 border-red-200"
+                        : "bg-white border-[#BF9B53]"
+                    }`}
+                  >
+                    {cancelAtPeriodEnd && !isCanceled ? (
+                      <AlertCircle className="w-6 h-6 text-red-500" />
+                    ) : (
+                      <Crown className="w-6 h-6 text-[#BF9B53]" />
+                    )}
                   </div>
                   <div className="min-w-0">
                     <h2 className="text-xl font-bold text-slate-900">
-                      Subscription Status
+                      {cancelAtPeriodEnd && !isCanceled
+                        ? "Subscription Ending"
+                        : "Subscription Status"}
                     </h2>
                     <p className="text-sm text-slate-600 mt-0.5">
-                      Your current plan and billing details
+                      {cancelAtPeriodEnd && !isCanceled
+                        ? "Your plan is active for now, but access will stop after the end date."
+                        : "Your current plan and billing details"}
                     </p>
                   </div>
                 </div>
@@ -654,7 +673,7 @@ const BillingHistory = () => {
                 {/* Trial Countdown */}
                 {isTrialing &&
                   subscription?.remainingTrialDays !== undefined && (
-                    <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                    <div className="p-4 bg-blue-50 rounded-sm border border-blue-200">
                       <div className="flex items-center gap-2 mb-3">
                         <Clock className="w-4 h-4 text-blue-600" />
                         <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -691,7 +710,7 @@ const BillingHistory = () => {
 
                 {/* Plan & Price */}
                 {(subscription?.planType || plan?.daily) && (
-                  <div className="p-4 bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg border border-slate-200">
+                  <div className="p-4 bg-slate-50 rounded-sm border border-slate-200">
                     <div className="flex items-center gap-2 mb-2">
                       <Crown className="w-4 h-4 text-slate-600" />
                       <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -711,7 +730,7 @@ const BillingHistory = () => {
 
                 {/* Trial End */}
                 {subscription?.trialEnd && (
-                  <div className="p-4 bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg border border-slate-200">
+                  <div className="p-4 bg-slate-50 rounded-sm border border-slate-200">
                     <div className="flex items-center gap-2 mb-2">
                       <Calendar className="w-4 h-4 text-slate-600" />
                       <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -721,9 +740,7 @@ const BillingHistory = () => {
                     <p className="text-lg font-bold text-slate-900">
                       {formatDate(subscription.trialEnd)}
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {formatTime(subscription.trialEnd)} {getTimezoneLabel()}
-                    </p>
+                    {renderUsaTime(subscription.trialEnd)}
                   </div>
                 )}
 
@@ -748,7 +765,7 @@ const BillingHistory = () => {
                 {/* Subscription End Date (when cancelAtPeriodEnd = true) */}
                 {cancelAtPeriodEnd &&
                   (subscriptionEndDate || nextBillingDate) && (
-                    <div className="p-4 bg-gradient-to-br from-red-50 to-orange-50 rounded-lg border border-red-200">
+                    <div className="p-4 bg-red-50 rounded-sm border border-red-200">
                       <div className="flex items-center gap-2 mb-2">
                         <Calendar className="w-4 h-4 text-red-500" />
                         <p className="text-xs font-semibold text-red-600 uppercase tracking-wider">
@@ -758,16 +775,13 @@ const BillingHistory = () => {
                       <p className="text-lg font-bold text-slate-900">
                         {formatDate(subscriptionEndDate || nextBillingDate)}
                       </p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {formatTime(subscriptionEndDate || nextBillingDate)}{" "}
-                        {getTimezoneLabel()}
-                      </p>
+                      {renderUsaTime(subscriptionEndDate || nextBillingDate)}
                     </div>
                   )}
 
                 {/* Trial: billing starts after trial */}
                 {nextBillingDate && isTrialing && (
-                  <div className="p-4 bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg border border-slate-200">
+                  <div className="p-4 bg-slate-50 rounded-sm border border-slate-200">
                     <div className="flex items-center gap-2 mb-2">
                       <Calendar className="w-4 h-4 text-slate-600" />
                       <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -777,9 +791,7 @@ const BillingHistory = () => {
                     <p className="text-lg font-bold text-slate-900">
                       {formatDate(nextBillingDate)}
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {formatTime(nextBillingDate)} {getTimezoneLabel()}
-                    </p>
+                    {renderUsaTime(nextBillingDate)}
                   </div>
                 )}
               </div>
@@ -803,33 +815,30 @@ const BillingHistory = () => {
               )} */}
 
               {isActive && !cancelAtPeriodEnd && (
-                <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-2 rounded-lg space-y-4 flex gap-2 text-sm">
+                <div className="bg-[#BF9B53]/10 border-l-4 border-[#BF9B53] p-2 rounded-sm space-y-4 flex gap-2 text-sm">
                   <CheckCircle2 size={20} color="green" />
                   Subscription Active
                 </div>
               )}
 
               {cancelAtPeriodEnd && !isCanceled && (
-                <div className="flex items-start gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg mb-4">
-                  <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-3 rounded-sm border border-red-200 bg-red-50 p-4">
+                  <XCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-bold text-orange-900">
-                      Scheduled for Cancellation
+                    <p className="text-sm font-bold text-red-900">
+                      Important Access Notice
                     </p>
-                    <p className="text-xs text-orange-800 mt-1">
-                      Your subscription will not renew. You have access until{" "}
-                      <strong>
-                        {formatDate(subscriptionEndDate || nextBillingDate)}
-                      </strong>{" "}
-                      at {formatTime(subscriptionEndDate || nextBillingDate)}{" "}
-                      {getTimezoneLabel()}.
+                    <p className="text-xs text-red-800 mt-1">
+                      Once this subscription reaches its end date, your account
+                      will lose access to subscription-based features until you
+                      activate a new plan again.
                     </p>
                   </div>
                 </div>
               )}
 
               {isCanceled && (
-                <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+                <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-sm mb-4">
                   <XCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-bold text-red-900">
@@ -1194,6 +1203,16 @@ const BillingHistory = () => {
           </div>
         </div>
       </div>
+
+      <style>{`
+      @keyframes subscriptionTicker {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}`}</style>
     </div>
   );
 };

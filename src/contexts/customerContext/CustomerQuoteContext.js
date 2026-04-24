@@ -74,7 +74,11 @@ export const CustomerQuoteProvider = ({ children }) => {
   /* =========================================================
      ACCEPT QUOTE
   ========================================================= */
-  const acceptQuote = async (quoteId, customerSignature) => {
+  const acceptQuote = async (
+    quoteId,
+    customerSignature,
+    options = { showSuccessToast: true }
+  ) => {
     if (!token) {
       showToast("Unauthorized. Please login again.", "error");
       return { success: false };
@@ -98,7 +102,9 @@ export const CustomerQuoteProvider = ({ children }) => {
         }
       );
 
-      showToast(res.data.message || "Quote accepted successfully", "success");
+      if (options.showSuccessToast !== false) {
+        showToast(res.data.message || "Quote accepted successfully", "success");
+      }
 
       // Update local state
       setQuotes((prevQuotes) =>
@@ -109,7 +115,7 @@ export const CustomerQuoteProvider = ({ children }) => {
         )
       );
 
-      return { success: true };
+      return { success: true, message: res.data.message };
     } catch (error) {
       showToast(
         error.response?.data?.message || "Failed to accept quote",

@@ -16,14 +16,18 @@ import {
   Package,
   AlertCircle,
   CheckCircle2,
+  LoaderCircle,
 } from "lucide-react";
 
-const OfferSubmitModal = ({ shipment, onClose }) => {
+const OFFER_FORM_ID = "shipper-offer-submit-form";
+
+const OfferSubmitModal = ({ shipment, onClose, onSuccess }) => {
   const { addQuote, loading } = useShipperQuote();
   const { needsOnboarding } = useShipperPayments();
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [sigPad, setSigPad] = useState(null);
   const [isSignatureDirty, setIsSignatureDirty] = useState(false);
+  const [isSubmittingOffer, setIsSubmittingOffer] = useState(false);
 
   const sigWrapperRef = useRef(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
@@ -82,6 +86,9 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
       return;
     }
 
+    const submitStart = Date.now();
+    setIsSubmittingOffer(true);
+
     const payload = {
       shipment: shipment._id,
       totalPrice: Number(values.totalPrice),
@@ -97,15 +104,25 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
     };
 
     const res = await addQuote(payload);
+    const elapsed = Date.now() - submitStart;
+    const remainingDelay = Math.max(0, 700 - elapsed);
+
+    if (remainingDelay > 0) {
+      await new Promise((resolve) => setTimeout(resolve, remainingDelay));
+    }
 
     if (res?.success) {
-      showToast("Quote submitted successfully", "success");
       resetForm();
       sigPad.clear();
       setIsSignatureDirty(false);
-      onClose();
+      setIsSubmittingOffer(false);
+      onClose?.();
+      onSuccess?.(res);
+      setSubmitting(false);
+      return;
     }
 
+    setIsSubmittingOffer(false);
     setSubmitting(false);
   };
 
@@ -125,6 +142,7 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
           <div className="relative px-4 sm:px-4 py-4 sm:py-4 border-b border-slate-200 bg-gradient-to-r from-gray-50  to-gray-50">
             <button
               onClick={onClose}
+              disabled={isSubmittingOffer || loading}
               className="absolute right-4 sm:right-8 top-4 sm:top-4 text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-lg transition-all duration-200"
             >
               <FiX size={20} />
@@ -183,8 +201,11 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
             >
-              {({ isSubmitting, errors, touched, values }) => (
-                <Form className="space-y-6 sm:space-y-8">
+              {({ errors, touched }) => (
+                <Form
+                  id={OFFER_FORM_ID}
+                  className="space-y-6 sm:space-y-8"
+                >
                   {/* ---- PRICING SECTION ---- */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-2">
@@ -410,6 +431,7 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
                 variant="secondary"
                 fullWidth
                 onClick={onClose}
+                disabled={isSubmittingOffer || loading}
                 className="py-3 sm:py-3.5 font-semibold text-sm sm:text-base"
               >
                 Cancel
@@ -418,10 +440,15 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
               <Button
                 variant="primary"
                 type="submit"
+                form={OFFER_FORM_ID}
                 fullWidth
-                disabled={needsOnboarding || loading}
+                disabled={needsOnboarding || loading || isSubmittingOffer}
                 className={`py-3 sm:py-3.5 font-semibold text-sm sm:text-base 
-        ${needsOnboarding || loading ? "opacity-50 cursor-not-allowed" : ""}
+        ${
+          needsOnboarding || loading || isSubmittingOffer
+            ? "opacity-50 cursor-not-allowed"
+            : ""
+        }
       `}
                 onClick={() => {
                   if (needsOnboarding) {
@@ -429,15 +456,17 @@ const OfferSubmitModal = ({ shipment, onClose }) => {
                       "Please verify your Stripe account first to receive payments",
                       "error"
                     );
-                    return;
                   }
-
-                  document
-                    .querySelector("form")
-                    ?.dispatchEvent(new Event("submit", { bubbles: true }));
                 }}
               >
-                {loading ? "Submitting..." : "Submit Offer"}
+                {loading || isSubmittingOffer ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <LoaderCircle className="w-4 h-4 animate-spin" />
+                    Sending Offer...
+                  </span>
+                ) : (
+                  "Submit Offer"
+                )}
               </Button>
             </div>
           </div>

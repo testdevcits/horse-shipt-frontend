@@ -18,6 +18,12 @@ import { MdClose } from "react-icons/md";
 import { IoArrowBack } from "react-icons/io5";
 import PageLoader from "../../components/common/PageLoader";
 
+const hasAssignedVehicle = (quote) => {
+  if (!quote?.vehicle) return false;
+  if (typeof quote.vehicle === "string") return true;
+  return Object.keys(quote.vehicle).length > 0;
+};
+
 /* ─────────────────────────────────────────
    STATUS BADGE
 ───────────────────────────────────────────*/
@@ -27,6 +33,11 @@ const StatusBadge = ({ state }) => {
       label: "Accepted",
       icon: <FiCheckCircle size={11} />,
       cls: "bg-green-50 text-green-700 border-green-200",
+    },
+    in_transit: {
+      label: "In Transit",
+      icon: <FiTruck size={11} />,
+      cls: "bg-blue-50 text-blue-700 border-blue-200",
     },
     completed: {
       label: "Delivered & Verified",
@@ -80,6 +91,7 @@ const ShipmentCard = ({
   const isCancelled =
     quote.isCancelled === true || quote.status === "cancelled";
   const isCompleted = tabKey === "completed";
+  const isInTransit = tabKey === "in_transit";
   // const isUpcoming = tabKey === "upcoming";
   // const isProcessingThis =
   //   deliveryLoading && selectedQuote?.shipment?._id === quote.shipment?._id;
@@ -88,6 +100,8 @@ const ShipmentCard = ({
     ? "cancelled"
     : isCompleted
     ? "completed"
+    : isInTransit
+    ? "in_transit"
     : "accepted";
 
   return (
@@ -190,6 +204,31 @@ const ShipmentCard = ({
         </div>
       )}
 
+      {(quote.vehicle || quote.assignedDriver) && (
+        <div className="flex flex-wrap gap-4 text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-xl px-3 py-3">
+          {quote.vehicle && (
+            <div className="flex items-center gap-1.5">
+              <FiTruck size={12} className="text-[#BF9B53]" />
+              <span>
+                Vehicle: {quote.vehicle.vehicleNumber || quote.vehicle.vehicleType}
+              </span>
+            </div>
+          )}
+          {quote.assignedDriver && (
+            <div className="flex items-center gap-1.5">
+              <FiUsers size={12} />
+              <span>Driver assigned</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1.5">
+            <FiNavigation size={12} />
+            <span className="capitalize">
+              Trip: {quote.tripStatus || "notStarted"}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* ── CANCEL REASON ── */}
       {isCancelled && quote.cancelReason && (
         <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-xs text-red-500">
@@ -268,6 +307,13 @@ const AllUpcomingShipments = () => {
     getMyQuotes();
   }, [getMyQuotes]);
 
+  const isInTransitQuote = (quote) => {
+    if (quote.isCancelled === true || quote.status === "cancelled") return false;
+    if (quote.shipment?.status === "delivered") return false;
+
+    return hasAssignedVehicle(quote);
+  };
+
   /*
    * TAB LOGIC (based on real API data):
    *
@@ -278,9 +324,12 @@ const AllUpcomingShipments = () => {
    *
    * CANCELLED : isCancelled === true OR quote.status === "cancelled"
    */
+  const inTransitShipments = quotes.filter((q) => isInTransitQuote(q));
+
   const upcomingShipments = quotes.filter((q) => {
     if (q.isCancelled === true || q.status === "cancelled") return false;
     if (q.shipment?.status === "delivered") return false;
+    if (isInTransitQuote(q)) return false;
     return q.status === "accepted";
   });
 
@@ -294,6 +343,25 @@ const AllUpcomingShipments = () => {
   });
 
   const tabs = [
+    {
+      key: "in_transit",
+      label: "In Transit",
+      count: inTransitShipments.length,
+      data: inTransitShipments,
+      icon: <FiNavigation size={14} />,
+      emptyIcon: <FiNavigation size={32} className="text-[#BF9B53]" />,
+      emptyTitle: "No active transit shipments",
+      emptySubtitle:
+        "Shipments with an assigned vehicle will appear here once transport is underway.",
+      info: (
+        <p>
+          <span className="font-semibold text-[#BF9B53]">In transit</span> —
+          These shipments already have a vehicle assigned and are in the active
+          transportation stage. Use tracking to monitor progress and continue
+          delivery updates.
+        </p>
+      ),
+    },
     {
       key: "upcoming",
       label: "Upcoming",
