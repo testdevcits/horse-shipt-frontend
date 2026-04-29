@@ -32,20 +32,18 @@ const Header = () => {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex space-x-6">
-            <NavLink
-              to="/solutions"
-              className={({ isActive }) =>
-                `text-dark font-medium hover:text-gray-600 ${
-                  isActive
-                    ? "underline underline-offset-4 decoration-system-primary"
-                    : ""
-                }`
-              }
+            <button
+              onClick={() => {
+                document.getElementById("solutions")?.scrollIntoView({
+                  behavior: "smooth",
+                });
+              }}
+              className="text-dark font-medium hover:text-gray-600"
             >
               Solutions
-            </NavLink>
+            </button>
 
-            <NavLink
+            {/* <NavLink
               to="/features"
               className={({ isActive }) =>
                 `text-dark font-medium hover:text-gray-600 ${
@@ -56,7 +54,18 @@ const Header = () => {
               }
             >
               Features
-            </NavLink>
+            </NavLink> */}
+
+              <button
+              onClick={() => {
+                document.getElementById("features")?.scrollIntoView({
+                  behavior: "smooth",
+                });
+              }}
+              className="text-dark font-medium hover:text-gray-600"
+            >
+            Features
+            </button>
 
             <NavLink
               to="/privacy-policy"

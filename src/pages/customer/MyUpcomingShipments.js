@@ -49,9 +49,9 @@ const MyUpcomingShipments = () => {
     return <PageLoader text="Loading shipments..." fullScreen={false} />;
 
   return (
-    <div className="w-full flex flex-col gap-6">
+    <div className="w-full flex flex-col gap-6 ">
       {shipmentsToShow.length > 0 ? (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 ">
           <h2 className="font-montserrat font-semibold text-lg text-systemText">
             My Upcoming Shipments
           </h2>

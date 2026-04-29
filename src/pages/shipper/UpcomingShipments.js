@@ -9,7 +9,7 @@ const UpcomingShipments = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col gap-4 mt-4">
+    <div className="flex flex-col gap-4  mt-4">
       {shipments.slice(0, 1).map((shipment) => (
         <ShipmentCard key={shipment._id} shipment={shipment} />
       ))}

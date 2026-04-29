@@ -262,8 +262,10 @@ const TruckDriverPage = () => {
       {/* DRIVER LIST */}
       {!showForm && !loading && (
         drivers.length === 0 ? (
-          <div className="bg-white border border-dashed border-[#BF9B53] rounded-md p-6 text-center text-sm text-gray-600">
+           <div className="flex items-center justify-center min-h-[600px]  border border-dashed border-[#BF9B53] rounded-md">
+          <div className="bg-white p-6 text-center text-sm text-gray-600">
             Driver not available. Please add new driver.
+          </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6">

@@ -489,7 +489,7 @@ const NewShipment = () => {
         3000
       );
     } finally {
-      setIsLoading(false);
+      setIsLoading(true);
     }
   };
 

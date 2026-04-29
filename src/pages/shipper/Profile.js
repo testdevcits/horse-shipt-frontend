@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Button from "../../components/common/Button";
 import { FiEdit3 } from "react-icons/fi";
-import { FaStar } from "react-icons/fa";
+import { FaStar, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { Autocomplete, GoogleMap, Marker } from "@react-google-maps/api";
 import { useShipperProfile } from "../../contexts/ShipperProfileContext";
 import { Formik, Form, ErrorMessage } from "formik";
@@ -51,26 +51,37 @@ const Profile = () => {
   return (
     <div className="font-[Montserrat]">
       <div className="max-w-full mx-auto space-y-6">
+
         {/* PROFILE */}
         <div className="bg-white rounded-md shadow-md border border-[#BF9B53] p-4 sm:p-6">
-          <div className="flex justify-between items-center mb-6">
+
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
             <h1 className="text-md sm:text-md font-semibold">My Profile</h1>
+
             {!isEditing && (
-              <Button onClick={() => setIsEditing(true)} icon={<FiEdit3 />}>
+              <Button
+                onClick={() => setIsEditing(true)}
+                icon={<FiEdit3 />}
+                className="w-full sm:w-auto"
+              >
                 Edit
               </Button>
             )}
           </div>
 
           {!isEditing ? (
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+              {/* Description */}
               <div>
                 <h2 className="text-gray-500 mb-2">Description</h2>
-                <p className="text-[#BF9B53]">
+                <p className="text-[#BF9B53] break-words">
                   {profile.description || "No description"}
                 </p>
               </div>
 
+              {/* Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-gray-500 text-sm">Location</label>
@@ -81,17 +92,23 @@ const Profile = () => {
 
                 <div>
                   <label className="text-gray-500 text-sm">Email</label>
-                  <p className="text-[#BF9B53]">{profile.email}</p>
+                  <p className="text-[#BF9B53] break-words">
+                    {profile.email}
+                  </p>
                 </div>
 
                 <div>
                   <label className="text-gray-500 text-sm">Phone</label>
-                  <p className="text-[#BF9B53]">{profile.mobile}</p>
+                  <p className="text-[#BF9B53] break-words">
+                    {profile.mobile||"N/A"}
+                  </p>
                 </div>
 
                 <div>
                   <label className="text-gray-500 text-sm">Account Type</label>
-                  <p className="text-[#BF9B53] uppercase">{profile.role}</p>
+                  <p className="text-[#BF9B53] uppercase break-words">
+                    {profile.role}
+                  </p>
                 </div>
               </div>
             </div>
@@ -116,6 +133,7 @@ const Profile = () => {
             >
               {({ values, handleChange }) => (
                 <Form className="space-y-4">
+
                   {/* LOCATION */}
                   <div>
                     <label className="text-sm text-gray-600">Location</label>
@@ -158,39 +176,15 @@ const Profile = () => {
                         mapContainerStyle={{ width: "100%", height: "250px" }}
                         center={mapCenter}
                         zoom={12}
-                        onClick={(e) => {
-                          const lat = e.latLng.lat();
-                          const lng = e.latLng.lng();
-
-                          setMapCenter({ lat, lng });
-                          setSelectedLocation((prev) => ({
-                            ...prev,
-                            latitude: lat,
-                            longitude: lng,
-                          }));
-                        }}
                       >
-                        <Marker
-                          position={mapCenter}
-                          draggable
-                          onDragEnd={(e) => {
-                            const lat = e.latLng.lat();
-                            const lng = e.latLng.lng();
-
-                            setMapCenter({ lat, lng });
-                            setSelectedLocation((prev) => ({
-                              ...prev,
-                              latitude: lat,
-                              longitude: lng,
-                            }));
-                          }}
-                        />
+                        <Marker position={mapCenter} draggable />
                       </GoogleMap>
                     </div>
                   </div>
 
                   {/* FIELDS */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
                     {/* MOBILE */}
                     <div>
                       <label className="text-sm text-gray-600">Phone</label>
@@ -203,21 +197,9 @@ const Profile = () => {
                         <input
                           type="tel"
                           name="mobile"
-                          placeholder="0000000000"
                           value={values.mobile?.replace(/^\+91/, "") || ""}
-                          onChange={(e) => {
-                            let value = e.target.value.replace(/\D/g, ""); // only digits
-                            if (value.length > 10) value = value.slice(0, 10);
-
-                            // store WITH +91 internally
-                            handleChange({
-                              target: {
-                                name: "mobile",
-                                value: value ? "+91" + value : "",
-                              },
-                            });
-                          }}
-                          className="w-full border rounded-r-lg px-3 py-2"
+                          onChange={handleChange}
+                          className="w-full border rounded-r-lg px-3 py-2 text-sm"
                         />
                       </div>
 
@@ -234,49 +216,43 @@ const Profile = () => {
                       <input
                         value={profile.email}
                         disabled
-                        className="w-full border rounded-lg px-3 py-2 mt-1 bg-gray-100"
+                        className="w-full border rounded-lg px-3 py-2  bg-gray-100 text-sm"
                       />
                     </div>
 
                     {/* ROLE */}
                     <div>
-                      <label className="text-sm text-gray-600">
-                        Account Type
-                      </label>
+                      <label className="text-sm text-gray-600">Account Type</label>
                       <input
                         value={profile.role}
                         disabled
-                        className="w-full border rounded-lg px-3 py-2 mt-1 bg-gray-100"
+                        className="w-full border rounded-lg px-3 py-2 mt-1 bg-gray-100 text-sm"
                       />
                     </div>
 
                     {/* DESCRIPTION */}
-                    <div>
-                      <label className="text-sm text-gray-600">
-                        Description
-                      </label>
+                    <div className="md:col-span-2">
+                      <label className="text-sm text-gray-600">Description</label>
                       <textarea
                         name="description"
                         value={values.description}
                         onChange={handleChange}
-                        className="w-full border rounded-lg px-3 py-2 mt-1"
-                      />
-                      <ErrorMessage
-                        name="description"
-                        component="div"
-                        className="text-red-500 text-sm"
+                        className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
                       />
                     </div>
                   </div>
 
+                  {/* BUTTONS */}
                   <div className="flex flex-col sm:flex-row justify-end gap-3">
-                    <Button type="submit" disabled={loading}>
+                    <Button type="submit" disabled={loading} className="w-full sm:w-auto">
                       Save
                     </Button>
+
                     <Button
                       type="button"
                       variant="secondary"
                       onClick={() => setIsEditing(false)}
+                      className="w-full sm:w-auto"
                     >
                       Cancel
                     </Button>
@@ -289,26 +265,26 @@ const Profile = () => {
 
         {/* REVIEWS */}
         <div className="bg-white rounded-md shadow-md border border-[#BF9B53] p-4 sm:p-6">
-          <div className="flex justify-between mb-4">
+
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             <h2 className="text-lg sm:text-md">My Reviews</h2>
-            <Button onClick={() => setShowAllReviews(!showAllReviews)}>
-              {showAllReviews ? "Hide" : "Show"}
+
+            <Button
+              className="rounded-lg w-full  px-4 py-2 border w-full sm:w-auto flex justify-center items-center "
+              onClick={() => setShowAllReviews(!showAllReviews)}
+              icon={showAllReviews ? <FaChevronUp /> : <FaChevronDown />}
+            >
+              {showAllReviews}
             </Button>
           </div>
 
           {showAllReviews && (
             <div className="space-y-4">
-              {[
-                {
-                  id: 1,
-                  reviewerName: "Alice",
-                  rating: 5,
-                  comment: "Great service!",
-                },
-              ].map((review) => (
+              {[{ id: 1, reviewerName: "Alice", rating: 5, comment: "Great service!" }].map((review) => (
                 <div key={review.id} className="p-4 border rounded-lg">
                   <p>{review.comment}</p>
-                  <div className="flex items-center mt-2">
+
+                  <div className="flex items-center mt-2 flex-wrap gap-1">
                     {Array.from({ length: review.rating }).map((_, i) => (
                       <FaStar key={i} className="text-yellow-400" />
                     ))}
@@ -319,6 +295,7 @@ const Profile = () => {
             </div>
           )}
         </div>
+
       </div>
     </div>
   );
