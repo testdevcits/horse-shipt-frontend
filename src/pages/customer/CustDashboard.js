@@ -29,6 +29,24 @@ const CustDashboard = () => {
     return "Good evening";
   };
 
+  // Get user display name from API response structure
+  const getUserDisplayName = () => {
+    if (!user) return "Customer";
+    // API returns firstName and lastName separately
+    if (user.firstName && user.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    // Fallback to firstName only
+    if (user.firstName) {
+      return user.firstName;
+    }
+    // Fallback to name if it exists
+    if (user.name) {
+      return user.name;
+    }
+    return "Customer";
+  };
+
   const handleStartShipment = () => {
     navigate("/customer/new-shipment");
   };
@@ -40,13 +58,17 @@ const CustDashboard = () => {
   return (
     <div className="flex flex-col font-[Montserrat] gap-6 md:gap-8 w-full">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-        <div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-800">
-            {getGreeting()}, {user?.name || "Customer"}
-          </h1>
-          <p className="text-gray-500 mt-1 text-sm md:text-base">
-            Here's what's happening with your shipments today
-          </p>
+        <div className="flex items-start gap-4">
+          {/* User Profile Image */}
+
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-800">
+              {getGreeting()}, {getUserDisplayName()}
+            </h1>
+            <p className="text-gray-500 mt-1 text-sm md:text-base">
+              Here's what's happening with your shipments today
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto bg-[#BF9B53]/10 border border-[#BF9B53]/20 rounded-md px-4 py-2.5">
