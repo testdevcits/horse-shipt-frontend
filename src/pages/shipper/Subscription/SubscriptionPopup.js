@@ -4,7 +4,6 @@ import { useShipperPayments } from "../../../contexts/shipperContext/ShipperPaym
 import {
   Check,
   Zap,
-  Lock,
   CreditCard,
   AlertCircle,
   Loader,
@@ -103,7 +102,8 @@ const SubscriptionPopup = () => {
     plan?.subscriptionStatus ||
     null;
   const isCanceledSubscription = subscriptionStatus === "canceled";
-  const showTrialOffer = trialEligible && trialDays > 0 && !isCanceledSubscription;
+  const showTrialOffer =
+    trialEligible && trialDays > 0 && !isCanceledSubscription;
 
   const formatPrice = () => {
     if (!planData) return "Loading...";
@@ -380,7 +380,6 @@ const SubscriptionPopup = () => {
 
               {/* Security note */}
               <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] flex p-2 rounded-lg gap-2">
-                <Lock size={13} className="text-slate-400 shrink-0 mt-2" />
                 <p className="text-xs text-slate-500">
                   We never store full card numbers. Secured by Stripe.
                 </p>
