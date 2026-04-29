@@ -22,16 +22,27 @@ export const SubscriptionProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [planLoading, setPlanLoading] = useState(false);
 
-  const [billingHistory, setBillingHistory] = useState([]);
+  // ✅ FIX: must be object (not array)
+  const [billingHistory, setBillingHistory] = useState({
+    subscriptions: [],
+    payments: [],
+    payouts: [],
+  });
+
   const [billingLoading, setBillingLoading] = useState(false);
 
   const hasFetched = useRef(false);
 
+  /* ===============================
+       NORMALIZE SUBSCRIPTION
+  =================================*/
   const normalizeSubscriptionData = useCallback((payload) => {
     if (!payload) return null;
 
     const data = payload.data ? { ...payload.data } : { ...payload };
     const status = data.status || data.subscriptionStatus || null;
+
+    data.status = status;
 
     if (
       status === "trialing" &&
@@ -48,8 +59,10 @@ export const SubscriptionProvider = ({ children }) => {
       data.remainingTrialDays = remainingDays > 0 ? remainingDays : 0;
     }
 
-    data.status = status;
-    data.hasAccess = data.hasAccess ?? ["active", "trialing"].includes(status);
+    data.hasAccess =
+      data.hasAccess ??
+      (["active", "trialing"].includes(status) ||
+        (data.cancelAtPeriodEnd && data.currentPeriodEnd));
 
     if (!data.currentPeriodEnd && data.nextBillingDate?.iso) {
       data.currentPeriodEnd = data.nextBillingDate.iso;
@@ -66,6 +79,9 @@ export const SubscriptionProvider = ({ children }) => {
     return data;
   }, []);
 
+  /* ===============================
+       NORMALIZE PLAN (MONTHLY ONLY)
+  =================================*/
   const normalizePlanData = useCallback((data) => {
     if (!data) return null;
 
@@ -74,9 +90,9 @@ export const SubscriptionProvider = ({ children }) => {
       trialDays: data.trialDays || 0,
       hasUsedTrial: data.hasUsedTrial === true,
       trialEligible: data.trialEligible ?? data.hasUsedTrial !== true,
-      daily: data.daily || null,
-      weekly: data.weekly || null,
+
       monthly: data.monthly || null,
+
       subscriptionStatus: data.subscriptionStatus || null,
       nextBillingDate: data.nextBillingDate || null,
       cancelAtPeriodEnd: data.cancelAtPeriodEnd ?? false,
@@ -95,22 +111,18 @@ export const SubscriptionProvider = ({ children }) => {
     try {
       const res = await axios.get(
         `${API_BASE_URL}/shipper/stripe/subscription/status`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
-      const raw = res.data;
-
-      if (!raw || !raw.success) {
+      if (!res.data?.success) {
         setSubscription(null);
         return;
       }
 
-      setSubscription(normalizeSubscriptionData(raw));
+      setSubscription(normalizeSubscriptionData(res.data));
     } catch (err) {
-      console.error(
-        "Get Subscription Error:",
-        err?.response?.data || err.message
-      );
       setSubscription(null);
     } finally {
       setLoading(false);
@@ -128,19 +140,18 @@ export const SubscriptionProvider = ({ children }) => {
     try {
       const res = await axios.get(
         `${API_BASE_URL}/shipper/stripe/subscription-plan`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
-      const data = res.data?.data;
-
-      if (!data) {
+      if (!res.data?.data) {
         setPlan(null);
         return;
       }
 
-      setPlan(normalizePlanData(data));
+      setPlan(normalizePlanData(res.data.data));
     } catch (err) {
-      console.error("Get Plan Error:", err?.response?.data || err.message);
       setPlan(null);
     } finally {
       setPlanLoading(false);
@@ -148,7 +159,7 @@ export const SubscriptionProvider = ({ children }) => {
   }, [token, isShipper, normalizePlanData]);
 
   /* ===============================
-        NEW: GET BILLING HISTORY
+       GET BILLING HISTORY
   =================================*/
   const getBillingHistory = useCallback(async () => {
     if (!token || !isShipper) return;
@@ -170,7 +181,6 @@ export const SubscriptionProvider = ({ children }) => {
           payouts = [],
         } = res.data.data || {};
 
-        // Store separated data
         setBillingHistory({
           subscriptions,
           payments,
@@ -184,11 +194,6 @@ export const SubscriptionProvider = ({ children }) => {
         });
       }
     } catch (err) {
-      console.error(
-        "Billing History Error:",
-        err?.response?.data || err.message
-      );
-
       setBillingHistory({
         subscriptions: [],
         payments: [],
@@ -209,20 +214,18 @@ export const SubscriptionProvider = ({ children }) => {
       const res = await axios.post(
         `${API_BASE_URL}/shipper/stripe/subscription/create`,
         { withTrial },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
-      // refresh state
+      // refresh
       await getMySubscription();
       await getSubscriptionPlan();
       await getBillingHistory();
 
       return res.data;
     } catch (err) {
-      console.error(
-        "Create Subscription Error:",
-        err?.response?.data || err.message
-      );
       throw err;
     }
   };
@@ -237,32 +240,18 @@ export const SubscriptionProvider = ({ children }) => {
       const res = await axios.post(
         `${API_BASE_URL}/shipper/stripe/subscription/cancel`,
         { reason },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
-      if (res.data?.success && res.data?.data) {
-        setPlan((prev) => ({
-          ...(prev || {}),
-          ...normalizePlanData(res.data.data),
-        }));
-
-        setSubscription((prev) => ({
-          ...(prev || {}),
-          ...normalizeSubscriptionData(res.data.data),
-        }));
-      }
-
-      // refresh state
+      // refresh only (no merge bugs)
       await getMySubscription();
       await getSubscriptionPlan();
       await getBillingHistory();
 
       return res.data;
     } catch (err) {
-      console.error(
-        "Cancel Subscription Error:",
-        err?.response?.data || err.message
-      );
       throw err;
     }
   };
@@ -300,7 +289,7 @@ export const SubscriptionProvider = ({ children }) => {
         billingHistory,
         billingLoading,
 
-        hasAccess: subscription?.hasAccess,
+        hasAccess: subscription?.hasAccess || false,
         isTrial: subscription?.status === "trialing",
         isCanceled: subscription?.status === "canceled",
         cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd,

@@ -49,8 +49,6 @@ export const DriverProvider = ({ children }) => {
         setDrivers([]);
       }
     } catch (err) {
-      console.error("Fetch Drivers Error:", err?.response?.data || err.message);
-
       setDrivers([]);
       showToast(
         err?.response?.data?.message || "Failed to fetch drivers",
@@ -78,8 +76,6 @@ export const DriverProvider = ({ children }) => {
 
       return { success: true };
     } catch (err) {
-      console.error("Add Driver Error:", err?.response?.data || err.message);
-
       showToast(
         err?.response?.data?.message || "Failed to add driver",
         "error"
@@ -107,8 +103,6 @@ export const DriverProvider = ({ children }) => {
 
       return { success: true };
     } catch (err) {
-      console.error("Update Driver Error:", err?.response?.data || err.message);
-
       showToast(
         err?.response?.data?.message || "Failed to update driver",
         "error"
@@ -136,8 +130,6 @@ export const DriverProvider = ({ children }) => {
 
       return { success: true };
     } catch (err) {
-      console.error("Delete Driver Error:", err?.response?.data || err.message);
-
       showToast(
         err?.response?.data?.message || "Failed to delete driver",
         "error"
@@ -167,11 +159,6 @@ export const DriverProvider = ({ children }) => {
 
       return { success: true };
     } catch (err) {
-      console.error(
-        "Assign Vehicles Error:",
-        err?.response?.data || err.message
-      );
-
       showToast(
         err?.response?.data?.message || "Failed to assign vehicles",
         "error"
@@ -205,11 +192,6 @@ export const DriverProvider = ({ children }) => {
 
       return { success: true };
     } catch (err) {
-      console.error(
-        "Toggle Driver Status Error:",
-        err?.response?.data || err.message
-      );
-
       showToast(
         err?.response?.data?.message || "Failed to update driver status",
         "error"
