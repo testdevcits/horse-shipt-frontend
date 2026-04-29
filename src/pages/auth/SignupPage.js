@@ -136,7 +136,7 @@ const SignupPage = () => {
 
     window.location.href = `${API_BASE_URL}/auth/google?role=${encodeURIComponent(
       role
-    )}&action=signup`;
+    )}&intent=signup`;
   };
 
   return (
