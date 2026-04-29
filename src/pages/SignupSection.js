@@ -1,11 +1,9 @@
-import React, { useState } from "react";
-import { useFormik } from "formik";
-import * as Yup from "yup";
+import React from "react";
 
 // ── Responsive hook ────────────────────────────────────────────────────────────
 const useIsWide = (breakpoint = 860) => {
   const [wide, setWide] = React.useState(
-    typeof window !== "undefined" ? window.innerWidth >= breakpoint : false,
+    typeof window !== "undefined" ? window.innerWidth >= breakpoint : false
   );
   React.useEffect(() => {
     const handler = () => setWide(window.innerWidth >= breakpoint);
@@ -17,7 +15,6 @@ const useIsWide = (breakpoint = 860) => {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 const SignupSection = () => {
-  const [submitted, setSubmitted] = useState(false);
   const isWide = useIsWide(860);
 
   const checklistItems = [
