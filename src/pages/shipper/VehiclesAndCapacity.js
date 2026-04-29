@@ -101,7 +101,7 @@ const VehiclePage = () => {
 
     numberOfStalls: Yup.number()
       .transform((value, originalValue) =>
-        originalValue === "" ? undefined : value
+        originalValue === "" ? undefined : value,
       )
       .typeError("Number of stalls must be a number")
       .required("Number of stalls is required")
@@ -190,9 +190,11 @@ const VehiclePage = () => {
           color="#BF9B53"
         />
       ) : vehicles.length === 0 ? (
-        <div className="bg-white border border-dashed border-[#BF9B53] rounded-md p-6 text-center text-sm text-gray-600">
-          No vehicles found. Add one to get started!
-        </div>
+        <div className="flex items-center justify-center min-h-[600px]  border border-dashed border-[#BF9B53] rounded-md">
+  <div className="bg-white p-6 text-center text-sm text-gray-600 w-fit">
+    No vehicles found. Add one to get started!
+  </div>
+</div>
       ) : (
         <div className="grid grid-cols-1 gap-6 w-full">
           {vehicles.map((vehicle, index) => (
@@ -233,8 +235,8 @@ const VehiclePage = () => {
                     vehicle.verificationStatus === "VERIFIED"
                       ? "bg-green-100 text-green-700"
                       : vehicle.verificationStatus === "REJECTED"
-                      ? "bg-red-100 text-red-600"
-                      : "bg-yellow-100 text-yellow-700"
+                        ? "bg-red-100 text-red-600"
+                        : "bg-yellow-100 text-yellow-700"
                   }`}
                 >
                   {vehicle.verificationStatus || "PENDING"}
@@ -473,7 +475,7 @@ const VehiclePage = () => {
                       onChange={(e) =>
                         setFieldValue(
                           "vehicleNumber",
-                          e.target.value.toUpperCase()
+                          e.target.value.toUpperCase(),
                         )
                       }
                     />

@@ -11,7 +11,7 @@ const PageLoader = ({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center font-montserrat text-center ${
+      className={`flex flex-col items-center justify-center h-[90vh] font-montserrat text-center ${
         fullScreen ? "fixed inset-0 z-50 bg-white/90" : "w-full"
       }`}
     >

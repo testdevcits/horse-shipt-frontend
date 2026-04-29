@@ -8,6 +8,7 @@ import { FaBoxOpen, FaTachometerAlt, FaCog } from "react-icons/fa";
 const DEFAULT_COLOR = "text-[#BF9B53]";
 const DEFAULT_SIZE = "text-lg";
 
+
 // Shipper icons
 export const DashboardIcon = ({
   className = "",

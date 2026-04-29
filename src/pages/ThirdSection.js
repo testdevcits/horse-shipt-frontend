@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 const ThirdSection = () => {
   return (
     <>
-      <section className="relative w-full">
+      <section className="relative w-full " id="features">
         {/* Banner Background */}
         <div
           className="w-full"

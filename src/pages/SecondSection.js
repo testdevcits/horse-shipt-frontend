@@ -119,7 +119,7 @@ const SecondSection = () => {
   };
 
   return (
-    <section className="py-12 md:py-16 bg-light px-4 md:px-12">
+    <section className="py-12 md:py-16 bg-light px-4 md:px-12" id="solutions">
       <div className="max-w-[1280px] mx-auto">
         {/* Active Tab Label */}
         <h6 className="font-montserrat font-semibold text-sm sm:text-base mb-2 md:mb-4 uppercase text-system-primary">
