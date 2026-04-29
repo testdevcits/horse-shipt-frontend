@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
   const location = useLocation();
 
   /* ===============================
-     AUTO LOGIN (PAGE REFRESH)
+     AUTO LOGIN (REFRESH)
   ================================ */
   useEffect(() => {
     const storedUser = localStorage.getItem("horseShiptUser");
@@ -27,11 +27,11 @@ export const AuthProvider = ({ children }) => {
 
     if (storedUser && storedToken && storedRole) {
       const parsedUser = JSON.parse(storedUser);
+
       setUser(parsedUser);
       setToken(storedToken);
       setRole(storedRole);
 
-      // 🔹 Socket connect on refresh
       socket.auth = {
         userId: parsedUser._id,
         role: storedRole,
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /* ===============================
-     SOCKET CLEANUP ON LOGOUT / UNMOUNT
+     SOCKET CLEANUP
   ================================ */
   useEffect(() => {
     return () => {
@@ -55,10 +55,9 @@ export const AuthProvider = ({ children }) => {
      LOGIN
   ================================ */
   const login = async ({ email, password, role, deviceId, location }) => {
-    if (!role) return { success: false, errors: ["Role is required"] };
-
-    setLoading(true);
     try {
+      setLoading(true);
+
       const res = await axios.post(
         `${API_BASE_URL}/auth/login`,
         { email, password, role, deviceId, location },
@@ -75,13 +74,14 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
 
-      // 🔹 Socket connect after login
-      socket.auth = { userId: userData._id, role: userData.role };
+      socket.auth = {
+        userId: userData._id,
+        role: userData.role,
+      };
       socket.connect();
 
       return { success: true };
     } catch (err) {
-      console.error("Login Error:", err.response?.data || err.message);
       return {
         success: false,
         errors: err.response?.data?.errors || ["Server Error"],
@@ -95,33 +95,33 @@ export const AuthProvider = ({ children }) => {
      SIGNUP
   ================================ */
   const signup = async ({ name, email, password, role }) => {
-    if (!role) return { success: false, errors: ["Role is required"] };
-
-    setLoading(true);
     try {
+      setLoading(true);
+
       const res = await axios.post(
         `${API_BASE_URL}/auth/signup`,
         { name, email, password, role },
         { withCredentials: true }
       );
 
-      const newUser = res.data.data;
+      const userData = res.data.data;
 
-      setUser(newUser);
-      setToken(newUser.token);
-      setRole(newUser.role);
+      setUser(userData);
+      setToken(userData.token);
+      setRole(userData.role);
 
-      localStorage.setItem("horseShiptUser", JSON.stringify(newUser));
-      localStorage.setItem("token", newUser.token);
-      localStorage.setItem("role", newUser.role);
+      localStorage.setItem("horseShiptUser", JSON.stringify(userData));
+      localStorage.setItem("token", userData.token);
+      localStorage.setItem("role", userData.role);
 
-      // 🔹 Socket connect after signup
-      socket.auth = { userId: newUser._id, role: newUser.role };
+      socket.auth = {
+        userId: userData._id,
+        role: userData.role,
+      };
       socket.connect();
 
       return { success: true };
     } catch (err) {
-      console.error("Signup Error:", err.response?.data || err.message);
       return {
         success: false,
         errors: err.response?.data?.errors || ["Server Error"],
@@ -135,16 +135,16 @@ export const AuthProvider = ({ children }) => {
      LOGOUT
   ================================ */
   const logout = async () => {
-    if (!user) return;
-
     try {
-      await axios.post(
-        `${API_BASE_URL}/auth/logout`,
-        { role: user.role, userId: user._id },
-        { withCredentials: true }
-      );
+      if (user) {
+        await axios.post(
+          `${API_BASE_URL}/auth/logout`,
+          { role: user.role, userId: user._id },
+          { withCredentials: true }
+        );
+      }
     } catch (err) {
-      console.error("Logout Error:", err.response?.data || err.message);
+      console.error("Logout Error:", err);
     } finally {
       if (socket.connected) socket.disconnect();
 
@@ -155,78 +155,55 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("horseShiptUser");
       localStorage.removeItem("token");
       localStorage.removeItem("role");
-      sessionStorage.removeItem("stripeModalShown");
 
       navigate("/login", { replace: true });
     }
   };
 
   /* ===============================
-     OAUTH LOGIN
+     OAUTH LOGIN (FIXED)
   ================================ */
-  const oauthLogin = ({
-    token,
-    role,
-    provider,
-    providerId,
-    email,
-    name,
-    photo,
-    id,
-  }) => {
-    if (!token || !role) return;
+  const oauthLogin = ({ token }) => {
+    if (!token) return;
 
-    const oauthUser = {
-      _id: id || "",
-      token,
-      role,
-      provider,
-      providerId,
-      email,
-      name,
-      photo,
-      isLogin: true,
-    };
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
 
-    setUser(oauthUser);
-    setToken(token);
-    setRole(role);
+      const oauthUser = {
+        _id: payload.id,
+        role: payload.role,
+        isLogin: true,
+      };
 
-    localStorage.setItem("horseShiptUser", JSON.stringify(oauthUser));
-    localStorage.setItem("token", token);
-    localStorage.setItem("role", role);
+      setUser(oauthUser);
+      setToken(token);
+      setRole(payload.role);
 
-    // 🔹 Socket connect for OAuth
-    socket.auth = { userId: oauthUser._id, role: oauthUser.role };
-    socket.connect();
+      localStorage.setItem("horseShiptUser", JSON.stringify(oauthUser));
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", payload.role);
+
+      socket.auth = {
+        userId: payload.id,
+        role: payload.role,
+      };
+      socket.connect();
+    } catch (err) {
+      console.error("OAuth parse error:", err);
+    }
   };
 
   /* ===============================
-     HANDLE OAUTH REDIRECT
+     HANDLE OAUTH REDIRECT (FIXED)
   ================================ */
   useEffect(() => {
     const query = new URLSearchParams(location.search);
-
     const tokenParam = query.get("token");
-    const id = query.get("id");
-    const roleParam = query.get("role");
-    const name = query.get("name");
-    const email = query.get("email");
-    const photo = query.get("photo");
-    const providerId = query.get("providerId");
 
-    if (tokenParam && id && roleParam) {
-      oauthLogin({
-        token: tokenParam,
-        id,
-        role: roleParam,
-        name,
-        email,
-        photo,
-        provider: "google",
-        providerId,
-      });
+    if (tokenParam) {
+      oauthLogin({ token: tokenParam });
 
+      // clean URL
       navigate(location.pathname, { replace: true });
     }
   }, [location.search, location.pathname, navigate]);
