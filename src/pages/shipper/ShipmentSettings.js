@@ -97,7 +97,7 @@ const ShipmentSettings = () => {
             <div
               key={tab.id}
               onClick={() => handleOpenTab(tab.id)}
-              className="group flex items-center justify-between p-4 border border-gray-200 rounded-xl bg-white cursor-pointer transition-all duration-200 hover:shadow-md hover:border-[#BF9B53]"
+              className="group flex items-center justify-between p-4 border border-gray-200 rounded-sm bg-white cursor-pointer transition-all duration-200 hover:shadow-md hover:border-[#BF9B53]"
             >
               {/* LEFT */}
               <div className="flex items-start gap-3">

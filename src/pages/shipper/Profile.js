@@ -1,18 +1,33 @@
 import React, { useState, useEffect } from "react";
-import Button from "../../components/common/Button";
-import { FiEdit3 } from "react-icons/fi";
-import { FaStar, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import {
+  FiEdit3,
+  FiX,
+  FiCheck,
+  FiMapPin,
+  FiPhone,
+  FiMail,
+  FiUser,
+} from "react-icons/fi";
+import { FaStar } from "react-icons/fa";
 import { Autocomplete, GoogleMap, Marker } from "@react-google-maps/api";
 import { useShipperProfile } from "../../contexts/ShipperProfileContext";
-import { Formik, Form, ErrorMessage } from "formik";
+import { Formik, Form } from "formik";
 import * as Yup from "yup";
+
+const countryCodes = [
+  { code: "+91", country: "India", flag: "🇮🇳" },
+  { code: "+1", country: "USA", flag: "🇺🇸" },
+  { code: "+44", country: "UK", flag: "🇬🇧" },
+  { code: "+61", country: "Australia", flag: "🇦🇺" },
+  { code: "+1", country: "Canada", flag: "🇨🇦" },
+];
 
 const Profile = () => {
   const { profile, updateProfile, loading } = useShipperProfile();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [showAllReviews, setShowAllReviews] = useState(false);
   const [autocomplete, setAutocomplete] = useState(null);
+  const [countryCode, setCountryCode] = useState("+91");
 
   const [selectedLocation, setSelectedLocation] = useState({
     address: "",
@@ -36,266 +51,484 @@ const Profile = () => {
         latitude: lat,
         longitude: lng,
       });
+
+      if (profile.mobile) {
+        const savedCode = countryCodes.find((c) =>
+          profile.mobile.startsWith(c.code)
+        );
+        if (savedCode) {
+          setCountryCode(savedCode.code);
+        }
+      }
     }
   }, [profile]);
 
   const validationSchema = Yup.object({
     mobile: Yup.string()
-      .matches(/^\+91[6-9]\d{9}$/, "Invalid mobile number")
-      .required("Mobile is required"),
-    description: Yup.string().min(5, "Minimum 5 characters"),
+      .matches(/^\d{10,15}$/, "Invalid phone number")
+      .required("Phone number is required"),
+    description: Yup.string()
+      .min(5, "Minimum 5 characters")
+      .max(500, "Maximum 500 characters"),
   });
+
+  const reviews = profile?.reviews || [
+    {
+      id: 1,
+      reviewerName: "Alice Johnson",
+      rating: 5,
+      comment: "Excellent service! Very professional and reliable.",
+      date: "2024-03-15",
+    },
+    {
+      id: 2,
+      reviewerName: "Bob Smith",
+      rating: 4,
+      comment: "Good communication and timely delivery.",
+      date: "2024-03-10",
+    },
+    {
+      id: 3,
+      reviewerName: "Carol Davis",
+      rating: 5,
+      comment: "Outstanding! Highly recommended for logistics.",
+      date: "2024-03-05",
+    },
+  ];
+
+  const averageRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        ).toFixed(1)
+      : 0;
 
   if (!profile) return null;
 
   return (
-    <div className="font-[Montserrat]">
-      <div className="max-w-full mx-auto space-y-6">
-
-        {/* PROFILE */}
-        <div className="bg-white rounded-md shadow-md border border-[#BF9B53] p-4 sm:p-6">
-
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
-            <h1 className="text-md sm:text-md font-semibold">My Profile</h1>
-
-            {!isEditing && (
-              <Button
-                onClick={() => setIsEditing(true)}
-                icon={<FiEdit3 />}
-                className="w-full sm:w-auto"
-              >
-                Edit
-              </Button>
-            )}
-          </div>
-
-          {!isEditing ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-              {/* Description */}
-              <div>
-                <h2 className="text-gray-500 mb-2">Description</h2>
-                <p className="text-[#BF9B53] break-words">
-                  {profile.description || "No description"}
-                </p>
-              </div>
-
-              {/* Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div
+      className="w-full min-h-screen bg-slate-50"
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+    >
+      {/* Main Container */}
+      <div className="w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-5 lg:py-6">
+        <div className="space-y-4">
+          {/* ===== PROFILE CARD ===== */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#BF9B53] to-[#D4AF77] px-4 sm:px-5 lg:px-6 py-4 sm:py-5">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <div>
-                  <label className="text-gray-500 text-sm">Location</label>
-                  <p className="text-[#BF9B53] break-words">
-                    {profile?.locale?.address || "N/A"}
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
+                    My Profile
+                  </h1>
+                  <p className="text-white/85 text-xs sm:text-sm font-medium mt-0.5">
+                    {profile.role === "shipper"
+                      ? "Shipper Account"
+                      : "Transporter Account"}
                   </p>
                 </div>
 
-                <div>
-                  <label className="text-gray-500 text-sm">Email</label>
-                  <p className="text-[#BF9B53] break-words">
-                    {profile.email}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-gray-500 text-sm">Phone</label>
-                  <p className="text-[#BF9B53] break-words">
-                    {profile.mobile||"N/A"}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-gray-500 text-sm">Account Type</label>
-                  <p className="text-[#BF9B53] uppercase break-words">
-                    {profile.role}
-                  </p>
-                </div>
+                {!isEditing && (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="inline-flex items-center justify-center gap-2 bg-white text-[#BF9B53] px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-all active:scale-95"
+                  >
+                    <FiEdit3 size={16} />
+                    <span className="hidden sm:inline">Edit</span>
+                  </button>
+                )}
               </div>
             </div>
-          ) : (
-            <Formik
-              initialValues={{
-                mobile: profile.mobile?.startsWith("+91")
-                  ? profile.mobile
-                  : "+91" + (profile.mobile || ""),
-                description: profile.description || "",
-              }}
-              validationSchema={validationSchema}
-              onSubmit={async (values) => {
-                const res = await updateProfile({
-                  mobile: values.mobile,
-                  description: values.description,
-                  locale: selectedLocation,
-                });
 
-                if (res.success) setIsEditing(false);
-              }}
-            >
-              {({ values, handleChange }) => (
-                <Form className="space-y-4">
-
-                  {/* LOCATION */}
+            {/* Content */}
+            <div className="p-4 sm:p-5 lg:p-6">
+              {!isEditing ? (
+                <div className="space-y-4">
+                  {/* Description */}
                   <div>
-                    <label className="text-sm text-gray-600">Location</label>
-
-                    <Autocomplete
-                      onLoad={(auto) => setAutocomplete(auto)}
-                      options={{ fields: ["formatted_address", "geometry"] }}
-                      onPlaceChanged={() => {
-                        if (!autocomplete) return;
-
-                        const place = autocomplete.getPlace();
-                        if (!place || !place.geometry) return;
-
-                        const lat = place.geometry.location.lat();
-                        const lng = place.geometry.location.lng();
-
-                        setMapCenter({ lat, lng });
-                        setSelectedLocation({
-                          address: place.formatted_address || "",
-                          latitude: lat,
-                          longitude: lng,
-                        });
-                      }}
-                    >
-                      <input
-                        value={selectedLocation.address}
-                        onChange={(e) =>
-                          setSelectedLocation((prev) => ({
-                            ...prev,
-                            address: e.target.value,
-                          }))
-                        }
-                        placeholder="Search location"
-                        className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
-                      />
-                    </Autocomplete>
-
-                    <div className="mt-3 rounded-lg overflow-hidden border">
-                      <GoogleMap
-                        mapContainerStyle={{ width: "100%", height: "250px" }}
-                        center={mapCenter}
-                        zoom={12}
-                      >
-                        <Marker position={mapCenter} draggable />
-                      </GoogleMap>
+                    <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
+                      Description
+                    </label>
+                    <div className="bg-gray-50 border border-gray-200 p-3 sm:p-4 rounded-lg">
+                      <p className="text-gray-800 text-sm leading-relaxed">
+                        {profile.description || "No description provided"}
+                      </p>
                     </div>
                   </div>
 
-                  {/* FIELDS */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                    {/* MOBILE */}
-                    <div>
-                      <label className="text-sm text-gray-600">Phone</label>
-
-                      <div className="flex">
-                        <span className="px-3 py-2 bg-gray-200 border border-r-0 rounded-l-lg text-sm font-semibold">
-                          +91
-                        </span>
-
-                        <input
-                          type="tel"
-                          name="mobile"
-                          value={values.mobile?.replace(/^\+91/, "") || ""}
-                          onChange={handleChange}
-                          className="w-full border rounded-r-lg px-3 py-2 text-sm"
+                  {/* Info Grid - Responsive */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    {/* Location */}
+                    <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <FiMapPin
+                          className="text-blue-600 flex-shrink-0 mt-0.5"
+                          size={16}
                         />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-gray-600 uppercase mb-1">
+                            Location
+                          </p>
+                          <p className="text-gray-800 text-sm break-words font-medium">
+                            {profile?.locale?.address || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Email */}
+                    <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <FiMail
+                          className="text-green-600 flex-shrink-0 mt-0.5"
+                          size={16}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-gray-600 uppercase mb-1">
+                            Email
+                          </p>
+                          <p className="text-gray-800 text-sm break-all font-medium">
+                            {profile.email}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Phone */}
+                    <div className="bg-purple-50 border border-purple-200 p-3 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <FiPhone
+                          className="text-purple-600 flex-shrink-0 mt-0.5"
+                          size={16}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-gray-600 uppercase mb-1">
+                            Phone
+                          </p>
+                          <p className="text-gray-800 text-sm break-all font-mono font-bold">
+                            {profile.mobile || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Account Type */}
+                    <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <FiUser
+                          className="text-amber-600 flex-shrink-0 mt-0.5"
+                          size={16}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-gray-600 uppercase mb-1">
+                            Account
+                          </p>
+                          <p className="text-gray-800 text-sm font-semibold uppercase">
+                            {profile.role}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Formik
+                  initialValues={{
+                    mobile: profile.mobile
+                      ? profile.mobile.replace(/^\+\d+/, "")
+                      : "",
+                    description: profile.description || "",
+                  }}
+                  validationSchema={validationSchema}
+                  onSubmit={async (values) => {
+                    const fullMobile = countryCode + values.mobile;
+                    const res = await updateProfile({
+                      mobile: fullMobile,
+                      description: values.description,
+                      locale: selectedLocation,
+                    });
+
+                    if (res.success) {
+                      setIsEditing(false);
+                    }
+                  }}
+                >
+                  {({ values, handleChange, errors, touched }) => (
+                    <Form className="space-y-4">
+                      {/* Location Editor */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">
+                          Update Location
+                        </label>
+
+                        <Autocomplete
+                          onLoad={(auto) => setAutocomplete(auto)}
+                          options={{
+                            fields: ["formatted_address", "geometry"],
+                          }}
+                          onPlaceChanged={() => {
+                            if (!autocomplete) return;
+
+                            const place = autocomplete.getPlace();
+                            if (!place || !place.geometry) return;
+
+                            const lat = place.geometry.location.lat();
+                            const lng = place.geometry.location.lng();
+
+                            setMapCenter({ lat, lng });
+                            setSelectedLocation({
+                              address: place.formatted_address || "",
+                              latitude: lat,
+                              longitude: lng,
+                            });
+                          }}
+                        >
+                          <input
+                            value={selectedLocation.address}
+                            onChange={(e) =>
+                              setSelectedLocation((prev) => ({
+                                ...prev,
+                                address: e.target.value,
+                              }))
+                            }
+                            placeholder="Search location..."
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53] focus:ring-opacity-50 focus:border-transparent transition-all"
+                          />
+                        </Autocomplete>
+
+                        <div className="mt-3 rounded-lg overflow-hidden border-2 border-gray-300">
+                          <GoogleMap
+                            mapContainerStyle={{
+                              width: "100%",
+                              height: "250px",
+                            }}
+                            center={mapCenter}
+                            zoom={12}
+                          >
+                            <Marker position={mapCenter} draggable />
+                          </GoogleMap>
+                        </div>
                       </div>
 
-                      <ErrorMessage
-                        name="mobile"
-                        component="div"
-                        className="text-red-500 text-sm"
-                      />
-                    </div>
+                      {/* Form Fields */}
+                      <div className="space-y-4">
+                        {/* Phone with Country Code */}
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">
+                            Phone Number
+                          </label>
 
-                    {/* EMAIL */}
-                    <div>
-                      <label className="text-sm text-gray-600">Email</label>
-                      <input
-                        value={profile.email}
-                        disabled
-                        className="w-full border rounded-lg px-3 py-2  bg-gray-100 text-sm"
-                      />
-                    </div>
+                          <div className="flex gap-2">
+                            <select
+                              value={countryCode}
+                              onChange={(e) => setCountryCode(e.target.value)}
+                              className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#BF9B53] focus:ring-opacity-50 transition-all flex-shrink-0"
+                            >
+                              {countryCodes.map((c) => (
+                                <option key={c.code} value={c.code}>
+                                  {c.flag} {c.country} ({c.code})
+                                </option>
+                              ))}
+                            </select>
 
-                    {/* ROLE */}
-                    <div>
-                      <label className="text-sm text-gray-600">Account Type</label>
-                      <input
-                        value={profile.role}
-                        disabled
-                        className="w-full border rounded-lg px-3 py-2 mt-1 bg-gray-100 text-sm"
-                      />
-                    </div>
+                            <input
+                              type="tel"
+                              name="mobile"
+                              value={values.mobile}
+                              onChange={handleChange}
+                              placeholder={
+                                countryCode === "+91" ? "10 digits" : "Phone"
+                              }
+                              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53] focus:ring-opacity-50 focus:border-transparent transition-all"
+                            />
+                          </div>
 
-                    {/* DESCRIPTION */}
-                    <div className="md:col-span-2">
-                      <label className="text-sm text-gray-600">Description</label>
-                      <textarea
-                        name="description"
-                        value={values.description}
-                        onChange={handleChange}
-                        className="w-full border rounded-lg px-3 py-2 mt-1 text-sm"
-                      />
-                    </div>
-                  </div>
+                          {errors.mobile && touched.mobile && (
+                            <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                              <span>⚠️</span> {errors.mobile}
+                            </p>
+                          )}
+                        </div>
 
-                  {/* BUTTONS */}
-                  <div className="flex flex-col sm:flex-row justify-end gap-3">
-                    <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-                      Save
-                    </Button>
+                        {/* Email & Role Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">
+                              Email
+                            </label>
+                            <input
+                              value={profile.email}
+                              disabled
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-600 text-xs sm:text-sm cursor-not-allowed"
+                            />
+                          </div>
 
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setIsEditing(false)}
-                      className="w-full sm:w-auto"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </Form>
+                          <div>
+                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">
+                              Account Type
+                            </label>
+                            <input
+                              value={profile.role?.toUpperCase()}
+                              disabled
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-600 text-xs sm:text-sm font-semibold cursor-not-allowed"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">
+                            Description
+                          </label>
+                          <textarea
+                            name="description"
+                            value={values.description}
+                            onChange={handleChange}
+                            placeholder="Add a description..."
+                            rows={4}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53] focus:ring-opacity-50 focus:border-transparent transition-all resize-none"
+                          />
+                          {errors.description && touched.description && (
+                            <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                              <span>⚠️</span> {errors.description}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-1">
+                            {values.description.length}/500
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Buttons */}
+                      <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t border-gray-200">
+                        <button
+                          type="button"
+                          onClick={() => setIsEditing(false)}
+                          className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition-all active:scale-95 text-sm"
+                        >
+                          <FiX size={16} />
+                          Cancel
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[#BF9B53] to-[#D4AF77] text-white rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 active:scale-95 text-sm"
+                        >
+                          <FiCheck size={16} />
+                          {loading ? "Saving..." : "Save"}
+                        </button>
+                      </div>
+                    </Form>
+                  )}
+                </Formik>
               )}
-            </Formik>
-          )}
-        </div>
-
-        {/* REVIEWS */}
-        <div className="bg-white rounded-md shadow-md border border-[#BF9B53] p-4 sm:p-6">
-
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-            <h2 className="text-lg sm:text-md">My Reviews</h2>
-
-            <Button
-              className="rounded-lg w-full  px-4 py-2 border w-full sm:w-auto flex justify-center items-center "
-              onClick={() => setShowAllReviews(!showAllReviews)}
-              icon={showAllReviews ? <FaChevronUp /> : <FaChevronDown />}
-            >
-              {showAllReviews}
-            </Button>
+            </div>
           </div>
 
-          {showAllReviews && (
-            <div className="space-y-4">
-              {[{ id: 1, reviewerName: "Alice", rating: 5, comment: "Great service!" }].map((review) => (
-                <div key={review.id} className="p-4 border rounded-lg">
-                  <p>{review.comment}</p>
-
-                  <div className="flex items-center mt-2 flex-wrap gap-1">
-                    {Array.from({ length: review.rating }).map((_, i) => (
-                      <FaStar key={i} className="text-yellow-400" />
-                    ))}
-                    <span className="ml-2">{review.reviewerName}</span>
-                  </div>
+          {/* ===== REVIEWS SECTION ===== */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            {/* Reviews Header */}
+            <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-4 sm:px-5 lg:px-6 py-4 sm:py-5">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <div>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
+                    Reviews & Ratings
+                  </h2>
+                  {reviews.length > 0 && (
+                    <div className="flex items-center gap-2 text-white/85 mt-2">
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.round(averageRating) }).map(
+                          (_, i) => (
+                            <FaStar
+                              key={i}
+                              size={14}
+                              className="text-yellow-400"
+                            />
+                          )
+                        )}
+                      </div>
+                      <span className="text-sm sm:text-base font-bold text-yellow-400">
+                        {averageRating}
+                      </span>
+                      <span className="text-xs sm:text-sm">
+                        ({reviews.length})
+                      </span>
+                    </div>
+                  )}
                 </div>
-              ))}
+              </div>
             </div>
-          )}
-        </div>
 
+            {/* Reviews Content */}
+            <div className="p-4 sm:p-5 lg:p-6">
+              {reviews.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                  {reviews.map((review) => (
+                    <div
+                      key={review.id}
+                      className="bg-gray-50 border border-gray-200 p-3 sm:p-4 rounded-lg hover:shadow-md transition-all hover:border-[#BF9B53]/30"
+                    >
+                      <div className="flex justify-between items-start gap-2 mb-3">
+                        <div>
+                          <h3 className="font-bold text-gray-900 text-sm sm:text-base">
+                            {review.reviewerName}
+                          </h3>
+                          {review.date && (
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {new Date(review.date).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                }
+                              )}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-0.5 flex-shrink-0">
+                          {Array.from({ length: review.rating }).map((_, i) => (
+                            <FaStar
+                              key={i}
+                              size={14}
+                              className="text-yellow-400"
+                            />
+                          ))}
+                          {Array.from({ length: 5 - review.rating }).map(
+                            (_, i) => (
+                              <FaStar
+                                key={i + review.rating}
+                                size={14}
+                                className="text-gray-300"
+                              />
+                            )
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">
+                        "{review.comment}"
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FaStar size={36} className="text-gray-300 mx-auto mb-2" />
+                  <p className="text-gray-700 text-sm sm:text-base font-semibold">
+                    No reviews yet
+                  </p>
+                  <p className="text-gray-500 text-xs mt-1">
+                    Complete your first shipment to receive reviews
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
