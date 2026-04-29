@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  FiEdit3,
-  FiX,
-  FiCheck,
-  FiMapPin,
-  FiPhone,
-  FiMail,
-  FiUser,
-} from "react-icons/fi";
+import { FiEdit3, FiX, FiCheck } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 import { Autocomplete, GoogleMap, Marker } from "@react-google-maps/api";
 import { useShipperProfile } from "../../contexts/ShipperProfileContext";
@@ -107,11 +99,11 @@ const Profile = () => {
 
   return (
     <div
-      className="w-full min-h-screen bg-slate-50"
+      className="w-full min-h-screen"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       {/* Main Container */}
-      <div className="w-full px-3 sm:px-4 lg:px-6 py-4 sm:py-5 lg:py-6">
+      <div className="w-full">
         <div className="space-y-4">
           {/* ===== PROFILE CARD ===== */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
@@ -160,14 +152,10 @@ const Profile = () => {
                   {/* Info Grid - Responsive */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     {/* Location */}
-                    <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                    <div className="bg-gray-50 border border-[#BF9B53] p-3 rounded-sm">
                       <div className="flex items-start gap-2">
-                        <FiMapPin
-                          className="text-blue-600 flex-shrink-0 mt-0.5"
-                          size={16}
-                        />
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-gray-600 uppercase mb-1">
+                          <p className="text-xs font-bold text-[#BF9B53]  uppercase mb-1">
                             Location
                           </p>
                           <p className="text-gray-800 text-sm break-words font-medium">
@@ -178,14 +166,10 @@ const Profile = () => {
                     </div>
 
                     {/* Email */}
-                    <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+                    <div className="bg-gray-50 border border-[#BF9B53] p-3 rounded-sm">
                       <div className="flex items-start gap-2">
-                        <FiMail
-                          className="text-green-600 flex-shrink-0 mt-0.5"
-                          size={16}
-                        />
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-gray-600 uppercase mb-1">
+                          <p className="text-xs font-bold text-[#BF9B53]  uppercase mb-1">
                             Email
                           </p>
                           <p className="text-gray-800 text-sm break-all font-medium">
@@ -196,14 +180,10 @@ const Profile = () => {
                     </div>
 
                     {/* Phone */}
-                    <div className="bg-purple-50 border border-purple-200 p-3 rounded-lg">
+                    <div className="bg-gray-50 border border-[#BF9B53] p-3 rounded-sm">
                       <div className="flex items-start gap-2">
-                        <FiPhone
-                          className="text-purple-600 flex-shrink-0 mt-0.5"
-                          size={16}
-                        />
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-gray-600 uppercase mb-1">
+                          <p className="text-xs font-bold text-[#BF9B53]  uppercase mb-1">
                             Phone
                           </p>
                           <p className="text-gray-800 text-sm break-all font-mono font-bold">
@@ -214,14 +194,10 @@ const Profile = () => {
                     </div>
 
                     {/* Account Type */}
-                    <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
+                    <div className="bg-gray-50 border border-[#BF9B53] p-3 rounded-sm">
                       <div className="flex items-start gap-2">
-                        <FiUser
-                          className="text-amber-600 flex-shrink-0 mt-0.5"
-                          size={16}
-                        />
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-gray-600 uppercase mb-1">
+                          <p className="text-xs font-bold text-[#BF9B53]  uppercase mb-1">
                             Account
                           </p>
                           <p className="text-gray-800 text-sm font-semibold uppercase">
@@ -430,7 +406,7 @@ const Profile = () => {
           {/* ===== REVIEWS SECTION ===== */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
             {/* Reviews Header */}
-            <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-4 sm:px-5 lg:px-6 py-4 sm:py-5">
+            <div className="bg-gradient-to-r from-[#BF9B53] to-[#D4AF77] px-4 sm:px-5 lg:px-6 py-4 sm:py-5">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <div>
                   <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
@@ -441,15 +417,11 @@ const Profile = () => {
                       <div className="flex items-center gap-1">
                         {Array.from({ length: Math.round(averageRating) }).map(
                           (_, i) => (
-                            <FaStar
-                              key={i}
-                              size={14}
-                              className="text-yellow-400"
-                            />
+                            <FaStar key={i} size={14} className="text-white" />
                           )
                         )}
                       </div>
-                      <span className="text-sm sm:text-base font-bold text-yellow-400">
+                      <span className="text-sm sm:text-base font-bold text-white">
                         {averageRating}
                       </span>
                       <span className="text-xs sm:text-sm">

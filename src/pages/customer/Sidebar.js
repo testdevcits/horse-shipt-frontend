@@ -73,6 +73,7 @@ const CustomerSidebar = ({
   const [hoveredItem, setHoveredItem] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const menuItemsRef = useRef({});
+  const [activeItem, setActiveItem] = useState("Dashboard");
 
   /**
    * ================= AUTO LOGOUT ON TOKEN EXPIRY =================
@@ -147,7 +148,7 @@ const CustomerSidebar = ({
     <>
       {/* ================= SIDEBAR ================= */}
       <div
-        className={`fixed top-16 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-40 transform transition-all duration-300 font-montserrat flex flex-col
+        className={`fixed top-18 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-40 transform transition-all duration-300 font-montserrat flex flex-col
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
         style={{ width: sidebarWidth }}
@@ -156,11 +157,16 @@ const CustomerSidebar = ({
         <div className="flex justify-end p-3 hidden lg:flex border-b border-gray-200">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            className="flex items-center justify-between w-full p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
             title={sidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
           >
             {sidebarOpen ? (
-              <LuArrowLeftFromLine size={20} className="text-gray-600" />
+              <>
+                <span className="text-sm font-semibold text-[#BF9B53]">
+                  {activeItem || "Dashboard"}
+                </span>
+                <LuArrowLeftFromLine size={20} className="text-gray-600" />
+              </>
             ) : (
               <LuArrowRightFromLine size={20} className="text-gray-600" />
             )}
@@ -178,7 +184,10 @@ const CustomerSidebar = ({
                   {/* ================= MAIN MENU ITEM ================= */}
                   <NavLink
                     to={item.path}
-                    onClick={() => mobileOpen && setMobileOpen(false)}
+                    onClick={() => {
+                      setActiveItem(item.name);
+                      mobileOpen && setMobileOpen(false);
+                    }}
                     onMouseEnter={(e) => handleMouseEnter(e, item.name)}
                     onMouseLeave={handleMouseLeave}
                     className={`flex items-center px-3 py-3 rounded-lg transition-all duration-300 relative group
@@ -224,14 +233,17 @@ const CustomerSidebar = ({
                           <NavLink
                             key={sub.path}
                             to={sub.path}
-                            onClick={() => mobileOpen && setMobileOpen(false)}
+                            onClick={() => {
+                              setActiveItem(item.name);
+                              mobileOpen && setMobileOpen(false);
+                            }}
                             className={`block px-3 py-2 rounded-lg transition-all duration-300 text-xs font-medium
-                              ${
-                                subActive
-                                  ? "bg-blue-50 text-[#BF9B53] font-semibold"
-                                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                              }
-                            `}
+                            ${
+                              subActive
+                                ? "bg-blue-50 text-[#BF9B53] font-semibold"
+                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            }
+                          `}
                           >
                             {sub.name}
                           </NavLink>

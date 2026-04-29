@@ -16,8 +16,6 @@ import {
   FiEdit2,
   FiNavigation,
 } from "react-icons/fi";
-import { GiCardPickup } from "react-icons/gi";
-import { CiUser } from "react-icons/ci";
 
 /* ─────────────────────────────────────────
    StatusChip
@@ -564,19 +562,20 @@ const ShipmentRow = ({ s, onView }) => {
   };
 
   const isCancelled = s.status === "cancelled";
-  const hoverBorder = isCancelled
-    ? "hover:border-red-300"
-    : "hover:border-[#BF9B53] border-2";
 
-  // ✅ First horse image from the shipment
+  //  First horse image from the shipment
   const firstHorseImage = s.horses?.find((h) => h.photo?.url)?.photo?.url;
 
   return (
     <div
-      className={`group bg-white font-montserrat border border-gray-200 rounded-2xl px-3 sm:px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3 ${hoverBorder} hover:shadow-lg transition-all duration-200 w-full`}
+      className={`bg-white border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-all duration-200 w-full ${
+        isCancelled ? "opacity-70" : ""
+      }`}
     >
-      <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl shrink-0 overflow-hidden border border-gray-200 shadow-sm">
+      {/* Desktop View - Horizontal Layout */}
+      <div className="hidden sm:flex items-center gap-3">
+        {/* Image */}
+        <div className="w-16 h-16 rounded-lg shrink-0 overflow-hidden border border-gray-300">
           {firstHorseImage ? (
             <img
               src={firstHorseImage}
@@ -596,74 +595,118 @@ const ShipmentRow = ({ s, onView }) => {
           )}
         </div>
 
+        {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-            <span className="font-bold text-xs text-gray-900 font-mono tracking-wide">
+          {/* Code + Status */}
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-bold text-gray-800 font-mono">
               {s.shipmentCode}
             </span>
             <StatusChip status={s.status} />
           </div>
 
-          <p className="text-sm font-semibold text-gray-800 truncate mb-2">
+          {/* Route */}
+          <p className="text-sm font-semibold text-gray-700 truncate mb-2">
             {truncateText(s.pickupLocation, 40)} →{" "}
             {truncateText(s.deliveryLocation, 40)}
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-            <div className="flex items-center gap-2 rounded-xl bg-[#f8f4eb] px-2.5 py-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm shrink-0">
-                <GiCardPickup color="#BF9B53" size={16} />
+          {/* Details Row */}
+          <div className="flex items-center gap-3 text-xs">
+            <div className="bg-blue-50 px-2.5 py-1.5 rounded-md border border-blue-200">
+              <span className="font-semibold text-blue-700">
+                {getRowPickupDisplay()}
               </span>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                  Pickup
-                </p>
-                <p className="text-xs font-semibold text-gray-700 truncate">
-                  {getRowPickupDisplay()}
-                </p>
-              </div>
             </div>
-
-            <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-2.5 py-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm shrink-0">
-                <LiaHorseHeadSolid color="#BF9B53" size={16} />
+            <div className="bg-amber-50 px-2.5 py-1.5 rounded-md border border-amber-200">
+              <span className="font-semibold text-amber-700">
+                {s.numberOfHorses} horses
               </span>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                  Horses
-                </p>
-                <p className="text-xs font-semibold text-gray-700 truncate">
-                  {s.numberOfHorses} horse{s.numberOfHorses > 1 ? "s" : ""}
-                </p>
-              </div>
             </div>
-
-            <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-2.5 py-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm shrink-0">
-                <CiUser color="#BF9B53" size={16} />
+            <div className="bg-green-50 px-2.5 py-1.5 rounded-md border border-green-200">
+              <span className="font-semibold text-green-700 truncate">
+                {s.shipper?.name ? truncateText(s.shipper.name, 15) : "Pending"}
               </span>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                  Shipper
-                </p>
-                <p className="text-xs font-semibold text-gray-700 truncate">
-                  {s.shipper?.name
-                    ? truncateText(s.shipper.name, 28)
-                    : "Pending assignment"}
-                </p>
-              </div>
             </div>
           </div>
         </div>
+
+        {/* Button */}
+        <button
+          onClick={() => onView(s)}
+          className="shrink-0 px-4 py-2 bg-[#BF9B53] hover:bg-[#A88A47] text-white font-bold text-xs rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+        >
+          View
+        </button>
       </div>
 
-      <button
-        onClick={() => onView(s)}
-        className="shrink-0 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 bg-gray-900 hover:bg-[#BF9B53] text-white text-xs font-bold rounded-xl transition-all duration-200 whitespace-nowrap shadow-sm group-hover:shadow-md"
-      >
-        <FiEye size={15} />
-        View Details
-      </button>
+      {/* Mobile View - Vertical Layout */}
+      <div className="sm:hidden space-y-2.5">
+        {/* Top Row: Image + Code/Status */}
+        <div className="flex items-start gap-3">
+          <div className="w-14 h-14 rounded-lg shrink-0 overflow-hidden border border-gray-300">
+            {firstHorseImage ? (
+              <img
+                src={firstHorseImage}
+                alt="horse"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div
+                className={`w-full h-full flex items-center justify-center text-xl ${
+                  isCancelled
+                    ? "bg-red-100 text-red-500"
+                    : "bg-[#BF9B53] text-white"
+                }`}
+              >
+                <LiaHorseHeadSolid />
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-xs font-bold text-gray-800 font-mono">
+                {s.shipmentCode}
+              </span>
+              <StatusChip status={s.status} />
+            </div>
+            <p className="text-xs font-semibold text-gray-700 truncate">
+              {truncateText(s.pickupLocation, 30)}
+            </p>
+            <p className="text-xs font-semibold text-gray-700 truncate">
+              {truncateText(s.deliveryLocation, 30)}
+            </p>
+          </div>
+        </div>
+
+        {/* Details Grid */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-blue-50 px-2 py-1.5 rounded-md border border-blue-200 text-center">
+            <p className="text-xs font-semibold text-blue-700 truncate">
+              {getRowPickupDisplay()}
+            </p>
+          </div>
+          <div className="bg-amber-50 px-2 py-1.5 rounded-md border border-amber-200 text-center">
+            <p className="text-xs font-semibold text-amber-700">
+              {s.numberOfHorses}
+            </p>
+          </div>
+          <div className="bg-green-50 px-2 py-1.5 rounded-md border border-green-200 text-center">
+            <p className="text-xs font-semibold text-green-700 truncate">
+              {s.shipper?.name ? truncateText(s.shipper.name, 12) : "Pending"}
+            </p>
+          </div>
+        </div>
+
+        {/* Button */}
+        <button
+          onClick={() => onView(s)}
+          className="w-full py-2.5 bg-[#BF9B53] hover:bg-[#A88A47] text-white font-bold text-xs rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+        >
+          View Details
+        </button>
+      </div>
     </div>
   );
 };

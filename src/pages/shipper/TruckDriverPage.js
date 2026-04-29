@@ -49,9 +49,7 @@ const TruckDriverPage = () => {
       .trim()
       .matches(/^[0-9+\-\s()]{10,15}$/, "Enter a valid phone number")
       .required("Phone number is required"),
-    licenseNumber: Yup.string()
-      .trim()
-      .required("License number is required"),
+    licenseNumber: Yup.string().trim().required("License number is required"),
     password: editingDriver
       ? Yup.string()
       : Yup.string()
@@ -260,12 +258,13 @@ const TruckDriverPage = () => {
       )}
 
       {/* DRIVER LIST */}
-      {!showForm && !loading && (
-        drivers.length === 0 ? (
-           <div className="flex items-center justify-center min-h-[600px]  border border-dashed border-[#BF9B53] rounded-md">
-          <div className="bg-white p-6 text-center text-sm text-gray-600">
-            Driver not available. Please add new driver.
-          </div>
+      {!showForm &&
+        !loading &&
+        (drivers.length === 0 ? (
+          <div className="flex items-center justify-center min-h-[600px]  border border-dashed border-[#BF9B53] rounded-md">
+            <div className="text-center text-sm text-gray-600">
+              Driver not available. Please add new driver.
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6">
@@ -274,119 +273,118 @@ const TruckDriverPage = () => {
                 key={driver._id}
                 className="w-full bg-white border border-2 border-[#BF9B53] rounded-md p-5 shadow-sm hover:shadow-md transition-all"
               >
-              {/* ================= HEADER ================= */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                {/* LEFT: IMAGE + NAME */}
-                <div className="flex items-center gap-3">
-                  {driver.profileImage?.url ? (
-                    <img
-                      src={driver.profileImage.url}
-                      alt={driver.name}
-                      className="w-12 h-12 rounded-full object-cover border"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-[#BF9B53]/20 text-[#BF9B53] flex items-center justify-center font-bold">
-                      {driver.name?.charAt(0)?.toUpperCase() || "D"}
-                    </div>
-                  )}
+                {/* ================= HEADER ================= */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                  {/* LEFT: IMAGE + NAME */}
+                  <div className="flex items-center gap-3">
+                    {driver.profileImage?.url ? (
+                      <img
+                        src={driver.profileImage.url}
+                        alt={driver.name}
+                        className="w-12 h-12 rounded-full object-cover border"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-[#BF9B53]/20 text-[#BF9B53] flex items-center justify-center font-bold">
+                        {driver.name?.charAt(0)?.toUpperCase() || "D"}
+                      </div>
+                    )}
 
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-800">
-                      {driver.name}
-                    </h2>
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-800">
+                        {driver.name}
+                      </h2>
+                    </div>
+                  </div>
+
+                  {/* RIGHT: ACTIONS */}
+                  <div className="flex gap-2 flex-wrap">
+                    <button
+                      onClick={() => {
+                        setEditingDriver(driver);
+                        setShowForm(true);
+                      }}
+                      className="px-3 py-1.5 bg-[#BF9B53] text-white rounded-lg text-sm hover:opacity-90"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setConfirmDelete({ show: true, id: driver._id })
+                      }
+                      className="px-3 py-1.5 border border-red-300 text-red-500 rounded-lg text-sm hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+
+                    <button
+                      onClick={() => handleToggleStatus(driver)}
+                      className={`px-3 py-1.5 rounded-lg text-sm ${
+                        driver.isActive
+                          ? "border text-gray-600 hover:bg-gray-50"
+                          : "bg-[#BF9B53] text-white hover:opacity-90"
+                      }`}
+                    >
+                      {driver.isActive ? "Deactivate" : "Activate"}
+                    </button>
                   </div>
                 </div>
 
-                {/* RIGHT: ACTIONS */}
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => {
-                      setEditingDriver(driver);
-                      setShowForm(true);
-                    }}
-                    className="px-3 py-1.5 bg-[#BF9B53] text-white rounded-lg text-sm hover:opacity-90"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      setConfirmDelete({ show: true, id: driver._id })
-                    }
-                    className="px-3 py-1.5 border border-red-300 text-red-500 rounded-lg text-sm hover:bg-red-50"
-                  >
-                    Delete
-                  </button>
-
-                  <button
-                    onClick={() => handleToggleStatus(driver)}
-                    className={`px-3 py-1.5 rounded-lg text-sm ${
-                      driver.isActive
-                        ? "border text-gray-600 hover:bg-gray-50"
-                        : "bg-[#BF9B53] text-white hover:opacity-90"
-                    }`}
-                  >
-                    {driver.isActive ? "Deactivate" : "Activate"}
-                  </button>
-                </div>
-              </div>
-
-              {/* ================= STATUS ================= */}
-              <div className="mb-4">
-                <div className="w-[80px]">
-                  <StatusBadge
-                    text={driver.isActive ? "Active" : "Inactive"}
-                    type={driver.isActive ? "success" : "danger"}
-                  />
-                </div>
-              </div>
-
-              {/* ================= DETAILS ================= */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                <div className="flex gap-2">
-                  <p>Name:</p>
-                  <p className="font-semibold text-[#BF9B53]">
-                    {driver.name || "N/A"}
-                  </p>
+                {/* ================= STATUS ================= */}
+                <div className="mb-4">
+                  <div className="w-[80px]">
+                    <StatusBadge
+                      text={driver.isActive ? "Active" : "Inactive"}
+                      type={driver.isActive ? "success" : "danger"}
+                    />
+                  </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <p>Email:</p>
-                  <p className="font-semibold text-[#BF9B53]">
-                    {driver.email || "N/A"}
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <p>Phone:</p>
-                  <p className="font-semibold text-[#BF9B53]">
-                    {driver.phone || "N/A"}
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <p>License:</p>
-                  <p className="font-semibold text-[#BF9B53]">
-                    {driver.licenseNumber || "N/A"}
-                  </p>
-                </div>
-
-                <div className="col-span-1 sm:col-span-2 lg:col-span-3 border-b border-[#BF9B53] my-2"></div>
-
-                {driver.notes && (
-                  <div className="flex gap-2 sm:col-span-2 lg:col-span-3">
-                    <p>Notes:</p>
+                {/* ================= DETAILS ================= */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                  <div className="flex gap-2">
+                    <p>Name:</p>
                     <p className="font-semibold text-[#BF9B53]">
-                      {driver.notes}
+                      {driver.name || "N/A"}
                     </p>
                   </div>
-                )}
-              </div>
+
+                  <div className="flex gap-2">
+                    <p>Email:</p>
+                    <p className="font-semibold text-[#BF9B53]">
+                      {driver.email || "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <p>Phone:</p>
+                    <p className="font-semibold text-[#BF9B53]">
+                      {driver.phone || "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <p>License:</p>
+                    <p className="font-semibold text-[#BF9B53]">
+                      {driver.licenseNumber || "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="col-span-1 sm:col-span-2 lg:col-span-3 border-b border-[#BF9B53] my-2"></div>
+
+                  {driver.notes && (
+                    <div className="flex gap-2 sm:col-span-2 lg:col-span-3">
+                      <p>Notes:</p>
+                      <p className="font-semibold text-[#BF9B53]">
+                        {driver.notes}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
-        )
-      )}
+        ))}
 
       {/* ASSIGN VEHICLE MODAL */}
       {selectedDriver && (

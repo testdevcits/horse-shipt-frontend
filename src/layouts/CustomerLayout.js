@@ -31,7 +31,7 @@ const CustomerLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      <header className="sticky top-0 z-50 flex items-center justify-between bg-white shadow-md px-4 py-3 border-b border-gray-300 lg:px-6">
+      <header className="sticky top-0 z-40 flex items-center justify-between bg-white shadow-sm px-4 py-3 border-b border-gray-300 lg:px-6">
         <div className="flex items-center gap-4">
           {!mobileOpen ? (
             <button

@@ -90,6 +90,7 @@ const Sidebar = ({
   const [hoveredItem, setHoveredItem] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const menuItemsRef = useRef({});
+  const [activeItem, setActiveItem] = useState("Dashboard");
 
   /**
    * ================= AUTO LOGOUT ON TOKEN EXPIRY =================
@@ -173,11 +174,16 @@ const Sidebar = ({
         <div className="flex justify-end p-3 hidden lg:flex border-b border-gray-200">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            className="flex items-center justify-between w-full p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
             title={sidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
           >
             {sidebarOpen ? (
-              <LuArrowLeftFromLine size={20} className="text-gray-600" />
+              <>
+                <span className="text-sm font-semibold text-[#BF9B53] truncate">
+                  {activeItem || "Dashboard"}
+                </span>
+                <LuArrowLeftFromLine size={20} className="text-gray-600" />
+              </>
             ) : (
               <LuArrowRightFromLine size={20} className="text-gray-600" />
             )}
@@ -195,7 +201,10 @@ const Sidebar = ({
                   {/* ================= MAIN MENU ITEM ================= */}
                   <NavLink
                     to={item.path}
-                    onClick={() => mobileOpen && setMobileOpen(false)}
+                    onClick={() => {
+                      setActiveItem(item.name);
+                      mobileOpen && setMobileOpen(false);
+                    }}
                     onMouseEnter={(e) => handleMouseEnter(e, item.name)}
                     onMouseLeave={handleMouseLeave}
                     className={`flex items-center px-3 py-3 rounded-lg transition-all duration-300 relative group
@@ -241,7 +250,10 @@ const Sidebar = ({
                           <NavLink
                             key={sub.path}
                             to={sub.path}
-                            onClick={() => mobileOpen && setMobileOpen(false)}
+                            onClick={() => {
+                              setActiveItem(item.name);
+                              mobileOpen && setMobileOpen(false);
+                            }}
                             className={`block px-3 py-2 rounded-lg transition-all duration-300 text-xs font-medium
                               ${
                                 subActive
