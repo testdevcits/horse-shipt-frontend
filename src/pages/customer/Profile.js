@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { HiPencil, HiCheck, HiX } from "react-icons/hi";
 import { FaStar } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
@@ -8,6 +8,31 @@ import Toast from "../../components/common/Toast";
 import defaultProfileImage from "../../assets/images/profileImage.png";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+
+const countryCodes = [
+  { code: "+91", country: "India", flag: "🇮🇳" },
+  { code: "+1", country: "USA", flag: "🇺🇸" },
+  { code: "+44", country: "UK", flag: "🇬🇧" },
+  { code: "+61", country: "Australia", flag: "🇦🇺" },
+];
+
+const normalizePhoneDigits = (value = "") => String(value).replace(/\D/g, "");
+
+const splitPhoneNumber = (phone = "") => {
+  const matchedCountry = countryCodes.find((c) => phone.startsWith(c.code));
+
+  if (!matchedCountry) {
+    return {
+      countryCode: "+91",
+      nationalNumber: normalizePhoneDigits(phone),
+    };
+  }
+
+  return {
+    countryCode: matchedCountry.code,
+    nationalNumber: normalizePhoneDigits(phone.slice(matchedCountry.code.length)),
+  };
+};
 
 const CustomerProfile = () => {
   const { user } = useAuth();
@@ -21,7 +46,14 @@ const CustomerProfile = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [countryCode, setCountryCode] = useState("+91");
   const profileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (profile?.phone) {
+      setCountryCode(splitPhoneNumber(profile.phone).countryCode);
+    }
+  }, [profile?.phone]);
 
   // ===============================
   // Formik Setup
@@ -31,14 +63,17 @@ const CustomerProfile = () => {
     initialValues: {
       firstName: profile?.firstName || "",
       lastName: profile?.lastName || "",
-      phone: profile?.phone || "",
+      phone: profile?.phone ? splitPhoneNumber(profile.phone).nationalNumber : "",
     },
 
     validationSchema: Yup.object({
       firstName: Yup.string().required("First name is required"),
       lastName: Yup.string().required("Last name is required"),
       phone: Yup.string()
-        .matches(/^[0-9]{10}$/, "Enter valid 10 digit phone number")
+        .test("valid-phone", "Enter valid phone number", (value) => {
+          const digits = normalizePhoneDigits(value);
+          return digits.length >= 7 && digits.length <= 15;
+        })
         .required("Phone is required"),
     }),
 
@@ -46,7 +81,7 @@ const CustomerProfile = () => {
       try {
         const payload = {
           ...values,
-          phone: `+91${values.phone}`,
+          phone: `${countryCode}${normalizePhoneDigits(values.phone)}`,
         };
 
         await updateProfileDetails(payload);
@@ -260,23 +295,32 @@ const CustomerProfile = () => {
                   Phone Number
                 </label>
 
-                <div className="flex">
-                  <span className="px-3 py-2 bg-gray-200 border-2 border-r-0 rounded-l-lg text-sm font-semibold">
-                    +91
-                  </span>
+                <div className="flex gap-2">
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    className="px-3 py-2 bg-white border-2 border-[#BF9B53]/30 rounded-lg text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#BF9B53] transition-all"
+                  >
+                    {countryCodes.map((c) => (
+                      <option key={`${c.country}-${c.code}`} value={c.code}>
+                        {c.flag} {c.country} ({c.code})
+                      </option>
+                    ))}
+                  </select>
 
                   <input
                     type="tel"
                     name="phone"
-                    placeholder="0000000000"
-                    value={formik.values.phone?.replace(/^\+91/, "")}
+                    placeholder={countryCode === "+1" ? "555 123 4567" : "0000000000"}
+                    value={formik.values.phone}
                     onChange={(e) => {
-                      let value = e.target.value.replace(/\D/g, ""); // only numbers
-                      if (value.length > 10) value = value.slice(0, 10);
-                      formik.setFieldValue("phone", value);
+                      const value = e.target.value;
+                      if (/^[0-9\s().-]*$/.test(value)) {
+                        formik.setFieldValue("phone", value);
+                      }
                     }}
                     onBlur={formik.handleBlur}
-                    className={`px-3 py-2 text-sm border-2 rounded-r-lg font-semibold transition-all focus:outline-none w-full ${
+                    className={`px-3 py-2 text-sm border-2 rounded-lg font-semibold transition-all focus:outline-none w-full ${
                       formik.touched.phone && formik.errors.phone
                         ? "border-red-400 bg-red-50 focus:border-red-500"
                         : "border-[#BF9B53]/30 focus:border-[#BF9B53] focus:bg-[#BF9B53]/5"

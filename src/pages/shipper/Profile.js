@@ -14,6 +14,24 @@ const countryCodes = [
   { code: "+1", country: "Canada", flag: "🇨🇦" },
 ];
 
+const normalizePhoneDigits = (value = "") => String(value).replace(/\D/g, "");
+
+const splitPhoneNumber = (phone = "") => {
+  const matchedCountry = countryCodes.find((c) => phone.startsWith(c.code));
+
+  if (!matchedCountry) {
+    return {
+      countryCode: "+91",
+      nationalNumber: normalizePhoneDigits(phone),
+    };
+  }
+
+  return {
+    countryCode: matchedCountry.code,
+    nationalNumber: normalizePhoneDigits(phone.slice(matchedCountry.code.length)),
+  };
+};
+
 const Profile = () => {
   const { profile, updateProfile, loading } = useShipperProfile();
 
@@ -45,19 +63,17 @@ const Profile = () => {
       });
 
       if (profile.mobile) {
-        const savedCode = countryCodes.find((c) =>
-          profile.mobile.startsWith(c.code)
-        );
-        if (savedCode) {
-          setCountryCode(savedCode.code);
-        }
+        setCountryCode(splitPhoneNumber(profile.mobile).countryCode);
       }
     }
   }, [profile]);
 
   const validationSchema = Yup.object({
     mobile: Yup.string()
-      .matches(/^\d{10,15}$/, "Invalid phone number")
+      .test("valid-phone", "Invalid phone number", (value) => {
+        const digits = normalizePhoneDigits(value);
+        return digits.length >= 7 && digits.length <= 15;
+      })
       .required("Phone number is required"),
     description: Yup.string()
       .min(5, "Minimum 5 characters")
@@ -212,13 +228,13 @@ const Profile = () => {
                 <Formik
                   initialValues={{
                     mobile: profile.mobile
-                      ? profile.mobile.replace(/^\+\d+/, "")
+                      ? splitPhoneNumber(profile.mobile).nationalNumber
                       : "",
                     description: profile.description || "",
                   }}
                   validationSchema={validationSchema}
                   onSubmit={async (values) => {
-                    const fullMobile = countryCode + values.mobile;
+                    const fullMobile = countryCode + normalizePhoneDigits(values.mobile);
                     const res = await updateProfile({
                       mobile: fullMobile,
                       description: values.description,
@@ -230,7 +246,7 @@ const Profile = () => {
                     }
                   }}
                 >
-                  {({ values, handleChange, errors, touched }) => (
+                  {({ values, handleChange, setFieldValue, errors, touched }) => (
                     <Form className="space-y-4">
                       {/* Location Editor */}
                       <div>
@@ -302,7 +318,7 @@ const Profile = () => {
                               className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#BF9B53] focus:ring-opacity-50 transition-all flex-shrink-0"
                             >
                               {countryCodes.map((c) => (
-                                <option key={c.code} value={c.code}>
+                                <option key={`${c.country}-${c.code}`} value={c.code}>
                                   {c.flag} {c.country} ({c.code})
                                 </option>
                               ))}
@@ -312,9 +328,18 @@ const Profile = () => {
                               type="tel"
                               name="mobile"
                               value={values.mobile}
-                              onChange={handleChange}
+                              onChange={(e) => {
+                                const nextValue = e.target.value;
+                                if (/^[0-9\s().-]*$/.test(nextValue)) {
+                                  setFieldValue("mobile", nextValue);
+                                }
+                              }}
                               placeholder={
-                                countryCode === "+91" ? "10 digits" : "Phone"
+                                countryCode === "+1"
+                                  ? "555 123 4567"
+                                  : countryCode === "+91"
+                                  ? "10 digits"
+                                  : "Phone"
                               }
                               className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53] focus:ring-opacity-50 focus:border-transparent transition-all"
                             />

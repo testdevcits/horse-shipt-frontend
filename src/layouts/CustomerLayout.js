@@ -10,18 +10,27 @@ import { MdOutlineNotificationsActive } from "react-icons/md";
 import { useProfile } from "../contexts/customerContext/ProfileContext";
 import defaultProfileImage from "../assets/images/profileImage.png";
 import StatusBadge from "../components/common/StatusBadge";
+import { IoShareSocial } from "react-icons/io5";
+import { BiChevronDown } from "react-icons/bi";
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { notificationCount } = useCustomerNotifications();
-  const { profileImage } = useProfile();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { profile, profileImage, loading } = useProfile();
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
   const displayedProfileImage =
-    profileImage || user?.photo || defaultProfileImage;
+    (typeof profileImage === "string" ? profileImage : profileImage?.url) ||
+    user?.photo ||
+    defaultProfileImage;
+
+  const customerName =
+    profile?.firstName || profile?.lastName
+      ? `${profile?.firstName || ""} ${profile?.lastName || ""}`.trim()
+      : user?.name || "User Name";
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
@@ -29,69 +38,145 @@ const CustomerLayout = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    setSidebarOpen(isDesktop);
+    if (isDesktop) {
+      setMobileOpen(false);
+    }
+  }, [isDesktop]);
+
+  const handleShare = async () => {
+    const shareData = {
+      title: "Check this shipment app",
+      text: "Track and manage shipments easily",
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        alert("Link copied to clipboard!");
+      }
+    } catch (error) {
+      console.error("Share failed:", error);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setProfilePopup(false);
+  };
+
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
-      <header className="sticky top-0 z-40 flex items-center justify-between bg-white shadow-sm px-4 py-3 border-b border-gray-300 lg:px-6">
-        <div className="flex items-center gap-4">
-          {!mobileOpen ? (
-            <button
-              className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
-              onClick={() => setMobileOpen(true)}
-            >
-              <CgMenu size={24} />
-            </button>
-          ) : (
-            <button
-              className="lg:hidden p-2 rounded-md hover:bg-gray-200 transition"
-              onClick={() => setMobileOpen(false)}
-            >
-              <IoMdClose size={24} />
-            </button>
-          )}
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm px-4 sm:px-6 lg:px-8 py-3 transition-all duration-300">
+        <div className="flex items-center justify-between h-auto gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <button
+            className="lg:hidden p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? (
+              <IoMdClose size={22} className="text-gray-800" />
+            ) : (
+              <CgMenu size={22} className="text-gray-800" />
+            )}
+          </button>
+
           <img
             src={logo}
             alt="Logo"
-            className="hidden sm:block w-32 h-auto object-contain"
+            className="hidden sm:block h-8 w-auto object-contain"
           />
         </div>
-        <div className="flex items-center gap-4 relative">
-          <div
-            className="relative cursor-pointer"
-            onClick={() => navigate("/customer/settings?tab=notification")}
+
+        <div className="flex items-center gap-2 lg:gap-4">
+          <button
+            onClick={handleShare}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-system-primary"
+            aria-label="Share"
+            title="Share"
           >
-            <MdOutlineNotificationsActive
-              size={24}
-              className="text-gray-500 hover:text-system-primary transition"
-            />
+            <IoShareSocial size={18} />
+          </button>
+
+          <button
+            onClick={() => navigate("/customer/settings?tab=notification")}
+            className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-system-primary"
+            aria-label="Notifications"
+            title="Notifications"
+          >
+            <MdOutlineNotificationsActive size={18} />
             {notificationCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-[#BF9B53] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+              <span className="absolute -top-1 -right-1 bg-[#BF9B53] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                 {notificationCount}
               </span>
             )}
+          </button>
+
+          <div className="hidden sm:block">
+            <StatusBadge text="Customer" />
           </div>
-          <StatusBadge text="Customer accunt" />
-          {/* Profile */}
+
+          <div className="h-6 w-px bg-gray-200 hidden lg:block mx-1" />
+
           <div className="relative">
-            <img
-              src={displayedProfileImage}
-              alt="Profile"
-              className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-300"
-              onClick={() => setProfilePopup(!profilePopup)}
-            />
+            <button
+              onClick={() => !loading && setProfilePopup(!profilePopup)}
+              disabled={loading}
+              className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors ${
+                loading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              title="Profile"
+            >
+              <img
+                src={displayedProfileImage}
+                alt={customerName?.[0] || "U"}
+                className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                onError={(e) => {
+                  e.target.src = defaultProfileImage;
+                }}
+              />
+              <BiChevronDown
+                size={18}
+                className={`text-gray-600 transition-transform hidden sm:block ${
+                  profilePopup ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
             {profilePopup && (
-              <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-50">
-                <div className="px-4 py-2 border-b text-gray-700 font-medium">
-                  {user?.name || "User"}
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-[#BF9B53] rounded-sm shadow-lg z-50 overflow-hidden font-montserrat">
+                <div className="px-4 py-4 bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-b border-gray-100">
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                    Profile
+                  </p>
+
+                  <div className="mt-2">
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      {customerName}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {profile?.email || user?.email || "user@email.com"}
+                    </p>
+                  </div>
                 </div>
-                <div
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={logout}
-                >
-                  <span>Logout</span>
+
+                <div className="py-1">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+                  >
+                    Logout
+                  </button>
                 </div>
               </div>
             )}
           </div>
+        </div>
         </div>
       </header>
       <div className="flex flex-1 relative">
