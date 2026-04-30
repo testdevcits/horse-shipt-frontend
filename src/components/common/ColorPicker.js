@@ -70,7 +70,7 @@ const ColorPicker = ({ value = "", onChange, label = "Colour", error }) => {
       setCustomColor("");
       onChange?.(selected);
     } else {
-      onChange?.(""); // wait for custom input
+      onChange?.(""); 
     }
   };
 

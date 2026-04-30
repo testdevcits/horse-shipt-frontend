@@ -45,7 +45,7 @@ export const ShipperLocationProvider = ({ children }) => {
         "Fetch Location Error:",
         err?.response?.data || err.message
       );
-      // silent (no toast)
+ 
     }
   }, [token]);
 
@@ -65,7 +65,7 @@ export const ShipperLocationProvider = ({ children }) => {
 
       setLocation(res?.data?.data || locationData);
 
-      // showToast("Location updated successfully", "success");
+      
 
       return { success: true };
     } catch (err) {

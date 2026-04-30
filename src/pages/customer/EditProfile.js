@@ -15,9 +15,8 @@ const EditProfile = () => {
   };
 
   const handleSave = () => {
-    // Here you can call API to save changes
-    console.log("Updated Profile:", formData);
-    navigate(-1); // go back to previous page (profile tab)
+   
+    navigate(-1); 
   };
 
   return (

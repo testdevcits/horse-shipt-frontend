@@ -5,7 +5,7 @@ import { HiChevronUp, HiChevronDown } from "react-icons/hi";
 const CustomerReviews = () => {
   const [expandedReview, setExpandedReview] = useState(null);
 
-  // Sample reviews data - replace with actual API data
+  
   const reviews = [
     {
       id: 1,

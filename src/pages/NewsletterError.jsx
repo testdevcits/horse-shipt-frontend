@@ -18,7 +18,6 @@ const NewsletterError = () => {
       setErrorMessage("Server error, please try again.");
     else setErrorMessage("Something went wrong.");
 
-    // Auto redirect after 5 sec
     const timer = setTimeout(() => navigate("/"), 5000);
 
     return () => clearTimeout(timer);

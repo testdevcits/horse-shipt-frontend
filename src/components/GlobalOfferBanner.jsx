@@ -3,10 +3,10 @@ import { useAuth } from "../contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 
 const GlobalOfferBanner = () => {
-  const { user } = useAuth(); // ya token jo bhi tum use karte ho
+  const { user } = useAuth(); 
   const location = useLocation();
 
-  // Auth pages par banner mat dikhao
+
   const hideOnRoutes = ["/login", "/signup", "/oauth-success"];
 
   if (!user || hideOnRoutes.includes(location.pathname)) {

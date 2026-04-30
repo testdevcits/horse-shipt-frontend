@@ -153,8 +153,8 @@ export const ProfileProvider = ({ children }) => {
         loading,
         error,
         fetchProfile,
-        updateProfileDetails, // only text
-        updateProfileImage, // only image
+        updateProfileDetails, 
+        updateProfileImage, 
       }}
     >
       {children}

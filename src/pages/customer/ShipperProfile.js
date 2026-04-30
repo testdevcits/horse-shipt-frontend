@@ -53,7 +53,6 @@ const ShipperProfile = () => {
     return stars;
   };
 
-  // Pagination
   const reviews = profile.reviews || [];
   const indexOfLast = currentPage * reviewsPerPage;
   const indexOfFirst = indexOfLast - reviewsPerPage;

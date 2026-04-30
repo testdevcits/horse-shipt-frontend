@@ -8,7 +8,7 @@ const CustomCalendar = ({
   unavailableDates = [],
   onSelectDates = () => {},
   initialSelected = [],
-  minDate = null, // NEW: dates before this are disabled
+  minDate = null, 
 }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const [selectedDates, setSelectedDates] = useState(initialSelected);
@@ -36,6 +36,7 @@ const CustomCalendar = ({
     setSelectedDates(updated);
     onSelectDates(updated);
   };
+
 
   return (
     <div

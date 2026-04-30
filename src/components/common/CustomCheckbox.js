@@ -1,4 +1,4 @@
-// CustomRadio.js
+
 import React from "react";
 
 const CustomRadio = ({ label, name, value, selectedValue, onChange }) => {

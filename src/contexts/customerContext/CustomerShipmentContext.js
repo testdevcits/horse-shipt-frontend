@@ -245,7 +245,7 @@ export const CustomerShipmentProvider = ({ children }) => {
 
     // CRITICAL: Only fetch if not already fetched
     if (horsesFetched) {
-      console.log("Horses already fetched, returning cached list");
+  
       return myHorses;
     }
 
@@ -253,14 +253,14 @@ export const CustomerShipmentProvider = ({ children }) => {
     setHorseError(null);
 
     try {
-      console.log("Fetching horses from API...");
+     
       const res = await axios.get(`${API_BASE_URL}/customer/horses`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.data.success) {
         const horsesList = res.data.data?.horses || res.data.horses || [];
-        console.log("Horses fetched successfully:", horsesList.length);
+     
         setMyHorses(horsesList);
         setHorsesFetched(true); // Mark as fetched
         setHorseError(null);
@@ -294,14 +294,14 @@ export const CustomerShipmentProvider = ({ children }) => {
     setHorseError(null);
 
     try {
-      console.log("Force refreshing horses...");
+    
       const res = await axios.get(`${API_BASE_URL}/customer/horses`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.data.success) {
         const horsesList = res.data.data?.horses || res.data.horses || [];
-        console.log("Horses refreshed successfully:", horsesList.length);
+       
         setMyHorses(horsesList);
         setHorseError(null);
         return horsesList;
@@ -324,7 +324,7 @@ export const CustomerShipmentProvider = ({ children }) => {
   // CREATE HORSE
   // =====================================================
   const createHorse = async (horseData) => {
-    console.log("createHorse called with:", horseData);
+    
 
     if (!token) {
       const errorMsg = "No authorization token";
@@ -353,12 +353,12 @@ export const CustomerShipmentProvider = ({ children }) => {
             dataToSend.append(key, horseData[key]);
           }
         });
-        console.log("FormData prepared for horse with files");
+     
       } else {
         // Send as JSON
         dataToSend = horseData;
         axiosConfig.headers["Content-Type"] = "application/json";
-        console.log("JSON data prepared for horse");
+       
       }
 
       const res = await axios.post(
@@ -367,11 +367,10 @@ export const CustomerShipmentProvider = ({ children }) => {
         axiosConfig
       );
 
-      console.log("Horse creation response:", res.data);
 
       if (res?.data?.success && res?.data?.horse) {
         const newHorse = res.data.horse;
-        console.log("Horse created successfully:", newHorse);
+    
 
         // Add to state - only context manages this
         setMyHorses((prev) => [newHorse, ...prev]);
@@ -402,7 +401,7 @@ export const CustomerShipmentProvider = ({ children }) => {
   // UPDATE HORSE
   // =====================================================
   const updateHorse = async (horseId, horseData) => {
-    console.log("updateHorse called with:", horseId, horseData);
+
 
     if (!token || !horseId) {
       const errorMsg = "Missing token or horse ID";
@@ -440,11 +439,11 @@ export const CustomerShipmentProvider = ({ children }) => {
         axiosConfig
       );
 
-      console.log("Horse update response:", res.data);
+    
 
       if (res?.data?.success && res?.data?.horse) {
         const updatedHorse = res.data.horse;
-        console.log("Horse updated successfully:", updatedHorse);
+      
 
         // Update in state
         setMyHorses((prev) =>
@@ -477,7 +476,7 @@ export const CustomerShipmentProvider = ({ children }) => {
   // DELETE HORSE
   // =====================================================
   const deleteHorse = async (horseId) => {
-    console.log("deleteHorse called with:", horseId);
+
 
     if (!token || !horseId) {
       const errorMsg = "Missing token or horse ID";
@@ -497,10 +496,10 @@ export const CustomerShipmentProvider = ({ children }) => {
         }
       );
 
-      console.log("Horse delete response:", res.data);
+   
 
       if (res?.data?.success) {
-        console.log("Horse deleted successfully");
+       
         // Remove from state
         setMyHorses((prev) => prev.filter((h) => h._id !== horseId));
         setHorseError(null);

@@ -66,7 +66,7 @@ const CustomerShipperReviewPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {Array.isArray(reviewsArray) && reviewsArray.length > 0 ? (
           reviewsArray.map((review) => {
-            const customer = review.customerId; // Use customerId from API
+            const customer = review.customerId; 
 
             return (
               <ShipperReviewCard
@@ -78,7 +78,7 @@ const CustomerShipperReviewPage = () => {
                     customer?.profileImage?.url || "/default-avatar.png",
                   rating: review.rating || 0,
                   reviewText: review.reviewText || "No review provided",
-                  region: "Unknown", // API doesn’t provide region
+                  region: "Unknown", 
                 }}
               />
             );

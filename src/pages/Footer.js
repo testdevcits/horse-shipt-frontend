@@ -10,7 +10,7 @@ import {
   FaLinkedin,
   FaYoutube,
 } from "react-icons/fa";
-import { useNewsletter } from "../contexts/NewsletterContext"; // <-- NEW
+import { useNewsletter } from "../contexts/NewsletterContext"; 
 
 const Footer = () => {
   const [subscribeEmail, setSubscribeEmail] = useState("");

@@ -568,7 +568,7 @@ const ShipmentRow = ({ s, onView }) => {
     ? "hover:border-red-300"
     : "hover:border-[#BF9B53] border-2";
 
-  // ✅ First horse image from the shipment
+
   const firstHorseImage = s.horses?.find((h) => h.photo?.url)?.photo?.url;
 
   return (

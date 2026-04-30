@@ -24,7 +24,7 @@ const TopRatedShippers = () => {
   // ===================== STATE =====================
   const [search, setSearch] = useState("");
   const [minRating, setMinRating] = useState(0);
-  const [sortBy, setSortBy] = useState("rating"); // rating, name, reviews
+  const [sortBy, setSortBy] = useState("rating"); 
   const [showFilters, setShowFilters] = useState(false);
   const [transportType, setTransportType] = useState("");
   const [experienceLevel, setExperienceLevel] = useState("");

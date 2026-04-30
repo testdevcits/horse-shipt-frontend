@@ -50,6 +50,7 @@ import { SubscriptionProvider } from "./contexts/shipperContext/SubscriptionCont
 import { TrackingProvider } from "./contexts/common/TrackingContext";
 import { CustomerMatchingProvider } from "./contexts/customerContext/CustomerMatchingContext";
 import { ShipperInvitationProvider } from "./contexts/shipperContext/ShipperInvitationContext";
+import { CustomerBreedProvider } from "./contexts/customerContext/CustomerBreedContext";
 
 // ------------------- Stripe Setup -------------------
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
@@ -58,6 +59,7 @@ const GOOGLE_LIBRARIES = ["places"];
 function App() {
   return (
     <Router>
+
       <LoadScript
         googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
         libraries={GOOGLE_LIBRARIES}
@@ -96,7 +98,11 @@ function App() {
                                                                     <DeliveredShipmentProvider>
                                                                       <NewsletterProvider>
                                                                         <TrackingProvider>
-                                                                          <AppRoutes />
+                                                                          <CustomerBreedProvider>
+
+                                                                            <AppRoutes />
+                                                                          </CustomerBreedProvider>
+
                                                                         </TrackingProvider>
                                                                       </NewsletterProvider>
                                                                     </DeliveredShipmentProvider>

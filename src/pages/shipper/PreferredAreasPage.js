@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Search } from "lucide-react";
 import Toast from "../../components/common/Toast";
 import { useShipperPreferredAreas } from "../../contexts/ShipperPreferredAreaContext";
-import citiesData from "../../data/cities"; //  import your dataset
+import citiesData from "../../data/cities"; 
 
 const PreferredAreas = () => {
   const { addPreferredArea, loading } = useShipperPreferredAreas();
@@ -37,7 +37,7 @@ const PreferredAreas = () => {
           c.country?.toLowerCase() === country &&
           c.city.toLowerCase().includes(value.toLowerCase())
       )
-      .slice(0, 15); // limit to 15 results
+      .slice(0, 15); 
     setFilteredCities(matches);
   };
 

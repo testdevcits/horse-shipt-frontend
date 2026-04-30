@@ -54,7 +54,7 @@ const SecondSection = () => {
     scrollEl.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", handleScroll);
 
-    handleScroll(); // Initial calculation
+    handleScroll(); 
 
     return () => {
       scrollEl.removeEventListener("scroll", handleScroll);

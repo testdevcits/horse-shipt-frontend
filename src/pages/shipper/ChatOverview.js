@@ -11,7 +11,7 @@ const ChatOverview = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
 
-  const customerIdFromQuery = searchParams.get("customerId"); // GET CUSTOMER ID FROM QUERY
+  const customerIdFromQuery = searchParams.get("customerId"); 
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [roomId, setRoomId] = useState(null);

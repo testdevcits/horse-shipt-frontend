@@ -66,12 +66,12 @@ export const NewsletterProvider = ({ children }) => {
   // ------------------- Verify Function -------------------
   const verify = async (token) => {
     try {
-      console.log("[DEBUG] Calling verify API with token:", token);
+    
       const { data } = await axios.get(
         `${API_BASE_URL}/horse-newsletter/verify?token=${token}`
       );
-      console.log("[DEBUG] Verify API response:", data);
-      return data; // expects { success: true/false, message: "..." }
+  
+      return data; 
     } catch (error) {
       console.error(
         "[ERROR] Verify API:",

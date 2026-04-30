@@ -26,7 +26,7 @@ const CustomerShipmentCard = ({ shipment }) => {
     navigate(`/customer/my-shipments?${params.toString()}`);
   };
 
-  // ✅ UPDATED: handle range dates safely
+  //  UPDATED: handle range dates safely
   const formatDate = (date) => {
     if (!date) return "Pending";
     return new Date(date).toLocaleDateString("en-US", {

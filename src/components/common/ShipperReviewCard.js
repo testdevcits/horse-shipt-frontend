@@ -31,7 +31,7 @@ const ShipperReviewCard = ({ shipper }) => {
   const handleFavorite = (e) => {
     e.stopPropagation();
     setIsFavorited(!isFavorited);
-    // TODO: Call API to save favorite
+   
   };
 
   /**

@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { HiPencil } from "react-icons/hi";
 import { useAuth } from "../../contexts/AuthContext";
 import { useShipperProfile } from "../../contexts/ShipperProfileContext";
-import logo from "../../assets/images/profileImage.png"; // default fallback
+import logo from "../../assets/images/profileImage.png"; 
 
 const CommentBanner = () => {
   const { user } = useAuth();
@@ -13,7 +13,7 @@ const CommentBanner = () => {
   const profileInputRef = useRef(null);
 
   const bannerImage = profile?.bannerImage || "/default-banner.jpg";
-  const profileImage = profile?.profileImage || logo; // fallback to logo
+  const profileImage = profile?.profileImage || logo; 
 
   const handleBannerChange = async (e) => {
     const file = e.target.files[0];
@@ -73,7 +73,7 @@ const CommentBanner = () => {
                 loading ? "opacity-50" : ""
               }`}
               onError={(e) => {
-                e.target.src = logo; // fallback to logo if image URL is broken
+                e.target.src = logo; 
               }}
             />
             <button

@@ -8,7 +8,6 @@ import { LiaHorseHeadSolid } from "react-icons/lia";
 
 import { useAuth } from "../../contexts/AuthContext";
 
-// COMMON ICONS
 import {
   CustomerDashboardIcon,
   CustomerOrdersIcon,

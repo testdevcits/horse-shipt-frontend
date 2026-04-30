@@ -146,7 +146,7 @@ const Sidebar = ({
     // Position tooltip to the right of sidebar
     setTooltipPos({
       top: rect.top,
-      left: rect.left + rect.width + 12, // 12px gap from sidebar
+      left: rect.left + rect.width + 12, 
     });
 
     // Store ref

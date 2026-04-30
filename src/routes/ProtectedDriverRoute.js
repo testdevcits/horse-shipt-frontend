@@ -5,7 +5,7 @@ import { useDriverAuth } from "../contexts/DriverAuthContext";
 const ProtectedDriverRoute = ({ children, redirectPath = "/driver/login" }) => {
   const { driver, token, loading } = useDriverAuth();
 
-  // While auth state is loading, show a loader
+
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen text-gray-600">

@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", userData.token);
       localStorage.setItem("role", userData.role);
 
-      // 🔹 Socket connect after login
+      //  Socket connect after login
       socket.auth = { userId: userData._id, role: userData.role };
       socket.connect();
 

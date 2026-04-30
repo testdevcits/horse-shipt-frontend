@@ -1,6 +1,5 @@
 import React from "react";
-import logo from "../../assets/images/defultlogo.png"; // <-- replace with your logo path
-
+import logo from "../../assets/images/defultlogo.png"; 
 const ModalOfferPublished = ({ isOpen, onViewShipments, onAnotherAction }) => {
   if (!isOpen) return null;
 

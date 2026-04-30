@@ -7,7 +7,7 @@ const TrialAlertBanner = ({ hideButton }) => {
   const [timeLeft, setTimeLeft] = useState(null);
 
   const isTrialing = subscription && subscription.status === "trialing";
-  // FIX: changed < 1 to <= 1 so remainingTrialDays: 1 also shows the banner
+
   const lessThanOneDay = subscription && subscription.remainingTrialDays <= 1;
   const shouldShow = isTrialing && lessThanOneDay;
 

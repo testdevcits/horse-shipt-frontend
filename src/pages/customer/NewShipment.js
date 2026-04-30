@@ -87,7 +87,7 @@ const NewShipment = () => {
   const [showDocWarning, setShowDocWarning] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
 
-  // ✅ Track if myHorses have been applied once in create mode
+  //  Track if myHorses have been applied once in create mode
   const myHorsesApplied = useRef(false);
 
   /* ==========================================

@@ -15,7 +15,7 @@ const MyUpcomingShipments = () => {
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch shipments from API
+ 
   useEffect(() => {
     const fetchShipments = async () => {
       try {

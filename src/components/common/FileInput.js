@@ -1,4 +1,4 @@
-// /components/common/FileInput.jsx
+
 import React, { useRef, useState, useEffect } from "react";
 import Button from "./Button";
 import { FiUpload } from "react-icons/fi";

@@ -1,7 +1,7 @@
 import { FiHome, FiMessageSquare, FiTruck, FiUserCheck } from "react-icons/fi";
 import { LuFilePenLine } from "react-icons/lu";
 import { IoSettingsOutline } from "react-icons/io5";
-import { FaPlus } from "react-icons/fa"; // New shipment icon
+import { FaPlus } from "react-icons/fa"; 
 import { FaBoxOpen, FaTachometerAlt, FaCog } from "react-icons/fa";
 
 // Default color & size

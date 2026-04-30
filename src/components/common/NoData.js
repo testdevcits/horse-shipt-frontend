@@ -1,4 +1,4 @@
-// src/components/common/NoData.jsx
+
 import React from "react";
 import comingSoonImg from "../../assets/images/defultlogo.png";
 
