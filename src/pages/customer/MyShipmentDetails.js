@@ -206,7 +206,7 @@ const MyShipmentDetails = () => {
       {activeTab === "overview" && shipment && (
         <div className="flex flex-col gap-6 font-montserrat text-sm">
           {/* ---------------- TOP CARD ---------------- */}
-          <div className="bg-white border border-[#BF9B53] rounded-[10px]">
+          <div className="bg-white border border-[#BF9B53] rounded-sm">
             <div className="flex flex-col md:flex-row gap-4 p-4 md:gap-8">
               <div className="order-1 md:order-2 w-full md:w-[60%]">
                 <img
@@ -270,7 +270,7 @@ const MyShipmentDetails = () => {
                     <div className="flex gap-3 mt-4">
                       <button
                         onClick={handleEditMetadata}
-                        className="px-6 py-3 bg-gray-700 text-white rounded-lg font-medium hover:bg-[#BF9B53] transition"
+                        className="px-6 py-3 bg-gray-700 text-white rounded-sm font-medium hover:bg-[#BF9B53] transition"
                       >
                         Edit Documents & Notes
                       </button>
@@ -281,10 +281,10 @@ const MyShipmentDetails = () => {
           </div>
 
           {/* ---------------- DETAILS ---------------- */}
-          <div className="border border-[#BF9B53] rounded-[10px] p-4">
+          <div className="border border-[#BF9B53] rounded-sm p-4">
             <div
               onClick={() => setOpenDetails(!openDetails)}
-              className="flex items-center justify-between h-[44px] p-[14px] bg-[#F2EBDD] rounded-[8px] cursor-pointer"
+              className="flex items-center justify-between h-[44px] p-[14px] bg-[#F2EBDD] rounded-sm cursor-pointer"
             >
               <h2 className="text-[16px] font-medium text-[#333333]">
                 Shipment Details

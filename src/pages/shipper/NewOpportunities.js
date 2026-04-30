@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { HiSearch } from "react-icons/hi";
 import { CiMap } from "react-icons/ci";
 import { IoList } from "react-icons/io5";
 import { MdFilterList } from "react-icons/md";
 
 import { useShipperShipment } from "../../contexts/shipperContext/ShipperShipmentContext";
+import { useShipperInvitations } from "../../contexts/shipperContext/ShipperInvitationContext";
 import ShipmentCard from "./ShipmentCard";
 import ShipmentMap from "./ShipmentMap";
 import PageLoader from "../../components/common/PageLoader";
@@ -29,6 +30,11 @@ const NewOpportunities = () => {
     getAvailableShipmentsForMap,
     loading,
   } = useShipperShipment();
+  const {
+    invitations,
+    fetchInvitations,
+    loading: invitationLoading,
+  } = useShipperInvitations();
 
   const fetchedOnce = useRef(false);
   const lastFiltersRef = useRef("");
@@ -40,14 +46,58 @@ const NewOpportunities = () => {
   }, []);
 
   useEffect(() => {
+    fetchInvitations();
+  }, [fetchInvitations]);
+
+  useEffect(() => {
     if (!location || fetchedOnce.current) return;
     getAvailableShipments({ lat: location.lat, lng: location.lng });
     getAvailableShipmentsForMap(1, 5);
     fetchedOnce.current = true;
   }, [location, getAvailableShipments, getAvailableShipmentsForMap]);
 
-  const filteredShipments = (shipments || []).filter((s) =>
-    `${s.pickupLocation} ${s.deliveryLocation}`
+  const invitedShipments = useMemo(
+    () =>
+      (invitations || [])
+        .filter((invite) => invite?.status === "pending")
+        .map((invite) => {
+          if (invite.shipment && typeof invite.shipment === "object") {
+            return {
+              ...invite.shipment,
+              __invitation: invite,
+              __isInvitedShipment: true,
+            };
+          }
+
+          return {
+            _id: invite.shipment,
+            shipmentCode: invite.shipmentCode,
+            pickupLocation: invite.pickupLocation,
+            deliveryLocation: invite.deliveryLocation,
+            status: "open_for_offers",
+            horses: [],
+            __invitation: invite,
+            __isInvitedShipment: true,
+          };
+        })
+        .filter((shipment) => shipment?._id),
+    [invitations]
+  );
+
+  const combinedShipments = useMemo(() => {
+    const seen = new Set();
+    return [...invitedShipments, ...(shipments || [])].filter((shipment) => {
+      const id = shipment?._id?.toString();
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [invitedShipments, shipments]);
+
+  const filteredShipments = combinedShipments.filter((s) =>
+    `${s.pickupLocation || ""} ${s.deliveryLocation || ""} ${
+      s.shipmentCode || ""
+    }`
       .toLowerCase()
       .includes(search.toLowerCase())
   );
@@ -82,7 +132,8 @@ const NewOpportunities = () => {
   };
 
   const hasActiveFilters = Object.values(filters).some((v) => v !== "");
-  const noData = !loading && filteredShipments.length === 0;
+  const isLoading = loading || invitationLoading;
+  const noData = !isLoading && filteredShipments.length === 0;
 
   /* ── shared input class ─────────────────────────────────────── */
   const inputCls =
@@ -283,13 +334,23 @@ const NewOpportunities = () => {
       )}
 
       {/* ── RESULTS COUNT ── */}
-      {!loading && !noData && (
+      {!isLoading && !noData && (
         <p className="text-xs sm:text-sm text-gray-500 font-medium -mt-1">
           Showing{" "}
           <span className="font-bold text-dark">
             {filteredShipments.length}
           </span>{" "}
           shipment{filteredShipments.length !== 1 ? "s" : ""}
+          {invitedShipments.length > 0 && (
+            <>
+              {" "}
+              including{" "}
+              <span className="font-bold text-[#BF9B53]">
+                {invitedShipments.length}
+              </span>{" "}
+              invite{invitedShipments.length !== 1 ? "s" : ""}
+            </>
+          )}
           {search && (
             <>
               {" "}
@@ -302,14 +363,14 @@ const NewOpportunities = () => {
       {/* ── CONTENT ── */}
       <div className="w-full min-h-[300px]">
         {/* Loading */}
-        {loading && (
+        {isLoading && (
           <div className="flex items-center justify-center py-16">
             <PageLoader text="Loading opportunities..." />
           </div>
         )}
 
         {/* Empty */}
-        {!loading && noData && (
+        {!isLoading && noData && (
           <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
             <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
               <svg
@@ -344,16 +405,20 @@ const NewOpportunities = () => {
         )}
 
         {/* List View */}
-        {!loading && !noData && activeTab === "list" && (
+        {!isLoading && !noData && activeTab === "list" && (
           <div className="flex flex-col gap-3 sm:gap-4">
             {filteredShipments.map((shipment) => (
-              <ShipmentCard key={shipment._id} shipment={shipment} />
+              <ShipmentCard
+                key={shipment._id}
+                shipment={shipment}
+                invitation={shipment.__invitation}
+              />
             ))}
           </div>
         )}
 
         {/* Map View */}
-        {!loading && !noData && activeTab === "map" && (
+        {!isLoading && !noData && activeTab === "map" && (
           <div className="rounded-xl overflow-hidden border border-gray-200">
             <ShipmentMap shipments={mapShipments.slice(0, 5)} />
           </div>
