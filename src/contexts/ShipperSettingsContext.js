@@ -29,6 +29,7 @@ export const ShipperSettingsProvider = ({ children }) => {
       quote: { email: false, sms: false },
       opportunity: { email: false, sms: false },
       message: { email: false, sms: false },
+      question: { email: false, sms: false },
       review: { email: false, sms: false },
       shipment: { email: false, sms: false },
     },

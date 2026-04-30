@@ -11,6 +11,7 @@ import {
   MdOutlineLocalShipping,
 } from "react-icons/md";
 import { RiChatQuoteLine } from "react-icons/ri";
+import { BsQuestionCircle } from "react-icons/bs";
 import { IoMdStarHalf } from "react-icons/io";
 
 const notificationsList = [
@@ -31,6 +32,12 @@ const notificationsList = [
     label: "New Message",
     description: "Get notified when you receive a new message",
     icon: <RiMessage2Line />,
+  },
+  {
+    id: "question",
+    label: "Shipment Questions",
+    description: "Get notified when a shipper asks a shipment question",
+    icon: <BsQuestionCircle />,
   },
   {
     id: "newReview",

@@ -63,6 +63,27 @@ const NOTIFICATION_ITEMS = [
     ),
   },
   {
+    id: "question",
+    label: "Shipment questions",
+    description: "When a customer answers your shipment question",
+    icon: (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.1 9a3 3 0 1 1 5.8 1c-.6 1-1.7 1.4-2.3 2.2-.3.4-.4.8-.4 1.3" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    ),
+  },
+  {
     id: "review",
     label: "Review received",
     description: "When someone leaves a review on your profile",
@@ -127,18 +148,23 @@ const ShipperNotifications = () => {
     return <PageLoader text="Loading settings..." fullScreen={false} />;
   }
 
-  const notifications = settings?.notifications || {
+  const defaultNotifications = {
     quote: { email: false, sms: false },
     opportunity: { email: false, sms: false },
     message: { email: false, sms: false },
+    question: { email: false, sms: false },
     review: { email: false, sms: false },
     shipment: { email: false, sms: false },
+  };
+  const notifications = {
+    ...defaultNotifications,
+    ...(settings?.notifications || {}),
   };
 
   const toggleNotification = async (key, type) => {
     const updatedNotifications = {
       ...notifications,
-      [key]: { ...notifications[key], [type]: !notifications[key][type] },
+      [key]: { ...notifications[key], [type]: !notifications[key]?.[type] },
     };
     await updateSettings({ notifications: updatedNotifications });
   };
