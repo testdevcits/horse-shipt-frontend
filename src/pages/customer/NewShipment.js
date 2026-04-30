@@ -87,7 +87,6 @@ const NewShipment = () => {
   const [showDocWarning, setShowDocWarning] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
 
-  // ✅ Track if myHorses have been applied once in create mode
   const myHorsesApplied = useRef(false);
 
   /* ==========================================
@@ -140,7 +139,7 @@ const NewShipment = () => {
           setAdditionalInfo(data.additionalInfo || "");
           setRecipientEmail(data.recipientEmail || "");
 
-          // ✅ Only set the horses that belong to this shipment
+          // Only set the horses that belong to this shipment
           if (Array.isArray(data.horses) && data.horses.length > 0) {
             const processedHorses = data.horses.map((h) => ({
               registeredName: h.registeredName || "",
@@ -150,7 +149,8 @@ const NewShipment = () => {
               colour: h.colour || "",
               age: h.age?.toString() || "",
               sex: h.sex || "",
-              stallType: h.requestedStallSize || h.stallType || "",
+              stallType:
+                h.requestedStallSize || h.defaultStallSize || h.stallType || "",
               size: h.size || "",
               photo: h.photo?.url || null,
               cogins: h.documents?.coggins?.url || null,
@@ -192,7 +192,7 @@ const NewShipment = () => {
 
   /* ==========================================
      EFFECT: Populate horses from backend ONCE (Create Mode Only)
-     ✅ FIX: Use a ref to ensure myHorses is only applied once,
+     FIX: Use a ref to ensure myHorses is only applied once,
      so user changes to numberOfHorses are not overwritten.
      ========================================== */
   useEffect(() => {
@@ -208,7 +208,7 @@ const NewShipment = () => {
         stallType: h.stallType || h.defaultStallSize || "",
       }));
       setHorses(populatedHorses);
-      // ✅ Do NOT auto-set numberOfHorses here — let user control it
+      // Do NOT auto-set numberOfHorses here — let user control it
       // Default to 1 so only the first horse shows until user increases count
       setNumberOfHorses(1);
       myHorsesApplied.current = true;
@@ -284,7 +284,11 @@ const NewShipment = () => {
   };
 
   /* ==========================================
-     VALIDATION: Step by step with delivery date check
+     VALIDATION: Step by step with proper date checks
+     FIXED: 
+     - Pickup start/end can be same day
+     - Delivery start/end can be same day
+     - Delivery must be AFTER pickup end date (not same day)
      ========================================== */
   const validateStep = () => {
     const stepErrors = {};
@@ -302,11 +306,8 @@ const NewShipment = () => {
       if (!pickupEndDate || pickupEndDate.trim() === "") {
         stepErrors.pickupEndDate = "Pickup end date is required";
       }
-      if (
-        pickupStartDate &&
-        pickupEndDate &&
-        new Date(pickupEndDate) < new Date(pickupStartDate)
-      ) {
+      // Allow same day for pickup
+      if (pickupStartDate && pickupEndDate && pickupEndDate < pickupStartDate) {
         stepErrors.pickupEndDate = "End date cannot be before start date";
       }
     } else if (currentStep === 2) {
@@ -319,23 +320,27 @@ const NewShipment = () => {
       if (!deliveryEndDate || deliveryEndDate.trim() === "") {
         stepErrors.deliveryEndDate = "Delivery end date is required";
       }
+      // Allow same day for delivery
       if (
         deliveryStartDate &&
         deliveryEndDate &&
-        new Date(deliveryEndDate) < new Date(deliveryStartDate)
+        deliveryEndDate < deliveryStartDate
       ) {
         stepErrors.deliveryEndDate = "End date cannot be before start date";
       }
-      if (pickupStartDate && deliveryStartDate) {
-        if (new Date(deliveryStartDate) < new Date(pickupStartDate)) {
+
+      // CRITICAL: Delivery must be AFTER pickup end date (not same day)
+      if (pickupEndDate && deliveryStartDate) {
+        if (deliveryStartDate <= pickupEndDate) {
           stepErrors.deliveryStartDate =
-            "Delivery date cannot be before pickup date";
+            "Delivery must start AFTER pickup end date";
         }
       }
+
       if (pickupEndDate && deliveryEndDate) {
-        if (new Date(deliveryEndDate) < new Date(pickupEndDate)) {
+        if (deliveryEndDate <= pickupEndDate) {
           stepErrors.deliveryEndDate =
-            "Delivery end date cannot be before pickup end date";
+            "Delivery end date must be after pickup end date";
         }
       }
     } else if (currentStep === 3) {
@@ -442,7 +447,7 @@ const NewShipment = () => {
       formData.append("additionalInfo", additionalInfo);
       formData.append("recipientEmail", recipientEmail);
 
-      // ✅ Only send horses up to numberOfHorses
+      // Only send horses up to numberOfHorses
       horses.slice(0, numberOfHorses).forEach((h, idx) => {
         formData.append(
           `horses[${idx}][registeredName]`,
@@ -489,7 +494,7 @@ const NewShipment = () => {
         3000
       );
     } finally {
-      setIsLoading(true);
+      setIsLoading(false);
     }
   };
 
@@ -609,9 +614,7 @@ const NewShipment = () => {
      ========================================== */
   return (
     <div className="w-full flex flex-col items-center relative py-6">
-      {isLoading && (
-        <PageLoader text="Processing shipment..." fullScreen={true} />
-      )}
+      {isLoading && <PageLoader text="Processing shipment..." />}
 
       {/* Stepper Progress */}
       <div className="w-full max-w-5xl flex gap-2 relative mb-10 px-2 items-center">
@@ -672,7 +675,7 @@ const NewShipment = () => {
         <button
           onClick={handlePrevious}
           disabled={currentStep === 1}
-          className={`px-6 py-2 rounded-lg font-montserrat border transition-all ${
+          className={`px-6 py-2 rounded-sm font-montserrat border transition-all ${
             currentStep === 1
               ? "bg-gray-200 text-gray-500 cursor-not-allowed"
               : "bg-white text-gray-500 border-gray-300 hover:bg-[#BF9B53] hover:text-white"
@@ -684,7 +687,7 @@ const NewShipment = () => {
           onClick={() =>
             currentStep === steps.length ? handleFinish() : handleNext()
           }
-          className="px-6 py-2 rounded-lg font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className="px-6 py-2 rounded-sm font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           disabled={isLoading}
         >
           {currentStep === steps.length

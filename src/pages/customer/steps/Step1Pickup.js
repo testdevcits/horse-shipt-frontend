@@ -34,7 +34,6 @@ const Step1Pickup = ({
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // Always force "between"
   useEffect(() => {
     if (!timeOptionInitialized.current) {
       setPickupTimeOption("between");
@@ -186,8 +185,8 @@ const Step1Pickup = ({
         </div>
 
         <p className="text-xs text-gray-500 mt-3">
-          If pickup is for a single day, select the same date in both fields.
-          Only future dates can be selected.
+          Both start and end date can be the same day. Only future dates can be
+          selected.
         </p>
       </div>
 

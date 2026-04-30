@@ -322,7 +322,7 @@ const Profile = () => {
 
                           {errors.mobile && touched.mobile && (
                             <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                              <span>⚠️</span> {errors.mobile}
+                              {errors.mobile}
                             </p>
                           )}
                         </div>
@@ -367,7 +367,7 @@ const Profile = () => {
                           />
                           {errors.description && touched.description && (
                             <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                              <span>⚠️</span> {errors.description}
+                              {errors.description}
                             </p>
                           )}
                           <p className="text-xs text-gray-500 mt-1">

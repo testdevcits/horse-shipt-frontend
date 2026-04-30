@@ -8,7 +8,7 @@ const CustomCalendar = ({
   unavailableDates = [],
   onSelectDates = () => {},
   initialSelected = [],
-  minDate = null, // NEW: dates before this are disabled
+  minDate = null, // earliest selectable date
 }) => {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const [selectedDates, setSelectedDates] = useState(initialSelected);
@@ -23,9 +23,11 @@ const CustomCalendar = ({
 
   const handleDateClick = (date) => {
     const formatted = date.format("YYYY-MM-DD");
+
+    // Block unavailable dates
     if (unavailableDates.includes(formatted)) return;
-    // Also block if before minDate
-    if (minDate && formatted <= minDate) return;
+
+    if (minDate && formatted < minDate) return;
 
     let updated;
     if (selectedDates.includes(formatted)) {
@@ -81,9 +83,10 @@ const CustomCalendar = ({
           const date = currentMonth.date(i + 1);
           const formatted = date.format("YYYY-MM-DD");
           const isSelected = selectedDates.includes(formatted);
+
           const isUnavailable =
             unavailableDates.includes(formatted) ||
-            (minDate ? formatted <= minDate : false); // NEW: block before/on minDate
+            (minDate ? formatted < minDate : false);
 
           return (
             <button
@@ -93,7 +96,7 @@ const CustomCalendar = ({
                 "w-[33.7px] h-[35px] flex items-center justify-center text-sm transition-all duration-200 rounded",
                 {
                   [selectedColor]: isSelected,
-                  "bg-danger text-white cursor-not-allowed":
+                  "bg-red-200 text-red-700 cursor-not-allowed":
                     isUnavailable && !isSelected,
                   "hover:bg-system-primary/20 cursor-pointer":
                     !isSelected && !isUnavailable,

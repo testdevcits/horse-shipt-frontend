@@ -292,14 +292,14 @@ const ShipmentDrawer = ({
           <StatusChip status={shipment.status} />
           <button
             onClick={close}
-            className="w-8 h-8 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors shrink-0"
+            className="w-8 h-8 rounded-sm border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-500 hover:bg-gray-100  hover:text-[#BF9B53] transition-colors shrink-0"
           >
             ✕
           </button>
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 vehicle-scroll">
           {isCancelled && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-center gap-2">
               <span className="text-red-500">🚫</span>
@@ -315,27 +315,27 @@ const ShipmentDrawer = ({
           )}
 
           {/* Route */}
-          <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+          <div className="bg-gray-50 border border-gray-200 rounded-sm p-3">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
               Route
             </p>
             <div className="flex gap-3">
               <div className="flex flex-col items-center pt-1">
-                <span className="w-2 h-2 rounded-sm bg-green-500 ring-2 ring-white ring-offset-1 ring-offset-green-500 shrink-0" />
+                <span className="w-2 h-2 rounded-sm bg-[#BF9B53] ring-2 ring-white ring-offset-1 ring-offset-[#BF9B53] shrink-0" />
                 <div className="w-0.5 flex-1 min-h-4 my-0.5 border-l-2 border-dashed border-gray-300" />
-                <span className="w-2 h-2 rounded-sm bg-red-500 ring-2 ring-white ring-offset-1 ring-offset-red-500 shrink-0" />
+                <span className="w-2 h-2 rounded-sm bg-[#BF9B53] ring-2 ring-white ring-offset-1 ring-offset-[#BF9B53] shrink-0" />
               </div>
               <div className="flex-1">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                   Pickup
                 </p>
-                <p className="text-sm text-gray-700 leading-tight mb-2">
+                <p className="text-sm text-[#BF9B53] leading-tight mb-2">
                   {shipment.pickupLocation}
                 </p>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                   Delivery
                 </p>
-                <p className="text-sm text-gray-700 leading-tight">
+                <p className="text-sm text-[#BF9B53] leading-tight">
                   {shipment.deliveryLocation}
                 </p>
               </div>
@@ -448,7 +448,7 @@ const ShipmentDrawer = ({
         <div className="shrink-0 border-t border-gray-200 bg-white px-4 py-3 flex gap-2 flex-wrap">
           <button
             onClick={close}
-            className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-xs font-bold hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 rounded-sm border border-gray-300 bg-white text-gray-700 text-xs font-bold hover:border-[#BF9B53] transition-colors"
           >
             Close
           </button>
@@ -458,21 +458,21 @@ const ShipmentDrawer = ({
             <>
               <button
                 onClick={onEdit}
-                className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-gray-600 hover:bg-[#BF9B53] text-white transition-colors"
+                className="flex-1 py-2 rounded-sm text-xs font-bold flex items-center justify-center gap-1 bg-gray-600 hover:bg-[#BF9B53] text-white transition-colors"
               >
                 <FiEdit2 size={14} />
                 Edit
               </button>
               <button
                 onClick={onPublish}
-                className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-[#BF9B53] hover:bg-[#a8863e] text-white transition-colors"
+                className="flex-1 py-2 rounded-sm text-xs font-bold flex items-center justify-center gap-1 bg-[#BF9B53] hover:bg-[#a8863e] text-white transition-colors"
               >
                 <FiShare2 size={14} />
                 Publish
               </button>
               <button
                 onClick={onDelete}
-                className="px-4 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-red-100 hover:bg-red-200 text-red-700 transition-colors"
+                className="px-4 py-2 rounded-sm text-xs font-bold flex items-center justify-center gap-1 bg-red-100 hover:bg-red-200 text-red-700 transition-colors"
               >
                 <FiTrash2 size={14} />
               </button>
@@ -484,14 +484,14 @@ const ShipmentDrawer = ({
             <>
               <button
                 onClick={onTrack}
-                className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                className="flex-1 py-2 rounded-sm text-xs font-bold flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white transition-colors"
               >
                 <FiNavigation size={14} />
                 Track Shipment
               </button>
               <button
                 onClick={onNavigate}
-                className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-[#BF9B53] hover:bg-[#a8863e] text-white transition-colors"
+                className="flex-1 py-2 rounded-sm text-xs font-bold flex items-center justify-center gap-1 bg-[#BF9B53] hover:bg-[#a8863e] text-white transition-colors"
               >
                 <FiEye size={14} />
                 View Details
@@ -503,7 +503,7 @@ const ShipmentDrawer = ({
           {!isDraft && !isInProgress && (
             <button
               onClick={onNavigate}
-              className="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 bg-[#BF9B53] hover:bg-[#a8863e] text-white transition-colors"
+              className="flex-1 py-2 rounded-sm text-xs font-bold flex items-center justify-center gap-1 bg-[#BF9B53] hover:bg-[#a8863e] text-white transition-colors"
             >
               <FiEye size={14} />
               View Full Details
@@ -634,7 +634,7 @@ const ShipmentRow = ({ s, onView }) => {
         {/* Button */}
         <button
           onClick={() => onView(s)}
-          className="shrink-0 px-4 py-2 bg-[#BF9B53] hover:bg-[#A88A47] text-white font-bold text-xs rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+          className="shrink-0 px-4 py-2 bg-[#BF9B53] hover:bg-[#A88A47] text-white font-bold text-xs rounded-sm transition-all duration-200 shadow-sm hover:shadow-md"
         >
           View
         </button>
@@ -1027,7 +1027,7 @@ const AllShipments = () => {
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <div className="bg-[#BF9B53] rounded-lg px-3 py-2 text-center min-w-14">
+            <div className="bg-[#BF9B53] rounded-sm px-3 py-2 text-center min-w-14">
               <p className="text-lg font-bold text-white leading-none">
                 {shipments.length}
               </p>

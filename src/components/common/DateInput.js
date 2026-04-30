@@ -7,7 +7,7 @@ const DateInput = ({
   error,
   placeholder,
   disabled = false,
-  minDate = null, // NEW
+  minDate = null,
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [displayValue, setDisplayValue] = useState(value || "");
@@ -101,14 +101,7 @@ const DateInput = ({
   const handleInputClick = () => {
     if (disabled) return;
     if (!displayValue) {
-      // If minDate exists, default to day after minDate instead of today
-      const defaultDate = minDate
-        ? (() => {
-            const d = new Date(minDate + "T00:00:00");
-            d.setDate(d.getDate() + 1);
-            return d.toISOString().split("T")[0];
-          })()
-        : getTodayDate();
+      const defaultDate = minDate || getTodayDate();
       setDisplayValue(defaultDate);
       onChange(defaultDate);
     }
@@ -178,7 +171,7 @@ const DateInput = ({
             unavailableDates={unavailableDates}
             initialSelected={displayValue ? [displayValue] : []}
             onSelectDates={handleDateSelect}
-            minDate={minDate} // NEW: passed down
+            minDate={minDate}
           />
         </div>
       )}

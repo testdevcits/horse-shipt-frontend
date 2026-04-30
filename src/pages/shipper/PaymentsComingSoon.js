@@ -248,10 +248,7 @@ const PaymentsSettings = () => {
 
         {/* ── Error Banner ── */}
         {error && (
-          <div className="flex items-start gap-2.5 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-md px-4 py-3 mb-4">
-            <span className="flex-shrink-0 mt-0.5">
-              <AlertIcon />
-            </span>
+          <div className="flex items-start gap-2.5 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-sm px-4 py-3 mb-4">
             <span>{error}</span>
           </div>
         )}
@@ -387,7 +384,7 @@ const PaymentsSettings = () => {
             <span className="text-[#BF9B53] flex flex-shrink-0">
               <ShieldIcon />
             </span>
-            <p className="text-[11px] sm:text-[12px] text-[#a78542] m-0 leading-relaxed">
+            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#BF9B53]">
               All transactions are encrypted and securely processed through your
               payout account.
             </p>

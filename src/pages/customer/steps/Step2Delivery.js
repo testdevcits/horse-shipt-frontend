@@ -36,7 +36,6 @@ const Step2Delivery = ({
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // Always force "between"
   useEffect(() => {
     if (!timeOptionInitialized.current) {
       setDeliveryTimeOption("between");
@@ -95,8 +94,15 @@ const Step2Delivery = ({
     [setDeliveryEndDate, clearError, deliveryStartDate]
   );
 
-  // Delivery dates must be after pickup end date
-  const deliveryMinDate = pickupEndDate || null;
+  // minDate should be the day after pickupEndDate
+  const getDeliveryMinDate = () => {
+    if (!pickupEndDate) return null;
+    const nextDay = new Date(pickupEndDate + "T00:00:00");
+    nextDay.setDate(nextDay.getDate() + 1);
+    return nextDay.toISOString().split("T")[0];
+  };
+
+  const deliveryMinDate = getDeliveryMinDate();
 
   return (
     <div className="flex flex-col w-full gap-6 bg-white p-4 md:p-6 rounded-lg font-montserrat">
@@ -164,8 +170,9 @@ const Step2Delivery = ({
 
         {/* Hint when pickup end date is set */}
         {pickupEndDate && (
-          <p className="text-xs text-[#BF9B53] font-medium">
-            Delivery dates must be after pickup end date ({pickupEndDate}).
+          <p className="text-xs text-[#BF9B53] font-medium bg-[#BF9B53]/10 p-2 rounded">
+            Delivery must start AFTER pickup end date ({pickupEndDate}).
+            Earliest delivery start date is {deliveryMinDate}.
           </p>
         )}
 
@@ -199,8 +206,8 @@ const Step2Delivery = ({
         </div>
 
         <p className="text-xs text-gray-500 mt-3">
-          If delivery is for a single day, select the same date in both fields.
-          Only future dates can be selected.
+          Both start and end date can be the same day. Only future dates can be
+          selected.
         </p>
       </div>
 

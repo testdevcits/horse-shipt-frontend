@@ -79,9 +79,11 @@ const MyUpcomingShipments = () => {
           )}
         </div>
       ) : (
-        <p className="text-gray-500 font-montserrat text-center">
-          You have no shipments.
-        </p>
+        <div className="flex items-center justify-center min-h-[250px]  border border-dashed border-[#BF9B53] rounded-md">
+          <div className="text-center text-sm text-gray-600 w-fit">
+            You have no shipments.
+          </div>
+        </div>
       )}
     </div>
   );

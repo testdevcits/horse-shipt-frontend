@@ -23,7 +23,7 @@ const Modal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 animate-slide-fade-in">
       <div className="bg-white rounded-md shadow-2xl w-full max-w-xl p-6 font-montserrat animate-fade-in">
         {/* Header */}
         <div className="flex items-start gap-3 mb-2">
@@ -45,7 +45,7 @@ const Modal = ({
         <div className="flex justify-end">
           <button
             onClick={onClose}
-            className="bg-[#BF9B53] hover:bg-[#a7863e] text-white px-5 py-2 rounded-md text-sm font-semibold transition-all"
+            className="bg-[#BF9B53] hover:bg-[#a7863e] text-white px-5 py-2 rounded-sm text-sm font-semibold transition-all"
           >
             {buttonText}
           </button>

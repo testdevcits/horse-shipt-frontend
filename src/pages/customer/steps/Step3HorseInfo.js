@@ -82,7 +82,7 @@ const Step3HorseInfo = ({
   errors = {},
   isEditMode,
 }) => {
-  const [saving, setSaving] = useState(false);
+  const [savingHorseIdx, setSavingHorseIdx] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [unsavedHorseIdxs, setUnsavedHorseIdxs] = useState([]);
 
@@ -90,7 +90,6 @@ const Step3HorseInfo = ({
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // Scroll to highlighted horse when editing from review step
   useEffect(() => {
     if (editingHorseIdx !== null) {
       const horseElement = document.getElementById(`horse-${editingHorseIdx}`);
@@ -134,7 +133,7 @@ const Step3HorseInfo = ({
     }
 
     try {
-      setSaving(true);
+      setSavingHorseIdx(idx);
 
       let formData;
       const hasFile = Object.values(horse || {}).some(
@@ -163,10 +162,18 @@ const Step3HorseInfo = ({
         return false;
       }
 
+      // ✅ FIX 1: Properly map defaultStallSize to stallType
       handleHorseChange(idx, "selectedHorseId", savedHorse._id);
       Object.keys(defaultHorse).forEach((k) => {
-        if (savedHorse[k] !== undefined) {
-          handleHorseChange(idx, k, savedHorse[k]);
+        let value = savedHorse[k];
+
+        // Handle stallType/defaultStallSize mapping
+        if (k === "stallType") {
+          value = savedHorse.stallType || savedHorse.defaultStallSize || "";
+        }
+
+        if (value !== undefined && value !== null) {
+          handleHorseChange(idx, k, value);
         }
       });
 
@@ -183,16 +190,15 @@ const Step3HorseInfo = ({
       Toast.error(err?.message || "Failed to save horse");
       return false;
     } finally {
-      setSaving(false);
+      setSavingHorseIdx(null);
     }
   };
 
   const handleSaveSelectedHorses = () => {
+    // ✅ FIX 2: Only show unsaved horses (selectedHorseId === "new")
     const unsaved = horses
       .slice(0, numberOfHorses)
-      .map((h, i) =>
-        !h?.selectedHorseId || h?.selectedHorseId === "new" ? i : null
-      )
+      .map((h, i) => (h?.selectedHorseId === "new" ? i : null))
       .filter((i) => i !== null);
 
     if (unsaved.length === 0) {
@@ -216,9 +222,14 @@ const Step3HorseInfo = ({
       }))
     : [];
 
+  // ✅ FIX 3: Only show button if there are truly unsaved NEW horses
+  const hasNewUnsavedHorses =
+    displayHorses
+      .slice(0, numberOfHorses)
+      .some((h) => h?.selectedHorseId === "new") && !isEditMode;
+
   return (
     <div className="flex flex-col w-full gap-6 px-2 md:px-4 font-montserrat">
-      {/* Only show numberOfHorses selector in create mode */}
       {!isEditMode && (
         <div className="w-full max-w-full">
           <label className="block text-[#BF9B53] font-semibold mb-2">
@@ -246,7 +257,6 @@ const Step3HorseInfo = ({
             Horse {idx + 1}: {horse?.registeredName || "Unnamed"}
           </p>
 
-          {/* Only show "Select from My Horses" in create mode */}
           {!isEditMode && (
             <Select
               label="Select from My Horses"
@@ -263,9 +273,21 @@ const Step3HorseInfo = ({
                   (h) => h._id === selectedId
                 );
                 if (!selectedHorse) return;
-                Object.keys(defaultHorse).forEach((k) =>
-                  handleHorseChange(idx, k, selectedHorse[k] || "")
-                );
+
+                Object.keys(defaultHorse).forEach((k) => {
+                  let value = selectedHorse[k] || "";
+
+                  // ✅ FIX 4: Properly map defaultStallSize when selecting from my horses
+                  if (
+                    k === "stallType" &&
+                    !value &&
+                    selectedHorse.defaultStallSize
+                  ) {
+                    value = selectedHorse.defaultStallSize;
+                  }
+
+                  handleHorseChange(idx, k, value);
+                });
                 handleHorseChange(idx, "selectedHorseId", selectedHorse._id);
               }}
               options={[{ value: "new", label: "New Horse" }, ...horseOptions]}
@@ -445,24 +467,31 @@ const Step3HorseInfo = ({
         </div>
       ))}
 
-      {/* Only show Save Horses button in create mode */}
-      {!isEditMode && (
+      {/* ✅ FIX 3: Show button ONLY when there are new unsaved horses (selectedHorseId === "new") */}
+      {!isEditMode && hasNewUnsavedHorses && (
         <button
           onClick={handleSaveSelectedHorses}
-          disabled={saving}
-          className="w-full py-3 bg-[#BF9B53] text-white font-bold rounded-md hover:bg-[#a7863e] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          disabled={savingHorseIdx !== null}
+          className="w-full py-3 bg-[#BF9B53] text-white font-bold rounded-md hover:bg-[#a7863e] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
         >
-          {saving ? "Saving..." : "Save Horses"}
+          {savingHorseIdx !== null ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+              <span>Saving...</span>
+            </>
+          ) : (
+            "Save Horses"
+          )}
         </button>
       )}
 
-      {/* ===== UNSAVED HORSES MODAL ===== */}
+      {/* UNSAVED HORSES MODAL */}
       {modalOpen && unsavedHorseIdxs.length > 0 && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 p-4">
-          <div className="relative bg-white rounded-xl w-full max-w-md p-6 space-y-4 shadow-xl max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4">
+          <div className="relative bg-white rounded-sm w-full max-w-md p-6 space-y-4 shadow-xl max-h-[80vh] overflow-y-auto">
             <button
               onClick={() => setModalOpen(false)}
-              className="absolute top-3 right-3 text-black hover:text-gray-700 text-2xl font-bold z-10"
+              className="absolute top-3 right-3 text-black hover:text-[#BF9B53] text-2xl font-bold z-10"
             >
               ×
             </button>
@@ -474,16 +503,27 @@ const Step3HorseInfo = ({
             {unsavedHorseIdxs.map((idx) => (
               <div
                 key={idx}
-                className="flex justify-between items-center p-3 border-2 border-gray-200 rounded-lg"
+                className="flex justify-between items-center p-3 border-2 border-gray-200 rounded-sm"
               >
                 <span className="font-semibold">
-                  Horse {idx + 1}: {horses[idx]?.registeredName || "Unnamed"}
+                  Horse {idx + 1} :{" "}
+                  <span className="text-[#BF9B53]">
+                    {horses[idx]?.registeredName || "Unnamed"}
+                  </span>
                 </span>
                 <button
                   onClick={() => handleModalSave(idx)}
-                  className="px-4 py-2 bg-[#BF9B53] text-white rounded-lg hover:bg-[#a7863e] font-semibold"
+                  disabled={savingHorseIdx === idx}
+                  className="px-4 py-2 bg-[#BF9B53] text-white rounded-sm hover:bg-[#a7863e] font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  Save
+                  {savingHorseIdx === idx ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      <span>Saving</span>
+                    </>
+                  ) : (
+                    "Save"
+                  )}
                 </button>
               </div>
             ))}

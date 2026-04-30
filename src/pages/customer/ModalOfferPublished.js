@@ -30,16 +30,16 @@ const ModalOfferPublished = ({ isOpen, onViewShipments, onAnotherAction }) => {
         </p>
 
         {/* Buttons */}
-        <div className="flex flex-col gap-2 mt-4">
+        <div className="flex flex-col sm:flex-row gap-2 mt-4">
           <button
             onClick={onViewShipments}
-            className="w-full py-2 bg-[#BF9B53] text-white rounded-md hover:bg-[#a7863e] transition"
+            className="w-full py-2 bg-[#BF9B53] text-white rounded-sm hover:bg-[#a7863e] transition"
           >
             Review & Publish
           </button>
           <button
             onClick={onAnotherAction}
-            className="w-full py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+            className="w-full py-2 bg-gray-200 text-gray-700 rounded-sm hover:bg-gray-300 transition"
           >
             Go to Dashboard
           </button>

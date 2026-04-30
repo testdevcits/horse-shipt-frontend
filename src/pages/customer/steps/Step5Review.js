@@ -40,6 +40,7 @@ const Step5Review = ({
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
   // Safety check for horses array
   const displayHorses = Array.isArray(horses) ? horses : [];
   const horseCount = numberOfHorses || 0;
@@ -249,7 +250,7 @@ const Step5Review = ({
 
         <button
           onClick={() => onEditStep(4)}
-          className="mt-4 w-full px-4 py-3 bg-gray-100 rounded-lg text-gray-700 hover:bg-gray-200 font-semibold transition-all border-2 border-gray-300"
+          className="mt-4 w-full px-4 py-3 bg-gray-100 rounded-sm text-gray-700 hover:bg-gray-200 font-semibold transition-all border-2 border-gray-300"
         >
           Edit Horse Documents & Shipment Details
         </button>

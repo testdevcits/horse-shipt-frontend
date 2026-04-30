@@ -211,25 +211,32 @@ const ShipperLayout = () => {
 
               {/* Profile Dropdown */}
               {profilePopup && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-system-primary/5 to-transparent">
-                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-[#BF9B53] rounded-sm shadow-lg z-50 overflow-hidden font-montserrat">
+                  {/* Header */}
+                  <div className="px-4 py-4 bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-b border-gray-100">
+                    <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
                       Profile
                     </p>
-                    <p className="text-sm font-bold text-gray-900 mt-2">
-                      {user?.name || "User"}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {user?.email || "shipper@account.com"}
-                    </p>
+
+                    <div className="mt-2">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {user?.name || "User Name"}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {user?.email || "user@email.com"}
+                      </p>
+                    </div>
                   </div>
 
-                  <button
-                    onClick={handleLogout}
-                    className="w-full px-4 py-2.5 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Logout
-                  </button>
+                  {/* Actions */}
+                  <div className="py-1">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+                    >
+                      Logout
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

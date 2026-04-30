@@ -245,7 +245,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
     return (
       <div className="flex items-center font-montserrat justify-center h-screen">
         <div className="text-center">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] flex items-center justify-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-sm bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] flex items-center justify-center">
             <div className="text-4xl animate-bounce">🏇</div>
           </div>
           <p className="text-gray-700 font-semibold text-lg">
@@ -267,12 +267,12 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
           <h2 className="text-3xl font-bold text-gray-900 mb-3">
             Shipment Not Found
           </h2>
-          <p className="text-gray-600 mb-8">
+          <p className="text-gray-600 mb-4">
             The shipment you're looking for doesn't exist or has been removed.
           </p>
           <button
             onClick={() => navigate("/shipper/dashboard")}
-            className="w-full px-6 py-3 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+            className="w-full px-6 py-3 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white rounded-sm font-bold hover:shadow-lg transition-all duration-300"
           >
             Back to Dashboard
           </button>
@@ -291,11 +291,11 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
           onClick={() => setViewingDoc(null)}
         >
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+            className="bg-white rounded-sm shadow-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
               <div className="flex items-center gap-3">
                 <FiFileText className="text-[#BF9B53]" size={22} />
                 <h3 className="text-lg font-black text-gray-900">
@@ -304,7 +304,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
               </div>
               <button
                 onClick={() => setViewingDoc(null)}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-lg transition"
+                className="w-9 h-9 flex items-center justify-center rounded-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-lg transition"
               >
                 ✕
               </button>
@@ -323,7 +323,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 <img
                   src={viewingDoc.url}
                   alt={viewingDoc.label}
-                  className="max-w-full max-h-[70vh] object-contain rounded-lg shadow"
+                  className="max-w-full max-h-[70vh] object-contain rounded-sm shadow"
                   onError={(e) => {
                     e.target.style.display = "none";
                     e.target.nextSibling.style.display = "flex";
@@ -362,8 +362,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
       {showQuoteSuccess && (
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl border border-emerald-100 p-8 text-center">
-            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 border border-emerald-200">
+          <div className="w-full max-w-md rounded-sm bg-white shadow-lg border border-emerald-100 p-4 sm:p-5 text-center">
+            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-sm bg-emerald-50 border border-emerald-200">
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
             <h3 className="text-2xl font-black text-gray-900">
@@ -374,13 +374,13 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
               orders page now.
             </p>
             <div className="mt-6 flex items-center justify-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#BF9B53] animate-bounce" />
+              <div className="w-2.5 h-2.5 rounded-sm bg-[#BF9B53] animate-bounce" />
               <div
-                className="w-2.5 h-2.5 rounded-full bg-[#BF9B53] animate-bounce"
+                className="w-2.5 h-2.5 rounded-sm bg-[#BF9B53] animate-bounce"
                 style={{ animationDelay: "0.15s" }}
               />
               <div
-                className="w-2.5 h-2.5 rounded-full bg-[#BF9B53] animate-bounce"
+                className="w-2.5 h-2.5 rounded-sm bg-[#BF9B53] animate-bounce"
                 style={{ animationDelay: "0.3s" }}
               />
             </div>
@@ -393,7 +393,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         <div className="sticky top-0 z-10 bg-gradient-to-r from-gray-500 via-gray-500 to-gray-500 shadow-lg">
           <div className="w-full h-2 bg-white">
             <div
-              className="h-full bg-[#BF9B53] rounded-r backdrop-blur-sm transition-all duration-1000 ease-linear"
+              className="h-full bg-[#BF9B53] rounded-sm backdrop-blur-sm transition-all duration-1000 ease-linear"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -401,7 +401,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
           <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-4 py-2 sm:py-2">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
               <div className="flex items-center gap-3 flex-1">
-                <div className="p-2 bg-white/20 backdrop-blur rounded-lg flex-shrink-0">
+                <div className="p-2 bg-white/20 backdrop-blur rounded-sm flex-shrink-0">
                   <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-pulse" />
                 </div>
                 <div className="flex-1">
@@ -420,7 +420,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/15 backdrop-blur rounded-lg border border-white/20 flex-shrink-0">
+              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/15 backdrop-blur rounded-sm border border-white/20 flex-shrink-0">
                 <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" />
                 <p className="text-xs sm:text-sm text-white font-semibold">
                   {timeData.totalSeconds < 60
@@ -431,7 +431,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
             </div>
 
             {timeData.totalSeconds < 60 && (
-              <div className="mt-2 p-1 bg-[#BF9B53] rounded-md border border-[#BF9B53]">
+              <div className="mt-2 p-1 bg-[#BF9B53] rounded-sm border border-[#BF9B53]">
                 <p className="text-xs sm:text-sm text-white font-semibold">
                   Less than 1 minute remaining. You will be redirected to
                   dashboard when time expires.
@@ -445,7 +445,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       {/* ── EXPIRED OVERLAY ─────────────────────────────────────────────────── */}
       {isExpired && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 text-center space-y-4">
+          <div className="bg-white rounded-sm shadow-lg max-w-md w-full p-4 sm:p-5 text-center space-y-3">
             <h2 className="text-2xl sm:text-3xl font-black text-gray-900">
               Session Expired
             </h2>
@@ -454,13 +454,13 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
               dashboard.
             </p>
             <div className="flex gap-2 justify-center">
-              <div className="animate-bounce w-2 h-2 bg-[#BF9B53] rounded-full" />
+              <div className="animate-bounce w-2 h-2 bg-[#BF9B53] rounded-sm" />
               <div
-                className="animate-bounce w-2 h-2 bg-[#BF9B53] rounded-full"
+                className="animate-bounce w-2 h-2 bg-[#BF9B53] rounded-sm"
                 style={{ animationDelay: "0.2s" }}
               />
               <div
-                className="animate-bounce w-2 h-2 bg-[#BF9B53] rounded-full"
+                className="animate-bounce w-2 h-2 bg-[#BF9B53] rounded-sm"
                 style={{ animationDelay: "0.4s" }}
               />
             </div>
@@ -470,24 +470,24 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
       {/* ── HEADER ──────────────────────────────────────────────────────────── */}
       <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
-        <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-4 py-2">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="max-w-full mx-auto px-3 sm:px-4 py-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2 uppercase">
+              <h1 className="text-xl sm:text-2xl font-black text-gray-900 mb-1 uppercase">
                 Shipment Details
               </h1>
-              <div className="inline-block bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-2 rounded-sm text-sm font-bold">
+              <div className="inline-block bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-2 py-0.5 rounded-sm text-xs sm:text-sm font-bold">
                 {shipment.shipmentCode}
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">
+            <div className="text-left sm:text-right">
+              <p className="text-xs sm:text-sm text-gray-600">
                 Listed{" "}
                 <span className="font-semibold text-[#BF9B53]">
                   {getPublishedTime(shipment.publishedAt)}
                 </span>
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-xs sm:text-sm text-gray-600">
                 by{" "}
                 <span className="font-semibold text-[#BF9B53]">
                   {shipment.customer?.name}
@@ -499,12 +499,12 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       </div>
 
       {/* ── MAIN CONTENT ────────────────────────────────────────────────────── */}
-      <div className="max-w-full mx-auto mt-8 space-y-8">
+      <div className="max-w-full mx-auto px-3 sm:px-4 mt-4 space-y-4">
         {/* ── HERO SECTION ───────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* LEFT: First horse photo + map */}
           <div className="lg:col-span-1">
-            <div className="relative overflow-hidden rounded-md border-2 border-[#BF9B53] shadow-xl bg-white group h-[340px] sm:h-[400px]">
+            <div className="relative overflow-hidden rounded-sm border border-[#BF9B53] shadow-sm bg-white group h-[260px] sm:h-[320px] lg:h-[360px]">
               {shipment.horses[0]?.photo?.url ? (
                 <img
                   src={shipment.horses[0].photo.url}
@@ -526,20 +526,20 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 <HorseFallback />
               </div>
 
-              <div className="absolute top-4 left-4 bg-white/95 backdrop-blur px-4 py-2 rounded-full text-sm font-bold text-gray-900 shadow-md">
+              <div className="absolute top-3 left-3 bg-white/95 backdrop-blur px-3 py-1.5 rounded-sm text-xs sm:text-sm font-bold text-gray-900 shadow-sm">
                 Horse 1 of {shipment.numberOfHorses}
               </div>
-              <div className="absolute bottom-4 left-4 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-4 py-2 rounded-full text-xs font-bold uppercase shadow-md">
+              <div className="absolute bottom-3 left-3 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-3 py-1.5 rounded-sm text-xs font-bold uppercase shadow-sm">
                 {shipment.status?.replace("_", " ")}
               </div>
             </div>
 
             {/* Route Map */}
-            <div className="mt-6">
-              <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-3">
+            <div className="mt-4">
+              <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2">
                 Route Map
               </p>
-              <div className="w-full rounded-md overflow-hidden border-2 border-[#BF9B53]">
+              <div className="w-full rounded-sm overflow-hidden border border-[#BF9B53]">
                 <RouteMap
                   pickup={shipment.pickupLocation}
                   delivery={shipment.deliveryLocation}
@@ -549,30 +549,30 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
           </div>
 
           {/* MIDDLE & RIGHT */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
+          <div className="lg:col-span-2 flex flex-col gap-4">
             {/* Route Card */}
-            <div className="bg-white rounded-md border-2 border-[#BF9B53] p-4 sm:p-6 shadow-md hover:shadow-xl transition-shadow duration-300">
-              <h2 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-2">
-                <BiMapPin className="text-[#BF9B53]" size={28} />
+            <div className="bg-white rounded-sm border border-[#BF9B53] p-3 sm:p-4 shadow-sm">
+              <h2 className="text-lg sm:text-xl font-black text-gray-900 mb-4 flex items-center gap-2">
+                <BiMapPin className="text-[#BF9B53]" size={22} />
                 Route Information
               </h2>
 
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Pickup */}
-                <div className="flex gap-4">
+                <div className="flex gap-3">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-14 h-14 rounded-md bg-gray-100 border-2 border-[#BF9B53]">
-                      <SlLocationPin size={24} className="text-[#BF9B53]" />
+                    <div className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-sm bg-gray-100 border border-[#BF9B53]">
+                      <SlLocationPin size={20} className="text-[#BF9B53]" />
                     </div>
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2">
+                    <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-1">
                       Pickup Location
                     </p>
-                    <p className="text-base sm:text-lg font-bold text-gray-900 mb-3 leading-snug">
+                    <p className="text-sm sm:text-base font-bold text-gray-900 mb-2 leading-snug">
                       {shipment.pickupLocation}
                     </p>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 bg-blue-50 w-fit px-3 py-2 rounded-lg">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-600 bg-blue-50 w-fit px-2 py-1.5 rounded-sm">
                       <LuCalendarDays size={16} />
                       {formatDate(shipment.pickupDateRange.start)} –{" "}
                       {formatDate(shipment.pickupDateRange.end)}
@@ -581,25 +581,25 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 </div>
 
                 {/* Arrow */}
-                <div className="flex justify-start px-6">
-                  <div className="w-1 h-12 bg-gradient-to-b from-gray-300 to-transparent rounded-full" />
+                <div className="flex justify-start px-5">
+                  <div className="w-px h-7 bg-gradient-to-b from-gray-300 to-transparent rounded-sm" />
                 </div>
 
                 {/* Delivery */}
-                <div className="flex gap-4">
+                <div className="flex gap-3">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-14 h-14 rounded-md bg-gray-100 border-2 border-[#BF9B53]">
-                      <BiRocket size={24} className="text-[#BF9B53]" />
+                    <div className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-sm bg-gray-100 border border-[#BF9B53]">
+                      <BiRocket size={20} className="text-[#BF9B53]" />
                     </div>
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2">
+                    <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-1">
                       Delivery Location
                     </p>
-                    <p className="text-base sm:text-lg font-bold text-gray-900 mb-3 leading-snug">
+                    <p className="text-sm sm:text-base font-bold text-gray-900 mb-2 leading-snug">
                       {shipment.deliveryLocation}
                     </p>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 bg-green-50 w-fit px-3 py-2 rounded-lg">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-600 bg-green-50 w-fit px-2 py-1.5 rounded-sm">
                       <LuCalendarDays size={16} />
                       {formatDate(shipment.deliveryDateRange.start)} –{" "}
                       {formatDate(shipment.deliveryDateRange.end)}
@@ -608,20 +608,20 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 </div>
 
                 {/* Distance */}
-                <div className="pt-6 border-t-2 border-[#BF9B53] mt-4">
-                  <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-3">
+                <div className="pt-4 border-t border-[#BF9B53]/40 mt-2">
+                  <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2">
                     Total Distance
                   </p>
-                  <div className="flex items-end gap-3">
-                    <span className="text-5xl font-black bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] bg-clip-text text-transparent">
+                  <div className="flex items-end gap-2">
+                    <span className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] bg-clip-text text-transparent">
                       {shipment.estimatedDistance?.miles || 200}
                     </span>
                     <div>
-                      <span className="text-gray-700 font-bold text-lg">
+                      <span className="text-gray-700 font-bold text-sm sm:text-base">
                         miles
                       </span>
                       {shipment.estimatedDistance && (
-                        <p className="text-sm text-gray-500 font-semibold">
+                        <p className="text-xs sm:text-sm text-gray-500 font-semibold">
                           ({shipment.estimatedDistance.km} km)
                         </p>
                       )}
@@ -632,21 +632,21 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
             </div>
 
             {/* Customer & Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-white rounded-md border-2 border-[#BF9B53] p-6 shadow-md hover:shadow-lg transition-all duration-300">
-                <h3 className="text-sm font-black text-gray-500 uppercase tracking-wider mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="bg-white rounded-sm border border-[#BF9B53] p-3 sm:p-4 shadow-sm">
+                <h3 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-3">
                   Customer Info
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
                     <p className="text-xs text-gray-500 uppercase font-bold mb-1">
                       Name
                     </p>
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-base font-bold text-gray-900">
                       {shipment.customer?.name}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 bg-yellow-50 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 bg-yellow-50 p-2 rounded-sm">
                     <FiMail size={18} className="text-gray-600 flex-shrink-0" />
                     <p className="text-sm font-semibold text-gray-600 break-all">
                       {shipment.customer?.email}
@@ -655,16 +655,16 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white rounded-md border-2 border-[#BF9B53] p-4 shadow-md">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white rounded-sm border border-[#BF9B53] p-3 shadow-sm">
                   <p className="text-xs font-black text-[#BF9B53] uppercase mb-2">
                     Horses
                   </p>
-                  <p className="text-4xl font-black text-gray-700">
+                  <p className="text-3xl font-black text-gray-700">
                     {shipment.numberOfHorses}
                   </p>
                 </div>
-                <div className="bg-white rounded-md border-2 border-[#BF9B53] p-4 shadow-md">
+                <div className="bg-white rounded-sm border border-[#BF9B53] p-3 shadow-sm">
                   <p className="text-xs font-black text-[#BF9B53] uppercase mb-2">
                     Status
                   </p>
@@ -674,8 +674,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="rounded-md border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-4 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:col-span-2">
+                <div className="rounded-sm border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-3 shadow-sm">
                   <p className="text-xs font-black uppercase tracking-wider text-amber-700 mb-2">
                     Pickup Window
                   </p>
@@ -684,7 +684,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                     {formatDate(shipment.pickupDateRange.end)}
                   </p>
                 </div>
-                <div className="rounded-md border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm">
+                <div className="rounded-sm border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-3 shadow-sm">
                   <p className="text-xs font-black uppercase tracking-wider text-emerald-700 mb-2">
                     Delivery Window
                   </p>
@@ -693,7 +693,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                     {formatDate(shipment.deliveryDateRange.end)}
                   </p>
                 </div>
-                <div className="rounded-md border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4 shadow-sm">
+                <div className="rounded-sm border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-3 shadow-sm">
                   <p className="text-xs font-black uppercase tracking-wider text-slate-600 mb-2">
                     Route Snapshot
                   </p>
@@ -707,19 +707,19 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         </div>
 
         {/* ── HORSES DETAILS ACCORDION ────────────────────────────────────────── */}
-        <div className="bg-white rounded-md border-2 border-gray-200 shadow-md overflow-hidden">
+        <div className="bg-white rounded-sm border border-gray-200 shadow-sm overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent p-6 sm:p-4 border-b-2 border-gray-200">
-            <h2 className="text-2xl sm:text-3xl font-black text-gray-900 flex items-center gap-2">
+          <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent p-3 sm:p-4 border-b border-gray-200">
+            <h2 className="text-lg sm:text-xl font-black text-gray-900 flex items-center gap-2">
               Horse Details
-              <span className="text-lg bg-[#BF9B53] text-white px-3 py-1 rounded-full">
+              <span className="text-sm bg-[#BF9B53] text-white px-2 py-0.5 rounded-sm">
                 {shipment.numberOfHorses}
               </span>
             </h2>
           </div>
 
           {/* Horses List */}
-          <div className="divide-y-2 divide-gray-200">
+          <div className="divide-y divide-gray-200">
             {shipment.horses.map((horse, index) => {
               const photos = getHorsePhotos(horse._id);
               const docs = getHorseDocs(horse._id);
@@ -732,11 +732,11 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                     onClick={() =>
                       setExpandedHorse(expandedHorse === index ? null : index)
                     }
-                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-4 bg-gray-50 hover:bg-[#BF9B53]/5 cursor-pointer transition-all duration-300 group"
+                    className="flex items-start sm:items-center justify-between gap-3 p-3 sm:p-4 bg-gray-50 hover:bg-[#BF9B53]/5 cursor-pointer transition-all duration-300 group"
                   >
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
                       {/* Thumbnail */}
-                      <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden border-2 border-gray-200 group-hover:border-[#BF9B53] transition-colors shadow-md">
+                      <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-sm overflow-hidden border border-gray-200 group-hover:border-[#BF9B53] transition-colors shadow-sm">
                         {horse.photo?.url ? (
                           <img
                             src={horse.photo.url}
@@ -759,7 +759,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">
                           {horse.registeredName}
                         </h3>
                         <p className="text-sm text-gray-600 font-semibold">
@@ -768,14 +768,14 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                             {horse.barnName}
                           </span>
                         </p>
-                        <div className="flex gap-2 mt-2 flex-wrap">
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-lg font-bold">
+                        <div className="flex gap-1.5 mt-2 flex-wrap">
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-sm font-bold">
                             {horse.breed}
                           </span>
-                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-lg font-bold">
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-sm font-bold">
                             {horse.sex}
                           </span>
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg font-bold">
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-sm font-bold">
                             Age: {horse.age}
                           </span>
                         </div>
@@ -796,19 +796,19 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
                   {/* Horse Expanded Details */}
                   {expandedHorse === index && (
-                    <div className="p-6 sm:p-4 bg-white space-y-8">
+                    <div className="p-3 sm:p-4 bg-white space-y-5">
                       {/* ── PHOTO CAROUSEL (horse images only) ─────────────────── */}
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         <h4 className="text-sm font-black text-gray-500 uppercase tracking-wider">
                           Horse Photo
                         </h4>
 
                         {photos.length > 0 ? (
-                          <div className="relative overflow-hidden rounded-2xl border-2 border-gray-200 bg-gray-100">
+                          <div className="relative overflow-hidden rounded-sm border border-gray-200 bg-gray-100">
                             <img
                               src={photos[imgIdx]?.url}
                               alt={photos[imgIdx]?.label}
-                              className="w-full h-64 sm:h-80 object-cover"
+                              className="w-full h-56 sm:h-72 object-cover"
                               onError={(e) => {
                                 e.target.style.display = "none";
                                 e.target.nextSibling.style.display = "flex";
@@ -816,14 +816,14 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                             />
                             {/* Fallback inside carousel */}
                             <div
-                              className="w-full h-64 sm:h-80 items-center justify-center"
+                              className="w-full h-56 sm:h-72 items-center justify-center"
                               style={{ display: "none" }}
                             >
                               <HorseFallback />
                             </div>
 
                             {/* Label badge */}
-                            <div className="absolute top-4 left-4 bg-white/95 backdrop-blur px-4 py-2 rounded-full text-sm font-bold text-gray-900 shadow-md">
+                            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur px-3 py-1.5 rounded-sm text-xs sm:text-sm font-bold text-gray-900 shadow-sm">
                               {photos[imgIdx]?.label}
                             </div>
 
@@ -834,7 +834,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                                   onClick={(e) =>
                                     handlePrevImage(e, index, photos.length)
                                   }
-                                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-10"
+                                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-2 rounded-sm shadow transition-all duration-300 z-10"
                                 >
                                   <LuChevronLeft size={24} />
                                 </button>
@@ -842,18 +842,18 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                                   onClick={(e) =>
                                     handleNextImage(e, index, photos.length)
                                   }
-                                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-10"
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-900 p-2 rounded-sm shadow transition-all duration-300 z-10"
                                 >
                                   <LuChevronRight size={24} />
                                 </button>
-                                <div className="absolute bottom-4 right-4 bg-gray-900/80 text-white px-3 py-1 rounded-full text-xs font-bold">
+                                <div className="absolute bottom-3 right-3 bg-gray-900/80 text-white px-2 py-1 rounded-sm text-xs font-bold">
                                   {imgIdx + 1} of {photos.length}
                                 </div>
                               </>
                             )}
                           </div>
                         ) : (
-                          <div className="w-full h-64 sm:h-80 rounded-2xl border-2 border-dashed border-gray-200 overflow-hidden">
+                          <div className="w-full h-56 sm:h-72 rounded-sm border border-dashed border-gray-200 overflow-hidden">
                             <HorseFallback />
                           </div>
                         )}
@@ -865,7 +865,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                           <h4 className="text-sm font-black text-gray-500 uppercase tracking-wider">
                             Documents
                           </h4>
-                          <div className="flex flex-wrap gap-3">
+                          <div className="flex flex-wrap gap-2">
                             {docs.map((doc) => (
                               <button
                                 key={doc.key}
@@ -875,7 +875,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                                     label: doc.label,
                                   })
                                 }
-                                className={`flex items-center gap-2 px-5 py-3 rounded-xl border-2 font-bold text-sm transition-all duration-200 shadow-sm hover:shadow-md ${
+                                className={`flex items-center gap-2 px-3 py-2 rounded-sm border font-bold text-sm transition-all duration-200 shadow-sm hover:shadow-md ${
                                   DOC_COLORS[doc.key] ||
                                   "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
                                 }`}
@@ -893,11 +893,11 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                       )}
 
                       {/* ── HORSE DETAILS GRID ──────────────────────────────────── */}
-                      <div className="space-y-6">
+                      <div className="space-y-3">
                         <h4 className="text-sm font-black text-gray-500 uppercase tracking-wider">
                           Horse Information
                         </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                           {[
                             { label: "Breed", value: horse.breed },
                             { label: "Color", value: horse.colour },
@@ -915,11 +915,14 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                               value: horse.registeredName,
                             },
                           ].map(({ label, value }) => (
-                            <div key={label} className="space-y-1">
-                              <p className="text-xs font-black text-gray-500 uppercase mb-2">
+                            <div
+                              key={label}
+                              className="rounded-sm border border-gray-100 bg-gray-50 p-3"
+                            >
+                              <p className="text-xs font-black text-gray-500 uppercase mb-1">
                                 {label} :-
                               </p>
-                              <p className="text-lg font-bold text-[#BF9B53]">
+                              <p className="text-sm sm:text-base font-bold text-[#BF9B53] break-words">
                                 {value || "—"}
                               </p>
                             </div>
@@ -927,7 +930,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                         </div>
 
                         {horse.generalInfo && (
-                          <div className="bg-yellow-50 border-2 border-[#BF9B53] rounded-md p-4">
+                          <div className="bg-yellow-50 border border-[#BF9B53] rounded-sm p-3">
                             <p className="text-xs font-black text-gray-700 uppercase tracking-wider mb-2">
                               General Information :-
                             </p>
@@ -946,45 +949,45 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         </div>
 
         {/*ACTION BUTTONS*/}
-        <div className="rounded-3xl border border-[#BF9B53]/30 bg-gradient-to-br from-white via-[#FFF9ED] to-[#F7F2E8] shadow-lg overflow-hidden">
+        <div className="rounded-sm border border-[#BF9B53]/30 bg-gradient-to-br from-white via-[#FFF9ED] to-[#F7F2E8] shadow-sm overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="p-6 sm:p-8 border-b lg:border-b-0 lg:border-r border-[#BF9B53]/20">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#BF9B53] mb-3">
+            <div className="p-3 sm:p-4 border-b lg:border-b-0 lg:border-r border-[#BF9B53]/20">
+              <p className="text-xs font-black uppercase tracking-wider text-[#BF9B53] mb-2">
                 Ready To Respond
               </p>
-              <h2 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight">
+              <h2 className="text-lg sm:text-xl font-black text-gray-900 leading-tight">
                 Send your quote or start the conversation before the session
                 ends
               </h2>
-              <p className="mt-3 text-sm sm:text-base text-gray-600 font-medium max-w-2xl">
+              <p className="mt-2 text-sm text-gray-600 font-medium max-w-2xl">
                 Review the route, horse details, and dates above. When you are
                 ready, submit your offer or open chat to clarify anything with
                 the customer first.
               </p>
 
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="rounded-2xl bg-white/80 border border-white shadow-sm p-4">
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="rounded-sm bg-white/80 border border-white shadow-sm p-3">
                   <p className="text-xs font-black uppercase tracking-wider text-gray-500 mb-2">
                     Shipment Code
                   </p>
-                  <p className="text-lg font-black text-gray-900">
+                  <p className="text-base font-black text-gray-900">
                     {shipment.shipmentCode}
                   </p>
                 </div>
-                <div className="rounded-2xl bg-white/80 border border-white shadow-sm p-4">
+                <div className="rounded-sm bg-white/80 border border-white shadow-sm p-3">
                   <p className="text-xs font-black uppercase tracking-wider text-gray-500 mb-2">
                     Customer
                   </p>
-                  <p className="text-lg font-black text-gray-900">
+                  <p className="text-base font-black text-gray-900">
                     {shipment.customer?.name || "Customer"}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-6 sm:p-8 bg-white/70">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-11 h-11 rounded-2xl bg-[#BF9B53] flex items-center justify-center">
+            <div className="p-3 sm:p-4 bg-white/70">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-sm bg-[#BF9B53] flex items-center justify-center">
                   <MessageCircleMore className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -998,23 +1001,23 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
               </div>
 
               {needsOnboarding ? (
-                <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-4 rounded-2xl shadow-sm flex flex-col items-center text-center gap-3">
-                  <p className="text-sm sm:text-base text-gray-700 font-medium">
+                <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l border-[#BF9B53] p-3 rounded-sm shadow-sm flex flex-col items-center text-center gap-3">
+                  <p className="text-sm text-gray-700 font-medium">
                     Please complete your account setup to submit an offer.
                   </p>
 
                   <button
                     onClick={() => navigate("/shipper/settings?tab=payment")}
-                    className="px-5 py-2 bg-[#BF9B53] text-white font-semibold text-sm rounded-xl hover:bg-[#9d7d42] transition-all duration-200 shadow-sm hover:shadow-md"
+                    className="px-4 py-2 bg-[#BF9B53] text-white font-semibold text-sm rounded-sm hover:bg-[#9d7d42] transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     Complete Setup
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-3">
                   <button
                     onClick={() => setIsOfferOpen(true)}
-                    className="relative group bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-6 py-4 rounded-2xl font-black text-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 overflow-hidden"
+                    className="relative group bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-4 py-3 rounded-sm font-black text-base hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden"
                   >
                     <span className="absolute inset-0 bg-white/20 group-hover:bg-white/30 transition-colors" />
                     <span className="relative">Submit an Offer</span>
@@ -1026,7 +1029,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                         `/shipper/chat?customerId=${shipment.customer?._id}`
                       )
                     }
-                    className="border-2 border-[#BF9B53] text-[#BF9B53] px-6 py-4 rounded-2xl font-black text-lg hover:bg-[#BF9B53]/5 transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 bg-white"
+                    className="border border-[#BF9B53] text-[#BF9B53] px-4 py-3 rounded-sm font-black text-base hover:bg-[#BF9B53]/5 transition-all duration-300 flex items-center justify-center gap-2 bg-white"
                   >
                     <MdChat size={22} />
                     Chat with Customer
@@ -1040,19 +1043,19 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         {/* ── ASK QUESTION ────────────────────────────────────────────────────── */}
         <button
           onClick={() => setIsQuestionOpen(true)}
-          className="w-full flex items-center justify-center gap-2 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-md font-bold hover:border-[#BF9B53] hover:text-[#BF9B53] hover:bg-[#BF9B53]/5 transition-all duration-300"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 text-gray-700 rounded-sm font-bold hover:border-[#BF9B53] hover:text-[#BF9B53] hover:bg-[#BF9B53]/5 transition-all duration-300"
         >
           <MdHelpOutline size={22} />
           Ask a Question
         </button>
 
-        <div className="h-8" />
+        <div className="h-3" />
       </div>
 
       {/* ── BACK BUTTON ─────────────────────────────────────────────────────── */}
       <button
         onClick={() => navigate(-1)}
-        className="fixed bottom-6 right-6 bg-gray-600 text-white p-3 rounded-full shadow-lg hover:bg-[#BF9B53] transition"
+        className="fixed bottom-4 right-4 bg-gray-600 text-white p-3 rounded-sm shadow-lg hover:bg-[#BF9B53] transition"
       >
         <IoArrowBack className="w-5 h-5" />
       </button>
