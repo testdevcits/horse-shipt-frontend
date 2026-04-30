@@ -110,6 +110,33 @@ const fitMapToRadius = (map, coords, radiusKm) => {
   }
 };
 
+const fitMapToAreas = (map, areas = []) => {
+  if (!map || !areas.length || !window.google?.maps) return;
+
+  const bounds = new window.google.maps.LatLngBounds();
+  let hasPoint = false;
+
+  areas.forEach((area) => {
+    const coords = getAreaCoords(area);
+    if (!coords) return;
+
+    const circle = new window.google.maps.Circle({
+      center: coords,
+      radius: getRadiusMeters(area.radiusKm),
+    });
+
+    const circleBounds = circle.getBounds();
+    if (circleBounds) {
+      bounds.union(circleBounds);
+      hasPoint = true;
+    }
+  });
+
+  if (hasPoint) {
+    map.fitBounds(bounds, 32);
+  }
+};
+
 const getPlaceLocationData = (place) => {
   if (!place?.geometry?.location) return null;
 
@@ -193,6 +220,7 @@ const ShipperPreferredAreaPage = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAllAreasModal, setShowAllAreasModal] = useState(false);
   const [selectedAreaId, setSelectedAreaId] = useState(null);
+  const [visibleAreaIds, setVisibleAreaIds] = useState([]);
   const [confirmModal, setConfirmModal] = useState({
     open: false,
     areaId: null,
@@ -213,6 +241,9 @@ const ShipperPreferredAreaPage = () => {
     preferredAreas.find((area) => area._id === selectedAreaId) ||
     preferredAreas[0] ||
     null;
+  const visibleAreas = preferredAreas.filter((area) =>
+    visibleAreaIds.includes(area._id)
+  );
 
   const syncMapToCoords = useCallback((map, coords) => {
     if (!map || !coords) return;
@@ -360,6 +391,7 @@ const ShipperPreferredAreaPage = () => {
   const handleOpenAllAreasModal = () => {
     if (!preferredAreas.length) return;
     setSelectedAreaId((prev) => prev || preferredAreas[0]._id);
+    setVisibleAreaIds(preferredAreas.map((area) => area._id));
     setShowAllAreasModal(true);
   };
 
@@ -375,8 +407,43 @@ const ShipperPreferredAreaPage = () => {
     if (!area) return;
     setSelectedAreaId(area._id);
     const coords = getAreaCoords(area);
-    fitMapToRadius(allAreasMapRef.current, coords, area.radiusKm);
+    const map = allAreasMapRef.current;
+    if (!map || !coords) return;
+
+    map.panTo(coords);
+    if ((map.getZoom?.() || 5) < 8) {
+      map.setZoom(8);
+    }
   }, []);
+
+  const handleToggleAreaVisibility = useCallback((areaId) => {
+    setVisibleAreaIds((prev) => {
+      const isVisible = prev.includes(areaId);
+      const next = isVisible
+        ? prev.filter((id) => id !== areaId)
+        : [...prev, areaId];
+
+      if (isVisible && selectedAreaId === areaId) {
+        const fallbackId = next[0] || null;
+        setSelectedAreaId(fallbackId);
+      }
+
+      return next;
+    });
+  }, [selectedAreaId]);
+
+  const handleShowAllAreas = useCallback(() => {
+    const ids = preferredAreas.map((area) => area._id);
+    setVisibleAreaIds(ids);
+    setSelectedAreaId((prev) => prev || ids[0] || null);
+    requestAnimationFrame(() => {
+      fitMapToAreas(allAreasMapRef.current, preferredAreas);
+    });
+  }, [preferredAreas]);
+
+  const handleFitVisibleAreas = useCallback(() => {
+    fitMapToAreas(allAreasMapRef.current, visibleAreas);
+  }, [visibleAreas]);
 
   React.useEffect(() => {
     if (!showAllAreasModal) return;
@@ -412,7 +479,8 @@ const ShipperPreferredAreaPage = () => {
                   View All Areas In One Map
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                  Click any area from the list to zoom the map to that location.
+                  Check areas to show or hide them. Select an area to focus the
+                  map smoothly.
                 </p>
               </div>
               <button
@@ -425,13 +493,31 @@ const ShipperPreferredAreaPage = () => {
 
             <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)]">
               <div className="border-b lg:border-b-0 lg:border-r border-gray-200 bg-[#fffdf8] overflow-y-auto p-2.5 sm:p-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={handleShowAllAreas}
+                    className="flex-1 rounded-md border border-[#BF9B53] bg-[#BF9B53] px-3 py-2 text-xs font-bold text-white hover:bg-[#a8863e] transition"
+                  >
+                    Show All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleFitVisibleAreas}
+                    disabled={!visibleAreas.length}
+                    className="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition"
+                  >
+                    Fit Selected
+                  </button>
+                </div>
+
                 <div className="space-y-2">
                   {preferredAreas.map((area, idx) => {
                     const isActive = selectedArea?._id === area._id;
+                    const isVisible = visibleAreaIds.includes(area._id);
                     return (
-                      <button
+                      <div
                         key={area._id}
-                        onClick={() => handleFocusArea(area)}
                         className={`w-full text-left rounded-md border px-3 py-2.5 transition ${
                           isActive
                             ? "border-[#BF9B53] bg-[#fff8ea] shadow-sm"
@@ -439,6 +525,19 @@ const ShipperPreferredAreaPage = () => {
                         }`}
                       >
                         <div className="flex items-start gap-3">
+                          <label
+                            className="mt-2 flex items-center"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isVisible}
+                              onChange={() =>
+                                handleToggleAreaVisibility(area._id)
+                              }
+                              className="h-4 w-4 accent-[#BF9B53]"
+                            />
+                          </label>
                           <div
                             className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 font-bold text-sm ${
                               isActive
@@ -448,7 +547,11 @@ const ShipperPreferredAreaPage = () => {
                           >
                             {idx + 1}
                           </div>
-                          <div className="min-w-0 flex-1">
+                          <button
+                            type="button"
+                            onClick={() => handleFocusArea(area)}
+                            className="min-w-0 flex-1 text-left"
+                          >
                             <p className="text-sm font-bold text-gray-900 break-words">
                               {area.locationName || `Area ${idx + 1}`}
                             </p>
@@ -459,9 +562,9 @@ const ShipperPreferredAreaPage = () => {
                               {formatCoord(area.coordinates?.coordinates?.[1])},{" "}
                               {formatCoord(area.coordinates?.coordinates?.[0])}
                             </p>
-                          </div>
+                          </button>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -475,17 +578,11 @@ const ShipperPreferredAreaPage = () => {
                     zoom={5}
                     onLoad={(map) => {
                       allAreasMapRef.current = map;
-                      if (selectedArea) {
-                        fitMapToRadius(
-                          map,
-                          getAreaCoords(selectedArea),
-                          selectedArea.radiusKm
-                        );
-                      }
+                      fitMapToAreas(map, visibleAreas.length ? visibleAreas : preferredAreas);
                     }}
                     options={mapOptions}
                   >
-                    {preferredAreas.map((area, idx) => {
+                    {visibleAreas.map((area, idx) => {
                       const coords = getAreaCoords(area);
                       if (!coords) return null;
 

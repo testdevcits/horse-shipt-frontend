@@ -496,7 +496,8 @@ const BillingHistory = () => {
   const isCanceled = subStatus === "canceled";
   // const lessThanOneDay = subscription?.remainingTrialDays <= 1;
   // const showTrialWarning = isTrialing && lessThanOneDay;
-  const canCancel = hasActiveSubscription && !isCanceled && !cancelAtPeriodEnd;
+  const canCancel =
+    hasActiveSubscription && !isTrialing && !isCanceled && !cancelAtPeriodEnd;
 
   const statusStyle = getStatusStyle(subStatus);
 

@@ -42,6 +42,9 @@ const ShipmentCard = ({ shipment, invitation }) => {
   const horse = shipment.horses?.[0] || {};
   const st = statusConfig[shipment.status] || statusConfig.open_for_offers;
   const isInvitedShipment = Boolean(invitation || shipment.__isInvitedShipment);
+  const distanceMiles = shipment.estimatedDistance?.miles;
+  const hasDistance =
+    distanceMiles !== null && distanceMiles !== undefined && distanceMiles !== "";
 
   const handleNavigateWithQuery = () => {
     const token = createShipmentQueryToken(shipment._id);
@@ -171,16 +174,20 @@ const ShipmentCard = ({ shipment, invitation }) => {
       {/* ── FOOTER STATS ── */}
       <div className="border-t border-gray-100 mt-4 pt-3 flex items-center justify-between">
         <div className="flex items-center gap-3 sm:gap-5 md:gap-6 lg:gap-8">
-          <div className="text-center">
-            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-gray-400">
-              Distance
-            </p>
-            <p className="text-xs sm:text-sm md:text-base font-bold text-[#BF9B53]">
-              {shipment.estimatedDistance?.miles?.toLocaleString() || "—"} mi
-            </p>
-          </div>
+          {hasDistance && (
+            <>
+              <div className="text-center">
+                <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  Distance
+                </p>
+                <p className="text-xs sm:text-sm md:text-base font-bold text-[#BF9B53]">
+                  {Number(distanceMiles).toLocaleString()} mi
+                </p>
+              </div>
 
-          <div className="w-px h-5 bg-gray-200" />
+              <div className="w-px h-5 bg-gray-200" />
+            </>
+          )}
 
           <div className="text-center">
             <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-gray-400">

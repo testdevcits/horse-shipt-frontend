@@ -50,6 +50,7 @@ import { SubscriptionProvider } from "./contexts/shipperContext/SubscriptionCont
 import { TrackingProvider } from "./contexts/common/TrackingContext";
 import { CustomerMatchingProvider } from "./contexts/customerContext/CustomerMatchingContext";
 import { ShipperInvitationProvider } from "./contexts/shipperContext/ShipperInvitationContext";
+import RealtimeNotifications from "./components/RealtimeNotifications";
 
 // ------------------- Stripe Setup -------------------
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
@@ -97,6 +98,7 @@ function App() {
                                                                       <NewsletterProvider>
                                                                         <TrackingProvider>
                                                                           <AppRoutes />
+                                                                          <RealtimeNotifications />
                                                                         </TrackingProvider>
                                                                       </NewsletterProvider>
                                                                     </DeliveredShipmentProvider>

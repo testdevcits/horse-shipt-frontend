@@ -1,20 +1,28 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 import Toast from "../../components/common/Toast";
+import { socket } from "../../services/socket";
 
 const CustomerQuoteContext = createContext();
 
 const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
 export const CustomerQuoteProvider = ({ children }) => {
-  const { token } = useAuth();
+  const { token, user, isCustomer } = useAuth();
 
   // ---------------- STATE ----------------
   const [quotes, setQuotes] = useState([]);
   const [totalQuotes, setTotalQuotes] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [activeShipmentId, setActiveShipmentId] = useState(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -37,6 +45,7 @@ export const CustomerQuoteProvider = ({ children }) => {
     async (shipmentId, force = false, page = 1, limit = 5) => {
       if (!token || !shipmentId) return;
 
+      setActiveShipmentId(shipmentId);
       setLoading(true);
       try {
         const res = await axios.get(
@@ -150,6 +159,52 @@ export const CustomerQuoteProvider = ({ children }) => {
       return { success: false, message: "Cancel failed" };
     }
   };
+
+  useEffect(() => {
+    if (!token || !isCustomer || !user?._id) return;
+
+    const normalizeId = (value) =>
+      typeof value === "object" && value?._id ? value._id : value;
+
+    const handleQuoteCreated = ({ quote, shipmentId }) => {
+      if (!quote?._id || !activeShipmentId) return;
+      if (normalizeId(shipmentId)?.toString() !== activeShipmentId.toString()) {
+        return;
+      }
+
+      setQuotes((prev) => {
+        if (prev.some((item) => item._id === quote._id)) return prev;
+        return [quote, ...prev];
+      });
+      setTotalQuotes((prev) => prev + 1);
+    };
+
+    const updateQuote = ({ quote, shipmentId }) => {
+      if (!quote?._id) return;
+      if (
+        activeShipmentId &&
+        normalizeId(shipmentId)?.toString() !== activeShipmentId.toString()
+      ) {
+        return;
+      }
+
+      setQuotes((prev) =>
+        prev.map((item) => (item._id === quote._id ? { ...item, ...quote } : item))
+      );
+    };
+
+    socket.on("horse_shipt:quote_created", handleQuoteCreated);
+    socket.on("horse_shipt:quote_accepted", updateQuote);
+    socket.on("horse_shipt:quote_cancelled", updateQuote);
+    socket.on("horse_shipt:quote_vehicle_assigned", updateQuote);
+
+    return () => {
+      socket.off("horse_shipt:quote_created", handleQuoteCreated);
+      socket.off("horse_shipt:quote_accepted", updateQuote);
+      socket.off("horse_shipt:quote_cancelled", updateQuote);
+      socket.off("horse_shipt:quote_vehicle_assigned", updateQuote);
+    };
+  }, [token, isCustomer, user?._id, activeShipmentId]);
 
   return (
     <CustomerQuoteContext.Provider

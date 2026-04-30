@@ -1,14 +1,19 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
+import { FiImage, FiX } from "react-icons/fi";
 import PageLoader from "../../components/common/PageLoader";
 import { useShipperChat } from "../../contexts/shipperContext/ShipperChatContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { socket } from "../../services/socket";
+import axios from "axios";
+import Toast from "../../components/common/Toast";
+
+const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
 const ChatOverview = () => {
   const { customers, loading, fetchCustomers } = useShipperChat();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [searchParams] = useSearchParams();
 
   const customerIdFromQuery = searchParams.get("customerId"); // GET CUSTOMER ID FROM QUERY
@@ -19,8 +24,12 @@ const ChatOverview = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [newMessage, setNewMessage] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [messagesLoading, setMessagesLoading] = useState(false);
 
   const chatEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   /* ===============================
      FETCH CUSTOMER LIST
@@ -48,30 +57,75 @@ const ChatOverview = () => {
     if (!selectedUser) return;
 
     setMessages([]); // reset messages when new user selected
+    let cancelled = false;
 
-    // Emit joinRoom to backend
-    socket.emit("joinRoom", {
-      customerId: selectedUser._id,
-      shipperId: user._id,
-    });
+    const openRoom = async () => {
+      setMessagesLoading(true);
+      try {
+        const roomRes = await axios.post(
+          `${API_BASE_URL}/shipper/chat/room`,
+          { customerId: selectedUser._id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-    // Listen for roomJoined
-    socket.on("roomJoined", (id) => {
-      setRoomId(id);
-    });
+        const nextRoomId = roomRes.data?.roomId || roomRes.data?.room?._id;
+        if (!nextRoomId || cancelled) return;
 
-    // Listen for incoming messages
-    socket.on("receiveMessage", (msg) => {
-      if (msg.chatRoom === roomId) {
-        setMessages((prev) => [...prev, msg]);
+        setRoomId(nextRoomId);
+
+        const messagesRes = await axios.get(
+          `${API_BASE_URL}/shipper/chat/rooms/${nextRoomId}/messages`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (!cancelled) {
+          setMessages(messagesRes.data?.messages || []);
+        }
+
+        if (socket.connected) {
+          socket.emit("joinRoom", {
+            customerId: selectedUser._id,
+            shipperId: user._id,
+          });
+        }
+      } catch (err) {
+        if (!cancelled) {
+          Toast.error(
+            err.response?.data?.message || "Failed to load chat messages"
+          );
+        }
+      } finally {
+        if (!cancelled) setMessagesLoading(false);
       }
-    });
+    };
+
+    openRoom();
 
     return () => {
-      socket.off("roomJoined");
-      socket.off("receiveMessage");
+      cancelled = true;
     };
-  }, [selectedUser, user, roomId]);
+  }, [selectedUser, user, token]);
+
+  useEffect(() => {
+    if (!roomId) return;
+
+    const handleReceiveMessage = (msg) => {
+      const msgRoomId =
+        typeof msg.chatRoom === "object" ? msg.chatRoom?._id : msg.chatRoom;
+      if (msgRoomId?.toString() !== roomId.toString()) return;
+
+      setMessages((prev) => {
+        if (msg._id && prev.some((item) => item._id === msg._id)) return prev;
+        return [...prev, msg];
+      });
+    };
+
+    socket.on("receiveMessage", handleReceiveMessage);
+
+    return () => {
+      socket.off("receiveMessage", handleReceiveMessage);
+    };
+  }, [roomId]);
 
   /* ===============================
      AUTO SCROLL
@@ -96,28 +150,71 @@ const ChatOverview = () => {
   /* ===============================
      SEND MESSAGE
   ================================ */
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !roomId) return;
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const msgData = {
-      roomId,
-      senderId: user._id,
-      senderRole: "shipper",
-      message: newMessage,
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 10 * 1024 * 1024) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedImage({
+        file,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        dataUrl: reader.result,
+        preview: URL.createObjectURL(file),
+      });
     };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
 
-    // Emit to backend
-    socket.emit("sendMessage", msgData);
+  const clearSelectedImage = () => {
+    if (selectedImage?.preview) URL.revokeObjectURL(selectedImage.preview);
+    setSelectedImage(null);
+  };
 
-    // Optimistically update UI
-    setMessages((prev) => [
-      ...prev,
-      {
-        ...msgData,
-        createdAt: new Date().toISOString(),
-      },
-    ]);
+  const handleSendMessage = () => {
+    if ((!newMessage.trim() && !selectedImage) || !roomId || sending) return;
 
+    const formData = new FormData();
+    formData.append("message", newMessage);
+    if (selectedImage?.file) {
+      formData.append("image", selectedImage.file);
+    }
+
+    setSending(true);
+    axios
+      .post(`${API_BASE_URL}/shipper/chat/rooms/${roomId}/messages`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((res) => {
+        const sentMessage = res.data?.data;
+        if (sentMessage) {
+          setMessages((prev) => {
+            if (
+              sentMessage._id &&
+              prev.some((item) => item._id === sentMessage._id)
+            ) {
+              return prev;
+            }
+            return [...prev, sentMessage];
+          });
+        }
+        clearSelectedImage();
+      })
+      .catch((err) => {
+        Toast.error(err.response?.data?.message || "Failed to send message");
+      })
+      .finally(() => {
+      setSending(false);
+      });
     setNewMessage("");
   };
 
@@ -238,7 +335,13 @@ const ChatOverview = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.length === 0 && (
+              {messagesLoading && (
+                <p className="text-gray-400 text-sm text-center">
+                  Loading messages...
+                </p>
+              )}
+
+              {!messagesLoading && messages.length === 0 && (
                 <p className="text-gray-400 text-sm text-center">
                   No messages yet
                 </p>
@@ -260,7 +363,27 @@ const ChatOverview = () => {
                         : "bg-gray-200"
                     }`}
                   >
-                    <p>{msg.message || msg.text}</p>
+                    {msg.media?.length > 0 && (
+                      <div className="space-y-2 mb-2">
+                        {msg.media.map((item, idx) => (
+                          <a
+                            key={item.public_id || idx}
+                            href={item.url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <img
+                              src={item.url}
+                              alt={item.originalName || "Chat attachment"}
+                              className="max-h-64 rounded-md object-cover"
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                    {(msg.message || msg.text) && (
+                      <p>{msg.message || msg.text}</p>
+                    )}
                     <span className="text-xs block mt-1 opacity-70">
                       {new Date(msg.createdAt || msg.time).toLocaleTimeString(
                         [],
@@ -276,20 +399,55 @@ const ChatOverview = () => {
               <div ref={chatEndRef} />
             </div>
 
-            <div className="p-3 border-t flex gap-2">
-              <input
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                className="flex-1 border rounded px-3 py-2"
-                placeholder="Type a message..."
-              />
-              <button
-                onClick={handleSendMessage}
-                className="bg-system-primary text-white px-4 rounded"
-              >
-                Send
-              </button>
+            <div className="p-3 border-t space-y-2">
+              {selectedImage && (
+                <div className="relative w-24">
+                  <img
+                    src={selectedImage.preview}
+                    alt="Selected"
+                    className="w-24 h-20 object-cover rounded border"
+                  />
+                  <button
+                    type="button"
+                    onClick={clearSelectedImage}
+                    className="absolute -top-2 -right-2 bg-gray-900 text-white rounded-full p-1"
+                  >
+                    <FiX size={12} />
+                  </button>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border rounded px-3 text-gray-600 hover:bg-gray-50"
+                  title="Attach image"
+                >
+                  <FiImage size={18} />
+                </button>
+                <input
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                  className="flex-1 border rounded px-3 py-2"
+                  placeholder="Type a message..."
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={sending}
+                  className="bg-system-primary text-white px-4 rounded disabled:opacity-60"
+                >
+                  {sending ? "Sending..." : "Send"}
+                </button>
+              </div>
             </div>
           </>
         )}

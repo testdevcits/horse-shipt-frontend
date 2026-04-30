@@ -929,44 +929,39 @@ const AllShipments = () => {
   if (loading)
     return <PageLoader text="Loading shipments..." fullScreen={false} />;
 
-  const hasAssignedTransport = (shipment) => {
-    if (!shipment) return false;
+  const inProgressStatuses = ["assigned", "picked", "in_transit"];
 
-    return Boolean(
-      shipment.vehicle ||
-        shipment.assignedVehicle ||
-        shipment.shipperVehicle ||
-        shipment.assignedDriver ||
-        shipment.quote?.vehicle ||
-        shipment.quote?.assignedDriver ||
-        shipment.acceptedQuote?.vehicle ||
-        shipment.acceptedQuote?.assignedDriver ||
-        shipment.selectedQuote?.vehicle ||
-        shipment.selectedQuote?.assignedDriver
-    );
-  };
+  const isCancelledShipment = (shipment) => shipment?.status === "cancelled";
 
-  const isInProgressShipment = (shipment) => {
-    if (!shipment?.publish) return false;
-    if (shipment.status === "delivered" || shipment.status === "cancelled") {
-      return false;
-    }
+  const isCompletedShipment = (shipment) =>
+    shipment?.isCompleted === true ||
+    shipment?.status === "delivered" ||
+    Boolean(shipment?.deliveredAt);
 
-    return hasAssignedTransport(shipment);
-  };
+  const isDraftShipment = (shipment) =>
+    !isCancelledShipment(shipment) &&
+    !isCompletedShipment(shipment) &&
+    shipment?.publish !== true;
 
-  const draft = shipments.filter((s) => !s.publish && !s.publishedAt);
+  const isInProgressShipment = (shipment) =>
+    !isDraftShipment(shipment) &&
+    !isCompletedShipment(shipment) &&
+    !isCancelledShipment(shipment) &&
+    (shipment?.isInProgress === true ||
+      inProgressStatuses.includes(shipment?.status));
+
+  const isUpcomingShipment = (shipment) =>
+    !isDraftShipment(shipment) &&
+    !isInProgressShipment(shipment) &&
+    !isCompletedShipment(shipment) &&
+    !isCancelledShipment(shipment) &&
+    shipment?.publish === true;
+
+  const draft = shipments.filter((s) => isDraftShipment(s));
   const inProgress = shipments.filter((s) => isInProgressShipment(s));
-  const published = shipments.filter(
-    (s) =>
-      s.publish &&
-      s.publishedAt &&
-      s.status !== "delivered" &&
-      s.status !== "cancelled" &&
-      !isInProgressShipment(s)
-  );
-  const completed = shipments.filter((s) => s.status === "delivered");
-  const cancelled = shipments.filter((s) => s.status === "cancelled");
+  const published = shipments.filter((s) => isUpcomingShipment(s));
+  const completed = shipments.filter((s) => isCompletedShipment(s));
+  const cancelled = shipments.filter((s) => isCancelledShipment(s));
 
   const tabMap = { draft, inProgress, published, completed, cancelled };
   const shown = tabMap[tab] || [];

@@ -1,13 +1,20 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 import Toast from "../../components/common/Toast";
+import { socket } from "../../services/socket";
 
 const ShipperQuoteContext = createContext();
 const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
 export const ShipperQuoteProvider = ({ children }) => {
-  const { token } = useAuth();
+  const { token, user, isShipper } = useAuth();
 
   const [quotes, setQuotes] = useState([]);
   const [acceptedQuote] = useState(null);
@@ -148,6 +155,44 @@ export const ShipperQuoteProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!token || !isShipper || !user?._id) return;
+
+    const upsertQuote = ({ quote }) => {
+      if (!quote?._id) return;
+
+      setQuotes((prev) => {
+        const exists = prev.some((item) => item._id === quote._id);
+        if (exists) {
+          return prev.map((item) => (item._id === quote._id ? quote : item));
+        }
+        return [quote, ...prev];
+      });
+    };
+
+    const markQuoteCancelled = ({ quote }) => {
+      if (!quote?._id) return;
+
+      setQuotes((prev) =>
+        prev.map((item) =>
+          item._id === quote._id
+            ? { ...item, ...quote, status: quote.status || "cancelled" }
+            : item
+        )
+      );
+    };
+
+    socket.on("horse_shipt:quote_accepted", upsertQuote);
+    socket.on("horse_shipt:quote_cancelled", markQuoteCancelled);
+    socket.on("horse_shipt:quote_vehicle_assigned", upsertQuote);
+
+    return () => {
+      socket.off("horse_shipt:quote_accepted", upsertQuote);
+      socket.off("horse_shipt:quote_cancelled", markQuoteCancelled);
+      socket.off("horse_shipt:quote_vehicle_assigned", upsertQuote);
+    };
+  }, [token, isShipper, user?._id]);
 
   return (
     <ShipperQuoteContext.Provider
