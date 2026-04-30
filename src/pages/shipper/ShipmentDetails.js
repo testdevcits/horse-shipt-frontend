@@ -240,6 +240,17 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       day: "numeric",
     });
 
+  const formatNoteDate = (dateString) =>
+    dateString
+      ? new Date(dateString).toLocaleString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })
+      : "";
+
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
@@ -937,6 +948,37 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                             <p className="text-[#BF9B53] leading-relaxed text-base font-semibold">
                               {horse.generalInfo}
                             </p>
+                          </div>
+                        )}
+
+                        {(horse.notesLog?.length > 0 || horse.notes) && (
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-black text-gray-500 uppercase tracking-wider">
+                              Chronological Notes
+                            </h4>
+                            {(horse.notesLog?.length
+                              ? horse.notesLog
+                              : [{ note: horse.notes, userName: "Customer" }]
+                            ).map((entry, noteIdx) => (
+                              <div
+                                key={noteIdx}
+                                className="rounded-sm border border-gray-200 bg-gray-50 p-3"
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+                                  <span className="font-bold">
+                                    {entry.userName || "Customer"}
+                                  </span>
+                                  {entry.createdAt && (
+                                    <span>
+                                      {formatNoteDate(entry.createdAt)}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="mt-1 whitespace-pre-wrap text-sm font-semibold text-gray-700">
+                                  {entry.note}
+                                </p>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>

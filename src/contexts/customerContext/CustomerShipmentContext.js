@@ -160,6 +160,47 @@ export const CustomerShipmentProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+  // =====================================================
+  // UPDATE PUBLISHED SHIPMENT METADATA ONLY
+  // =====================================================
+  const updateShipmentMetadata = async (id, formData) => {
+    if (!token) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await axios.patch(
+        `${API_BASE_URL}/customer/shipments/${id}/metadata`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (res.data.success) {
+        setShipments((prev) =>
+          prev.map((shipment) =>
+            shipment._id === id ? res.data.shipment : shipment
+          )
+        );
+        setCurrentShipment(res.data.shipment);
+        return res.data.shipment;
+      }
+
+      setError(res.data.message || "Failed to update shipment metadata");
+    } catch (err) {
+      console.error("Update shipment metadata error:", err);
+      setError(err.response?.data?.message || err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
   // =====================================================
   // PUBLISH SHIPMENT
   // =====================================================
@@ -547,6 +588,7 @@ export const CustomerShipmentProvider = ({ children }) => {
     fetchShipmentById,
     createShipment,
     updateShipment,
+    updateShipmentMetadata,
     publishShipment,
     deleteShipment,
 

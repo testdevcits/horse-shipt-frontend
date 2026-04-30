@@ -132,6 +132,16 @@ const MyShipmentDetails = () => {
     navigate("/customer/dashboard");
   };
 
+  const handleEditMetadata = () => {
+    navigate(`/customer/new-shipment/${shipment._id}`, {
+      state: {
+        editMode: true,
+        metadataOnly: true,
+        shipment,
+      },
+    });
+  };
+
   const handleTabClick = (id) => {
     setActiveTab(id);
     if (id === "quotes" && shipmentId)
@@ -254,6 +264,18 @@ const MyShipmentDetails = () => {
                     </button>
                   </div>
                 )}
+
+                {shipment.publish &&
+                  !["delivered", "cancelled"].includes(shipment.status) && (
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        onClick={handleEditMetadata}
+                        className="px-6 py-3 bg-gray-700 text-white rounded-lg font-medium hover:bg-[#BF9B53] transition"
+                      >
+                        Edit Documents & Notes
+                      </button>
+                    </div>
+                  )}
               </div>
             </div>
           </div>
@@ -367,6 +389,40 @@ const MyShipmentDetails = () => {
                         <div className="sm:col-span-2">
                           <span className="text-gray-500">General Info:</span>{" "}
                           {horse.generalInfo}
+                        </div>
+                      )}
+                      {(horse.notesLog?.length > 0 || horse.notes) && (
+                        <div className="sm:col-span-2">
+                          <span className="text-gray-500">
+                            Chronological Notes:
+                          </span>
+                          <div className="mt-2 space-y-2">
+                            {(horse.notesLog?.length
+                              ? horse.notesLog
+                              : [{ note: horse.notes }]
+                            ).map((entry, noteIdx) => (
+                              <div
+                                key={noteIdx}
+                                className="rounded-sm border border-gray-200 bg-gray-50 p-3"
+                              >
+                                <div className="flex flex-wrap justify-between gap-2 text-xs text-gray-500">
+                                  <span className="font-semibold">
+                                    {entry.userName || "Customer"}
+                                  </span>
+                                  {entry.createdAt && (
+                                    <span>
+                                      {new Date(
+                                        entry.createdAt
+                                      ).toLocaleString()}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
+                                  {entry.note}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>

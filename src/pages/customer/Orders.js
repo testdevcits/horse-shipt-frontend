@@ -176,6 +176,7 @@ const ShipmentDrawer = ({
   isInProgress = false,
   onNavigate,
   onEdit,
+  onMetadataEdit,
   onTrack,
 }) => {
   const [visible, setVisible] = React.useState(false);
@@ -483,6 +484,13 @@ const ShipmentDrawer = ({
           {isInProgress && (
             <>
               <button
+                onClick={onMetadataEdit}
+                className="flex-1 py-2 rounded-sm text-xs font-bold flex items-center justify-center gap-1 bg-gray-600 hover:bg-[#BF9B53] text-white transition-colors"
+              >
+                <FiEdit2 size={14} />
+                Edit Docs & Notes
+              </button>
+              <button
                 onClick={onTrack}
                 className="flex-1 py-2 rounded-sm text-xs font-bold flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white transition-colors"
               >
@@ -501,13 +509,24 @@ const ShipmentDrawer = ({
 
           {/* Non-draft, non-inProgress */}
           {!isDraft && !isInProgress && (
-            <button
-              onClick={onNavigate}
-              className="flex-1 py-2 rounded-sm text-xs font-bold flex items-center justify-center gap-1 bg-[#BF9B53] hover:bg-[#a8863e] text-white transition-colors"
-            >
-              <FiEye size={14} />
-              View Full Details
-            </button>
+            <>
+              {!isDelivered && !isCancelled && (
+                <button
+                  onClick={onMetadataEdit}
+                  className="flex-1 py-2 rounded-sm text-xs font-bold flex items-center justify-center gap-1 bg-gray-600 hover:bg-[#BF9B53] text-white transition-colors"
+                >
+                  <FiEdit2 size={14} />
+                  Edit Docs & Notes
+                </button>
+              )}
+              <button
+                onClick={onNavigate}
+                className="flex-1 py-2 rounded-sm text-xs font-bold flex items-center justify-center gap-1 bg-[#BF9B53] hover:bg-[#a8863e] text-white transition-colors"
+              >
+                <FiEye size={14} />
+                View Full Details
+              </button>
+            </>
           )}
 
           {/* Delivered: Rate Shipper */}
@@ -875,6 +894,23 @@ const AllShipments = () => {
     }
   };
 
+  const handleEditMetadata = async () => {
+    if (!selected) return;
+    try {
+      await fetchShipmentById(selected._id);
+      navigate(`/customer/new-shipment/${selected._id}`, {
+        state: {
+          editMode: true,
+          metadataOnly: true,
+          shipment: selected,
+        },
+      });
+      setSelected(null);
+    } catch (err) {
+      Toast.error(err.message || "Failed to load shipment metadata");
+    }
+  };
+
   const handleTrackShipment = (shipment = selected) => {
     if (!shipment) {
       Toast.error("Cannot track this shipment");
@@ -1014,6 +1050,7 @@ const AllShipments = () => {
           onDelete={openDeleteConfirm}
           onNavigate={() => handleNavigateToDetails(selected)}
           onEdit={handleEditShipment}
+          onMetadataEdit={handleEditMetadata}
           onTrack={() => handleTrackShipment(selected)}
         />
       )}

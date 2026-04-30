@@ -9,7 +9,7 @@ const StripeAlertBanner = ({ onOpenModal, hideButton }) => {
   const isDisabled = hideButton;
 
   return (
-    <div className="w-full bg-[#BF9B53]  shadow-sm px-2 sm:px-4 py-2 sm:py-2 flex items-center justify-between font-montserrat">
+    <div className="w-full bg-[#BF9B53]  shadow-sm px-2 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between font-montserrat">
       {/* Left Content */}
       <div className="flex items-center gap-2">
         <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-white">

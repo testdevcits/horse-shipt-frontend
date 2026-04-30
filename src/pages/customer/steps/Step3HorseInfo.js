@@ -65,6 +65,7 @@ const defaultHorse = {
   sex: "",
   stallType: "",
   notes: "",
+  notesLog: [],
   selectedHorseId: "new",
 };
 
@@ -81,6 +82,7 @@ const Step3HorseInfo = ({
   setEditingHorseIdx,
   errors = {},
   isEditMode,
+  metadataOnly = false,
 }) => {
   const [savingHorseIdx, setSavingHorseIdx] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -257,6 +259,50 @@ const Step3HorseInfo = ({
             Horse {idx + 1}: {horse?.registeredName || "Unnamed"}
           </p>
 
+          {metadataOnly ? (
+            <div>
+              <label className="block font-semibold text-gray-600 mb-2">
+                Additional Notes
+              </label>
+              <textarea
+                value={horse?.notes || ""}
+                onChange={(e) =>
+                  handleHorseChange(idx, "notes", e.target.value)
+                }
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-2"
+                rows={4}
+                placeholder="Add a new note. Previous notes will stay in the log."
+              />
+              {horse?.notesLog?.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
+                    Existing Notes
+                  </p>
+                  {horse.notesLog.map((entry, noteIdx) => (
+                    <div
+                      key={noteIdx}
+                      className="rounded-sm border border-gray-200 bg-gray-50 p-3"
+                    >
+                      <div className="flex flex-wrap justify-between gap-2 text-xs text-gray-500">
+                        <span className="font-semibold">
+                          {entry.userName || "Customer"}
+                        </span>
+                        {entry.createdAt && (
+                          <span>
+                            {new Date(entry.createdAt).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
+                        {entry.note}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
           {!isEditMode && (
             <Select
               label="Select from My Horses"
@@ -461,9 +507,20 @@ const Step3HorseInfo = ({
               onChange={(e) => handleHorseChange(idx, "notes", e.target.value)}
               className="w-full border-2 border-gray-300 rounded-lg px-4 py-2"
               rows={3}
-              placeholder="Any additional information about this horse..."
+              placeholder={
+                isEditMode
+                  ? "Update this note. Previous notes will stay in the log."
+                  : "Any additional information about this horse..."
+              }
             />
+            {horse?.notesLog?.length > 0 && (
+              <p className="mt-1 text-xs font-medium text-gray-500">
+                Existing notes are preserved chronologically when you update.
+              </p>
+            )}
           </div>
+            </>
+          )}
         </div>
       ))}
 

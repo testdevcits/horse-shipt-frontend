@@ -39,6 +39,7 @@ const defaultHorse = {
   images: [],
   selectedHorseId: "",
   notes: "",
+  notesLog: [],
 };
 
 const NewShipment = () => {
@@ -50,19 +51,25 @@ const NewShipment = () => {
     createShipment,
     fetchShipmentById,
     updateShipment,
+    updateShipmentMetadata,
   } = useCustomerShipments();
 
   const location = useLocation();
   const { id } = useParams();
 
   const isEditMode = location.state?.editMode;
+  const requestedMetadataOnly = Boolean(location.state?.metadataOnly);
   const shipmentDataFromState = location.state?.shipment;
 
   // ===== MAIN STATE =====
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(
+    requestedMetadataOnly ? 3 : 1
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [editingHorseIdx, setEditingHorseIdx] = useState(null);
   const [isInitializing, setIsInitializing] = useState(isEditMode);
+  const [isMetadataOnlyMode, setIsMetadataOnlyMode] =
+    useState(requestedMetadataOnly);
 
   // ===== STEP 1: PICKUP =====
   const [pickupLocation, setPickupLocation] = useState("");
@@ -102,6 +109,13 @@ const NewShipment = () => {
         }
 
         if (data) {
+          const metadataOnly =
+            requestedMetadataOnly ||
+            (data.publish === true && data.status !== "pending");
+
+          setIsMetadataOnlyMode(metadataOnly);
+          if (metadataOnly) setCurrentStep(3);
+
           // Pickup
           setPickupLocation(data.pickupLocation || "");
           setPickupTimeOption(data.pickupTimeOption || "on");
@@ -160,6 +174,7 @@ const NewShipment = () => {
               images: [],
               selectedHorseId: h._id || "",
               notes: h.notes || "",
+              notesLog: h.notesLog || [],
             }));
 
             setHorses(processedHorses);
@@ -179,7 +194,13 @@ const NewShipment = () => {
       setIsInitializing(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isEditMode, fetchShipmentById, shipmentDataFromState]);
+    }, [
+    id,
+    isEditMode,
+    fetchShipmentById,
+    shipmentDataFromState,
+    requestedMetadataOnly,
+  ]);
 
   /* ==========================================
      EFFECT: Load My Horses on Mount (Create Mode Only)
@@ -370,7 +391,7 @@ const NewShipment = () => {
           stepErrors[`stallType${idx}`] = "Stall type required";
         }
       });
-    } else if (currentStep === 4) {
+    } else if (currentStep === 4 && !isMetadataOnlyMode) {
       horses.slice(0, numberOfHorses).forEach((h, idx) => {
         if (!h.photo) {
           stepErrors[`photo${idx}`] = "Horse photo is required";
@@ -393,7 +414,7 @@ const NewShipment = () => {
   const handleNext = () => {
     if (!validateStep()) return;
 
-    if (currentStep === 4) {
+    if (currentStep === 4 && !isMetadataOnlyMode) {
       const missingDocs = horses
         .slice(0, numberOfHorses)
         .some((h) => !h.cogins || !h.healthCertificate);
@@ -411,7 +432,8 @@ const NewShipment = () => {
   };
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
+    const minStep = isMetadataOnlyMode ? 3 : 1;
+    if (currentStep > minStep) {
       setCurrentStep((prev) => prev - 1);
     }
   };
@@ -425,6 +447,35 @@ const NewShipment = () => {
     try {
       setIsLoading(true);
       const formData = new FormData();
+
+      if (isMetadataOnlyMode) {
+        formData.append("additionalInfo", additionalInfo);
+
+        horses.slice(0, numberOfHorses).forEach((h, idx) => {
+          formData.append(`horses[${idx}][generalInfo]`, h.generalInfo || "");
+          formData.append(`horses[${idx}][notes]`, h.notes || "");
+
+          if (h.cogins instanceof File) {
+            formData.append(`horses[${idx}][cogins]`, h.cogins);
+          }
+          if (h.healthCertificate instanceof File) {
+            formData.append(
+              `horses[${idx}][healthCertificate]`,
+              h.healthCertificate
+            );
+          }
+          if (h.otherDocuments instanceof File) {
+            formData.append(
+              `horses[${idx}][otherDocuments]`,
+              h.otherDocuments
+            );
+          }
+        });
+
+        await updateShipmentMetadata(id, formData);
+        setIsModalOpen(true);
+        return;
+      }
 
       // Pickup Info
       formData.append("pickupLocation", pickupLocation);
@@ -502,6 +553,7 @@ const NewShipment = () => {
      HANDLER: Edit Step
      ========================================== */
   const handleEditStep = (step, horseIdx = null) => {
+    if (isMetadataOnlyMode && step < 3) return;
     if (horseIdx !== null) {
       setEditingHorseIdx(horseIdx);
     }
@@ -564,6 +616,7 @@ const NewShipment = () => {
             setEditingHorseIdx={setEditingHorseIdx}
             errors={errors}
             isEditMode={isEditMode}
+            metadataOnly={isMetadataOnlyMode}
           />
         );
       case 4:
@@ -650,7 +703,11 @@ const NewShipment = () => {
       {/* Header */}
       <div className="flex flex-row justify-between w-full max-w-5xl gap-2 relative mt-2 items-center px-4">
         <div className="font-montserrat font-semibold text-[20px] leading-[30px]">
-          {isEditMode ? "Edit Shipment" : "New Shipment"}
+          {isMetadataOnlyMode
+            ? "Edit Documents & Notes"
+            : isEditMode
+            ? "Edit Shipment"
+            : "New Shipment"}
         </div>
         <div
           className="font-montserrat cursor-pointer text-gray-500 hover:text-gray-700"
@@ -663,7 +720,13 @@ const NewShipment = () => {
       {/* Step Title */}
       <div className="w-full max-w-5xl px-4 mb-4 mt-4">
         <p className="font-montserrat text-md font-semibold text-gray-700">
-          {steps[currentStep - 1]?.title}
+          {isMetadataOnlyMode
+            ? currentStep === 3
+              ? "Edit Notes"
+              : currentStep === 4
+              ? "Edit Documents"
+              : "Review Documents & Notes"
+            : steps[currentStep - 1]?.title}
         </p>
       </div>
 
@@ -674,9 +737,9 @@ const NewShipment = () => {
       <div className="flex w-full max-w-5xl justify-between md:justify-end gap-4 mt-6 px-4">
         <button
           onClick={handlePrevious}
-          disabled={currentStep === 1}
+          disabled={currentStep === (isMetadataOnlyMode ? 3 : 1)}
           className={`px-6 py-2 rounded-sm font-montserrat border transition-all ${
-            currentStep === 1
+            currentStep === (isMetadataOnlyMode ? 3 : 1)
               ? "bg-gray-200 text-gray-500 cursor-not-allowed"
               : "bg-white text-gray-500 border-gray-300 hover:bg-[#BF9B53] hover:text-white"
           }`}
@@ -692,7 +755,9 @@ const NewShipment = () => {
         >
           {currentStep === steps.length
             ? isEditMode
-              ? "Update"
+              ? isMetadataOnlyMode
+                ? "Update Metadata"
+                : "Update"
               : "Finish"
             : "Next"}
         </button>
@@ -705,7 +770,11 @@ const NewShipment = () => {
           onClose={() => setIsModalOpen(false)}
           onViewShipments={() => {
             setIsModalOpen(false);
-            navigate("/customer/orders?tab=draft");
+            navigate(
+              isMetadataOnlyMode
+                ? "/customer/orders?tab=published"
+                : "/customer/orders?tab=draft"
+            );
           }}
           onAnotherAction={() => {
             setIsModalOpen(false);

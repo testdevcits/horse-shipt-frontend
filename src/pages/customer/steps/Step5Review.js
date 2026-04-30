@@ -37,6 +37,21 @@ const Step5Review = ({
     return option.charAt(0).toUpperCase() + option.slice(1);
   };
 
+  const formatNoteDate = (dateString) => {
+    if (!dateString) return "";
+    try {
+      return new Date(dateString).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return "";
+    }
+  };
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
@@ -240,6 +255,37 @@ const Step5Review = ({
                     Shipment Details:
                   </span>
                   <p className="text-gray-700 text-sm mt-1">{h.generalInfo}</p>
+                </div>
+              )}
+
+              {(h?.notesLog?.length > 0 || h?.notes) && (
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <span className="font-semibold text-gray-600 text-sm">
+                    Chronological Notes:
+                  </span>
+                  <div className="mt-2 space-y-2">
+                    {(h.notesLog?.length
+                      ? h.notesLog
+                      : [{ note: h.notes, userName: "Customer" }]
+                    ).map((entry, noteIdx) => (
+                      <div
+                        key={`${idx}-${noteIdx}`}
+                        className="rounded-sm border border-gray-200 bg-white p-3"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+                          <span className="font-bold">
+                            {entry.userName || "Customer"}
+                          </span>
+                          {entry.createdAt && (
+                            <span>{formatNoteDate(entry.createdAt)}</span>
+                          )}
+                        </div>
+                        <p className="text-gray-700 text-sm mt-1 whitespace-pre-wrap">
+                          {entry.note}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
