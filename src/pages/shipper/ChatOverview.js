@@ -17,6 +17,7 @@ const ChatOverview = () => {
   const [searchParams] = useSearchParams();
 
   const customerIdFromQuery = searchParams.get("customerId"); // GET CUSTOMER ID FROM QUERY
+  const shipmentIdFromQuery = searchParams.get("shipmentId");
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [roomId, setRoomId] = useState(null);
@@ -42,13 +43,15 @@ const ChatOverview = () => {
      AUTO-SELECT CUSTOMER FROM QUERY
   ================================ */
   useEffect(() => {
-    if (customers.length && customerIdFromQuery) {
+    if (customers.length && (shipmentIdFromQuery || customerIdFromQuery)) {
       const userFromQuery = customers.find(
-        (c) => c._id === customerIdFromQuery
+        (c) =>
+          (shipmentIdFromQuery && c.shipmentId === shipmentIdFromQuery) ||
+          (!shipmentIdFromQuery && c._id === customerIdFromQuery)
       );
       if (userFromQuery) setSelectedUser(userFromQuery);
     }
-  }, [customers, customerIdFromQuery]);
+  }, [customers, customerIdFromQuery, shipmentIdFromQuery]);
 
   /* ===============================
      JOIN ROOM WHEN CUSTOMER SELECTED
@@ -64,7 +67,7 @@ const ChatOverview = () => {
       try {
         const roomRes = await axios.post(
           `${API_BASE_URL}/shipper/chat/room`,
-          { customerId: selectedUser._id },
+          { shipmentId: selectedUser.shipmentId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -86,6 +89,7 @@ const ChatOverview = () => {
           socket.emit("joinRoom", {
             customerId: selectedUser._id,
             shipperId: user._id,
+            shipmentId: selectedUser.shipmentId,
           });
         }
       } catch (err) {
@@ -139,7 +143,14 @@ const ChatOverview = () => {
   ================================ */
   const filteredUsers = useMemo(() => {
     return (customers || [])
-      .filter((u) => u.name?.toLowerCase().includes(search.toLowerCase()))
+      .filter((u) => {
+        const term = search.toLowerCase();
+        return (
+          u.name?.toLowerCase().includes(term) ||
+          u.email?.toLowerCase().includes(term) ||
+          u.shipmentCode?.toLowerCase().includes(term)
+        );
+      })
       .filter((u) => {
         if (filter === "online") return u.isOnline === true;
         if (filter === "offline") return u.isOnline === false;
@@ -231,7 +242,7 @@ const ChatOverview = () => {
         className={`w-full lg:w-1/4 border-r overflow-y-auto bg-white
         ${selectedUser ? "hidden lg:block" : "block"}`}
       >
-        <div className="p-4 border-b font-semibold">Customers</div>
+        <div className="p-4 border-b font-semibold">Shipment Chats</div>
 
         <div className="p-3 relative">
           <HiSearch
@@ -241,7 +252,7 @@ const ChatOverview = () => {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search customer"
+            placeholder="Search shipment or customer"
             className="w-full border rounded-md pl-10 py-2"
           />
         </div>
@@ -268,14 +279,17 @@ const ChatOverview = () => {
         </div>
 
         {filteredUsers.length === 0 && (
-          <p className="p-4 text-gray-500 text-sm">No customers found</p>
+          <p className="p-4 text-gray-500 text-sm">
+            No accepted shipment chats found
+          </p>
         )}
 
         {filteredUsers.map((u) => (
           <div
-            key={u._id}
+            key={u.shipmentId || u._id}
             onClick={() => {
               setSelectedUser(u);
+              setRoomId(null);
               setMessages([]); // reset messages
             }}
             className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100"
@@ -293,9 +307,15 @@ const ChatOverview = () => {
               />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <span className="font-medium">{u.name}</span>
               <span className="text-xs text-gray-500">{u.email}</span>
+              <span className="text-xs text-[#BF9B53] font-semibold truncate">
+                {u.shipmentCode}
+              </span>
+              <span className="text-[11px] text-gray-400 truncate">
+                {u.pickupLocation} to {u.deliveryLocation}
+              </span>
             </div>
           </div>
         ))}
@@ -308,7 +328,7 @@ const ChatOverview = () => {
       >
         {!selectedUser && (
           <div className="flex-1 flex items-center justify-center text-gray-500">
-            Select a customer to start chat
+            Select an accepted shipment to start chat
           </div>
         )}
 
@@ -324,6 +344,9 @@ const ChatOverview = () => {
 
               <div className="flex flex-col">
                 <span>{selectedUser.name}</span>
+                <span className="text-xs text-[#BF9B53]">
+                  {selectedUser.shipmentCode}
+                </span>
                 <span
                   className={`text-xs ${
                     selectedUser.isOnline ? "text-green-600" : "text-gray-400"

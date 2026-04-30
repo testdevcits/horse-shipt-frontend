@@ -292,6 +292,10 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
     );
   }
 
+  const chatAllowedStatuses = ["assigned", "picked", "in_transit", "delivered"];
+  const canOpenShipmentChat =
+    shipment.customer && chatAllowedStatuses.includes(shipment.status);
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="font-montserrat w-full min-h-screen">
@@ -1065,17 +1069,19 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                     <span className="relative">Submit an Offer</span>
                   </button>
 
-                  <button
-                    onClick={() =>
-                      navigate(
-                        `/shipper/chat?customerId=${shipment.customer?._id}`
-                      )
-                    }
-                    className="border border-[#BF9B53] text-[#BF9B53] px-4 py-3 rounded-sm font-black text-base hover:bg-[#BF9B53]/5 transition-all duration-300 flex items-center justify-center gap-2 bg-white"
-                  >
-                    <MdChat size={22} />
-                    Chat with Customer
-                  </button>
+                  {canOpenShipmentChat && (
+                    <button
+                      onClick={() =>
+                        navigate(
+                          `/shipper/chat?shipmentId=${shipment._id}&customerId=${shipment.customer?._id}`
+                        )
+                      }
+                      className="border border-[#BF9B53] text-[#BF9B53] px-4 py-3 rounded-sm font-black text-base hover:bg-[#BF9B53]/5 transition-all duration-300 flex items-center justify-center gap-2 bg-white"
+                    >
+                      <MdChat size={22} />
+                      Chat with Customer
+                    </button>
+                  )}
                 </div>
               )}
             </div>

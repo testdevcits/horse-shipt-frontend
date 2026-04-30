@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { GoStar } from "react-icons/go";
-import { MdFavoriteBorder, MdFavorite, MdChat } from "react-icons/md";
+import { MdFavoriteBorder, MdFavorite } from "react-icons/md";
 import { IoLocationOutline } from "react-icons/io5";
 import { FaTruck, FaUser, FaClock, FaDollarSign } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 /**
  * ============================================================
  * MODERN SHIPPER REVIEW CARD
- * With chat button, favorites, and additional fields
+ * With favorites and additional fields
  * ============================================================
  */
 
@@ -21,11 +21,6 @@ const ShipperReviewCard = ({ shipper }) => {
    */
   const handleClick = () => {
     navigate(`/customer/shipper-profile/${shipper.id}`);
-  };
-
-  const handleChat = (e) => {
-    e.stopPropagation();
-    navigate(`/customer/chats/${shipper.id}`);
   };
 
   const handleFavorite = (e) => {
@@ -131,15 +126,6 @@ const ShipperReviewCard = ({ shipper }) => {
                 className="text-gray-400 group-hover:text-red-400"
               />
             )}
-          </button>
-
-          {/* Chat Button */}
-          <button
-            onClick={handleChat}
-            className="p-2 rounded-full bg-[#BF9B53]/10 hover:bg-[#BF9B53]/20 transition-colors"
-            title="Send message"
-          >
-            <MdChat size={20} className="text-[#BF9B53]" />
           </button>
         </div>
       </div>

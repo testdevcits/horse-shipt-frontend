@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
 import { FiImage, FiX } from "react-icons/fi";
 import PageLoader from "../../components/common/PageLoader";
@@ -14,6 +15,9 @@ const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 const CustomerChatOverview = () => {
   const { shippers, loading, fetchShippers } = useCustomerChat();
   const { user, token } = useAuth();
+  const [searchParams] = useSearchParams();
+  const shipmentIdFromQuery = searchParams.get("shipmentId");
+  const shipperIdFromQuery = searchParams.get("shipperId");
 
   const [selectedShipper, setSelectedShipper] = useState(null);
   const [roomId, setRoomId] = useState(null);
@@ -35,6 +39,17 @@ const CustomerChatOverview = () => {
     fetchShippers();
   }, [fetchShippers]);
 
+  useEffect(() => {
+    if (!shippers.length) return;
+
+    const chatFromQuery = shippers.find((shipper) => {
+      if (shipmentIdFromQuery) return shipper.shipmentId === shipmentIdFromQuery;
+      return shipperIdFromQuery && shipper._id === shipperIdFromQuery;
+    });
+
+    if (chatFromQuery) setSelectedShipper(chatFromQuery);
+  }, [shippers, shipmentIdFromQuery, shipperIdFromQuery]);
+
   /* ===============================
      JOIN ROOM WHEN SHIPPER SELECTED
   ================================ */
@@ -48,7 +63,7 @@ const CustomerChatOverview = () => {
       try {
         const roomRes = await axios.post(
           `${API_BASE_URL}/customer/chat/room`,
-          { shipperId: selectedShipper._id },
+          { shipmentId: selectedShipper.shipmentId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -70,6 +85,7 @@ const CustomerChatOverview = () => {
           socket.emit("joinRoom", {
             customerId: user._id,
             shipperId: selectedShipper._id,
+            shipmentId: selectedShipper.shipmentId,
           });
         }
       } catch (err) {
@@ -123,7 +139,14 @@ const CustomerChatOverview = () => {
   ================================ */
   const filteredShippers = useMemo(() => {
     return (shippers || [])
-      .filter((s) => s.name?.toLowerCase().includes(search.toLowerCase()))
+      .filter((s) => {
+        const term = search.toLowerCase();
+        return (
+          s.name?.toLowerCase().includes(term) ||
+          s.email?.toLowerCase().includes(term) ||
+          s.shipmentCode?.toLowerCase().includes(term)
+        );
+      })
       .filter((s) => {
         if (filter === "online") return s.isOnline === true;
         if (filter === "offline") return s.isOnline === false;
@@ -215,7 +238,7 @@ const CustomerChatOverview = () => {
         className={`w-full lg:w-1/3 border-r overflow-y-auto bg-white
         ${selectedShipper ? "hidden lg:block" : "block"}`}
       >
-        <div className="p-4 border-b font-semibold">Shippers</div>
+        <div className="p-4 border-b font-semibold">Shipment Chats</div>
 
         <div className="p-3 relative">
           <HiSearch
@@ -225,7 +248,7 @@ const CustomerChatOverview = () => {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search shipper"
+            placeholder="Search shipment or shipper"
             className="w-full border rounded-md pl-10 py-2"
           />
         </div>
@@ -252,14 +275,17 @@ const CustomerChatOverview = () => {
         </div>
 
         {filteredShippers.length === 0 && (
-          <p className="p-4 text-gray-500 text-sm">No shippers found</p>
+          <p className="p-4 text-gray-500 text-sm">
+            No accepted shipment chats found
+          </p>
         )}
 
         {filteredShippers.map((s) => (
           <div
-            key={s._id}
+            key={s.shipmentId || s._id}
             onClick={() => {
               setSelectedShipper(s);
+              setRoomId(null);
               setMessages([]); // reset messages
             }}
             className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100"
@@ -277,9 +303,15 @@ const CustomerChatOverview = () => {
               />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <span className="font-medium">{s.name}</span>
               <span className="text-xs text-gray-500">{s.email}</span>
+              <span className="text-xs text-[#BF9B53] font-semibold truncate">
+                {s.shipmentCode}
+              </span>
+              <span className="text-[11px] text-gray-400 truncate">
+                {s.pickupLocation} to {s.deliveryLocation}
+              </span>
             </div>
           </div>
         ))}
@@ -292,7 +324,7 @@ const CustomerChatOverview = () => {
       >
         {!selectedShipper && (
           <div className="flex-1 flex items-center justify-center text-gray-500">
-            Select a shipper to start chat
+            Select an accepted shipment to start chat
           </div>
         )}
 
@@ -308,6 +340,9 @@ const CustomerChatOverview = () => {
 
               <div className="flex flex-col">
                 <span>{selectedShipper.name}</span>
+                <span className="text-xs text-[#BF9B53]">
+                  {selectedShipper.shipmentCode}
+                </span>
                 <span
                   className={`text-xs ${
                     selectedShipper.isOnline

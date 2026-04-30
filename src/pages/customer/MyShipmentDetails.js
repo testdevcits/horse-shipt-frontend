@@ -180,6 +180,11 @@ const MyShipmentDetails = () => {
 
   const pickupDates = getPickupDates();
   const deliveryDates = getDeliveryDates();
+  const chatAllowedStatuses = ["assigned", "picked", "in_transit", "delivered"];
+  const canOpenShipmentChat =
+    shipment.shipper && chatAllowedStatuses.includes(shipment.status);
+  const shipperId =
+    typeof shipment.shipper === "object" ? shipment.shipper?._id : shipment.shipper;
 
   return (
     <div className="w-full font-montserrat relative">
@@ -276,6 +281,21 @@ const MyShipmentDetails = () => {
                       </button>
                     </div>
                   )}
+
+                {canOpenShipmentChat && (
+                  <div className="flex gap-3 mt-4">
+                    <button
+                      onClick={() =>
+                        navigate(
+                          `/customer/chats?shipmentId=${shipment._id}&shipperId=${shipperId}`
+                        )
+                      }
+                      className="px-6 py-3 border border-system-primary text-system-primary rounded-sm font-semibold hover:bg-system-primary hover:text-white transition"
+                    >
+                      Chat with Shipper
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
