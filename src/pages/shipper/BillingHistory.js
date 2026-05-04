@@ -399,6 +399,13 @@ const BillingHistory = () => {
     if (!plan) return null;
     const planType = subscription?.planType || plan?.subscriptionStatus;
 
+    if (plan.monthly && (!planType || planType === "monthly")) {
+      return `$${plan.monthly.amount}/${plan.monthly.interval || "month"} ${(
+        plan.monthly.currency ||
+        plan.currency ||
+        "usd"
+      ).toUpperCase()}`;
+    }
     if (plan.daily && (!planType || planType === "daily")) {
       const amt = plan.daily.amount;
       const cur = (plan.daily.currency || plan.currency || "usd").toUpperCase();
@@ -406,11 +413,6 @@ const BillingHistory = () => {
     }
     if (plan.weekly) {
       return `$${plan.weekly.amount}/${plan.weekly.interval || "week"} ${(
-        plan.currency || "usd"
-      ).toUpperCase()}`;
-    }
-    if (plan.monthly) {
-      return `$${plan.monthly.amount}/${plan.monthly.interval || "month"} ${(
         plan.currency || "usd"
       ).toUpperCase()}`;
     }
@@ -504,7 +506,7 @@ const BillingHistory = () => {
   const planName = subscription?.planType
     ? subscription.planType.charAt(0).toUpperCase() +
       subscription.planType.slice(1)
-    : plan?.daily?.label || "Premium";
+    : plan?.monthly?.label || plan?.daily?.label || "Premium";
 
   if (billingLoading || subscriptionLoading || planLoading) {
     return (
@@ -653,7 +655,7 @@ const BillingHistory = () => {
                   </span>
                 )}
 
-                {(subscription?.planType || plan?.daily) && (
+                {(subscription?.planType || plan?.monthly || plan?.daily) && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
                     <Crown className="w-4 h-4" />
                     {planName} Plan
@@ -710,7 +712,7 @@ const BillingHistory = () => {
                   )}
 
                 {/* Plan & Price */}
-                {(subscription?.planType || plan?.daily) && (
+                {(subscription?.planType || plan?.monthly || plan?.daily) && (
                   <div className="p-4 bg-slate-50 rounded-sm border border-slate-200">
                     <div className="flex items-center gap-2 mb-2">
                       <Crown className="w-4 h-4 text-slate-600" />

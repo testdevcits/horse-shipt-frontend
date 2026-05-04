@@ -4,66 +4,20 @@ import { useShipperDelivery } from "../../contexts/shipperContext/ShipperDeliver
 import { useNavigate } from "react-router-dom";
 import {
   FiTruck,
-  FiMapPin,
-  FiCalendar,
   FiCheckCircle,
   FiXCircle,
   FiClock,
-  FiHash,
-  FiUsers,
   FiNavigation,
-  FiAlertCircle,
 } from "react-icons/fi";
 import { MdClose } from "react-icons/md";
 import { IoArrowBack } from "react-icons/io5";
 import PageLoader from "../../components/common/PageLoader";
+import PublicShipmentCard from "./ShipmentCard";
 
 const hasAssignedVehicle = (quote) => {
   if (!quote?.vehicle) return false;
   if (typeof quote.vehicle === "string") return true;
   return Object.keys(quote.vehicle).length > 0;
-};
-
-/* ─────────────────────────────────────────
-   STATUS BADGE
-───────────────────────────────────────────*/
-const StatusBadge = ({ state }) => {
-  const map = {
-    accepted: {
-      label: "Accepted",
-      icon: <FiCheckCircle size={11} />,
-      cls: "bg-green-50 text-green-700 border-green-200",
-    },
-    in_transit: {
-      label: "In Transit",
-      icon: <FiTruck size={11} />,
-      cls: "bg-blue-50 text-blue-700 border-blue-200",
-    },
-    completed: {
-      label: "Delivered & Verified",
-      icon: <FiCheckCircle size={11} />,
-      cls: "bg-blue-50 text-blue-700 border-blue-200",
-    },
-    cancelled: {
-      label: "Cancelled",
-      icon: <FiXCircle size={11} />,
-      cls: "bg-red-50 text-red-600 border-red-200",
-    },
-    pending: {
-      label: "Pending",
-      icon: <FiClock size={11} />,
-      cls: "bg-yellow-50 text-yellow-700 border-yellow-200",
-    },
-  };
-  const cfg = map[state] || map.pending;
-  return (
-    <span
-      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${cfg.cls}`}
-    >
-      {cfg.icon}
-      {cfg.label}
-    </span>
-  );
 };
 
 /* ─────────────────────────────────────────
@@ -80,7 +34,7 @@ const EmptyState = ({ icon, title, subtitle }) => (
 /* ─────────────────────────────────────────
    SHIPMENT CARD
 ───────────────────────────────────────────*/
-const ShipmentCard = ({
+const QuoteShipmentCard = ({
   quote,
   tabKey,
   onMarkDelivered,
@@ -93,190 +47,78 @@ const ShipmentCard = ({
   const isCompleted = tabKey === "completed";
   const isInTransit = tabKey === "in_transit";
 
-  const badgeState = isCancelled
-    ? "cancelled"
-    : isCompleted
-    ? "completed"
-    : isInTransit
-    ? "in_transit"
-    : "accepted";
+  const normalizedShipment = {
+    ...(quote.shipment || {}),
+    status: isCancelled
+      ? "cancelled"
+      : isCompleted
+      ? "completed"
+      : isInTransit
+      ? "assigned"
+      : quote.shipment?.status || "assigned",
+    transportType: quote.transportType || quote.shipment?.transportType,
+  };
+
+  const isProcessingThis = deliveryLoading && selectedQuote?._id === quote._id;
 
   return (
-    <div
-      className={`flex flex-col gap-4 bg-white border rounded-md p-5 shadow-sm transition
-      ${
-        isCancelled
-          ? "border-red-100 opacity-75"
-          : "border-gray-200 hover:shadow-md"
-      }`}
-    >
-      {/* ── TOP ROW: Code + Badges ── */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-          <FiHash size={12} />
-          <span>{quote.shipment?.shipmentCode || quote._id}</span>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <StatusBadge state={badgeState} />
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border
-            ${
-              quote.paymentStatus === "paid"
-                ? "bg-green-50 text-green-700 border-green-200"
-                : "bg-yellow-50 text-yellow-700 border-yellow-200"
-            }`}
-          >
-            Payment: {quote.paymentStatus}
+    <div className={isCancelled ? "opacity-75" : ""}>
+      <PublicShipmentCard shipment={normalizedShipment} />
+      <div className="bg-white border-x border-b border-[#BF9B53] rounded-b-sm px-4 py-3 -mt-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 text-xs">
+          <span className="font-semibold text-gray-500">
+            Quote:{" "}
+            <span className="text-[#BF9B53]">
+              {quote.currency === "USD" ? "$" : quote.currency || "$"}
+              {quote.totalPrice || 0}
+            </span>
+          </span>
+          <span className="font-semibold text-gray-500">
+            Payment:{" "}
+            <span className="text-gray-800">{quote.paymentStatus || "N/A"}</span>
+          </span>
+          <span className="font-semibold text-gray-500">
+            Trip:{" "}
+            <span className="text-gray-800">{quote.tripStatus || "Not started"}</span>
           </span>
         </div>
-      </div>
 
-      {/* ── ROUTE ── */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 text-gray-800 font-semibold text-sm">
-          <FiMapPin size={14} className="text-[#BF9B53] shrink-0" />
-          <span>{quote.shipment?.pickupLocation}</span>
-        </div>
-        <span className="text-gray-300 text-base">→</span>
-        <div className="flex items-center gap-1.5 text-gray-800 font-semibold text-sm">
-          <FiMapPin size={14} className="text-green-500 shrink-0" />
-          <span>{quote.shipment?.deliveryLocation}</span>
-        </div>
-      </div>
+        <div className="flex flex-wrap justify-end gap-2">
+          {!isCancelled && (
+            <button
+              onClick={() => onTrack(quote)}
+              className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#BF9B53]/5 transition"
+            >
+              <FiNavigation size={14} />
+              Track
+            </button>
+          )}
 
-      {/* ── META ── */}
-      <div className="flex flex-wrap gap-4 text-xs text-gray-500">
-        {quote.shipment?.pickupDate && (
-          <div className="flex items-center gap-1.5">
-            <FiCalendar size={12} />
-            <span>
-              Pickup:{" "}
-              {new Date(quote.shipment.pickupDate).toLocaleDateString("en-US", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </span>
-          </div>
-        )}
-        {quote.shipment?.deliveryDate && (
-          <div className="flex items-center gap-1.5">
-            <FiCalendar size={12} />
-            <span>
-              Delivery:{" "}
-              {new Date(quote.shipment.deliveryDate).toLocaleDateString(
-                "en-US",
-                { day: "numeric", month: "short", year: "numeric" }
-              )}
-            </span>
-          </div>
-        )}
-        {quote.shipment?.numberOfHorses && (
-          <div className="flex items-center gap-1.5">
-            <FiUsers size={12} />
-            <span>
-              {quote.shipment.numberOfHorses} Horse
-              {quote.shipment.numberOfHorses !== 1 ? "s" : ""}
-            </span>
-          </div>
-        )}
-        {quote.pickupTime && (
-          <div className="flex items-center gap-1.5">
-            <FiClock size={12} />
-            <span>Pickup time: {quote.pickupTime}</span>
-          </div>
-        )}
-      </div>
+          {tabKey === "upcoming" && !isCancelled && !isCompleted && (
+            <button
+              className="flex items-center gap-2 bg-[#BF9B53] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#a8863f] disabled:opacity-50 transition"
+              disabled={isProcessingThis}
+              onClick={() => onMarkDelivered(quote)}
+            >
+              <FiTruck size={14} />
+              {isProcessingThis ? "Processing..." : "Mark Delivered"}
+            </button>
+          )}
 
-      {/* ── PRICE ── */}
-      {quote.totalPrice && (
-        <div className="flex items-center gap-2 text-sm">
-          <span className="font-bold text-gray-800">
-            {quote.currency === "USD" ? "$" : quote.currency}
-            {quote.totalPrice.toLocaleString()}
-          </span>
-          <span className="text-gray-400 text-xs">
-            · {quote.paymentMethod} · due on {quote.paymentDue}
-          </span>
-        </div>
-      )}
-
-      {(quote.vehicle || quote.assignedDriver) && (
-        <div className="flex flex-wrap gap-4 text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-xl px-3 py-3">
-          {quote.vehicle && (
-            <div className="flex items-center gap-1.5">
-              <FiTruck size={12} className="text-[#BF9B53]" />
-              <span>
-                Vehicle: {quote.vehicle.vehicleNumber || quote.vehicle.vehicleType}
-              </span>
+          {isCompleted && (
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 text-sm font-semibold">
+              <FiCheckCircle size={14} />
+              Delivery Verified
             </div>
           )}
-          {quote.assignedDriver && (
-            <div className="flex items-center gap-1.5">
-              <FiUsers size={12} />
-              <span>Driver assigned</span>
+
+          {isCancelled && (
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-500 text-sm font-semibold">
+              <FiXCircle size={14} />
+              Shipment Cancelled
             </div>
           )}
-          <div className="flex items-center gap-1.5">
-            <FiNavigation size={12} />
-            <span className="capitalize">
-              Trip: {quote.tripStatus || "notStarted"}
-            </span>
-          </div>
         </div>
-      )}
-
-      {/* ── CANCEL REASON ── */}
-      {isCancelled && quote.cancelReason && (
-        <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-xs text-red-500">
-          <FiAlertCircle size={13} className="mt-0.5 shrink-0" />
-          <span>Cancellation reason: {quote.cancelReason}</span>
-        </div>
-      )}
-
-      {/* ── ACTIONS ── */}
-      <div className="flex flex-wrap gap-3 pt-1 border-t border-gray-100">
-        {/* Track — show for upcoming and completed */}
-        {!isCancelled && (
-          <button
-            onClick={() => onTrack(quote)}
-            className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53]
-              px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#BF9B53]/5 transition"
-          >
-            <FiNavigation size={14} />
-            Track Shipment
-          </button>
-        )}
-
-        {/* Mark Delivered — only upcoming tab */}
-        {/* {isUpcoming && (
-          <button
-            className="flex items-center gap-2 bg-[#BF9B53] text-white
-              px-5 py-2 rounded-xl text-sm font-semibold hover:bg-[#a8863f]
-              disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            disabled={isProcessingThis}
-            onClick={() => onMarkDelivered(quote)}
-          >
-            <FiTruck size={14} />
-            {isProcessingThis ? "Processing..." : "Mark Delivered"}
-          </button>
-        )} */}
-
-        {/* Completed pill */}
-        {isCompleted && (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 text-sm font-semibold">
-            <FiCheckCircle size={14} />
-            Delivery Verified
-          </div>
-        )}
-
-        {/* Cancelled pill */}
-        {isCancelled && (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 border border-red-200 text-red-500 text-sm font-semibold">
-            <FiXCircle size={14} />
-            Shipment Cancelled
-          </div>
-        )}
       </div>
     </div>
   );
@@ -545,7 +387,7 @@ const AllUpcomingShipments = () => {
       ) : (
         <div className="flex flex-col gap-4">
           {currentTab.data.map((quote) => (
-            <ShipmentCard
+            <QuoteShipmentCard
               key={quote._id}
               quote={quote}
               tabKey={activeTab}

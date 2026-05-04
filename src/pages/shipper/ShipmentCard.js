@@ -25,6 +25,13 @@ const statusConfig = {
     border: "border-gray-200",
     dot: "bg-gray-400",
   },
+  cancelled: {
+    label: "Cancelled",
+    bg: "bg-red-50",
+    text: "text-red-600",
+    border: "border-red-200",
+    dot: "bg-red-500",
+  },
 };
 
 const formatDateRange = (start, end) => {

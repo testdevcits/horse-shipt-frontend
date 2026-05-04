@@ -90,6 +90,9 @@ export const SubscriptionProvider = ({ children }) => {
       trialDays: data.trialDays || 0,
       hasUsedTrial: data.hasUsedTrial === true,
       trialEligible: data.trialEligible ?? data.hasUsedTrial !== true,
+      trialActive: data.trialActive === true,
+      remainingTrialDays: data.remainingTrialDays || 0,
+      trialEndDate: data.trialEndDate || null,
 
       monthly: data.monthly || null,
 

@@ -29,6 +29,7 @@ import NewsletterVerificationPage from "../pages/NewsletterVerificationPage";
 import OAuthErrorPage from "../pages/auth/OAuthErrorPage";
 import TrackShipmentPage from "../pages/TrackShipmentPage";
 import AllShipments from "../pages/shipper/AllShipments";
+import InvitedShipments from "../pages/shipper/InvitedShipments";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
@@ -198,6 +199,7 @@ const AppRoutes = () => {
 
           <Route path="dashboard" element={<ShipperDashboard />} />
           <Route path="my-shipment" element={<ShipperContract />} />
+          <Route path="invited-shipments" element={<InvitedShipments />} />
           <Route path="all-shipment" element={<AllShipments />} />
           <Route path="profile" element={<ShipperProfile />} />
           <Route path="vehicles" element={<VehiclesAndCapacity />} />

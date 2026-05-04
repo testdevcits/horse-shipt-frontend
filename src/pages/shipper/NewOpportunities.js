@@ -10,7 +10,7 @@ import ShipmentCard from "./ShipmentCard";
 import ShipmentMap from "./ShipmentMap";
 import PageLoader from "../../components/common/PageLoader";
 
-const NewOpportunities = () => {
+const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) => {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("list");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -144,7 +144,7 @@ const NewOpportunities = () => {
       {/* ── TITLE ── */}
       <div>
         <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-dark">
-          New Opportunities
+          {title}
         </h2>
         <p className="text-sm text-gray-500 mt-0.5">
           Browse available horse shipments near you
@@ -185,26 +185,28 @@ const NewOpportunities = () => {
         </button>
 
         {/* List / Map tabs */}
-        <div className="flex bg-gray-100 border border-gray-200 rounded-lg p-1 flex-shrink-0">
-          {[
-            { id: "list", label: "List", Icon: IoList },
-            { id: "map", label: "Map", Icon: CiMap },
-          ].map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold transition-all duration-200
-                ${
-                  activeTab === id
-                    ? "bg-system-primary text-white shadow-sm"
-                    : "text-gray-600 hover:text-dark"
-                }`}
-            >
-              <Icon size={16} />
-              {label}
-            </button>
-          ))}
-        </div>
+        {showMapView && (
+          <div className="flex bg-gray-100 border border-gray-200 rounded-lg p-1 flex-shrink-0">
+            {[
+              { id: "list", label: "List", Icon: IoList },
+              { id: "map", label: "Map", Icon: CiMap },
+            ].map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold transition-all duration-200
+                  ${
+                    activeTab === id
+                      ? "bg-system-primary text-white shadow-sm"
+                      : "text-gray-600 hover:text-dark"
+                  }`}
+              >
+                <Icon size={16} />
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── DESKTOP FILTERS ── */}

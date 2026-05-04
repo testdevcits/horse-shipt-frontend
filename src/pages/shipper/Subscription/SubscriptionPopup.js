@@ -94,8 +94,13 @@ const SubscriptionPopup = () => {
   })();
 
   const trialDays = plan?.data?.trialDays ?? plan?.trialDays ?? 0;
-  const trialEligible =
+  const trialActive =
+    subscription?.status === "trialing" ||
+    plan?.data?.trialActive ||
+    plan?.trialActive;
+  const planTrialEligible =
     plan?.data?.trialEligible ?? plan?.trialEligible ?? trialDays > 0;
+  const trialEligible = trialActive || planTrialEligible;
   const subscriptionStatus =
     subscription?.status ||
     plan?.data?.subscriptionStatus ||
@@ -103,7 +108,7 @@ const SubscriptionPopup = () => {
     null;
   const isCanceledSubscription = subscriptionStatus === "canceled";
   const showTrialOffer =
-    trialEligible && trialDays > 0 && !isCanceledSubscription;
+    !trialActive && trialEligible && trialDays > 0 && !isCanceledSubscription;
 
   const formatPrice = () => {
     if (!planData) return "Loading...";
@@ -113,7 +118,9 @@ const SubscriptionPopup = () => {
 
   const intervalLabel = planData ? formatInterval(planData.interval) : "day";
 
-  const badgeLabel = showTrialOffer
+  const badgeLabel = trialActive
+    ? "Free trial active"
+    : showTrialOffer
     ? `${trialDays}-day free trial`
     : "Paid subscription";
 
