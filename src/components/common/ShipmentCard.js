@@ -44,6 +44,7 @@ const CustomerShipmentCard = ({ shipment }) => {
   const isPickupToday =
     pickupStart &&
     new Date(pickupStart).toDateString() === new Date().toDateString();
+  const pendingQuestionCount = shipment.questionSummary?.pending || 0;
 
   return (
     <div
@@ -74,6 +75,11 @@ const CustomerShipmentCard = ({ shipment }) => {
           </h3>
 
           <div className="flex items-center gap-2">
+            {pendingQuestionCount > 0 && (
+              <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-bold">
+                Question - {pendingQuestionCount}
+              </span>
+            )}
             {isPickupToday && (
               <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
                 Today

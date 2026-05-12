@@ -12,6 +12,7 @@ import logoMobile from "../../assets/images/mobileLogo.png";
 import Toast from "../../components/common/Toast";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import PageLoader from "../../components/common/PageLoader";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
 const steps = [
   { id: 1, title: "Pickup Date" },
@@ -92,6 +93,7 @@ const NewShipment = () => {
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [errors, setErrors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
   const [showDocWarning, setShowDocWarning] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
 
@@ -439,6 +441,11 @@ const NewShipment = () => {
     }
   };
 
+  const openPublishConfirm = () => {
+    if (!validateStep()) return;
+    setShowPublishConfirm(true);
+  };
+
   /* ==========================================
      SUBMISSION: Create/Update Shipment
      ========================================== */
@@ -680,7 +687,9 @@ const NewShipment = () => {
      ========================================== */
   return (
     <div className="w-full flex flex-col items-center relative py-6">
-      {isLoading && <PageLoader text="Processing shipment..." />}
+      {isLoading && (
+        <PageLoader text="Processing shipment..." fullScreen={true} />
+      )}
 
       {/* Stepper Progress */}
       <div className="w-full max-w-5xl flex gap-2 relative mb-10 px-2 items-center">
@@ -776,7 +785,7 @@ const NewShipment = () => {
         </button>
         {currentStep === steps.length && !isMetadataOnlyMode && (
           <button
-            onClick={() => handleFinish(true)}
+            onClick={openPublishConfirm}
             className="px-6 py-2 rounded-sm font-montserrat bg-gray-900 text-white hover:bg-[#4C3E21] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             disabled={isLoading}
           >
@@ -784,6 +793,18 @@ const NewShipment = () => {
           </button>
         )}
       </div>
+
+      <ConfirmModal
+        show={showPublishConfirm}
+        title="Publish Shipment?"
+        message="After publishing, pickup, delivery, and horse details cannot be fully edited. You will only be able to update documents and notes. Are you sure you want to save and publish this shipment?"
+        confirmText="Save & Publish"
+        onCancel={() => setShowPublishConfirm(false)}
+        onConfirm={() => {
+          setShowPublishConfirm(false);
+          handleFinish(true);
+        }}
+      />
 
       {/* Success Modal */}
       {isModalOpen && (

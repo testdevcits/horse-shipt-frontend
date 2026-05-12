@@ -52,6 +52,7 @@ const ShipmentCard = ({ shipment, invitation }) => {
   const distanceMiles = shipment.estimatedDistance?.miles;
   const hasDistance =
     distanceMiles !== null && distanceMiles !== undefined && distanceMiles !== "";
+  const answeredQuestionCount = shipment.questionSummary?.answered || 0;
 
   const handleNavigateWithQuery = () => {
     const token = createShipmentQueryToken(shipment._id);
@@ -119,15 +120,22 @@ const ShipmentCard = ({ shipment, invitation }) => {
             </div>
 
             {/* Status badge */}
-            <span
-              className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 rounded-full border flex-shrink-0 ${st.bg} ${st.text} ${st.border}`}
-            >
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
               <span
-                className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${st.dot}`}
-              />
-              <span className="hidden sm:inline">{st.label}</span>
-              <span className="sm:hidden">Open</span>
-            </span>
+                className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 rounded-full border ${st.bg} ${st.text} ${st.border}`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${st.dot}`}
+                />
+                <span className="hidden sm:inline">{st.label}</span>
+                <span className="sm:hidden">Open</span>
+              </span>
+              {answeredQuestionCount > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-red-700">
+                  Reply - {answeredQuestionCount}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Route */}
