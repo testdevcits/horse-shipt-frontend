@@ -365,8 +365,9 @@ const DriverDeliveryPage = () => {
     setError("");
     const res = await verifyDeliveryOtp(shipmentId, otp);
     if (res?.success) {
-      setStep(3);
-      Toast.success("OTP verified!");
+      setSuccess(true);
+      Toast.success("Shipment verified and delivered!");
+      setTimeout(() => navigate("/driver/dashboard"), 2500);
     } else {
       const msg = res?.message || "Invalid OTP. Please try again.";
       setError(msg);

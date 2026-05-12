@@ -7,7 +7,7 @@ import Toast from "../../components/common/Toast";
 import signupBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../contexts/AuthContext";
-import loginLogo from "../../assets/images/loginLogo.png";
+import loginLogo from "../../assets/images/HorseShipt_White.svg";
 import { FiArrowLeft, FiEye, FiEyeOff, FiRefreshCw } from "react-icons/fi";
 
 const API_BASE_URL =

@@ -7,7 +7,7 @@ import Button from "../../components/common/Button";
 import Toast from "../../components/common/Toast";
 import loginBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
-import loginLogo from "../../assets/images/loginLogo.png";
+import loginLogo from "../../assets/images/HorseShipt_White.svg";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
 const API_BASE_URL =

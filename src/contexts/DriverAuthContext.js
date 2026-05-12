@@ -441,11 +441,14 @@ export const DriverAuthProvider = ({ children }) => {
     if (!tokenRef.current) return;
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/driver/assigned-shipments`, {
-        headers: { Authorization: `Bearer ${tokenRef.current}` },
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}/driver/driver/assigned-shipments`,
+        {
+          headers: { Authorization: `Bearer ${tokenRef.current}` },
+        }
+      );
       if (res.data.success) {
-        const shipmentsData = res.data.assignedShipments || [];
+        const shipmentsData = res.data.shipments || res.data.assignedShipments || [];
         setAllShipments(shipmentsData);
         localStorage.setItem("driverShipments", JSON.stringify(shipmentsData));
         return shipmentsData;
@@ -517,7 +520,7 @@ export const DriverAuthProvider = ({ children }) => {
       if (!tokenRef.current) return;
       try {
         const res = await axios.post(
-          `${API_BASE_URL}/driver/complete-shipment`,
+          `${API_BASE_URL}/driver/driver/complete-shipment`,
           { quoteId },
           { headers: { Authorization: `Bearer ${tokenRef.current}` } }
         );
@@ -545,7 +548,7 @@ export const DriverAuthProvider = ({ children }) => {
       if (!tokenRef.current) return;
       try {
         const res = await axios.post(
-          `${API_BASE_URL}/driver/mark-delivered`,
+          `${API_BASE_URL}/driver/driver/complete-shipment`,
           { quoteId },
           { headers: { Authorization: `Bearer ${tokenRef.current}` } }
         );
@@ -606,6 +609,7 @@ export const DriverAuthProvider = ({ children }) => {
           setIsTrackingEnabled(false);
           stopTrackingLoop();
           await fetchAssignedShipments();
+          await fetchDriver();
         }
         return res.data;
       } catch (err) {
@@ -617,7 +621,7 @@ export const DriverAuthProvider = ({ children }) => {
         setActionLoading(false);
       }
     },
-    [fetchAssignedShipments, stopTrackingLoop]
+    [fetchAssignedShipments, fetchDriver, stopTrackingLoop]
   );
 
   return (

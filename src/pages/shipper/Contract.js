@@ -233,7 +233,7 @@ const ShipmentCard = ({
 
       {/* ── ACTIONS ── */}
       <div className="flex flex-wrap gap-3 pt-1 border-t border-gray-100">
-        {/* Track — show for upcoming and completed */}
+        {/* Track only active/upcoming shipments. Completed shipments keep details only. */}
         {quote.shipperContract?.url && (
           <button
             onClick={() =>
@@ -250,7 +250,7 @@ const ShipmentCard = ({
           </button>
         )}
 
-        {!isCancelled && (
+        {!isCancelled && !isCompleted && (
           <button
             onClick={() => onTrack(quote)}
             className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53]

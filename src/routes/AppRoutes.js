@@ -82,6 +82,9 @@ const DriverDashboard = lazy(() => import("../pages/Driver/DriverDashboard"));
 const DriverDeliveryPage = lazy(() =>
   import("../pages/Driver/DriverDeliveryPage")
 );
+const DriverShipmentsPage = lazy(() =>
+  import("../pages/Driver/DriverShipmentCard")
+);
 
 // ---------------- Common Pages ----------------
 const Home = lazy(() => import("../pages/Home"));
@@ -181,6 +184,15 @@ const AppRoutes = () => {
                   element={
                     <ProtectedDriverRoute>
                       <DriverDeliveryPage />
+                    </ProtectedDriverRoute>
+                  }
+                />
+
+                <Route
+                  path="shipments"
+                  element={
+                    <ProtectedDriverRoute>
+                      <DriverShipmentsPage />
                     </ProtectedDriverRoute>
                   }
                 />

@@ -75,15 +75,24 @@ const fmtDate = (ds) =>
         year: "2-digit",
       })
     : "N/A";
-const fmtTime = (ts) => {
-  if (!ts) return "N/A";
-  try {
-    const [h, m] = ts.split(":");
-    const hr = parseInt(h);
-    return `${hr % 12 || 12}:${m} ${hr >= 12 ? "PM" : "AM"}`;
-  } catch {
-    return ts;
+
+const getShipmentPayload = (item) => item?.shipment || item || {};
+
+const getQuoteStatus = (item) => {
+  const quoteTripStatus = String(item?.tripStatus || "").toLowerCase();
+  const shipmentStatus = String(item?.shipment?.status || item?.status || "").toLowerCase();
+
+  if (
+    quoteTripStatus === "completed" ||
+    shipmentStatus === "delivered" ||
+    shipmentStatus === "completed"
+  ) {
+    return "delivered";
   }
+  if (["started", "intransit", "in_transit"].includes(quoteTripStatus)) {
+    return "started";
+  }
+  return "pending";
 };
 
 /* ─── Shipment Card ─── */
@@ -134,7 +143,7 @@ const ShipmentCard = ({ shipment, status, onPress }) => {
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
             <FiCalendar size={9} />
-            {fmtDate(shipment.pickupDate)}
+            {fmtDate(shipment.pickupDate || shipment.pickupDateRange?.start)}
           </span>
         </div>
         <span className="flex items-center gap-1 font-semibold">
@@ -172,7 +181,7 @@ const DriverShipmentsPage = () => {
 
   useEffect(() => {
     fetchAssignedShipments();
-  }, []);
+  }, [fetchAssignedShipments]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -187,11 +196,7 @@ const DriverShipmentsPage = () => {
   };
 
   const getStatus = (s) => {
-    const raw = s.shipment || s;
-    if (raw.tripStatus === "completed" || raw.status === "delivered")
-      return "delivered";
-    if (raw.tripStatus === "started") return "started";
-    return "pending";
+    return getQuoteStatus(s);
   };
 
   const counts = {
@@ -310,7 +315,7 @@ const DriverShipmentsPage = () => {
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
             {filtered.map((shipment) => {
               const status = getStatus(shipment);
-              const rawShipment = shipment.shipment || shipment;
+              const rawShipment = getShipmentPayload(shipment);
               return (
                 <ShipmentCard
                   key={shipment._id}

@@ -99,7 +99,7 @@ const QuoteShipmentCard = ({
             </button>
           )}
 
-          {!isCancelled && (
+          {!isCancelled && !isCompleted && (
             <button
               onClick={() => onTrack(quote)}
               className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#BF9B53]/5 transition"
@@ -299,7 +299,8 @@ const AllUpcomingShipments = () => {
   };
 
   const handleTrack = (quote) => {
-    navigate(`/shipper/shipments/track/${quote.shipment._id}`);
+    if (quote.shipment?.status === "delivered") return;
+    navigate(`/shipper/track/${quote._id}`);
   };
 
   const handleVerifyOtp = async () => {
