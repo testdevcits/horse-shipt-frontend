@@ -2,7 +2,14 @@ import React, { useState } from "react";
 import { GoStar } from "react-icons/go";
 import { MdFavoriteBorder, MdFavorite } from "react-icons/md";
 import { IoLocationOutline } from "react-icons/io5";
-import { FaTruck, FaUser, FaClock, FaDollarSign } from "react-icons/fa";
+import {
+  FaTruck,
+  FaUser,
+  FaClock,
+  FaDollarSign,
+  FaGoogle,
+  FaExternalLinkAlt,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 /**
@@ -27,6 +34,13 @@ const ShipperReviewCard = ({ shipper }) => {
     e.stopPropagation();
     setIsFavorited(!isFavorited);
     // TODO: Call API to save favorite
+  };
+
+  const hasCustomerReviews = Number(shipper.reviewCount || 0) > 0;
+  const hasGoogleReviewLink = Boolean(shipper.googleReviewLink);
+
+  const handleGoogleReviewClick = (e) => {
+    e.stopPropagation();
   };
 
   /**
@@ -131,10 +145,39 @@ const ShipperReviewCard = ({ shipper }) => {
       </div>
 
       {/* ===================== REVIEW TEXT ===================== */}
-      <p className="text-sm sm:text-base text-gray-700 font-montserrat line-clamp-3 mb-4 flex-grow">
-        {shipper.reviewText ||
-          "A professional and reliable shipper with excellent service."}
-      </p>
+      {hasCustomerReviews || !hasGoogleReviewLink ? (
+        <p className="text-sm sm:text-base text-gray-700 font-montserrat line-clamp-3 mb-4 flex-grow">
+          {shipper.reviewText ||
+            "A professional and reliable shipper with excellent service."}
+        </p>
+      ) : (
+        <div className="mb-4 flex-grow rounded-md border border-[#BF9B53]/30 bg-[#BF9B53]/10 p-3">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-[#BF9B53] shadow-sm">
+              <FaGoogle size={16} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-gray-900">
+                Google reviews available
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-gray-600">
+                This shipper has not received customer reviews here yet. View
+                their Google Reviews link to check reputation.
+              </p>
+              <a
+                href={shipper.googleReviewLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleGoogleReviewClick}
+                className="mt-3 inline-flex items-center gap-2 rounded-sm bg-[#BF9B53] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#9d7d42]"
+              >
+                View Google Reviews
+                <FaExternalLinkAlt size={10} />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ===================== DIVIDER ===================== */}
       <div className="h-px bg-gray-200 mb-4" />

@@ -39,7 +39,9 @@ const TopRatedShippers = () => {
   // ===================== FILTER & SORT LOGIC =====================
   const filteredShippers = topRatedShippers.filter((s) => {
     // Search filter
-    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = (s.name || "")
+      .toLowerCase()
+      .includes(search.toLowerCase());
 
     // Rating filter
     const matchesRating = s.rating >= minRating;
@@ -75,7 +77,7 @@ const TopRatedShippers = () => {
       case "rating":
         return b.rating - a.rating;
       case "name":
-        return a.name.localeCompare(b.name);
+        return (a.name || "").localeCompare(b.name || "");
       case "reviews":
         return (b.reviewCount || 0) - (a.reviewCount || 0);
       default:
@@ -462,6 +464,7 @@ const TopRatedShippers = () => {
                   experienceLevel: shipper.experienceLevel,
                   responseTime: shipper.responseTime,
                   priceRange: shipper.priceRange,
+                  googleReviewLink: shipper.googleReviewLink,
                 }}
               />
             ))}

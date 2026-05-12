@@ -52,6 +52,7 @@ const NewShipment = () => {
     fetchShipmentById,
     updateShipment,
     updateShipmentMetadata,
+    publishShipment,
   } = useCustomerShipments();
 
   const location = useLocation();
@@ -427,7 +428,7 @@ const NewShipment = () => {
     if (currentStep < steps.length) {
       setCurrentStep((prev) => prev + 1);
     } else {
-      handleFinish();
+      handleFinish(false);
     }
   };
 
@@ -441,7 +442,7 @@ const NewShipment = () => {
   /* ==========================================
      SUBMISSION: Create/Update Shipment
      ========================================== */
-  const handleFinish = async () => {
+  const handleFinish = async (publishNow = false) => {
     if (!validateStep()) return;
 
     try {
@@ -533,9 +534,21 @@ const NewShipment = () => {
       });
 
       if (isEditMode) {
-        await updateShipment(id, formData);
+        const updatedShipment = await updateShipment(id, formData);
+        if (publishNow && updatedShipment?._id && !updatedShipment.publish) {
+          await publishShipment(updatedShipment._id);
+          Toast.success("Shipment saved and published");
+          navigate("/customer/orders?tab=published");
+          return;
+        }
       } else {
-        await createShipment(formData);
+        const createdShipment = await createShipment(formData);
+        if (publishNow && createdShipment?._id) {
+          await publishShipment(createdShipment._id);
+          Toast.success("Shipment saved and published");
+          navigate("/customer/orders?tab=published");
+          return;
+        }
       }
       setIsModalOpen(true);
     } catch (error) {
@@ -748,7 +761,7 @@ const NewShipment = () => {
         </button>
         <button
           onClick={() =>
-            currentStep === steps.length ? handleFinish() : handleNext()
+            currentStep === steps.length ? handleFinish(false) : handleNext()
           }
           className="px-6 py-2 rounded-sm font-montserrat bg-[#BF9B53] text-white hover:bg-[#a7863e] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           disabled={isLoading}
@@ -758,9 +771,18 @@ const NewShipment = () => {
               ? isMetadataOnlyMode
                 ? "Update Metadata"
                 : "Update"
-              : "Finish"
+              : "Save as Draft"
             : "Next"}
         </button>
+        {currentStep === steps.length && !isMetadataOnlyMode && (
+          <button
+            onClick={() => handleFinish(true)}
+            className="px-6 py-2 rounded-sm font-montserrat bg-gray-900 text-white hover:bg-[#4C3E21] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            disabled={isLoading}
+          >
+            Save & Publish
+          </button>
+        )}
       </div>
 
       {/* Success Modal */}

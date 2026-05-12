@@ -19,6 +19,7 @@ import {
   MessageCircleMore,
 } from "lucide-react";
 import { useShipperPayments } from "../../contexts/shipperContext/ShipperPaymentContext";
+import { useSubscription } from "../../contexts/shipperContext/SubscriptionContext";
 
 /**
  * ============================================================
@@ -99,6 +100,10 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const [showQuoteSuccess, setShowQuoteSuccess] = useState(false);
 
   const { needsOnboarding } = useShipperPayments();
+  const { subscription, loading: subscriptionLoading } = useSubscription();
+  const hasSubscriptionAccess =
+    subscription?.hasAccess === true ||
+    ["active", "trialing"].includes(subscription?.status);
 
   // ── Document viewer state ──────────────────────────────────────────────────
   const [viewingDoc, setViewingDoc] = useState(null); // { url, label }
@@ -1046,7 +1051,25 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 </div>
               </div>
 
-              {needsOnboarding ? (
+              {!hasSubscriptionAccess && !subscriptionLoading ? (
+                <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l border-[#BF9B53] p-3 rounded-sm shadow-sm flex flex-col items-center text-center gap-3">
+                  <p className="text-sm text-gray-700 font-medium">
+                    You can review opportunities without subscribing. Start a
+                    subscription when you are ready to submit an offer.
+                  </p>
+
+                  <button
+                    onClick={() =>
+                      window.dispatchEvent(
+                        new Event("openSubscriptionPopup")
+                      )
+                    }
+                    className="px-4 py-2 bg-[#BF9B53] text-white font-semibold text-sm rounded-sm hover:bg-[#9d7d42] transition-all duration-200 shadow-sm hover:shadow-md"
+                  >
+                    Subscribe to Submit Offers
+                  </button>
+                </div>
+              ) : needsOnboarding ? (
                 <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l border-[#BF9B53] p-3 rounded-sm shadow-sm flex flex-col items-center text-center gap-3">
                   <p className="text-sm text-gray-700 font-medium">
                     Please complete your account setup to submit an offer.

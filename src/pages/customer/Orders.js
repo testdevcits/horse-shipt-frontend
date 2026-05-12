@@ -581,6 +581,7 @@ const ShipmentRow = ({ s, onView }) => {
   };
 
   const isCancelled = s.status === "cancelled";
+  const pendingQuestionCount = s.questionSummary?.pending || 0;
 
   //  First horse image from the shipment
   const firstHorseImage = s.horses?.find((h) => h.photo?.url)?.photo?.url;
@@ -622,6 +623,11 @@ const ShipmentRow = ({ s, onView }) => {
               {s.shipmentCode}
             </span>
             <StatusChip status={s.status} />
+            {pendingQuestionCount > 0 && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold uppercase bg-red-100 text-red-700">
+                Question - {pendingQuestionCount}
+              </span>
+            )}
           </div>
 
           {/* Route */}
@@ -689,6 +695,11 @@ const ShipmentRow = ({ s, onView }) => {
                 {s.shipmentCode}
               </span>
               <StatusChip status={s.status} />
+              {pendingQuestionCount > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-red-700">
+                  Question - {pendingQuestionCount}
+                </span>
+              )}
             </div>
             <p className="text-xs font-semibold text-gray-700 truncate">
               {truncateText(s.pickupLocation, 30)}

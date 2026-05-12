@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Loader,
   Shield,
+  X,
 } from "lucide-react";
 import Toast from "../../../components/common/Toast";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
@@ -59,15 +60,26 @@ const SubscriptionPopup = () => {
   const [processing, setProcessing] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
   const [cardError, setCardError] = useState(null);
+  const [dismissed, setDismissed] = useState(false);
 
   // ── Fetch payment status when popup opens ──
   useEffect(() => {
     if (isOpen) fetchPaymentStatus();
   }, [isOpen, fetchPaymentStatus]);
 
+  useEffect(() => {
+    const openPopup = () => {
+      setDismissed(false);
+      setIsOpen(true);
+    };
+
+    window.addEventListener("openSubscriptionPopup", openPopup);
+    return () => window.removeEventListener("openSubscriptionPopup", openPopup);
+  }, []);
+
   // ── Auto-open for unsubscribed users ──
   useEffect(() => {
-    if (!subLoading && !needsOnboarding) {
+    if (!subLoading && !needsOnboarding && !dismissed) {
       const hasSubscriptionAccess =
         subscription?.hasAccess === true ||
         ["active", "trialing"].includes(subscription?.status);
@@ -78,7 +90,7 @@ const SubscriptionPopup = () => {
         setIsOpen(false);
       }
     }
-  }, [subscription, subLoading, needsOnboarding]);
+  }, [subscription, subLoading, needsOnboarding, dismissed]);
 
   // =====================================================
   // DERIVE PLAN DETAILS from API response
@@ -179,6 +191,7 @@ const SubscriptionPopup = () => {
       Toast.success(
         showTrialOffer ? "Free trial started!" : "Subscription activated!"
       );
+      setDismissed(true);
       setIsOpen(false);
     } catch (err) {
       Toast.error(
@@ -198,18 +211,36 @@ const SubscriptionPopup = () => {
 
   if (!isOpen || isSubscribed) return null;
 
+  const closePopup = () => {
+    if (processing) return;
+    setDismissed(true);
+    setIsOpen(false);
+    setShowCardForm(false);
+    setCardError(null);
+  };
+
   // =====================================================
   // RENDER
   // =====================================================
   return (
     <div className="fixed inset-0 z-50 font-montserrat flex items-end sm:items-center justify-center">
-      {/* Backdrop — no close on click (forced flow) */}
+      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
       {/* Sheet: bottom on mobile, centered modal on sm+ */}
       <div className="relative z-10 w-full sm:max-w-md bg-white sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[90vh] overflow-hidden border border-slate-200">
         {/* ══════════════ HEADER ══════════════ */}
         <div className="bg-gradient-to-br from-[#BF9B53] via-[#c9a55e] to-[#8B7138] px-5 py-5 text-white relative overflow-hidden shrink-0">
+          <button
+            type="button"
+            onClick={closePopup}
+            disabled={processing}
+            aria-label="Close subscription prompt"
+            className="absolute right-3 top-3 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition hover:bg-white/30 disabled:opacity-50"
+          >
+            <X size={18} />
+          </button>
+
           {/* Decorative circles */}
           <div className="absolute top-0 right-0 w-36 h-36 bg-white/5 rounded-full -mr-16 -mt-16 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12 pointer-events-none" />

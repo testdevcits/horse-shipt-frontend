@@ -83,6 +83,21 @@ const CustomerShipperReviewPage = () => {
               />
             );
           })
+        ) : shipperInfo?.googleReviewLink ? (
+          <ShipperReviewCard
+            shipper={{
+              id: shipperInfo._id || shipperId,
+              name: shipperInfo.name || "Shipper",
+              profileImage:
+                shipperInfo.profileImage?.url ||
+                shipperInfo.profilePicture ||
+                "/default-avatar.png",
+              rating: shipperInfo.averageRating || 0,
+              reviewCount: 0,
+              region: shipperInfo.locale?.address || "Available",
+              googleReviewLink: shipperInfo.googleReviewLink,
+            }}
+          />
         ) : (
           <div className="col-span-full text-center text-gray-500 py-10">
             No customer reviews found.
