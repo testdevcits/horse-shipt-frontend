@@ -17,7 +17,6 @@ const Step1Pickup = ({
   setPickupLocation,
   pickupCoords,
   setPickupCoords,
-  pickupTimeOption,
   setPickupTimeOption,
   pickupStartDate,
   setPickupStartDate,
@@ -193,7 +192,7 @@ const Step1Pickup = ({
       <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 rounded-lg space-y-4">
         <p className="text-xs md:text-sm text-gray-900">
           Please enter your pickup address or adjust the map marker to set the
-          exact location. Pickup time will be between start and end date.
+          exact location.
         </p>
       </div>
     </div>

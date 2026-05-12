@@ -44,7 +44,10 @@ const CustomerShipmentCard = ({ shipment }) => {
   const isPickupToday =
     pickupStart &&
     new Date(pickupStart).toDateString() === new Date().toDateString();
-  const pendingQuestionCount = shipment.questionSummary?.pending || 0;
+  const pendingQuestionCount =
+    shipment.questionSummary?.unreadForCustomer ??
+    shipment.questionSummary?.pending ??
+    0;
 
   return (
     <div

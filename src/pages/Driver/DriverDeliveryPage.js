@@ -7,8 +7,6 @@ import {
   FiSend,
   FiAlertCircle,
   FiCheck,
-  FiMapPin,
-  FiClock,
   FiUser,
 } from "react-icons/fi";
 import { TbPasswordMobilePhone, TbRouteSquare, TbTruck } from "react-icons/tb";
@@ -181,28 +179,6 @@ const ShipmentInfoCard = ({ shipmentDetails, compact = false }) => {
             </p>
             <p className="text-xs font-semibold text-gray-700">
               {quoteRoot?.vehicle?.vehicleNumber || "N/A"}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2">
-          <FiClock size={14} className="mt-0.5 text-[#BF9B53] shrink-0" />
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">
-              Pickup Time
-            </p>
-            <p className="text-xs font-semibold text-gray-700">
-              {quoteRoot?.pickupTime || "N/A"}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2">
-          <FiMapPin size={14} className="mt-0.5 text-[#BF9B53] shrink-0" />
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">
-              ETA
-            </p>
-            <p className="text-xs font-semibold text-gray-700">
-              {quoteRoot?.estimatedArrivalTime || "N/A"}
             </p>
           </div>
         </div>

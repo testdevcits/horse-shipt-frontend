@@ -77,6 +77,20 @@ const LoginPage = () => {
             : "/customer/dashboard",
           { replace: true }
         );
+      } else if (result.requiresOtp) {
+        const pendingOtp = {
+          email: result.data?.email || values.email,
+          role: result.data?.role || values.role,
+        };
+        localStorage.setItem("pendingSignupOtp", JSON.stringify(pendingOtp));
+        Toast.success(result.message || "OTP sent to your email");
+        navigate("/signup", {
+          replace: true,
+          state: {
+            otpStep: pendingOtp,
+            message: result.message,
+          },
+        });
       } else {
         if (result.errors?.length > 0) {
           const emailError = result.errors.find((e) =>
@@ -208,7 +222,7 @@ const LoginPage = () => {
                       <button
                         key={r}
                         type="button"
-                        className={`flex-1 py-1  text-xs font-medium rounded ${
+                        className={`flex-1 py-1  text-xs font-medium  ${
                           values.role === r
                             ? "bg-[#BF9B53] text-white"
                             : "bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-500"

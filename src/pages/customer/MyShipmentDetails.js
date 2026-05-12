@@ -356,11 +356,6 @@ const MyShipmentDetails = () => {
                     <span>
                       <strong>Pickup:</strong> {pickupDates.startDate} -{" "}
                       {pickupDates.endDate}
-                      {shipment.pickupTimeOption && (
-                        <span className="ml-2">
-                          ({shipment.pickupTimeOption})
-                        </span>
-                      )}
                     </span>
                     <span>
                       <strong>Delivery:</strong> {deliveryDates.startDate} -{" "}

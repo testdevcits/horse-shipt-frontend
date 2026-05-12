@@ -85,6 +85,16 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, data: userData };
     } catch (err) {
+      if (err.response?.data?.requiresOtp) {
+        return {
+          success: false,
+          requiresOtp: true,
+          message: err.response.data.message,
+          data: err.response.data.data,
+          errors: err.response?.data?.errors || ["Please verify your email"],
+        };
+      }
+
       return {
         success: false,
         errors: err.response?.data?.errors || ["Server Error"],

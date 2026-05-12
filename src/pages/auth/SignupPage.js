@@ -56,6 +56,27 @@ const SignupPage = () => {
       .required("Please select a role"),
   });
 
+  useEffect(() => {
+    const fromRoute = location.state?.otpStep;
+    const fromStorage = localStorage.getItem("pendingSignupOtp");
+
+    if (fromRoute?.email && fromRoute?.role) {
+      setOtpStep(fromRoute);
+      if (location.state?.message) Toast.success(location.state.message);
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
+
+    if (fromStorage) {
+      try {
+        const parsed = JSON.parse(fromStorage);
+        if (parsed?.email && parsed?.role) setOtpStep(parsed);
+      } catch (error) {
+        localStorage.removeItem("pendingSignupOtp");
+      }
+    }
+  }, [location.pathname, location.state, navigate]);
+
   // ----------------- OAuth -----------------
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -109,6 +130,13 @@ const SignupPage = () => {
             email: res.data?.email || values.email,
             role: res.data?.role || values.role,
           });
+          localStorage.setItem(
+            "pendingSignupOtp",
+            JSON.stringify({
+              email: res.data?.email || values.email,
+              role: res.data?.role || values.role,
+            })
+          );
           Toast.success(res.message || "OTP sent to your email");
           return;
         }
@@ -174,6 +202,7 @@ const SignupPage = () => {
     }
 
     Toast.success(res.message || "Email verified successfully");
+    localStorage.removeItem("pendingSignupOtp");
     navigate(
       res.data.role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard",
       { replace: true }
@@ -423,7 +452,7 @@ const SignupPage = () => {
                       <button
                         key={r}
                         type="button"
-                        className={`flex-1 py-1 text-xs font-medium rounded ${
+                        className={`flex-1 py-1 text-xs font-medium  ${
                           values.role === r
                             ? "bg-[#BF9B53] text-white"
                             : "bg-gray-200 text-gray-700 border border-gray-500"

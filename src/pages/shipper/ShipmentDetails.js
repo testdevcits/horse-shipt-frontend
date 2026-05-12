@@ -82,6 +82,18 @@ const DOC_COLORS = {
   other: "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100",
 };
 
+const isPdfDocument = (doc = {}) => {
+  const url = String(doc.url || "").toLowerCase();
+  const label = String(doc.label || "").toLowerCase();
+  return (
+    url.includes(".pdf") ||
+    url.includes("/raw/upload/") ||
+    label.includes("pdf") ||
+    label.includes("coggins") ||
+    label.includes("health")
+  );
+};
+
 const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const { id: paramId } = useParams();
   const [searchParams] = useSearchParams();
@@ -332,7 +344,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
             {/* Document Content */}
             <div className="flex-1 overflow-auto bg-gray-100 flex items-center justify-center min-h-[60vh]">
-              {viewingDoc.url.toLowerCase().endsWith(".pdf") ? (
+              {isPdfDocument(viewingDoc) ? (
                 <iframe
                   src={viewingDoc.url}
                   title={viewingDoc.label}

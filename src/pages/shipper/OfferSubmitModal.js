@@ -9,7 +9,6 @@ import Toast from "../../components/common/Toast";
 import { FiX } from "react-icons/fi";
 import {
   DollarSign,
-  Clock,
   FileText,
   PenTool,
   CreditCard,
@@ -56,16 +55,12 @@ const OfferSubmitModal = ({ shipment, onClose, onSuccess }) => {
     totalPrice: "",
     paymentMethod: "card",
     paymentDue: "delivery",
-    pickupTime: "",
-    arrivalTime: "",
     notes: "",
     cancellationWindowDays: "",
   };
 
   const validationSchema = Yup.object({
     totalPrice: Yup.number().required("Required"),
-    pickupTime: Yup.string().required("Required"),
-    arrivalTime: Yup.string().required("Required"),
     cancellationWindowDays: Yup.number()
       .typeError("Must be a number")
       .required("Required")
@@ -95,8 +90,6 @@ const OfferSubmitModal = ({ shipment, onClose, onSuccess }) => {
     payload.append("totalPrice", Number(values.totalPrice));
     payload.append("paymentMethod", values.paymentMethod);
     payload.append("paymentDue", values.paymentDue);
-    payload.append("pickupTime", values.pickupTime);
-    payload.append("estimatedArrivalTime", values.arrivalTime);
     payload.append("notes", values.notes || "");
     payload.append("shipperSignature", sigPad.toDataURL("image/png"));
     payload.append(
@@ -143,7 +136,15 @@ const OfferSubmitModal = ({ shipment, onClose, onSuccess }) => {
       )}
 
       <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
-        <div className="bg-white w-full max-w-5xl max-h-[95vh] rounded-md flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+        <div className="relative bg-white w-full max-w-5xl max-h-[95vh] rounded-md flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+          {isSubmittingOffer && (
+            <div className="absolute inset-0 z-20 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+              <LoaderCircle className="w-9 h-9 animate-spin text-[#BF9B53]" />
+              <p className="text-sm font-semibold text-slate-700">
+                Sending your offer...
+              </p>
+            </div>
+          )}
           {/* ============ HEADER ============ */}
           <div className="relative px-4 sm:px-4 py-4 sm:py-4 border-b border-slate-200 bg-gradient-to-r from-gray-50  to-gray-50">
             <button
@@ -244,53 +245,6 @@ const OfferSubmitModal = ({ shipment, onClose, onSuccess }) => {
                           <ErrorMessage name="totalPrice" />
                         </div>
                       )}
-                    </div>
-                  </div>
-
-                  {/* ---- TIMING SECTION ---- */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="p-1 bg-[#BF9B53] rounded-sm">
-                        <Clock className="w-4 h-4 text-white" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-slate-900">
-                        Timing
-                      </h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-4">
-                      <div>
-                        <label className="block mb-2 font-semibold text-slate-900 text-sm sm:text-base">
-                          Pickup Time <span className="text-red-500">*</span>
-                        </label>
-                        <Field
-                          name="pickupTime"
-                          type="time"
-                          className="w-full px-4 py-3 sm:py-3.5 border-2 border-slate-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm sm:text-base transition-all duration-200"
-                        />
-                        {errors.pickupTime && touched.pickupTime && (
-                          <div className="flex items-center gap-2 mt-2 text-red-500 text-xs sm:text-sm">
-                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                            <ErrorMessage name="pickupTime" />
-                          </div>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block mb-2 font-semibold text-slate-900 text-sm sm:text-base">
-                          Arrival Time <span className="text-red-500">*</span>
-                        </label>
-                        <Field
-                          name="arrivalTime"
-                          type="time"
-                          className="w-full px-4 py-3 sm:py-3.5 border-2 border-slate-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm sm:text-base transition-all duration-200"
-                        />
-                        {errors.arrivalTime && touched.arrivalTime && (
-                          <div className="flex items-center gap-2 mt-2 text-red-500 text-xs sm:text-sm">
-                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                            <ErrorMessage name="arrivalTime" />
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </div>
 

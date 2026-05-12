@@ -321,9 +321,6 @@ const NewShipment = () => {
       if (!pickupLocation || !pickupLocation.trim()) {
         stepErrors.pickupLocation = "Pickup location is required";
       }
-      if (!pickupTimeOption) {
-        stepErrors.pickupTimeOption = "Pickup time option is required";
-      }
       if (!pickupStartDate || pickupStartDate.trim() === "") {
         stepErrors.pickupStartDate = "Pickup start date is required";
       }

@@ -7,7 +7,6 @@ const Step5Review = ({
   pickupLocation,
   pickupStartDate,
   pickupEndDate,
-  pickupTimeOption,
   deliveryLocation,
   deliveryStartDate,
   deliveryEndDate,
@@ -94,11 +93,6 @@ const Step5Review = ({
               </span>
               {" to "}
               <span className="font-semibold">{formatDate(pickupEndDate)}</span>
-              {pickupTimeOption && (
-                <span className="ml-2 text-[#BF9B53] font-semibold">
-                  ({formatTimeOption(pickupTimeOption)})
-                </span>
-              )}
             </p>
           </div>
         </div>

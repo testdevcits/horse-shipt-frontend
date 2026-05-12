@@ -183,12 +183,6 @@ const ShipmentCard = ({
             </span>
           </div>
         )}
-        {quote.pickupTime && (
-          <div className="flex items-center gap-1.5">
-            <FiClock size={12} />
-            <span>Pickup time: {quote.pickupTime}</span>
-          </div>
-        )}
       </div>
 
       {/* ── PRICE ── */}

@@ -367,7 +367,6 @@ const HomeTab = ({
               color="gold"
               location={currentShipment.shipment?.pickupLocation}
               date={formatDate(currentShipment.shipment?.pickupDate)}
-              time={formatTime(currentShipment.pickupTime)}
             />
             <div className="flex justify-center py-0.5 xl:py-0">
               <div className="flex flex-col items-center gap-0.5">
@@ -386,7 +385,6 @@ const HomeTab = ({
               color="green"
               location={currentShipment.shipment?.deliveryLocation}
               date={formatDate(currentShipment.shipment?.deliveryDate)}
-              time={formatTime(currentShipment.estimatedArrivalTime)}
             />
           </div>
 

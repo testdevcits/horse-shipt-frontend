@@ -11,7 +11,6 @@ import { IoArrowBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import {
   RiMoneyDollarCircleLine,
-  RiTimeLine,
   RiTruckLine,
   RiFileTextLine,
   RiCloseCircleLine,
@@ -287,19 +286,6 @@ const ShipperQuotesPage = () => {
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="flex items-center gap-2">
-                      <RiTimeLine className="text-[#BF9B53]" />
-                      <span className="text-gray-500">Pickup:</span>
-                      <span className="font-medium text-[#BF9B53]">
-                        {quote.pickupTime}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Arrival:</span>{" "}
-                      <span className="font-medium text-[#BF9B53]">
-                        {quote.estimatedArrivalTime}
-                      </span>
-                    </p>
                     <p>
                       <span className="text-gray-500">Transport:</span>{" "}
                       <span className="text-gray-800">

@@ -352,11 +352,6 @@ const ShipmentDrawer = ({
               <p className="text-sm font-bold text-gray-900 leading-snug">
                 {getPickupDisplay()}
               </p>
-              {shipment.pickupTimeOption && (
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {shipment.pickupTimeOption}
-                </p>
-              )}
             </div>
             <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
@@ -581,7 +576,8 @@ const ShipmentRow = ({ s, onView }) => {
   };
 
   const isCancelled = s.status === "cancelled";
-  const pendingQuestionCount = s.questionSummary?.pending || 0;
+  const pendingQuestionCount =
+    s.questionSummary?.unreadForCustomer ?? s.questionSummary?.pending ?? 0;
 
   //  First horse image from the shipment
   const firstHorseImage = s.horses?.find((h) => h.photo?.url)?.photo?.url;

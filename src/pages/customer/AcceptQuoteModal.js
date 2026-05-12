@@ -298,21 +298,6 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                   </div>
                 </div>
 
-                {/* Trip Details */}
-                <div className="border rounded-lg p-4 bg-slate-50 space-y-2 text-xs sm:text-sm">
-                  <h3 className="font-semibold text-slate-900">Trip Details</h3>
-                  <div>
-                    <p className={strongLabelClass}>Pickup Time</p>
-                    <p className="text-gray-700">{quote.pickupTime || "N/A"}</p>
-                  </div>
-                  <div>
-                    <p className={strongLabelClass}>Est. Arrival</p>
-                    <p className="text-gray-700">
-                      {quote.estimatedArrivalTime || "N/A"}
-                    </p>
-                  </div>
-                </div>
-
                 {/* Vehicle Info */}
                 {quote.vehicle && (
                   <div className="border rounded-lg p-4 bg-slate-50 space-y-2 text-xs sm:text-sm">

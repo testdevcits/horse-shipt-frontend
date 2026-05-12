@@ -4,7 +4,6 @@ import { useDriverAuth } from "../../contexts/DriverAuthContext";
 import {
   FiArrowLeft,
   FiMapPin,
-  FiClock,
   FiRefreshCw,
   FiChevronRight,
   FiCalendar,
@@ -136,10 +135,6 @@ const ShipmentCard = ({ shipment, status, onPress }) => {
           <span className="flex items-center gap-1">
             <FiCalendar size={9} />
             {fmtDate(shipment.pickupDate)}
-          </span>
-          <span className="flex items-center gap-1">
-            <FiClock size={9} />
-            {fmtTime(shipment.pickupTime)}
           </span>
         </div>
         <span className="flex items-center gap-1 font-semibold">

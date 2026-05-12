@@ -52,7 +52,10 @@ const ShipmentCard = ({ shipment, invitation }) => {
   const distanceMiles = shipment.estimatedDistance?.miles;
   const hasDistance =
     distanceMiles !== null && distanceMiles !== undefined && distanceMiles !== "";
-  const answeredQuestionCount = shipment.questionSummary?.answered || 0;
+  const answeredQuestionCount =
+    shipment.questionSummary?.unreadForShipper ??
+    shipment.questionSummary?.answered ??
+    0;
 
   const handleNavigateWithQuery = () => {
     const token = createShipmentQueryToken(shipment._id);
