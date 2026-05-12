@@ -449,6 +449,21 @@ const ShipperQuotesPage = () => {
                       </button>
                     )}
 
+                    {quote.shipperContract?.url && (
+                      <button
+                        onClick={() =>
+                          window.open(
+                            quote.shipperContract.url,
+                            "_blank",
+                            "noopener,noreferrer"
+                          )
+                        }
+                        className="px-4 py-2 border border-[#BF9B53] text-[#BF9B53] hover:bg-[#BF9B53]/10 rounded-lg text-sm"
+                      >
+                        View Shipper Contract
+                      </button>
+                    )}
+
                     {canDelete && (
                       <button
                         onClick={() => openModal(quote, "delete")}

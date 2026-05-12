@@ -8,7 +8,7 @@ import signupBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../contexts/AuthContext";
 import loginLogo from "../../assets/images/loginLogo.png";
-import { FiEye, FiEyeOff } from "react-icons/fi";
+import { FiArrowLeft, FiEye, FiEyeOff, FiRefreshCw } from "react-icons/fi";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
@@ -16,7 +16,8 @@ const API_BASE_URL =
 const SignupPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signup, oauthLogin, oauthError } = useAuth();
+  const { signup, verifySignupOtp, resendSignupOtp, oauthLogin, oauthError } =
+    useAuth();
 
   const [showPassword, setShowPassword] = useState({
     password: false,
@@ -24,6 +25,10 @@ const SignupPage = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [otpStep, setOtpStep] = useState(null);
+  const [otp, setOtp] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const initialValues = {
     name: "",
@@ -98,13 +103,19 @@ const SignupPage = () => {
       const res = await signup({ ...values, action: "signup" });
 
       if (res.success) {
-        resetForm();
+        if (res.requiresOtp) {
+          setOtp("");
+          setOtpStep({
+            email: res.data?.email || values.email,
+            role: res.data?.role || values.role,
+          });
+          Toast.success(res.message || "OTP sent to your email");
+          return;
+        }
 
         Toast.success("Signup successful");
 
-        oauthLogin(
-          res.data.token ? { token: res.data.token, ...res.data } : res.data
-        );
+        resetForm();
 
         navigate(
           res.data.role === "shipper"
@@ -139,6 +150,57 @@ const SignupPage = () => {
     )}&intent=signup`;
   };
 
+  const handleVerifyOtp = async () => {
+    if (!otpStep) return;
+
+    if (!/^\d{6}$/.test(otp.trim())) {
+      Toast.error("Please enter the 6 digit OTP");
+      return;
+    }
+
+    setOtpLoading(true);
+
+    const res = await verifySignupOtp({
+      email: otpStep.email,
+      role: otpStep.role,
+      otp: otp.trim(),
+    });
+
+    setOtpLoading(false);
+
+    if (!res.success) {
+      Toast.error(res.errors?.join(", ") || "Invalid OTP");
+      return;
+    }
+
+    Toast.success(res.message || "Email verified successfully");
+    navigate(
+      res.data.role === "shipper" ? "/shipper/dashboard" : "/customer/dashboard",
+      { replace: true }
+    );
+  };
+
+  const handleResendOtp = async () => {
+    if (!otpStep) return;
+
+    setResendLoading(true);
+
+    const res = await resendSignupOtp({
+      email: otpStep.email,
+      role: otpStep.role,
+    });
+
+    setResendLoading(false);
+
+    if (!res.success) {
+      Toast.error(res.errors?.join(", ") || "Failed to resend OTP");
+      return;
+    }
+
+    setOtp("");
+    Toast.success(res.message || "OTP resent to your email");
+  };
+
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center font-montserrat p-4"
@@ -152,32 +214,95 @@ const SignupPage = () => {
 
         {/* Form */}
         <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 md:p-8 shadow-md flex flex-col justify-center w-full max-w-sm gap-4">
-          <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
-            Create Account
-          </h1>
+          {otpStep ? (
+            <div className="flex flex-col gap-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setOtpStep(null);
+                  setOtp("");
+                }}
+                className="flex items-center gap-2 text-xs font-medium text-gray-600 hover:text-[#BF9B53]"
+              >
+                <FiArrowLeft size={14} /> Edit signup details
+              </button>
 
-          <p className="text-xs text-gray-600">
-            Already have an account?{" "}
-            <span
-              className="text-[#BF9B53] font-medium cursor-pointer hover:underline"
-              onClick={() => navigate("/login")}
-            >
-              Login
-            </span>
-          </p>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
+                  Verify Email
+                </h1>
+                <p className="mt-1 text-xs text-gray-600">
+                  Enter the OTP sent to{" "}
+                  <span className="font-semibold text-gray-800">
+                    {otpStep.email}
+                  </span>
+                </p>
+              </div>
 
-          <Formik
-            initialValues={initialValues}
-            validationSchema={validationSchema}
-            onSubmit={handleSignup}
-            validateOnMount
-          >
-            {({ values, setFieldValue, isValid, isSubmitting }) => {
-              const canSubmit =
-                isValid && values.role && !isSubmitting && !loading;
+              <div>
+                <label className="text-xs font-medium text-gray-700">
+                  6 Digit OTP
+                </label>
+                <input
+                  value={otp}
+                  onChange={(event) =>
+                    setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  inputMode="numeric"
+                  placeholder="Enter OTP"
+                  className="w-full border rounded p-2 text-center text-lg tracking-[0.35em] mt-1"
+                />
+              </div>
 
-              return (
-                <Form className="flex flex-col gap-3">
+              <Button
+                type="button"
+                disabled={otpLoading || otp.length !== 6}
+                onClick={handleVerifyOtp}
+              >
+                {otpLoading ? "Verifying..." : "Verify & Create Account"}
+              </Button>
+
+              <button
+                type="button"
+                disabled={resendLoading}
+                onClick={handleResendOtp}
+                className="flex items-center justify-center gap-2 text-xs font-semibold text-[#BF9B53] disabled:opacity-60"
+              >
+                <FiRefreshCw
+                  size={14}
+                  className={resendLoading ? "animate-spin" : ""}
+                />
+                {resendLoading ? "Sending OTP..." : "Resend OTP"}
+              </button>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
+                Create Account
+              </h1>
+
+              <p className="text-xs text-gray-600">
+                Already have an account?{" "}
+                <span
+                  className="text-[#BF9B53] font-medium cursor-pointer hover:underline"
+                  onClick={() => navigate("/login")}
+                >
+                  Login
+                </span>
+              </p>
+
+              <Formik
+                initialValues={initialValues}
+                validationSchema={validationSchema}
+                onSubmit={handleSignup}
+                validateOnMount
+              >
+                {({ values, setFieldValue, isValid, isSubmitting }) => {
+                  const canSubmit =
+                    isValid && values.role && !isSubmitting && !loading;
+
+                  return (
+                    <Form className="flex flex-col gap-3">
                   {/* Name */}
                   <div>
                     <label className="text-xs font-medium text-gray-700">
@@ -330,10 +455,12 @@ const SignupPage = () => {
                   >
                     <FcGoogle size={16} /> Continue with Google
                   </Button>
-                </Form>
-              );
-            }}
-          </Formik>
+                    </Form>
+                  );
+                }}
+              </Formik>
+            </>
+          )}
         </div>
       </div>
     </div>

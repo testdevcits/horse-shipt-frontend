@@ -29,8 +29,12 @@ export const ShipperQuoteProvider = ({ children }) => {
 
     setLoading(true);
     try {
+      const isFormData = data instanceof FormData;
       const res = await axios.post(`${API_BASE_URL}/shipper/quotes/add`, data, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...(isFormData ? {} : { "Content-Type": "application/json" }),
+        },
       });
 
       Toast.success("Quote sent successfully");

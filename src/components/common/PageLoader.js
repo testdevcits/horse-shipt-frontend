@@ -1,11 +1,82 @@
 import React from "react";
 import "../Loader.css";
+import {
+  ArticleSkeleton,
+  ChatSkeleton,
+  DashboardSkeleton,
+  DetailSkeleton,
+  ListPanelSkeleton,
+  OpportunityListSkeleton,
+  PageSkeleton,
+  PanelSkeleton,
+  ShipperGridSkeleton,
+} from "./Skeleton";
 
 const PageLoader = ({
   text = "Loading...",
   fullScreen = false,
   color = "#BF9B53",
+  variant = "skeleton",
 }) => {
+  if (!fullScreen && variant === "skeleton") {
+    const lowerText = String(text || "").toLowerCase();
+
+    if (lowerText.includes("detail") || lowerText.includes("profile")) {
+      return <DetailSkeleton />;
+    }
+
+    if (
+      lowerText.includes("top rated shipper") ||
+      lowerText.includes("matching shipper") ||
+      lowerText.includes("shipper")
+    ) {
+      return <ShipperGridSkeleton />;
+    }
+
+    if (
+      lowerText.includes("quote") ||
+      lowerText.includes("question") ||
+      lowerText.includes("notification") ||
+      lowerText.includes("review")
+    ) {
+      return <ListPanelSkeleton />;
+    }
+
+    if (
+      lowerText.includes("billing") ||
+      lowerText.includes("payment") ||
+      lowerText.includes("payout") ||
+      lowerText.includes("settings") ||
+      lowerText.includes("vehicle") ||
+      lowerText.includes("driver") ||
+      lowerText.includes("horse")
+    ) {
+      return <PanelSkeleton />;
+    }
+
+    if (lowerText.includes("opportunit") || lowerText.includes("shipment")) {
+      return <OpportunityListSkeleton />;
+    }
+
+    if (lowerText.includes("chat") || lowerText.includes("message")) {
+      return <ChatSkeleton />;
+    }
+
+    if (
+      lowerText.includes("terms") ||
+      lowerText.includes("privacy") ||
+      lowerText.includes("policy")
+    ) {
+      return <ArticleSkeleton />;
+    }
+
+    if (!text) {
+      return <DashboardSkeleton />;
+    }
+
+    return <PageSkeleton />;
+  }
+
   const cubes = Array.from({ length: 9 });
   const loaderSize = 18;
 

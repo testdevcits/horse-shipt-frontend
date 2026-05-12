@@ -159,6 +159,9 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
   const strongLabelClass = "text-gray-700 font-semibold";
+  const shipperContractUrl = quote.shipperContract?.url;
+  const shipperContractName =
+    quote.shipperContract?.originalName || "Shipper Contract";
   const handleModalClose = () => {
     if (submitting || showSuccessPopup) return;
     onClose();
@@ -346,7 +349,51 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
               {/* ──────── RIGHT: Actions ────────────────────────────────── */}
               <div className="flex flex-col gap-4">
-                {/* PDF View */}
+                <div className="border rounded-lg p-4 bg-white space-y-3">
+                  <h3 className="font-semibold text-slate-900">
+                    Documents to Review
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    Open and review all available documents before accepting
+                    this quote.
+                  </p>
+
+                  <div className="space-y-2">
+                    {quote.contract?.url && (
+                      <button
+                        type="button"
+                        onClick={() => setShowPDF(true)}
+                        className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border border-[#BF9B53] text-[#9d7d42] hover:bg-[#BF9B53]/10 font-semibold rounded-lg transition-colors text-sm"
+                      >
+                        <span>Generated Quote Contract</span>
+                        <span className="text-xs">View</span>
+                      </button>
+                    )}
+
+                    {shipperContractUrl && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          window.open(
+                            shipperContractUrl,
+                            "_blank",
+                            "noopener,noreferrer"
+                          )
+                        }
+                        className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-slate-50 border border-slate-300 text-slate-800 hover:bg-slate-100 font-semibold rounded-lg transition-colors text-sm"
+                      >
+                        <span className="truncate">{shipperContractName}</span>
+                        <span className="text-xs">Open</span>
+                      </button>
+                    )}
+
+                    {!quote.contract?.url && !shipperContractUrl && (
+                      <p className="text-xs text-gray-500">
+                        No supplemental quote documents were attached.
+                      </p>
+                    )}
+                  </div>
+                </div>
 
                 {/* Acceptance Form */}
                 {isAccepted ? (
@@ -382,14 +429,15 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                       onChange={(e) => setAgreed(e.target.checked)}
                       label={
                         <span className="text-xs sm:text-sm">
-                          I agree to accept this quote and terms
+                          I agree to accept this quote and terms.
                         </span>
                       }
                     />{" "}
                     <span className="block text-[11px] text-gray-600 mt-1 font-normal">
                       By clicking "Accept Quote," you acknowledge and agree to
                       be bound by the quote details, payment terms, and all
-                      supplemental documents.
+                      supplemental documents, contracts, or addenda provided by
+                      the Shipper and attached herein.
                     </span>
                     {/* Card Payment */}
                     {quote.paymentMethod === "card" &&
@@ -432,15 +480,6 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                       </button>
                     </div>
                   </div>
-                )}
-
-                {quote.contract?.url && !showPDF && (
-                  <button
-                    onClick={() => setShowPDF(true)}
-                    className="w-full px-4 py-3 bg-white border border-[#BF9B53] text-[#BF9B53] hover:bg-[#BF9B53]/10 font-semibold rounded-lg transition-colors"
-                  >
-                    View Contract
-                  </button>
                 )}
 
                 {showPDF && quote.contract?.url && (

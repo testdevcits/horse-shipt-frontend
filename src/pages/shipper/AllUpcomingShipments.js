@@ -84,6 +84,21 @@ const QuoteShipmentCard = ({
         </div>
 
         <div className="flex flex-wrap justify-end gap-2">
+          {quote.shipperContract?.url && (
+            <button
+              onClick={() =>
+                window.open(
+                  quote.shipperContract.url,
+                  "_blank",
+                  "noopener,noreferrer"
+                )
+              }
+              className="flex items-center gap-2 border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-50 transition"
+            >
+              Contract
+            </button>
+          )}
+
           {!isCancelled && (
             <button
               onClick={() => onTrack(quote)}

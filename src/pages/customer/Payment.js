@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useCustomerPayment } from "../../contexts/customerContext/CustomerPaymentContext";
 import { useAuth } from "../../contexts/AuthContext";
+import { PaymentSkeleton } from "../../components/common/Skeleton";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const TruckIcon = ({ size = 20, color = "#BF9B53" }) => (
@@ -431,10 +432,7 @@ const Payment = () => {
 
       {/* Loading */}
       {loading && (
-        <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <div className="w-8 h-8 rounded-full border-4 border-header border-t-system-primary animate-spin" />
-          <p className="text-sm text-gray-400">Loading payments…</p>
-        </div>
+        <PaymentSkeleton />
       )}
 
       {/* Empty */}

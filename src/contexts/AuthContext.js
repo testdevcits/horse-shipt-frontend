@@ -51,6 +51,22 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
+  const completeAuth = (userData) => {
+    setUser(userData);
+    setToken(userData.token);
+    setRole(userData.role);
+
+    localStorage.setItem("horseShiptUser", JSON.stringify(userData));
+    localStorage.setItem("token", userData.token);
+    localStorage.setItem("role", userData.role);
+
+    socket.auth = {
+      userId: userData._id,
+      role: userData.role,
+    };
+    socket.connect();
+  };
+
   /* ===============================
      LOGIN
   ================================ */
@@ -65,22 +81,9 @@ export const AuthProvider = ({ children }) => {
       );
 
       const userData = res.data.data;
+      completeAuth(userData);
 
-      setUser(userData);
-      setToken(userData.token);
-      setRole(userData.role);
-
-      localStorage.setItem("horseShiptUser", JSON.stringify(userData));
-      localStorage.setItem("token", userData.token);
-      localStorage.setItem("role", userData.role);
-
-      socket.auth = {
-        userId: userData._id,
-        role: userData.role,
-      };
-      socket.connect();
-
-      return { success: true };
+      return { success: true, data: userData };
     } catch (err) {
       return {
         success: false,
@@ -104,23 +107,69 @@ export const AuthProvider = ({ children }) => {
         { withCredentials: true }
       );
 
+      if (res.data.requiresOtp) {
+        return {
+          success: true,
+          requiresOtp: true,
+          message: res.data.message,
+          data: res.data.data,
+        };
+      }
+
       const userData = res.data.data;
+      completeAuth(userData);
 
-      setUser(userData);
-      setToken(userData.token);
-      setRole(userData.role);
-
-      localStorage.setItem("horseShiptUser", JSON.stringify(userData));
-      localStorage.setItem("token", userData.token);
-      localStorage.setItem("role", userData.role);
-
-      socket.auth = {
-        userId: userData._id,
-        role: userData.role,
+      return { success: true, data: userData };
+    } catch (err) {
+      return {
+        success: false,
+        errors: err.response?.data?.errors || ["Server Error"],
       };
-      socket.connect();
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      return { success: true };
+  const verifySignupOtp = async ({ email, role, otp }) => {
+    try {
+      setLoading(true);
+
+      const res = await axios.post(
+        `${API_BASE_URL}/auth/signup/verify-otp`,
+        { email, role, otp },
+        { withCredentials: true }
+      );
+
+      const userData = res.data.data;
+      completeAuth(userData);
+
+      return { success: true, data: userData, message: res.data.message };
+    } catch (err) {
+      return {
+        success: false,
+        errors: err.response?.data?.errors || ["Server Error"],
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resendSignupOtp = async ({ email, role }) => {
+    try {
+      setLoading(true);
+
+      const res = await axios.post(
+        `${API_BASE_URL}/auth/signup/resend-otp`,
+        { email, role },
+        { withCredentials: true }
+      );
+
+      return {
+        success: true,
+        requiresOtp: true,
+        data: res.data.data,
+        message: res.data.message,
+      };
     } catch (err) {
       return {
         success: false,
@@ -225,6 +274,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         signup,
+        verifySignupOtp,
+        resendSignupOtp,
         logout,
         oauthLogin,
       }}

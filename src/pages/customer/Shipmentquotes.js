@@ -160,6 +160,11 @@ const ShipmentQuotes = ({
                           USD
                         </span>
                       </p>
+                      {(quote.contract?.url || quote.shipperContract?.url) && (
+                        <p className="text-xs font-semibold text-[#BF9B53]">
+                          Documents available for review
+                        </p>
+                      )}
                     </div>
 
                     <button

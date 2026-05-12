@@ -240,6 +240,22 @@ const ShipmentCard = ({
       {/* ── ACTIONS ── */}
       <div className="flex flex-wrap gap-3 pt-1 border-t border-gray-100">
         {/* Track — show for upcoming and completed */}
+        {quote.shipperContract?.url && (
+          <button
+            onClick={() =>
+              window.open(
+                quote.shipperContract.url,
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
+            className="flex items-center gap-2 border border-gray-300 text-gray-700
+              px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-50 transition"
+          >
+            View Contract
+          </button>
+        )}
+
         {!isCancelled && (
           <button
             onClick={() => onTrack(quote)}
