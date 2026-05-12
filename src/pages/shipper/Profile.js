@@ -138,13 +138,21 @@ const Profile = () => {
                 </div>
 
                 {!isEditing && (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="inline-flex items-center justify-center gap-2 bg-white text-[#BF9B53] px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-all active:scale-95"
-                  >
-                    <FiEdit3 size={16} />
-                    <span className="hidden sm:inline">Edit</span>
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="inline-flex items-center justify-center gap-2 bg-white text-[#BF9B53] px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-all active:scale-95"
+                    >
+                      <FiEdit3 size={16} />
+                      <span>Edit Profile</span>
+                    </button>
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="inline-flex items-center justify-center gap-2 bg-[#4C3E21] text-white px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#3a2f19] transition-all active:scale-95"
+                    >
+                      Update Location
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

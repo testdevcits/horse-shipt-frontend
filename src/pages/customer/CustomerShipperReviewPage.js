@@ -78,7 +78,7 @@ const CustomerShipperReviewPage = () => {
                     customer?.profileImage?.url || "/default-avatar.png",
                   rating: review.rating || 0,
                   reviewText: review.reviewText || "No review provided",
-                  region: "Unknown", // API doesn’t provide region
+                  region: shipperInfo?.locale?.address || "Customer Review",
                 }}
               />
             );

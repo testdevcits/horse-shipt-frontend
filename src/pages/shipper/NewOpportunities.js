@@ -14,7 +14,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("list");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [location, setLocation] = useState(null);
+  const [location, setLocation] = useState(undefined);
 
   const [filters, setFilters] = useState({
     pickupDistance: "",
@@ -40,9 +40,19 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
   const lastFiltersRef = useRef("");
 
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition((pos) => {
-      setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-    });
+    if (!navigator.geolocation) {
+      setLocation(null);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      () => {
+        setLocation(null);
+      }
+    );
   }, []);
 
   useEffect(() => {
@@ -50,8 +60,8 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
   }, [fetchInvitations]);
 
   useEffect(() => {
-    if (!location || fetchedOnce.current) return;
-    getAvailableShipments({ lat: location.lat, lng: location.lng });
+    if (location === undefined || fetchedOnce.current) return;
+    getAvailableShipments({ lat: location?.lat, lng: location?.lng });
     getAvailableShipmentsForMap(1, 5);
     fetchedOnce.current = true;
   }, [location, getAvailableShipments, getAvailableShipmentsForMap]);
@@ -132,7 +142,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
   };
 
   const hasActiveFilters = Object.values(filters).some((v) => v !== "");
-  const isLoading = loading || invitationLoading;
+  const isLoading = loading || invitationLoading || location === undefined;
   const noData = !isLoading && filteredShipments.length === 0;
 
   /* ── shared input class ─────────────────────────────────────── */
@@ -422,7 +432,13 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
         {/* Map View */}
         {!isLoading && !noData && activeTab === "map" && (
           <div className="rounded-xl overflow-hidden border border-gray-200">
-            <ShipmentMap shipments={mapShipments.slice(0, 5)} />
+            <ShipmentMap
+              shipments={
+                filteredShipments.length > 0
+                  ? filteredShipments
+                  : mapShipments.slice(0, 5)
+              }
+            />
           </div>
         )}
       </div>
