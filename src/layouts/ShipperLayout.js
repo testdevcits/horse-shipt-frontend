@@ -5,7 +5,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { useShipperProfile } from "../contexts/ShipperProfileContext";
 import { useShipperPayments } from "../contexts/shipperContext/ShipperPaymentContext";
 import { useSubscription } from "../contexts/shipperContext/SubscriptionContext";
-import { LuSparkles } from "react-icons/lu";
 import StripeAlertBanner from "../pages/shipper/common/StripeAlertBanner";
 import StripeVerificationModal from "../pages/shipper/common/StripeVerificationModal";
 import SubscriptionPopup from "../pages/shipper/Subscription/SubscriptionPopup";
@@ -20,8 +19,6 @@ import StatusBadge from "../components/common/StatusBadge";
 import logo from "../assets/images/HorseShipt 1.svg";
 import logo1 from "../assets/images/profileImage.png";
 import defaultProfileImage from "../assets/images/profileImage.png";
-
-const SUBSCRIPTION_FREE_ROUTES = [];
 
 const ShipperLayout = () => {
   const navigate = useNavigate();
@@ -45,13 +42,6 @@ const ShipperLayout = () => {
 
   const isSubscribed =
     subscription && ["active", "trialing"].includes(subscription.status);
-
-  const isSubscriptionFreeRoute = SUBSCRIPTION_FREE_ROUTES.some((route) =>
-    location.pathname.startsWith(route)
-  );
-
-  const showSubscriptionBlock =
-    !subLoading && !isSubscribed && !isSubscriptionFreeRoute;
 
   const showStripeBanner = isSubscribed && needsOnboarding;
 
@@ -258,13 +248,6 @@ const ShipperLayout = () => {
             mobileOpen={mobileOpen}
             setMobileOpen={setMobileOpen}
           />
-
-          {showSubscriptionBlock && (
-            <div
-              className="absolute inset-0 z-30 cursor-not-allowed"
-              aria-hidden="true"
-            />
-          )}
         </div>
 
         {/* MAIN CONTENT */}
@@ -275,51 +258,7 @@ const ShipperLayout = () => {
           }}
         >
           <div className="p-4 sm:p-6 lg:p-8">
-            <div className="relative">
-              <div
-                className={
-                  showSubscriptionBlock
-                    ? "pointer-events-none select-none blur-sm brightness-75 transition-all duration-300"
-                    : ""
-                }
-              >
-                <Outlet />
-              </div>
-
-              {/* SUBSCRIPTION OVERLAY */}
-              {showSubscriptionBlock && (
-                <div className="absolute inset-0 z-20 flex items-center justify-center">
-                  <div className="w-[90%] max-w-sm bg-white rounded-custom shadow-2xl border border-system-primary/20 p-7 flex flex-col items-center text-center gap-4 font-montserrat">
-                    <div className="w-14 h-14 flex items-center justify-center rounded-full bg-system-primary/10">
-                      <LuSparkles className="text-3xl text-system-primary" />
-                    </div>
-
-                    <span className="text-xs font-bold uppercase tracking-widest text-system-primary bg-system-primary/10 px-3 py-1.5 rounded-full">
-                      Free Trial
-                    </span>
-
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-                      Start Your Free Trial
-                    </h2>
-
-                    <p className="text-sm text-gray-600">
-                      Unlock all features free — no credit card required.
-                    </p>
-
-                    <p className="text-xs text-gray-500">
-                      ✓ No charges · ✓ Cancel anytime · ✓ Instant access
-                    </p>
-
-                    <button
-                      onClick={() => window.location.reload()}
-                      className="w-full py-3 rounded-lg bg-system-primary text-white font-bold hover:bg-opacity-90 transition-all active:scale-95 mt-2"
-                    >
-                      Start Trial Now
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            <Outlet />
           </div>
         </main>
       </div>
@@ -332,9 +271,7 @@ const ShipperLayout = () => {
         />
       )}
 
-      {!subLoading && !isSubscribed && !isSubscriptionFreeRoute && (
-        <SubscriptionPopup />
-      )}
+      {!subLoading && !isSubscribed && <SubscriptionPopup />}
     </div>
   );
 };
