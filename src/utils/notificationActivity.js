@@ -1,6 +1,9 @@
 const MAX_NOTIFICATIONS = 50;
+const DEFAULT_CACHE_MS = 12000;
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+const activityCache = new Map();
+const pendingRequests = new Map();
 
 const getActivityPath = (role) => {
   if (role === "customer") return "customer/notification-activity";
@@ -18,6 +21,38 @@ const normalizeServerNotification = (item) => ({
   createdAt: item.createdAt,
   read: Boolean(item.read),
 });
+
+const getCacheKey = ({ role, userId }) =>
+  role && userId ? `${role}:${userId}` : null;
+
+const getFallbackActivity = ({ role, userId }) => {
+  const notifications = loadNotificationActivity({ role, userId });
+  return {
+    notifications,
+    unreadCount: notifications.filter((item) => !item.read).length,
+  };
+};
+
+const setActivityCache = ({ role, userId, value }) => {
+  const cacheKey = getCacheKey({ role, userId });
+  if (!cacheKey) return;
+  activityCache.set(cacheKey, {
+    value,
+    fetchedAt: Date.now(),
+  });
+};
+
+export const invalidateNotificationActivityCache = ({ role, userId } = {}) => {
+  const cacheKey = getCacheKey({ role, userId });
+  if (cacheKey) {
+    activityCache.delete(cacheKey);
+    pendingRequests.delete(cacheKey);
+    return;
+  }
+
+  activityCache.clear();
+  pendingRequests.clear();
+};
 
 export const getNotificationStorageKey = ({ role, userId }) => {
   if (!role || !userId) return null;
@@ -66,6 +101,14 @@ export const saveNotificationActivity = ({ role, userId, notification }) => {
   ].slice(0, MAX_NOTIFICATIONS);
 
   localStorage.setItem(key, JSON.stringify(next));
+  setActivityCache({
+    role,
+    userId,
+    value: {
+      notifications: next,
+      unreadCount: next.filter((item) => !item.read).length,
+    },
+  });
   return next;
 };
 
@@ -79,47 +122,88 @@ export const markNotificationActivityRead = ({ role, userId }) => {
   }));
 
   localStorage.setItem(key, JSON.stringify(next));
+  setActivityCache({
+    role,
+    userId,
+    value: {
+      notifications: next,
+      unreadCount: 0,
+    },
+  });
   return next;
 };
 
-export const fetchNotificationActivity = async ({ role, userId, token }) => {
+export const fetchNotificationActivity = async ({
+  role,
+  userId,
+  token,
+  force = false,
+  cacheMs = DEFAULT_CACHE_MS,
+} = {}) => {
   const path = getActivityPath(role);
   if (!path || !token) {
-    return {
-      notifications: loadNotificationActivity({ role, userId }),
-      unreadCount: 0,
-    };
+    return getFallbackActivity({ role, userId });
   }
 
-  const res = await fetch(`${API_BASE_URL}/${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const cacheKey = getCacheKey({ role, userId });
+  const cached = cacheKey ? activityCache.get(cacheKey) : null;
 
-  if (!res.ok) throw new Error("Failed to fetch notifications");
+  if (
+    !force &&
+    cached &&
+    Date.now() - cached.fetchedAt < cacheMs
+  ) {
+    return cached.value;
+  }
 
-  const json = await res.json();
-  const serverNotifications = (json.data || []).map(normalizeServerNotification);
-  const localNotifications = loadNotificationActivity({ role, userId });
-  const seen = new Set();
-  const notifications = [...serverNotifications, ...localNotifications]
-    .filter((item) => {
-      if (!item?.id || seen.has(item.id)) return false;
-      seen.add(item.id);
-      return true;
-    })
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, MAX_NOTIFICATIONS);
+  if (!force && cacheKey && pendingRequests.has(cacheKey)) {
+    return pendingRequests.get(cacheKey);
+  }
 
-  const key = getNotificationStorageKey({ role, userId });
-  if (key) localStorage.setItem(key, JSON.stringify(notifications));
+  const request = (async () => {
+    const res = await fetch(`${API_BASE_URL}/${path}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-  return {
-    notifications,
-    unreadCount:
-      typeof json.unreadCount === "number"
-        ? json.unreadCount
-        : notifications.filter((item) => !item.read).length,
-  };
+    if (!res.ok) throw new Error("Failed to fetch notifications");
+
+    const json = await res.json();
+    const serverNotifications = (json.data || []).map(normalizeServerNotification);
+    const localNotifications = loadNotificationActivity({ role, userId });
+    const seen = new Set();
+    const notifications = [...serverNotifications, ...localNotifications]
+      .filter((item) => {
+        if (!item?.id || seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, MAX_NOTIFICATIONS);
+
+    const key = getNotificationStorageKey({ role, userId });
+    if (key) localStorage.setItem(key, JSON.stringify(notifications));
+
+    const value = {
+      notifications,
+      unreadCount:
+        typeof json.unreadCount === "number"
+          ? json.unreadCount
+          : notifications.filter((item) => !item.read).length,
+    };
+
+    setActivityCache({ role, userId, value });
+    return value;
+  })();
+
+  if (cacheKey) {
+    pendingRequests.set(cacheKey, request);
+  }
+
+  try {
+    return await request;
+  } finally {
+    if (cacheKey) pendingRequests.delete(cacheKey);
+  }
 };
 
 export const markNotificationActivityReadRemote = async ({
@@ -131,6 +215,7 @@ export const markNotificationActivityReadRemote = async ({
 
   const path = getActivityPath(role);
   if (!path || !token) return;
+  invalidateNotificationActivityCache({ role, userId });
 
   await fetch(`${API_BASE_URL}/${path}/read`, {
     method: "PATCH",
@@ -151,6 +236,7 @@ export const deleteNotificationActivity = async ({
     );
     localStorage.setItem(key, JSON.stringify(next));
   }
+  invalidateNotificationActivityCache({ role, userId });
 
   const path = getActivityPath(role);
   if (!path || !token || !notificationId) return;
