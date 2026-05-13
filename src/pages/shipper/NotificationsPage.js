@@ -1,15 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiTrash2 } from "react-icons/fi";
 import { SettingsIcon } from "../../components/common/ColoredIcons"; // shared icon
 import { useAuth } from "../../contexts/AuthContext";
 import { createShipmentQueryToken } from "../../utils/createQueryToken";
-import {
-  deleteNotificationActivity,
-  fetchNotificationActivity,
-  loadNotificationActivity,
-  markNotificationActivityReadRemote,
-} from "../../utils/notificationActivity";
+import { useNotificationActivity } from "../../contexts/NotificationActivityContext";
 
 const formatTime = (dateValue) => {
   if (!dateValue) return "";
@@ -41,54 +36,26 @@ const getNotificationShipmentId = (notification) => {
 
 const NotificationsPage = () => {
   const navigate = useNavigate();
-  const { user, role, token } = useAuth();
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { role } = useAuth();
+  const {
+    deleteNotification,
+    loading,
+    markAllRead,
+    notifications,
+    refresh,
+  } = useNotificationActivity();
 
   useEffect(() => {
-    const loadLocal = () => {
-      setNotifications(
-        loadNotificationActivity({ role, userId: user?._id })
-      );
-    };
-
-    const loadRemote = async () => {
-      if (!role || !user?._id || !token) {
-        loadLocal();
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const result = await fetchNotificationActivity({
-          role,
-          userId: user._id,
-          token,
-        });
-        setNotifications(result.notifications);
-      } catch {
-        loadLocal();
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadRemote();
-    window.addEventListener("horse_shipt:notification_activity", loadRemote);
-    return () =>
-      window.removeEventListener("horse_shipt:notification_activity", loadRemote);
-  }, [role, token, user?._id]);
-
-  useEffect(() => {
-    if (!role || !user?._id) return;
-
     const timer = setTimeout(() => {
-      markNotificationActivityReadRemote({ role, userId: user._id, token });
-      window.dispatchEvent(new Event("horse_shipt:notification_activity"));
+      markAllRead();
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [role, token, user?._id]);
+  }, [markAllRead]);
+
+  useEffect(() => {
+    refresh({ force: true, silent: true });
+  }, [refresh]);
 
   const settingsPath =
     role === "customer"
@@ -117,20 +84,12 @@ const NotificationsPage = () => {
 
   const handleDeleteNotification = async (event, item) => {
     event.stopPropagation();
-    if (!item?.id || !role || !user?._id) return;
-
-    setNotifications((prev) => prev.filter((notification) => notification.id !== item.id));
+    if (!item?.id) return;
 
     try {
-      await deleteNotificationActivity({
-        role,
-        userId: user._id,
-        token,
-        notificationId: item.id,
-      });
-      window.dispatchEvent(new Event("horse_shipt:notification_activity"));
+      await deleteNotification(item.id);
     } catch {
-      setNotifications(loadNotificationActivity({ role, userId: user._id }));
+      refresh({ force: true, silent: true });
     }
   };
 

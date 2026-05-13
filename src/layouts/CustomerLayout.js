@@ -11,16 +11,13 @@ import defaultProfileImage from "../assets/images/profileImage.png";
 import StatusBadge from "../components/common/StatusBadge";
 import { IoShareSocial } from "react-icons/io5";
 import { BiChevronDown } from "react-icons/bi";
-import {
-  fetchNotificationActivity,
-  loadNotificationActivity,
-} from "../utils/notificationActivity";
+import { useNotificationActivity } from "../contexts/NotificationActivityContext";
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
-  const { user, role, token, logout } = useAuth();
+  const { user, logout } = useAuth();
   const { profile, profileImage, loading } = useProfile();
-  const [notificationCount, setNotificationCount] = useState(0);
+  const { unreadCount: notificationCount } = useNotificationActivity();
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
@@ -47,31 +44,6 @@ const CustomerLayout = () => {
       setMobileOpen(false);
     }
   }, [isDesktop]);
-
-  useEffect(() => {
-    const loadCount = async () => {
-      const activity = loadNotificationActivity({ role, userId: user?._id });
-      setNotificationCount(activity.filter((item) => !item.read).length);
-
-      if (!role || !user?._id || !token) return;
-
-      try {
-        const result = await fetchNotificationActivity({
-          role,
-          userId: user._id,
-          token,
-        });
-        setNotificationCount(result.unreadCount);
-      } catch {
-        // Local activity count is already shown as fallback.
-      }
-    };
-
-    loadCount();
-    window.addEventListener("horse_shipt:notification_activity", loadCount);
-    return () =>
-      window.removeEventListener("horse_shipt:notification_activity", loadCount);
-  }, [role, token, user?._id]);
 
   const handleShare = async () => {
     const shareData = {

@@ -11,8 +11,8 @@ import {
   EyeOff,
   CheckCircle2,
   ArrowUpRight,
-  Shield,
   Plus,
+  Lock,
 } from "lucide-react";
 
 const PayoutAndCardPage = () => {
@@ -44,7 +44,6 @@ const PayoutAndCardPage = () => {
   const [cardProcessing, setCardProcessing] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(true);
 
-  // Initial Load
   useEffect(() => {
     const fetchAll = async () => {
       setGlobalLoading(true);
@@ -151,61 +150,54 @@ const PayoutAndCardPage = () => {
   }
 
   return (
-    <div className="min-h-screen font-montserrat">
-      {/* Header Section */}
-      <div className="sticky top-0 z-10">
-        <div className="max-w-full mx-auto">
-          <div className="flex items-center gap-3 mb-1">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-                Payments & Payouts
-              </h1>
-              <p className="text-sm text-slate-600 mt-1">
-                Manage payment methods and track your earnings
-              </p>
-            </div>
-          </div>
+    <div className="w-full min-h-screen bg-slate-50 font-montserrat">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-white border-b border-slate-200">
+        <div className="w-full px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+            Payments & Payouts
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
+            Manage payment methods and track earnings
+          </p>
         </div>
       </div>
 
-      <div className="max-w-full mx-auto mt-4 space-y-6">
+      <div className="w-full px-3 sm:px-4 md:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4">
         {/* Payment Method Card */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+        <div className="bg-white rounded-lg border border-slate-200">
           {/* Header */}
-          <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-5 border-b border-slate-200">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white rounded-lg border-2 border-[#BF9B53]">
-                <CreditCard className="w-6 h-6 text-[#BF9B53]" />
+          <div className="px-3 sm:px-4 py-3 sm:py-4 border-b border-slate-200 bg-slate-50">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 bg-[#BF9B53] rounded-lg">
+                <CreditCard className="w-5 h-5 text-white" />
               </div>
-              <div className="flex-1">
-                <h2 className="text-xl font-bold text-slate-900">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-base sm:text-lg font-bold text-slate-900">
                   Payment Method
                 </h2>
-                <p className="text-sm text-slate-600 mt-0.5">
+                <p className="text-xs text-slate-600 mt-0.5">
                   {hasCard && !clientSecret
-                    ? "Your card is secure and ready"
-                    : "Add a card to enable automatic payouts"}
+                    ? "Card ready for payouts"
+                    : "Add a card for automatic payouts"}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Content */}
-          <div className="px-6 py-8 lg:py-10">
+          <div className="px-3 sm:px-4 py-3 sm:py-4">
             {!hasCard && !clientSecret && (
-              <div className="space-y-6">
-                {/* Security Info Box */}
-                <div className="flex gap-4 p-5 bg-gradient-to-br from-[#BF9B53]/5 to-transparent border border-[#BF9B53]/20 rounded-lg">
-                  <div className="p-2.5 bg-white rounded-lg border border-[#BF9B53]/30 h-fit">
-                    <Shield className="w-5 h-5 text-[#BF9B53]" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-slate-900 text-sm">
+              <div className="space-y-3">
+                {/* Security Info */}
+                <div className="flex gap-2 p-3 bg-[#BF9B53]/10 border border-[#BF9B53]/20 rounded-lg">
+                  <Lock className="w-4 h-4 text-[#BF9B53] flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-slate-900">
                       Bank-level security
                     </p>
                     <p className="text-xs text-slate-600 mt-1">
-                      Your payment information is encrypted and processed
-                      securely by Stripe
+                      Encrypted and secured by Stripe
                     </p>
                   </div>
                 </div>
@@ -214,26 +206,26 @@ const PayoutAndCardPage = () => {
                 <button
                   onClick={handleAddCard}
                   disabled={cardProcessing || paymentLoading}
-                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-[#BF9B53] to-orange-500 hover:from-[#a88a47] hover:to-orange-600 disabled:from-slate-300 disabled:to-slate-300 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                  className="w-full px-4 py-2 sm:py-3 bg-[#BF9B53] hover:bg-[#a88a47] disabled:bg-slate-300 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
-                  <Plus className="w-5 h-5" />
-                  {cardProcessing ? "Setting up..." : "Add Payment Card"}
+                  <Plus className="w-4 h-4" />
+                  {cardProcessing ? "Setting up..." : "Add Card"}
                 </button>
               </div>
             )}
 
             {clientSecret && (
-              <form onSubmit={handleSaveCard} className="space-y-6">
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-slate-900">
+              <form onSubmit={handleSaveCard} className="space-y-3">
+                <div className="space-y-2">
+                  <label className="block text-xs sm:text-sm font-semibold text-slate-900">
                     Card Details
                   </label>
-                  <div className="p-4 border-2 border-slate-300 rounded-lg bg-white focus-within:border-[#BF9B53] focus-within:ring-2 focus-within:ring-[#BF9B53]/10 transition-all">
+                  <div className="p-3 border border-slate-300 rounded-lg bg-white focus-within:border-[#BF9B53] focus-within:ring-2 focus-within:ring-[#BF9B53]/20 transition-all">
                     <CardElement
                       options={{
                         style: {
                           base: {
-                            fontSize: "16px",
+                            fontSize: "14px",
                             fontFamily: "system-ui, -apple-system, sans-serif",
                             color: "#1e293b",
                             "::placeholder": { color: "#cbd5e1" },
@@ -247,71 +239,59 @@ const PayoutAndCardPage = () => {
                 <button
                   type="submit"
                   disabled={cardProcessing || !stripe}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-[#BF9B53] to-orange-500 hover:from-[#a88a47] hover:to-orange-600 disabled:from-slate-300 disabled:to-slate-300 text-white font-semibold rounded-lg transition-all duration-200"
+                  className="w-full px-4 py-2 sm:py-3 bg-[#BF9B53] hover:bg-[#a88a47] disabled:bg-slate-300 text-white text-sm font-semibold rounded-lg transition-colors"
                 >
-                  {cardProcessing ? "Saving card..." : "Save Card"}
+                  {cardProcessing ? "Saving..." : "Save Card"}
                 </button>
               </form>
             )}
 
             {hasCard && !clientSecret && paymentCard && (
-              <div className="space-y-5">
+              <div className="space-y-3">
                 {paymentError && (
-                  <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 rounded-lg space-y-4">
-                    <div>
-                      <p className="text-xs text-red-700 mt-1">
-                        {paymentError}
-                      </p>
-                    </div>
+                  <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                    <p className="text-xs text-red-700">{paymentError}</p>
                   </div>
                 )}
-                <div className="flex items-center gap-4 p-5 bg-[#BF9B53]/20 border-2 border-[#BF9B53] rounded-lg">
-                  <div className="p-3 bg-white rounded-lg border border-[#BF9B53]">
-                    <CreditCard className="w-6 h-6 text-[#BF9B53]" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                <div className="flex items-center gap-3 p-3 bg-[#BF9B53]/10 border border-[#BF9B53]/30 rounded-lg">
+                  <CreditCard className="w-5 h-5 text-[#BF9B53] flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-slate-600 font-semibold">
                       Active Card
                     </p>
-                    <p className="font-bold text-slate-900 mt-1">
-                      {paymentCard.cardBrand?.toUpperCase()} ••••{" "}
-                      {paymentCard.cardLast4}
+                    <p className="text-sm font-bold text-slate-900 mt-0.5">
+                      {paymentCard.cardBrand?.toUpperCase()} •••• {paymentCard.cardLast4}
                     </p>
                   </div>
-                  <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
                 </div>
-
-                <div className="flex justify-center">
-                  <button
-                    onClick={handleAddCard}
-                    disabled={cardProcessing}
-                    className="w-md px-6 py-3 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-200 text-slate-900 font-semibold rounded-lg transition-colors duration-200"
-                  >
-                    {cardProcessing ? "Processing..." : "Update Card"}
-                  </button>
-                </div>
+                <button
+                  onClick={handleAddCard}
+                  disabled={cardProcessing}
+                  className="w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-200 text-slate-900 text-sm font-semibold rounded-lg transition-colors"
+                >
+                  {cardProcessing ? "Processing..." : "Update Card"}
+                </button>
               </div>
             )}
           </div>
         </div>
 
         {/* Payout History Card */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+        <div className="bg-white rounded-lg border border-slate-200">
           {/* Header */}
-          <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 px-6 py-5 border-b border-slate-200">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white rounded-lg border-2 border-[#BF9B53]">
-                <ArrowUpRight className="w-6 h-6 text-[#BF9B53]" />
+          <div className="px-3 sm:px-4 py-3 sm:py-4 border-b border-slate-200 bg-slate-50">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 bg-[#BF9B53] rounded-lg">
+                <ArrowUpRight className="w-5 h-5 text-white" />
               </div>
-              <div className="flex-1">
-                <h2 className="text-xl font-bold text-slate-900">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-base sm:text-lg font-bold text-slate-900">
                   Payout History
                 </h2>
-                <p className="text-sm text-slate-600 mt-0.5">
+                <p className="text-xs text-slate-600 mt-0.5">
                   {payoutHistory.length > 0
-                    ? `${payoutHistory.length} transaction${
-                        payoutHistory.length !== 1 ? "s" : ""
-                      }`
+                    ? `${payoutHistory.length} transaction${payoutHistory.length !== 1 ? "s" : ""}`
                     : "No payouts yet"}
                 </p>
               </div>
@@ -319,66 +299,54 @@ const PayoutAndCardPage = () => {
           </div>
 
           {/* Content */}
-          <div className="px-6 py-8">
+          <div className="px-3 sm:px-4 py-3 sm:py-4">
             {payoutLoading && payoutHistory.length === 0 && (
-              <div className="flex justify-center py-12">
-                <PageLoader
-                  text="Loading payouts..."
-                  size={28}
-                  color="#0ea5e9"
-                />
+              <div className="flex justify-center py-8">
+                <PageLoader text="Loading..." size={24} color="#0ea5e9" />
               </div>
             )}
 
             {!payoutLoading && payoutHistory.length === 0 && (
-              <div className="text-center py-16 space-y-4">
-                <div className="inline-flex items-center justify-center w-14 h-14 bg-slate-100 rounded-full">
-                  <ArrowUpRight className="w-7 h-7 text-slate-400" />
-                </div>
-                <div>
-                  <p className="text-slate-900 font-semibold">No payouts yet</p>
-                  <p className="text-sm text-slate-500 mt-1">
-                    Your earnings will appear here
-                  </p>
-                </div>
+              <div className="text-center py-10">
+                <ArrowUpRight className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                <p className="text-sm font-semibold text-slate-900">No payouts yet</p>
+                <p className="text-xs text-slate-600 mt-1">Earnings will appear here</p>
               </div>
             )}
 
             {payoutHistory.length > 0 && (
               <>
                 {/* Mobile View */}
-                <div className="space-y-3 md:hidden">
+                <div className="space-y-2 md:hidden">
                   {payoutHistory.map((payout) => (
                     <div
                       key={payout.id}
-                      className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border border-slate-200 hover:border-blue-300 transition-colors duration-200"
+                      className="p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-[#BF9B53] transition-colors"
                     >
-                      <div className="flex items-start justify-between gap-2 mb-3">
+                      <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                            Reference ID
+                          <p className="text-xs font-semibold text-slate-600">
+                            ID
                           </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <code className="text-sm font-mono text-slate-700 bg-white px-2.5 py-1.5 rounded truncate">
-                              {visibleIds[payout.id]
-                                ? payout.id
-                                : maskId(payout.id)}
+                          <div className="flex items-center gap-1 mt-1">
+                            <code className="text-xs font-mono text-slate-700 bg-white px-2 py-1 rounded truncate">
+                              {visibleIds[payout.id] ? payout.id : maskId(payout.id)}
                             </code>
                             <button
                               onClick={() => toggleId(payout.id)}
-                              className="p-1.5 hover:bg-white rounded-lg transition-colors text-slate-500 hover:text-[#BF9B53] flex-shrink-0"
+                              className="p-1 hover:bg-white rounded text-slate-500 hover:text-[#BF9B53] transition-colors flex-shrink-0"
                               title={visibleIds[payout.id] ? "Hide" : "Show"}
                             >
                               {visibleIds[payout.id] ? (
-                                <EyeOff className="w-4 h-4" />
+                                <EyeOff className="w-3 h-3" />
                               ) : (
-                                <Eye className="w-4 h-4" />
+                                <Eye className="w-3 h-3" />
                               )}
                             </button>
                           </div>
                         </div>
                         <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 ${
+                          className={`inline-flex text-xs font-semibold px-2 py-1 rounded whitespace-nowrap flex-shrink-0 ${
                             payout.status === "completed" ||
                             payout.status === "success"
                               ? "bg-green-100 text-green-800"
@@ -391,12 +359,12 @@ const PayoutAndCardPage = () => {
                             payout.status?.slice(1)}
                         </span>
                       </div>
-                      <div className="flex items-end justify-between gap-2 pt-3 border-t border-slate-300">
+                      <div className="flex items-end justify-between gap-2 pt-2 border-t border-slate-200">
                         <div>
-                          <p className="text-xs text-slate-600 uppercase tracking-wider font-semibold">
+                          <p className="text-xs text-slate-600 font-semibold">
                             Amount
                           </p>
-                          <p className="text-lg font-bold text-slate-900 mt-1">
+                          <p className="text-base font-bold text-slate-900 mt-0.5">
                             {Number(payout.amount).toLocaleString(undefined, {
                               style: "currency",
                               currency: payout.currency || "USD",
@@ -404,10 +372,10 @@ const PayoutAndCardPage = () => {
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs text-slate-600 uppercase tracking-wider font-semibold">
+                          <p className="text-xs text-slate-600 font-semibold">
                             Date
                           </p>
-                          <p className="text-sm text-slate-900 font-semibold mt-1">
+                          <p className="text-xs text-slate-900 font-semibold mt-0.5">
                             {formatDate(payout.createdAt)}
                           </p>
                         </div>
@@ -418,19 +386,19 @@ const PayoutAndCardPage = () => {
 
                 {/* Desktop View */}
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b-2 border-slate-300 bg-gradient-to-r from-slate-50 to-slate-100">
-                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 uppercase tracking-wider">
-                          Reference ID
+                      <tr className="border-b border-slate-300 bg-slate-50">
+                        <th className="px-3 py-2 text-left text-xs font-bold text-slate-900">
+                          ID
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-xs font-bold text-slate-900">
                           Amount
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-xs font-bold text-slate-900">
                           Date
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-xs font-bold text-slate-900">
                           Status
                         </th>
                       </tr>
@@ -439,31 +407,31 @@ const PayoutAndCardPage = () => {
                       {payoutHistory.map((payout, idx) => (
                         <tr
                           key={payout.id}
-                          className={`border-b border-slate-200 transition-colors duration-150 ${
+                          className={`border-b border-slate-200 ${
                             idx % 2 === 0 ? "bg-white" : "bg-slate-50"
-                          } hover:bg-blue-50`}
+                          } hover:bg-blue-50 transition-colors`}
                         >
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2">
-                              <code className="text-sm font-mono text-slate-700 bg-slate-100 px-2.5 py-1.5 rounded">
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-1">
+                              <code className="text-xs font-mono text-slate-700 bg-slate-100 px-2 py-1 rounded">
                                 {visibleIds[payout.id]
                                   ? payout.id
                                   : maskId(payout.id)}
                               </code>
                               <button
                                 onClick={() => toggleId(payout.id)}
-                                className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors text-slate-500 hover:text-[#BF9B53]"
+                                className="p-1 hover:bg-slate-200 rounded text-slate-500 hover:text-[#BF9B53] transition-colors"
                                 title={visibleIds[payout.id] ? "Hide" : "Show"}
                               >
                                 {visibleIds[payout.id] ? (
-                                  <EyeOff className="w-4 h-4" />
+                                  <EyeOff className="w-3 h-3" />
                                 ) : (
-                                  <Eye className="w-4 h-4" />
+                                  <Eye className="w-3 h-3" />
                                 )}
                               </button>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-3 py-2">
                             <span className="font-bold text-slate-900">
                               {Number(payout.amount).toLocaleString(undefined, {
                                 style: "currency",
@@ -471,17 +439,17 @@ const PayoutAndCardPage = () => {
                               })}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm font-semibold text-slate-900">
+                          <td className="px-3 py-2">
+                            <div className="text-xs font-semibold text-slate-900">
                               {formatDate(payout.createdAt)}
                             </div>
                             <div className="text-xs text-slate-500 mt-0.5">
                               {formatTime(payout.createdAt)}
                             </div>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-3 py-2">
                             <span
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                              className={`inline-flex text-xs font-semibold px-2 py-1 rounded ${
                                 payout.status === "completed" ||
                                 payout.status === "success"
                                   ? "bg-green-100 text-green-800"
@@ -500,16 +468,16 @@ const PayoutAndCardPage = () => {
                   </table>
                 </div>
 
-                {/* Load More Button */}
+                {/* Load More */}
                 {hasMore && (
-                  <div className="flex justify-center mt-8 pt-6 border-t border-slate-200">
+                  <div className="flex justify-center mt-3 pt-3 border-t border-slate-200">
                     <button
                       onClick={handleLoadMore}
                       disabled={loadingMore}
-                      className="px-6 py-3 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-200 disabled:cursor-not-allowed text-slate-900 font-semibold rounded-lg transition-colors duration-200 flex items-center gap-2"
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-200 text-slate-900 text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
                     >
-                      <ChevronDown className="w-4 h-4" />
-                      {loadingMore ? "Loading..." : "Load More Payouts"}
+                      <ChevronDown className="w-3 h-3" />
+                      {loadingMore ? "Loading..." : "Load More"}
                     </button>
                   </div>
                 )}

@@ -51,6 +51,7 @@ import { TrackingProvider } from "./contexts/common/TrackingContext";
 import { CustomerMatchingProvider } from "./contexts/customerContext/CustomerMatchingContext";
 import { ShipperInvitationProvider } from "./contexts/shipperContext/ShipperInvitationContext";
 import RealtimeNotifications from "./components/RealtimeNotifications";
+import { NotificationActivityProvider } from "./contexts/NotificationActivityContext";
 
 // ------------------- Stripe Setup -------------------
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
@@ -96,10 +97,12 @@ function App() {
                                                                   <CustomerQuestionProvider>
                                                                     <DeliveredShipmentProvider>
                                                                       <NewsletterProvider>
-                                                                        <TrackingProvider>
-                                                                          <AppRoutes />
-                                                                          <RealtimeNotifications />
-                                                                        </TrackingProvider>
+                                                                        <NotificationActivityProvider>
+                                                                          <TrackingProvider>
+                                                                            <AppRoutes />
+                                                                            <RealtimeNotifications />
+                                                                          </TrackingProvider>
+                                                                        </NotificationActivityProvider>
                                                                       </NewsletterProvider>
                                                                     </DeliveredShipmentProvider>
                                                                   </CustomerQuestionProvider>

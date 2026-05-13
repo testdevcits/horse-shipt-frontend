@@ -19,16 +19,13 @@ import StatusBadge from "../components/common/StatusBadge";
 import logo from "../assets/images/HorseShipt 1.svg";
 import logo1 from "../assets/images/profileImage.png";
 import defaultProfileImage from "../assets/images/profileImage.png";
-import {
-  fetchNotificationActivity,
-  loadNotificationActivity,
-} from "../utils/notificationActivity";
+import { useNotificationActivity } from "../contexts/NotificationActivityContext";
 
 const ShipperLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { user, token, logout } = useAuth();
+  const { user, logout } = useAuth();
   const { profile, loading } = useShipperProfile();
   const { fetchStripeStatus, needsOnboarding } = useShipperPayments();
   const { subscription, loading: subLoading } = useSubscription();
@@ -38,7 +35,7 @@ const ShipperLayout = () => {
   const [profilePopup, setProfilePopup] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
-  const [notificationCount, setNotificationCount] = useState(0);
+  const { unreadCount: notificationCount } = useNotificationActivity();
 
   const queryParams = new URLSearchParams(location.search);
   const isPaymentTab =
@@ -70,34 +67,6 @@ const ShipperLayout = () => {
       setMobileOpen(false);
     }
   }, [isDesktop]);
-
-  useEffect(() => {
-    const loadCount = async () => {
-      const activity = loadNotificationActivity({
-        role: user?.role,
-        userId: user?._id,
-      });
-      setNotificationCount(activity.filter((item) => !item.read).length);
-
-      if (!user?.role || !user?._id || !token) return;
-
-      try {
-        const result = await fetchNotificationActivity({
-          role: user.role,
-          userId: user._id,
-          token,
-        });
-        setNotificationCount(result.unreadCount);
-      } catch {
-        // Local activity count is already shown as fallback.
-      }
-    };
-
-    loadCount();
-    window.addEventListener("horse_shipt:notification_activity", loadCount);
-    return () =>
-      window.removeEventListener("horse_shipt:notification_activity", loadCount);
-  }, [token, user?._id, user?.role]);
 
   useEffect(() => {
     fetchStripeStatus();
