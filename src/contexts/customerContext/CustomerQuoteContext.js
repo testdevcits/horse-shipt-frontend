@@ -9,7 +9,6 @@ import axios from "axios";
 import { useAuth } from "../AuthContext";
 import Toast from "../../components/common/Toast";
 import { socket } from "../../services/socket";
-import { saveNotificationActivity } from "../../utils/notificationActivity";
 
 const CustomerQuoteContext = createContext();
 
@@ -167,25 +166,8 @@ export const CustomerQuoteProvider = ({ children }) => {
     const normalizeId = (value) =>
       typeof value === "object" && value?._id ? value._id : value;
 
-    const handleQuoteCreated = ({ quote, shipmentId, shipmentCode, shipperName }) => {
+    const handleQuoteCreated = ({ quote, shipmentId }) => {
       if (!quote?._id) return;
-
-      saveNotificationActivity({
-        role: "customer",
-        userId: user._id,
-        notification: {
-          id: `quote_created:${quote._id}`,
-          type: "quote_created",
-          title: "New quote received",
-          message: `${shipperName || "A shipper"} submitted a quote for ${
-            shipmentCode || "your shipment"
-          }`,
-          event: "horse_shipt:quote_created",
-          data: { quote, shipmentId, shipmentCode },
-          createdAt: new Date().toISOString(),
-        },
-      });
-      window.dispatchEvent(new Event("horse_shipt:notification_activity"));
 
       if (!activeShipmentId) return;
       if (normalizeId(shipmentId)?.toString() !== activeShipmentId.toString()) {
