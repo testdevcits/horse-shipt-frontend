@@ -10,8 +10,8 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 
 const countryCodes = [
-  { code: "+91", country: "India", flag: "🇮🇳" },
   { code: "+1", country: "USA", flag: "🇺🇸" },
+  { code: "+91", country: "India", flag: "🇮🇳" },
   { code: "+44", country: "UK", flag: "🇬🇧" },
   { code: "+61", country: "Australia", flag: "🇦🇺" },
 ];
@@ -23,7 +23,7 @@ const splitPhoneNumber = (phone = "") => {
 
   if (!matchedCountry) {
     return {
-      countryCode: "+91",
+      countryCode: "+1",
       nationalNumber: normalizePhoneDigits(phone),
     };
   }
@@ -46,7 +46,7 @@ const CustomerProfile = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
-  const [countryCode, setCountryCode] = useState("+91");
+  const [countryCode, setCountryCode] = useState("+1");
   const profileInputRef = useRef(null);
 
   useEffect(() => {

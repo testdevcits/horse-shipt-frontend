@@ -194,28 +194,31 @@ export const AuthProvider = ({ children }) => {
      LOGOUT
   ================================ */
   const logout = async () => {
+    const currentUser = user;
+
+    if (socket.connected) socket.disconnect();
+
+    setUser(null);
+    setToken(null);
+    setRole(null);
+    setLoading(false);
+
+    localStorage.removeItem("horseShiptUser");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+
+    navigate("/login", { replace: true });
+
     try {
-      if (user) {
+      if (currentUser) {
         await axios.post(
           `${API_BASE_URL}/auth/logout`,
-          { role: user.role, userId: user._id },
+          { role: currentUser.role, userId: currentUser._id },
           { withCredentials: true }
         );
       }
     } catch (err) {
       console.error("Logout Error:", err);
-    } finally {
-      if (socket.connected) socket.disconnect();
-
-      setUser(null);
-      setToken(null);
-      setRole(null);
-
-      localStorage.removeItem("horseShiptUser");
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
-
-      navigate("/login", { replace: true });
     }
   };
 

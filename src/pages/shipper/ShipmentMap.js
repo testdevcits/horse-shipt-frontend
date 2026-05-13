@@ -9,7 +9,6 @@ import {
   GoogleMap,
   DirectionsRenderer,
   Marker,
-  useJsApiLoader,
 } from "@react-google-maps/api";
 
 /**
@@ -25,6 +24,17 @@ const defaultCenter = {
   lng: 75.9,
 };
 
+const toMapPoint = (coords) => {
+  if (!coords) return null;
+
+  const lat = Number(coords.lat ?? coords.latitude);
+  const lng = Number(coords.lng ?? coords.longitude);
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+  return { lat, lng };
+};
+
 /* ================= COMPONENT ================= */
 const ShipmentMap = ({ shipments = [], pagination = {}, onPageChange }) => {
   const navigate = useNavigate();
@@ -36,10 +46,8 @@ const ShipmentMap = ({ shipments = [], pagination = {}, onPageChange }) => {
   const [showEstimate, setShowEstimate] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
 
-  // Google Maps API
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-  });
+  const isLoaded =
+    typeof window !== "undefined" && Boolean(window.google?.maps);
 
   /**
    * ================= NAVIGATION HANDLER =================
@@ -62,10 +70,25 @@ const ShipmentMap = ({ shipments = [], pagination = {}, onPageChange }) => {
    * Set map center based on selected shipment or first shipment
    */
   const mapCenter = useMemo(() => {
-    if (selectedShipment?.pickupCoords) return selectedShipment.pickupCoords;
-    if (shipments?.length && shipments[0]?.pickupCoords)
-      return shipments[0]?.pickupCoords;
+    const selectedPickup = toMapPoint(selectedShipment?.pickupCoords);
+    if (selectedPickup) return selectedPickup;
+
+    const firstPickup = toMapPoint(shipments?.[0]?.pickupCoords);
+    if (firstPickup) return firstPickup;
+
     return defaultCenter;
+  }, [shipments, selectedShipment]);
+
+  useEffect(() => {
+    if (!shipments?.length) {
+      setSelectedShipment(null);
+      setDirections(null);
+      return;
+    }
+
+    if (!selectedShipment || !shipments.some((s) => s._id === selectedShipment._id)) {
+      setSelectedShipment(shipments[0]);
+    }
   }, [shipments, selectedShipment]);
 
   /**
@@ -75,8 +98,14 @@ const ShipmentMap = ({ shipments = [], pagination = {}, onPageChange }) => {
   useEffect(() => {
     if (!isLoaded || !selectedShipment || !window.google) return;
 
-    const { pickupCoords, deliveryCoords } = selectedShipment;
-    if (!pickupCoords || !deliveryCoords) return;
+    const pickupCoords = toMapPoint(selectedShipment.pickupCoords);
+    const deliveryCoords = toMapPoint(selectedShipment.deliveryCoords);
+
+    if (!pickupCoords || !deliveryCoords) {
+      setDirections(null);
+      setMapLoading(false);
+      return;
+    }
 
     setMapLoading(true);
     const service = new window.google.maps.DirectionsService();
@@ -101,6 +130,8 @@ const ShipmentMap = ({ shipments = [], pagination = {}, onPageChange }) => {
 
           setShowEstimate(true);
           setTimeout(() => setShowEstimate(false), 5000);
+        } else {
+          setDirections(null);
         }
         setMapLoading(false);
       }
@@ -217,7 +248,8 @@ const ShipmentMap = ({ shipments = [], pagination = {}, onPageChange }) => {
                       suppressMarkers: true,
                       polylineOptions: {
                         strokeColor: "#BF9B53",
-                        strokeWeight: 4,
+                        strokeOpacity: 0.95,
+                        strokeWeight: 6,
                         geodesic: true,
                       },
                     }}
@@ -225,7 +257,7 @@ const ShipmentMap = ({ shipments = [], pagination = {}, onPageChange }) => {
 
                   {/* Pickup Marker */}
                   <Marker
-                    position={selectedShipment.pickupCoords}
+                    position={toMapPoint(selectedShipment.pickupCoords)}
                     title="Pickup Location"
                     label={{
                       text: "P",
@@ -237,7 +269,7 @@ const ShipmentMap = ({ shipments = [], pagination = {}, onPageChange }) => {
 
                   {/* Delivery Marker */}
                   <Marker
-                    position={selectedShipment.deliveryCoords}
+                    position={toMapPoint(selectedShipment.deliveryCoords)}
                     title="Delivery Location"
                     label={{
                       text: "D",

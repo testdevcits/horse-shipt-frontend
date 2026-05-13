@@ -8,17 +8,17 @@ import ShipperNotifications from "./ShipperNotifications";
 
 import BillingHistory from "./BillingHistory";
 
+const tabs = [
+  { id: "profile", label: "Profile Settings" },
+  { id: "shipment", label: "Shipment Settings" },
+  { id: "payment", label: "Payments" },
+  { id: "billing", label: "Subscription" },
+  { id: "notification", label: "Notification Settings" },
+];
+
 const ShipperSettings = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
-  const tabs = [
-    { id: "profile", label: "Profile Settings" },
-    { id: "shipment", label: "Shipment Settings" },
-    { id: "payment", label: "Payments" },
-    { id: "billing", label: "Subscription" },
-    { id: "notification", label: "Notification Settings" },
-  ];
 
   const queryParams = new URLSearchParams(location.search);
   const initialTab = queryParams.get("tab") || "profile";
@@ -32,6 +32,16 @@ const ShipperSettings = () => {
     setActiveTab(tabId);
     navigate(`/shipper/settings?tab=${tabId}`);
   };
+
+  useEffect(() => {
+    const queryTab = new URLSearchParams(location.search).get("tab");
+    const stateTab = location.state?.activeTab;
+    const nextTab = stateTab || queryTab;
+
+    if (nextTab && tabs.some((tab) => tab.id === nextTab)) {
+      setActiveTab(nextTab);
+    }
+  }, [location.search, location.state]);
 
   const renderTabContent = () => {
     switch (activeTab) {

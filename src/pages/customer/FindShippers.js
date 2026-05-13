@@ -83,7 +83,7 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
     loadProfiles();
   }, [matchingShippers, token]);
 
-  // Handle invitation using context
+  // Handle quote request using context
   const handleSendInvitation = async (profile) => {
     const profileId = profile._id || profile.id;
 
@@ -109,7 +109,7 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
         message: "",
       });
 
-      Toast.success(`Invitation sent to ${profile.name}!`);
+      Toast.success(`Quote request sent to ${profile.name}!`);
 
       setTimeout(() => {
         fetchMatchingShippers(shipmentId);
@@ -118,7 +118,7 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
       const errorMsg =
         err?.response?.data?.message ||
         err?.message ||
-        "Failed to send invitation. Please try again.";
+        "Failed to send quote request. Please try again.";
       Toast.error(errorMsg);
     }
   };
@@ -169,8 +169,10 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
             <p className="text-sm text-gray-600 mt-2 max-w-2xl">
               We are checking pickup and delivery coverage areas to find
               shippers that may fit this route. Click{" "}
-              <span className="font-semibold text-gray-800">Invite</span> to
-              send a direct invitation.
+              <span className="font-semibold text-gray-800">
+                Request a Quote
+              </span>{" "}
+              to ask a shipper to review the shipment and send pricing.
             </p>
           </div>
           <button
@@ -317,7 +319,7 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
                         </div>
                       </div>
 
-                      {/* Invite Button */}
+                      {/* Quote request button */}
                       <button
                         onClick={() => handleSendInvitation(profile)}
                         disabled={
@@ -358,12 +360,12 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
                         ) : alreadyInvited ? (
                           <>
                             <FiCheck size={16} />
-                            Invited
+                            Quote Requested
                           </>
                         ) : (
                           <>
                             <MdSend size={16} />
-                            Invite Shipper
+                            Request a Quote
                           </>
                         )}
                       </button>

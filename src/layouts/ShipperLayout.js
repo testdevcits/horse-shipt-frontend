@@ -19,12 +19,16 @@ import StatusBadge from "../components/common/StatusBadge";
 import logo from "../assets/images/HorseShipt 1.svg";
 import logo1 from "../assets/images/profileImage.png";
 import defaultProfileImage from "../assets/images/profileImage.png";
+import {
+  fetchNotificationActivity,
+  loadNotificationActivity,
+} from "../utils/notificationActivity";
 
 const ShipperLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const { profile, loading } = useShipperProfile();
   const { fetchStripeStatus, needsOnboarding } = useShipperPayments();
   const { subscription, loading: subLoading } = useSubscription();
@@ -34,6 +38,7 @@ const ShipperLayout = () => {
   const [profilePopup, setProfilePopup] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const queryParams = new URLSearchParams(location.search);
   const isPaymentTab =
@@ -65,6 +70,34 @@ const ShipperLayout = () => {
       setMobileOpen(false);
     }
   }, [isDesktop]);
+
+  useEffect(() => {
+    const loadCount = async () => {
+      const activity = loadNotificationActivity({
+        role: user?.role,
+        userId: user?._id,
+      });
+      setNotificationCount(activity.filter((item) => !item.read).length);
+
+      if (!user?.role || !user?._id || !token) return;
+
+      try {
+        const result = await fetchNotificationActivity({
+          role: user.role,
+          userId: user._id,
+          token,
+        });
+        setNotificationCount(result.unreadCount);
+      } catch {
+        // Local activity count is already shown as fallback.
+      }
+    };
+
+    loadCount();
+    window.addEventListener("horse_shipt:notification_activity", loadCount);
+    return () =>
+      window.removeEventListener("horse_shipt:notification_activity", loadCount);
+  }, [token, user?._id, user?.role]);
 
   useEffect(() => {
     fetchStripeStatus();
@@ -158,11 +191,16 @@ const ShipperLayout = () => {
             {/* Notifications button */}
             <button
               onClick={() => navigate("/shipper/notifications")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-system-primary"
+              className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-system-primary"
               aria-label="Notifications"
               title="Notifications"
             >
               <MdOutlineNotificationsActive size={18} />
+              {notificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#BF9B53] text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                  {notificationCount}
+                </span>
+              )}
             </button>
 
             {/* Status badge - hidden on mobile */}

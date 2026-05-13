@@ -17,7 +17,9 @@ const normalizeInvitationShipment = (invite) => {
     _id: invite?.shipment,
     shipmentCode: invite?.shipmentCode,
     pickupLocation: invite?.pickupLocation,
+    pickupCoords: invite?.pickupCoords,
     deliveryLocation: invite?.deliveryLocation,
+    deliveryCoords: invite?.deliveryCoords,
     status: "open_for_offers",
     horses: [],
     numberOfHorses: invite?.numberOfHorses,
@@ -61,10 +63,10 @@ const InvitedShipments = () => {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-dark">
-            Invited Shipments
+            Quote Requests
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Shipments customers specifically invited you to review.
+            Shipments customers specifically asked you to quote.
           </p>
         </div>
 
@@ -73,7 +75,7 @@ const InvitedShipments = () => {
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search invites..."
+            placeholder="Search quote requests..."
             className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-system-primary focus:ring-2 focus:ring-system-primary/20"
           />
         </div>
@@ -81,13 +83,13 @@ const InvitedShipments = () => {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <PageLoader text="Loading invited shipments..." />
+          <PageLoader text="Loading quote requests..." />
         </div>
       ) : filteredShipments.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-xl p-10 text-center">
-          <p className="text-lg font-semibold text-dark">No invited shipments</p>
+          <p className="text-lg font-semibold text-dark">No quote requests</p>
           <p className="text-sm text-gray-500 mt-1">
-            New customer invitations will appear here.
+            New customer quote requests will appear here.
           </p>
         </div>
       ) : (

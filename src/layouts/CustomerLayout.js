@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "../pages/customer/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
-import { useCustomerNotifications } from "../contexts/CustomerNotificationContext";
 import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
 import logo from "../assets/images/logo.png";
@@ -12,12 +11,16 @@ import defaultProfileImage from "../assets/images/profileImage.png";
 import StatusBadge from "../components/common/StatusBadge";
 import { IoShareSocial } from "react-icons/io5";
 import { BiChevronDown } from "react-icons/bi";
+import {
+  fetchNotificationActivity,
+  loadNotificationActivity,
+} from "../utils/notificationActivity";
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const { notificationCount } = useCustomerNotifications();
+  const { user, role, token, logout } = useAuth();
   const { profile, profileImage, loading } = useProfile();
+  const [notificationCount, setNotificationCount] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
@@ -44,6 +47,31 @@ const CustomerLayout = () => {
       setMobileOpen(false);
     }
   }, [isDesktop]);
+
+  useEffect(() => {
+    const loadCount = async () => {
+      const activity = loadNotificationActivity({ role, userId: user?._id });
+      setNotificationCount(activity.filter((item) => !item.read).length);
+
+      if (!role || !user?._id || !token) return;
+
+      try {
+        const result = await fetchNotificationActivity({
+          role,
+          userId: user._id,
+          token,
+        });
+        setNotificationCount(result.unreadCount);
+      } catch {
+        // Local activity count is already shown as fallback.
+      }
+    };
+
+    loadCount();
+    window.addEventListener("horse_shipt:notification_activity", loadCount);
+    return () =>
+      window.removeEventListener("horse_shipt:notification_activity", loadCount);
+  }, [role, token, user?._id]);
 
   const handleShare = async () => {
     const shareData = {
@@ -104,7 +132,7 @@ const CustomerLayout = () => {
           </button>
 
           <button
-            onClick={() => navigate("/customer/settings?tab=notification")}
+            onClick={() => navigate("/customer/notifications")}
             className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-system-primary"
             aria-label="Notifications"
             title="Notifications"

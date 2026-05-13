@@ -83,7 +83,9 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             _id: invite.shipment,
             shipmentCode: invite.shipmentCode,
             pickupLocation: invite.pickupLocation,
+            pickupCoords: invite.pickupCoords,
             deliveryLocation: invite.deliveryLocation,
+            deliveryCoords: invite.deliveryCoords,
             status: "open_for_offers",
             horses: [],
             __invitation: invite,
@@ -360,7 +362,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
               <span className="font-bold text-[#BF9B53]">
                 {invitedShipments.length}
               </span>{" "}
-              invite{invitedShipments.length !== 1 ? "s" : ""}
+              quote request{invitedShipments.length !== 1 ? "s" : ""}
             </>
           )}
           {search && (

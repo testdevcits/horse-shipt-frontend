@@ -93,7 +93,7 @@ const ShipmentCard = ({ shipment, invitation }) => {
           </div>
           {isInvitedShipment && (
             <div className="absolute -top-2 -left-2 bg-[#BF9B53] text-white text-[9px] sm:text-[10px] font-bold px-2 py-1 rounded shadow-sm uppercase tracking-wide">
-              Invited
+              Quote Requested
             </div>
           )}
         </div>
@@ -104,7 +104,7 @@ const ShipmentCard = ({ shipment, invitation }) => {
           <div className="flex items-start justify-between gap-2 mb-1">
             <div className="min-w-0">
               <h3 className="text-sm sm:text-base md:text-lg font-bold text-dark leading-tight truncate">
-                {horse.registeredName || "Shipment Invitation"}
+                {horse.registeredName || "Quote Request"}
                 {horse.barnName && (
                   <span className="font-normal text-gray-400">
                     {" "}
@@ -115,7 +115,7 @@ const ShipmentCard = ({ shipment, invitation }) => {
               <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
                 {[horse.breed, horse.age ? `${horse.age}yr` : null, horse.colour]
                   .filter(Boolean)
-                  .join(" · ") || "Customer invited you to this shipment"}
+                  .join(" · ") || "Customer requested a quote for this shipment"}
               </p>
               <span className="inline-block mt-1 text-[10px] sm:text-xs font-semibold font-mono text-[#BF9B53] tracking-wide">
                 {shipment.shipmentCode}
