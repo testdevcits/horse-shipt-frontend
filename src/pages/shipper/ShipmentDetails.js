@@ -7,6 +7,7 @@ import { FiChevronDown, FiChevronUp, FiMail, FiFileText } from "react-icons/fi";
 import { MdChat, MdHelpOutline } from "react-icons/md";
 import { BiMapPin, BiRocket } from "react-icons/bi";
 import { useShipperShipment } from "../../contexts/shipperContext/ShipperShipmentContext";
+import { useShipperInvitations } from "../../contexts/shipperContext/ShipperInvitationContext";
 import OfferSubmitModal from "./OfferSubmitModal";
 import { getPublishedTime } from "../../utils/timeAgo";
 import AskQuestionModal from "./AskQuestionModal";
@@ -74,6 +75,34 @@ const ThumbFallback = () => (
   </div>
 );
 
+const normalizeInvitationShipment = (invite) => {
+  if (!invite) return null;
+
+  const baseShipment =
+    invite.shipment && typeof invite.shipment === "object"
+      ? invite.shipment
+      : {
+          _id: invite.shipment,
+          shipmentCode: invite.shipmentCode,
+          pickupLocation: invite.pickupLocation,
+          pickupCoords: invite.pickupCoords,
+          deliveryLocation: invite.deliveryLocation,
+          deliveryCoords: invite.deliveryCoords,
+          status: "open_for_offers",
+          horses: [],
+          numberOfHorses: invite.numberOfHorses,
+        };
+
+  if (!baseShipment?._id) return null;
+
+  return {
+    ...baseShipment,
+    customer: baseShipment.customer || invite.customer,
+    __invitation: invite,
+    __isInvitedShipment: true,
+  };
+};
+
 // ── Document icon map ─────────────────────────────────────────────────────────
 const DOC_COLORS = {
   coggins: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100",
@@ -103,6 +132,11 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const tokenFromQuery = searchParams.get("ref");
 
   const { shipments, getAvailableShipments, loading } = useShipperShipment();
+  const {
+    invitations,
+    fetchInvitations,
+    loading: invitationLoading,
+  } = useShipperInvitations();
   const [isQuestionOpen, setIsQuestionOpen] = useState(false);
 
   const [shipment, setShipment] = useState(null);
@@ -169,13 +203,25 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
     if (!shipments.length) getAvailableShipments();
   }, [shipments.length, getAvailableShipments]);
 
+  useEffect(() => {
+    if (!invitations.length) fetchInvitations();
+  }, [invitations.length, fetchInvitations]);
+
   // ── Find shipment ─────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!idToUse || !shipments.length) return;
-    const found = shipments.find((s) => String(s._id) === String(idToUse));
+    if (!idToUse || (loading || invitationLoading)) return;
+
+    const invitedShipments = (invitations || [])
+      .filter((invite) => invite?.status === "pending")
+      .map(normalizeInvitationShipment)
+      .filter(Boolean);
+
+    const found = [...(shipments || []), ...invitedShipments].find(
+      (s) => String(s._id) === String(idToUse)
+    );
     setShipment(found || null);
     if (found) setExpandedHorse(0);
-  }, [idToUse, shipments]);
+  }, [idToUse, shipments, invitations, loading, invitationLoading]);
 
   // ── Timer helpers ─────────────────────────────────────────────────────────
   const formatTimeRemaining = (ms) => {
@@ -269,7 +315,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       : "";
 
   // ── Loading ───────────────────────────────────────────────────────────────
-  if (loading) {
+  if (loading || invitationLoading) {
     return (
       <div className="flex items-center font-montserrat justify-center h-screen">
         <div className="text-center">

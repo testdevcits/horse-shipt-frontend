@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { HiSearch } from "react-icons/hi";
 import { useShipperInvitations } from "../../contexts/shipperContext/ShipperInvitationContext";
 import ShipmentCard from "./ShipmentCard";
@@ -30,7 +31,10 @@ const normalizeInvitationShipment = (invite) => {
 
 const InvitedShipments = () => {
   const { invitations, loading, fetchInvitations } = useShipperInvitations();
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
+  const highlightedShipmentId = searchParams.get("shipmentId");
+  const highlightedRef = useRef(null);
 
   useEffect(() => {
     fetchInvitations();
@@ -57,6 +61,15 @@ const InvitedShipments = () => {
       .toLowerCase()
       .includes(search.toLowerCase())
   );
+
+  useEffect(() => {
+    if (!highlightedShipmentId || !highlightedRef.current || loading) return;
+
+    highlightedRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, [highlightedShipmentId, loading, filteredShipments.length]);
 
   return (
     <div className="flex flex-col gap-5 font-montserrat">
@@ -95,11 +108,22 @@ const InvitedShipments = () => {
       ) : (
         <div className="flex flex-col gap-3 sm:gap-4">
           {filteredShipments.map((shipment) => (
-            <ShipmentCard
+            <div
               key={shipment._id}
-              shipment={shipment}
-              invitation={shipment.__invitation}
-            />
+              ref={
+                String(shipment._id) === String(highlightedShipmentId)
+                  ? highlightedRef
+                  : null
+              }
+            >
+              <ShipmentCard
+                shipment={shipment}
+                invitation={shipment.__invitation}
+                isHighlighted={
+                  String(shipment._id) === String(highlightedShipmentId)
+                }
+              />
+            </div>
           ))}
         </div>
       )}

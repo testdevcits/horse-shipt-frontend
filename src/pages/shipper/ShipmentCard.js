@@ -42,7 +42,7 @@ const formatDateRange = (start, end) => {
   return `${fmt(start)} – ${fmt(end)}`;
 };
 
-const ShipmentCard = ({ shipment, invitation }) => {
+const ShipmentCard = ({ shipment, invitation, isHighlighted = false }) => {
   const navigate = useNavigate();
   if (!shipment) return null;
 
@@ -69,7 +69,11 @@ const ShipmentCard = ({ shipment, invitation }) => {
   return (
     <div
       onClick={handleNavigateWithQuery}
-      className="bg-white border border-[#BF9B53] rounded-sm p-4 md:p-5 cursor-pointer hover:border-[#BF9B53] hover:shadow-md transition-all duration-200 active:scale-[0.995] font-montserrat"
+      className={`bg-white border rounded-sm p-4 md:p-5 cursor-pointer hover:border-[#BF9B53] hover:shadow-md transition-all duration-200 active:scale-[0.995] font-montserrat ${
+        isHighlighted
+          ? "border-[#BF9B53] shadow-md ring-2 ring-[#BF9B53]/25"
+          : "border-[#BF9B53]"
+      }`}
     >
       <div className="flex gap-4 items-start">
         {/* ── HORSE IMAGE ── */}

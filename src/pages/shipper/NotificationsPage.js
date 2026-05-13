@@ -34,6 +34,10 @@ const getNotificationShipmentId = (notification) => {
   );
 };
 
+const isQuoteRequestNotification = (notification) =>
+  notification?.type === "shipment_invitation" ||
+  notification?.event === "horse_shipt:shipment_invitation_created";
+
 const NotificationsPage = () => {
   const navigate = useNavigate();
   const { role } = useAuth();
@@ -78,6 +82,11 @@ const NotificationsPage = () => {
     }
 
     if (role === "shipper") {
+      if (isQuoteRequestNotification(item)) {
+        navigate(`/shipper/invited-shipments?${params.toString()}`);
+        return;
+      }
+
       navigate(`/shipper/shipments/details?${params.toString()}`);
     }
   };
