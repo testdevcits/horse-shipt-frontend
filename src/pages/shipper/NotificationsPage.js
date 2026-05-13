@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FiTrash2 } from "react-icons/fi";
 import { SettingsIcon } from "../../components/common/ColoredIcons"; // shared icon
 import { useAuth } from "../../contexts/AuthContext";
+import { createShipmentQueryToken } from "../../utils/createQueryToken";
 import {
+  deleteNotificationActivity,
   fetchNotificationActivity,
   loadNotificationActivity,
   markNotificationActivityReadRemote,
@@ -18,6 +21,22 @@ const formatTime = (dateValue) => {
     hour: "numeric",
     minute: "2-digit",
   });
+};
+
+const normalizeId = (value) => {
+  if (!value) return null;
+  if (typeof value === "object") return value._id || value.id || null;
+  return value;
+};
+
+const getNotificationShipmentId = (notification) => {
+  const data = notification?.data || {};
+  return (
+    normalizeId(data.shipmentId) ||
+    normalizeId(data.shipment?._id || data.shipment) ||
+    normalizeId(data.quote?.shipment?._id || data.quote?.shipment) ||
+    normalizeId(data.quote?.shipmentId)
+  );
 };
 
 const NotificationsPage = () => {
@@ -76,6 +95,45 @@ const NotificationsPage = () => {
       ? "/customer/settings?tab=notification"
       : "/shipper/settings?tab=notification";
 
+  const handleNotificationClick = (item) => {
+    const shipmentId = getNotificationShipmentId(item);
+    if (!shipmentId) return;
+
+    const ref = createShipmentQueryToken(shipmentId);
+    const params = new URLSearchParams({
+      shipmentId,
+      ref,
+    });
+
+    if (role === "customer") {
+      navigate(`/customer/my-shipments?${params.toString()}`);
+      return;
+    }
+
+    if (role === "shipper") {
+      navigate(`/shipper/shipments/details?${params.toString()}`);
+    }
+  };
+
+  const handleDeleteNotification = async (event, item) => {
+    event.stopPropagation();
+    if (!item?.id || !role || !user?._id) return;
+
+    setNotifications((prev) => prev.filter((notification) => notification.id !== item.id));
+
+    try {
+      await deleteNotificationActivity({
+        role,
+        userId: user._id,
+        token,
+        notificationId: item.id,
+      });
+      window.dispatchEvent(new Event("horse_shipt:notification_activity"));
+    } catch {
+      setNotifications(loadNotificationActivity({ role, userId: user._id }));
+    }
+  };
+
   return (
     <div className="font-montserrat">
       {/* Page Header */}
@@ -97,10 +155,31 @@ const NotificationsPage = () => {
 
       {/* Notification List */}
       <div className="space-y-4">
-        {notifications.map((item) => (
+        {notifications.map((item) => {
+          const shipmentId = getNotificationShipmentId(item);
+          const canOpenShipment =
+            (role === "customer" || role === "shipper") && shipmentId;
+
+          return (
           <div
             key={item.id}
-            className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white transition-all"
+            onClick={() => handleNotificationClick(item)}
+            className={`flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white transition-all ${
+              canOpenShipment
+                ? "cursor-pointer hover:border-[#BF9B53]/50 hover:shadow-sm"
+                : ""
+            }`}
+            role={canOpenShipment ? "button" : undefined}
+            tabIndex={canOpenShipment ? 0 : undefined}
+            onKeyDown={(event) => {
+              if (
+                canOpenShipment &&
+                (event.key === "Enter" || event.key === " ")
+              ) {
+                event.preventDefault();
+                handleNotificationClick(item);
+              }
+            }}
           >
             <div className="flex items-start gap-4">
               <div className="w-11 h-11 rounded-full bg-[#BF9B53]/10 text-[#9A7D3A] flex items-center justify-center flex-shrink-0 font-semibold">
@@ -124,11 +203,23 @@ const NotificationsPage = () => {
               </div>
             </div>
 
-            {!item.read && (
-              <span className="w-2 h-2 bg-[#10B981] rounded-full self-start mt-2" />
-            )}
+            <div className="flex items-start gap-3">
+              {!item.read && (
+                <span className="w-2 h-2 bg-[#10B981] rounded-full mt-2" />
+              )}
+              <button
+                type="button"
+                onClick={(event) => handleDeleteNotification(event, item)}
+                className="p-2 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
+                title="Delete notification"
+                aria-label="Delete notification"
+              >
+                <FiTrash2 size={16} />
+              </button>
+            </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Empty State */}

@@ -6,6 +6,7 @@ import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteCo
 import Checkbox from "../../components/common/Checkbox";
 import { MdCheckCircle } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { LoaderCircle } from "lucide-react";
 
 import { Worker, Viewer } from "@react-pdf-viewer/core";
 import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
@@ -198,7 +199,15 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
       )}
 
       {!showSuccessPopup && (
-        <div className="bg-white w-full sm:max-w-2xl xl:max-w-7xl rounded-xl flex flex-col overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="relative bg-white w-full sm:max-w-2xl xl:max-w-7xl rounded-xl flex flex-col overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto">
+          {submitting && (
+            <div className="absolute inset-0 z-30 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+              <LoaderCircle className="w-9 h-9 animate-spin text-[#BF9B53]" />
+              <p className="text-sm font-semibold text-slate-700">
+                Accepting your quote...
+              </p>
+            </div>
+          )}
           {/* ── Header ──────────────────────────────────────────────────────── */}
           <div className="sticky top-0 bg-white border-b border-slate-200 p-4 sm:p-6 z-10">
             <button
@@ -459,7 +468,8 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                       <button
                         type="button"
                         onClick={() => sigPad?.clear()}
-                        className="text-xs text-[#BF9B53] hover:text-amber-700 font-semibold"
+                        disabled={submitting}
+                        className="text-xs text-[#BF9B53] hover:text-amber-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Clear Signature
                       </button>
@@ -491,7 +501,8 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                   {isCancelable && (
                     <button
                       onClick={() => setShowCancelModal(true)}
-                      className="flex-1 px-4 py-2.5 border border-red-500 text-red-600 hover:bg-red-600 hover:text-white font-semibold rounded-lg transition-colors text-sm"
+                      disabled={submitting}
+                      className="flex-1 px-4 py-2.5 border border-red-500 text-red-600 hover:bg-red-600 hover:text-white font-semibold rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel Quote
                     </button>
@@ -510,7 +521,14 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                       disabled={submitting}
                       className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all text-sm"
                     >
-                      {submitting ? "Accepting Quote..." : "Accept Quote"}
+                      {submitting ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <LoaderCircle className="w-4 h-4 animate-spin" />
+                          Accepting Quote...
+                        </span>
+                      ) : (
+                        "Accept Quote"
+                      )}
                     </button>
                   )}
                 </div>

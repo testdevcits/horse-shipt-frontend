@@ -137,3 +137,32 @@ export const markNotificationActivityReadRemote = async ({
     headers: { Authorization: `Bearer ${token}` },
   });
 };
+
+export const deleteNotificationActivity = async ({
+  role,
+  userId,
+  token,
+  notificationId,
+}) => {
+  const key = getNotificationStorageKey({ role, userId });
+  if (key) {
+    const next = loadNotificationActivity({ role, userId }).filter(
+      (item) => item.id !== notificationId
+    );
+    localStorage.setItem(key, JSON.stringify(next));
+  }
+
+  const path = getActivityPath(role);
+  if (!path || !token || !notificationId) return;
+  if (!/^[a-f\d]{24}$/i.test(notificationId)) return;
+
+  const res = await fetch(
+    `${API_BASE_URL}/${path}/${encodeURIComponent(notificationId)}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+
+  if (!res.ok) throw new Error("Failed to delete notification");
+};
