@@ -156,7 +156,7 @@ const VehiclePage = () => {
 
   // --------- Render ---------
   return (
-    <div className="relative vehicle-scroll h-screen font-montserrat">
+    <div className="relative min-h-[calc(100vh-120px)] font-montserrat">
       {/* Delete Confirmation Modal */}
       <ConfirmModal
         show={confirmData.show}
@@ -170,13 +170,19 @@ const VehiclePage = () => {
       />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
-        <h1 className="font-montserrat font-semibold text-2xl text-gray-800">
-          My Registered Vehicles
-        </h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3 bg-white border border-slate-200 p-4">
+        <div>
+          <h1 className="font-montserrat font-semibold text-2xl text-gray-800">
+            My Registered Vehicles
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            {vehicles.length} vehicle{vehicles.length === 1 ? "" : "s"} added
+            to your carrier profile
+          </p>
+        </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center justify-center gap-2 bg-[#bf9b53] text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition w-full sm:w-auto"
+          className="flex items-center justify-center gap-2 bg-[#bf9b53] text-white px-4 py-2 hover:bg-opacity-90 transition w-full sm:w-auto"
         >
           <FiPlus className="text-lg" /> <span>Add Vehicle</span>
         </button>
@@ -190,150 +196,108 @@ const VehiclePage = () => {
           color="#BF9B53"
         />
       ) : vehicles.length === 0 ? (
-        <div className="flex items-center justify-center min-h-[600px]  border border-dashed border-[#BF9B53] rounded-md">
-          <div className="text-center text-sm text-gray-600 w-fit">
-            No vehicles found. Add one to get started!
+        <div className="flex items-center justify-center min-h-[360px] border border-dashed border-[#BF9B53] bg-white">
+          <div className="text-center text-sm text-gray-600 w-fit px-4">
+            <RiImageAddLine className="mx-auto text-4xl text-[#BF9B53] mb-3" />
+            <p className="font-semibold text-slate-900">No vehicles added yet</p>
+            <p className="mt-1">Add your first vehicle to start assigning it to shipments.</p>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 w-full">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full">
           {vehicles.map((vehicle, index) => (
             <div
               key={vehicle._id}
-              className="w-full bg-white border border-2 border-[#BF9B53] rounded-md p-5 shadow-sm hover:shadow-xl transition-all"
+              className="w-full bg-white border border-slate-200 shadow-sm hover:shadow-md transition"
             >
-              {/* HEADER */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                <h2 className="text-lg font-semibold text-gray-800">
-                  Vehicle {index + 1}
-                </h2>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => openModal(vehicle)}
-                    className="px-3 py-1.5 rounded-lg text-white bg-[#BF9B53] hover:opacity-90 text-sm"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      setConfirmData({ show: true, id: vehicle._id })
-                    }
-                    className="px-3 py-1.5 rounded-lg border border-red-300 text-red-500 hover:bg-red-50 text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-
-              {/* STATUS */}
-              <div className="mb-4">
-                <span
-                  className={`px-3 py-1 text-xs font-semibold rounded-full
-                  ${
-                    vehicle.verificationStatus === "VERIFIED"
-                      ? "bg-green-100 text-green-700"
-                      : vehicle.verificationStatus === "REJECTED"
-                      ? "bg-red-100 text-red-600"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}
-                >
-                  {vehicle.verificationStatus || "PENDING"}
-                </span>
-              </div>
-
-              {/* DETAILS */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm mb-4">
-                <div className="flex gap-2">
-                  <p>Vehicle Type:</p>
-                  <p className="font-semibold text-[#BF9B53]">
-                    {vehicle.vehicleType || "N/A"}
-                  </p>
+              <div className="grid sm:grid-cols-[150px_1fr] gap-4 p-4">
+                <div className="h-36 bg-slate-100 border border-slate-200 overflow-hidden">
+                  {vehicle.images?.[0]?.url ? (
+                    <img
+                      src={vehicle.images[0].url}
+                      alt={vehicle.vehicleNumber || "vehicle"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                      <RiImageAddLine className="text-3xl" />
+                      <span className="text-xs mt-1">No image</span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex gap-2">
-                  <p>Transport:</p>
-                  <p className="font-semibold text-[#BF9B53]">
-                    {vehicle.transportType || "N/A"}
-                  </p>
-                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+                        Vehicle {index + 1}
+                      </p>
+                      <h2 className="text-lg font-semibold text-slate-900 uppercase mt-1">
+                        {vehicle.vehicleNumber || "Vehicle number N/A"}
+                      </h2>
+                      <p className="text-sm text-slate-600 mt-1">
+                        {vehicle.vehicleType || "N/A"} |{" "}
+                        {vehicle.transportType || "N/A"}
+                      </p>
+                    </div>
 
-                <div className="flex gap-2">
-                  <p>Vehicle No.:</p>
-                  <p className="font-semibold text-[#BF9B53] uppercase">
-                    {vehicle.vehicleNumber || "N/A"}
-                  </p>
-                </div>
+                    <span
+                      className={`px-3 py-1 text-xs font-semibold w-fit ${
+                        vehicle.verificationStatus === "VERIFIED"
+                          ? "bg-green-100 text-green-700"
+                          : vehicle.verificationStatus === "REJECTED"
+                          ? "bg-red-100 text-red-600"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
+                    >
+                      {vehicle.verificationStatus || "PENDING"}
+                    </span>
+                  </div>
 
-                <div className="flex gap-2">
-                  <p>VIN:</p>
-                  <p className="font-semibold text-[#BF9B53] uppercase">
-                    {vehicle.vinNumber || "N/A"}
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <p>Stalls:</p>
-                  <p className="font-semibold text-[#BF9B53]">
-                    {vehicle.numberOfStalls || "N/A"}
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <p>Size:</p>
-                  <p className="font-semibold text-[#BF9B53]">
-                    {vehicle.stallSize || "N/A"}
-                  </p>
-                </div>
-
-                {vehicle.driver && (
-                  <div className="flex gap-2">
-                    <p>Assigned Driver:</p>
-                    <p className="font-semibold text-green-600">
-                      ✓ {vehicle.driver.name}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mt-4">
+                    <p>
+                      <span className="text-slate-500">VIN:</span>{" "}
+                      <span className="font-semibold text-[#BF9B53] uppercase">
+                        {vehicle.vinNumber || "N/A"}
+                      </span>
+                    </p>
+                    <p>
+                      <span className="text-slate-500">Stalls:</span>{" "}
+                      <span className="font-semibold text-[#BF9B53]">
+                        {vehicle.numberOfStalls || "N/A"}
+                      </span>
+                    </p>
+                    <p>
+                      <span className="text-slate-500">Stall Type:</span>{" "}
+                      <span className="font-semibold text-[#BF9B53]">
+                        {vehicle.trailerType || "N/A"}
+                      </span>
+                    </p>
+                    <p>
+                      <span className="text-slate-500">Size:</span>{" "}
+                      <span className="font-semibold text-[#BF9B53]">
+                        {vehicle.stallSize || "N/A"}
+                      </span>
                     </p>
                   </div>
-                )}
-              </div>
 
-              {/* IMAGES */}
-              <div className="mt-4 mb-4">
-                <p className="text-sm font-medium text-gray-600 mb-2">Images</p>
+                  {vehicle.driver && (
+                    <p className="mt-3 text-sm font-semibold text-green-600">
+                      Assigned Driver: {vehicle.driver.name}
+                    </p>
+                  )}
 
-                <div className="flex gap-2 flex-wrap">
-                  {vehicle.images?.length > 0 ? (
-                    vehicle.images.map((img, i) => (
-                      <img
-                        key={i}
-                        src={img.url}
-                        alt="vehicle"
-                        className="w-16 h-16 rounded-lg object-cover border"
-                      />
-                    ))
-                  ) : (
-                    <div className="w-16 h-16 flex items-center justify-center border rounded-lg text-gray-400">
-                      <RiImageAddLine />
-                    </div>
+                  {vehicle.notes && (
+                    <p className="mt-3 text-sm text-slate-600 border-l-4 border-[#BF9B53] pl-3">
+                      {vehicle.notes}
+                    </p>
                   )}
                 </div>
               </div>
 
-              {/* NOTES */}
-              {vehicle.notes && (
-                <div className="mt-4 mb-4">
-                  <p className="text-sm text-gray-400">Notes:</p>
-                  <p className="text-sm text-gray-700">{vehicle.notes}</p>
-                </div>
-              )}
-
               {/* DRIVER ASSIGNMENT */}
-              <div className="border-t pt-4">
-                <p className="text-sm font-medium text-gray-600 mb-3">
-                  Assign Driver
-                </p>
-
-                <div className="flex flex-col sm:flex-row gap-2">
+              <div className="border-t border-slate-200 p-4 bg-slate-50">
+                <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                   <select
                     value={selectedDriver[vehicle._id] || ""}
                     onChange={(e) =>
@@ -342,7 +306,7 @@ const VehiclePage = () => {
                         [vehicle._id]: e.target.value,
                       }))
                     }
-                    className="flex-1 border border-gray-300 px-2.5 py-1.5 rounded-sm text-sm"
+                    className="flex-1 border border-gray-300 px-2.5 py-2 text-sm bg-white"
                     disabled={activeDrivers.length === 0}
                   >
                     <option value="">
@@ -360,9 +324,24 @@ const VehiclePage = () => {
                   <button
                     onClick={() => handleAssignDriver(vehicle._id)}
                     disabled={activeDrivers.length === 0}
-                    className="bg-[#BF9B53] text-white px-4 py-1.5 rounded-sm hover:bg-green-700 transition text-sm whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60"
+                    className="bg-[#BF9B53] text-white px-4 py-2 hover:bg-green-700 transition text-sm whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Assign
+                  </button>
+                  <button
+                    onClick={() => openModal(vehicle)}
+                    className="px-4 py-2 text-white bg-[#BF9B53] hover:opacity-90 text-sm"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setConfirmData({ show: true, id: vehicle._id })
+                    }
+                    className="px-4 py-2 border border-red-300 text-red-500 hover:bg-red-50 text-sm"
+                  >
+                    Delete
                   </button>
                 </div>
 
@@ -372,12 +351,6 @@ const VehiclePage = () => {
                   </p>
                 )}
 
-                {/* SHOW ASSIGNED */}
-                {vehicle.driver && (
-                  <p className="text-green-600 mt-3 text-sm font-medium">
-                    ✓ Assigned Driver: {vehicle.driver.name}
-                  </p>
-                )}
               </div>
             </div>
           ))}
@@ -386,10 +359,10 @@ const VehiclePage = () => {
 
       {/* Form Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-white overflow-y-auto p-4 sm:p-6 md:p-8 vehicle-scroll">
+        <div className="absolute inset-0 z-30 bg-white border border-slate-200 shadow-xl overflow-y-auto p-4 sm:p-6 md:p-8 vehicle-scroll">
           <button
             onClick={closeModal}
-            className="fixed top-4 right-4 z-10 bg-white border border-gray-200 rounded-full p-2 text-gray-600 hover:text-[#BF9B53] transition"
+            className="absolute top-4 right-4 z-10 bg-white border border-gray-200 p-2 text-gray-600 hover:text-[#BF9B53] transition"
           >
             <FiX size={28} />
           </button>
