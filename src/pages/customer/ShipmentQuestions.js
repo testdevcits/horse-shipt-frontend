@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useCustomerQuestions } from "../../contexts/customerContext/CustomerQuestionContext";
 import Toast from "../../components/common/Toast";
 import PageLoader from "../../components/common/PageLoader";
@@ -9,14 +9,15 @@ import {
   MdAccessTime,
 } from "react-icons/md";
 import { BiCheckDouble } from "react-icons/bi";
-import { FiSend } from "react-icons/fi";
+import { FiSend, FiX } from "react-icons/fi";
 
-const ShipmentQuestions = ({ shipmentId }) => {
+const ShipmentQuestions = ({ shipmentId, autoOpenQuestionId }) => {
   const { questions, fetchQuestions, answerQuestion, loading } =
     useCustomerQuestions();
 
   const [answerInputs, setAnswerInputs] = useState({});
   const [submittingId, setSubmittingId] = useState(null);
+  const [selectedQuestion, setSelectedQuestion] = useState(null);
 
   useEffect(() => {
     if (shipmentId) {
@@ -69,9 +70,115 @@ const ShipmentQuestions = ({ shipmentId }) => {
   };
 
   // ⚡ Safely merge questions into an array
-  const allQuestions = Array.isArray(questions)
-    ? questions
-    : [...(questions?.pending || []), ...(questions?.answered || [])];
+  const allQuestions = useMemo(
+    () =>
+      Array.isArray(questions)
+        ? questions
+        : [...(questions?.pending || []), ...(questions?.answered || [])],
+    [questions]
+  );
+
+  useEffect(() => {
+    if (!autoOpenQuestionId || loading || !allQuestions.length) return;
+
+    const question = allQuestions.find(
+      (item) => String(item._id) === String(autoOpenQuestionId)
+    );
+
+    if (question) setSelectedQuestion(question);
+  }, [autoOpenQuestionId, loading, allQuestions]);
+
+  const renderAnswerForm = (q, compact = false) => {
+    const currentAnswer = answerInputs[q._id]?.trim() || "";
+
+    return (
+      <div className="space-y-3 sm:space-y-4">
+        <div>
+          <label className="block text-xs sm:text-sm font-semibold text-slate-900 mb-2">
+            Your Answer <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            value={answerInputs[q._id] || ""}
+            onChange={(e) => handleAnswerChange(q._id, e.target.value)}
+            placeholder="Type your answer here... (min 3 characters, max 500)"
+            className="w-full border-2 border-slate-300 rounded-lg p-3 sm:p-4 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all duration-200 resize-none"
+            rows={compact ? 4 : 3}
+            maxLength={500}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex justify-between items-center px-1">
+            <div className="flex-1 mr-3">
+              <div className="h-1.5 bg-slate-300 rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    currentAnswer && currentAnswer.length >= 3
+                      ? "bg-emerald-500"
+                      : currentAnswer
+                      ? "bg-amber-500"
+                      : "bg-slate-400"
+                  }`}
+                  style={{
+                    width: `${
+                      currentAnswer
+                        ? Math.min((currentAnswer.length / 500) * 100, 100)
+                        : 0
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
+            <span
+              className={`text-xs font-semibold whitespace-nowrap ml-2 ${
+                currentAnswer && currentAnswer.length >= 3
+                  ? "text-emerald-600"
+                  : "text-slate-600"
+              }`}
+            >
+              {currentAnswer?.length || 0}/500
+            </span>
+          </div>
+
+          {currentAnswer && currentAnswer.length < 3 && (
+            <p className="text-xs text-amber-600 font-medium px-1">
+              Answer must be at least 3 characters
+            </p>
+          )}
+
+          {currentAnswer && currentAnswer.length >= 3 && (
+            <p className="text-xs text-emerald-600 font-medium px-1">
+              Ready to submit
+            </p>
+          )}
+        </div>
+
+        <div className="flex justify-end pt-2">
+          <button
+            onClick={() => handleSubmitAnswer(q._id)}
+            disabled={
+              !currentAnswer ||
+              currentAnswer.length < 3 ||
+              submittingId === q._id
+            }
+            className="px-4 sm:px-5 py-2 sm:py-2.5 bg-slate-700 hover:bg-[#BF9B53] disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 text-xs sm:text-sm"
+          >
+            {submittingId === q._id ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Submitting...</span>
+              </>
+            ) : (
+              <>
+                <FiSend size={16} />
+                <span>Submit Answer</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="w-full space-y-4 sm:space-y-6 font-montserrat">
@@ -118,7 +225,6 @@ const ShipmentQuestions = ({ shipmentId }) => {
       ) : (
         <div className="space-y-3 sm:space-y-4">
           {allQuestions.map((q) => {
-            const currentAnswer = answerInputs[q._id]?.trim() || "";
             const isAnswered = q.status === "answered";
 
             return (
@@ -187,105 +293,68 @@ const ShipmentQuestions = ({ shipmentId }) => {
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-3 sm:space-y-4">
-                      {/* Answer Input */}
-                      <div>
-                        <label className="block text-xs sm:text-sm font-semibold text-slate-900 mb-2">
-                          Your Answer <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                          value={answerInputs[q._id] || ""}
-                          onChange={(e) =>
-                            handleAnswerChange(q._id, e.target.value)
-                          }
-                          placeholder="Type your answer here... (min 3 characters, max 500)"
-                          className="w-full border-2 border-slate-300 rounded-lg p-3 sm:p-4 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all duration-200 resize-none"
-                          rows={3}
-                          maxLength={500}
-                        />
-                      </div>
-
-                      {/* Character Count Progress */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center px-1">
-                          <div className="flex-1 mr-3">
-                            <div className="h-1.5 bg-slate-300 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full transition-all duration-300 ${
-                                  currentAnswer && currentAnswer.length >= 3
-                                    ? "bg-emerald-500"
-                                    : currentAnswer
-                                    ? "bg-amber-500"
-                                    : "bg-slate-400"
-                                }`}
-                                style={{
-                                  width: `${
-                                    currentAnswer
-                                      ? Math.min(
-                                          (currentAnswer.length / 500) * 100,
-                                          100
-                                        )
-                                      : 0
-                                  }%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-                          <span
-                            className={`text-xs font-semibold whitespace-nowrap ml-2 ${
-                              currentAnswer && currentAnswer.length >= 3
-                                ? "text-emerald-600"
-                                : "text-slate-600"
-                            }`}
-                          >
-                            {currentAnswer?.length || 0}/500
-                          </span>
-                        </div>
-
-                        {/* Help Text */}
-                        {currentAnswer && currentAnswer.length < 3 && (
-                          <p className="text-xs text-amber-600 font-medium px-1">
-                            Answer must be at least 3 characters
-                          </p>
-                        )}
-
-                        {currentAnswer && currentAnswer.length >= 3 && (
-                          <p className="text-xs text-emerald-600 font-medium px-1">
-                            ✓ Ready to submit
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Submit Button */}
-                      <div className="flex justify-end pt-2">
-                        <button
-                          onClick={() => handleSubmitAnswer(q._id)}
-                          disabled={
-                            !currentAnswer ||
-                            currentAnswer.length < 3 ||
-                            submittingId === q._id
-                          }
-                          className="px-4 sm:px-5 py-2 sm:py-2.5 bg-slate-700 hover:bg-[#BF9B53] disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 text-xs sm:text-sm"
-                        >
-                          {submittingId === q._id ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              <span>Submitting...</span>
-                            </>
-                          ) : (
-                            <>
-                              <FiSend size={16} />
-                              <span>Submit Answer</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
+                    renderAnswerForm(q)
                   )}
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {selectedQuestion && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-xl">
+            <div className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-[#BF9B53]">
+                  Question Details
+                </p>
+                <h3 className="text-lg font-bold text-slate-900">
+                  From{" "}
+                  {selectedQuestion.shipperId?.name ||
+                    selectedQuestion.shipperId?.companyName ||
+                    "Shipper"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedQuestion(null)}
+                className="p-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                aria-label="Close question details"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-5">
+              <div>
+                <p className="text-xs font-semibold text-slate-500 mb-2">
+                  Question
+                </p>
+                <div className="rounded-lg border-2 border-slate-200 bg-slate-50 p-4">
+                  <p className="text-sm font-semibold text-slate-900 leading-relaxed">
+                    {selectedQuestion.question}
+                  </p>
+                </div>
+              </div>
+
+              {selectedQuestion.status === "answered" ? (
+                <div>
+                  <p className="text-xs font-semibold text-emerald-700 mb-2">
+                    Your Answer
+                  </p>
+                  <div className="rounded-lg border-2 border-[#BF9B53] bg-emerald-50 p-4">
+                    <p className="text-sm text-slate-800 leading-relaxed">
+                      {selectedQuestion.answer}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                renderAnswerForm(selectedQuestion, true)
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

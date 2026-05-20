@@ -1,8 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Worker, Viewer } from "@react-pdf-viewer/core";
-import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
-import "@react-pdf-viewer/core/lib/styles/index.css";
-import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { TbLocationSearch } from "react-icons/tb";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
 import PageLoader from "../../components/common/PageLoader";
@@ -10,7 +6,6 @@ import NotFound from "../../components/common/NoData";
 import { IoArrowBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import {
-  RiMoneyDollarCircleLine,
   RiTruckLine,
   RiFileTextLine,
   RiCloseCircleLine,
@@ -26,6 +21,166 @@ const hasAssignedVehicle = (quote) => {
   if (!quote?.vehicle) return false;
   if (typeof quote.vehicle === "string") return true;
   return Object.keys(quote.vehicle).length > 0;
+};
+
+const isPdfFile = (url = "") =>
+  /\.pdf($|\?)/i.test(url) || url.toLowerCase().includes("/raw/upload/");
+
+const getHorseImages = (quote) =>
+  (quote?.shipment?.horses || [])
+    .map((horse) => ({
+      id: horse._id || horse.name,
+      url: horse.photo?.url,
+      name: horse.name || "Horse",
+      breed: horse.breed || horse.breedName || "",
+    }))
+    .filter((horse) => horse.url);
+
+const HorseImageStrip = ({ quote }) => {
+  const horses = getHorseImages(quote);
+  const firstHorse = horses[0];
+
+  return firstHorse ? (
+    <figure className="relative h-32 sm:h-36 bg-slate-100 border border-slate-200 overflow-hidden">
+      <img
+        src={firstHorse.url}
+        alt={firstHorse.name}
+        className="h-full w-full object-cover"
+      />
+      <figcaption className="absolute inset-x-0 bottom-0 bg-black/60 px-3 py-2">
+        <p className="text-sm font-semibold text-white truncate">
+          {firstHorse.name}
+        </p>
+        <p className="text-xs text-white/80 truncate">
+          {firstHorse.breed || `${horses.length} horse${horses.length > 1 ? "s" : ""}`}
+        </p>
+      </figcaption>
+    </figure>
+  ) : (
+    <div className="h-32 sm:h-36 border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+      No horse image
+    </div>
+  );
+};
+
+const StatusBadge = ({ quote }) => (
+  <span
+    className={`px-3 py-1 text-xs font-semibold uppercase ${
+      quote.isCancelled
+        ? "bg-red-600 text-white"
+        : quote.status === "accepted"
+        ? "bg-emerald-600 text-white"
+        : quote.status === "pending"
+        ? "bg-amber-500 text-white"
+        : "bg-slate-700 text-white"
+    }`}
+  >
+    {quote.isCancelled ? "Cancelled" : quote.status}
+  </span>
+);
+
+const ContractPreview = ({ quote }) => {
+  const contractUrl = quote?.contract?.url;
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [previewError, setPreviewError] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  useEffect(() => {
+    if (!contractUrl || !isPdfFile(contractUrl)) {
+      setPreviewUrl("");
+      setPreviewError("");
+      return undefined;
+    }
+
+    let objectUrl = "";
+    let cancelled = false;
+
+    const loadPreview = async () => {
+      setPreviewLoading(true);
+      setPreviewError("");
+
+      try {
+        const res = await fetch(contractUrl);
+        if (!res.ok) throw new Error("Failed to load contract");
+
+        const blob = await res.blob();
+        objectUrl = URL.createObjectURL(
+          new Blob([blob], { type: "application/pdf" })
+        );
+
+        if (!cancelled) setPreviewUrl(objectUrl);
+      } catch (error) {
+        if (!cancelled) {
+          setPreviewError("Preview could not be loaded. Open the contract in a new tab.");
+        }
+      } finally {
+        if (!cancelled) setPreviewLoading(false);
+      }
+    };
+
+    loadPreview();
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [contractUrl]);
+
+  if (!contractUrl) return null;
+
+  return (
+    <div className="mt-4 border overflow-hidden bg-gray-50">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-white">
+        <span className="text-sm font-semibold text-gray-700">
+          Contract Preview
+        </span>
+        <a
+          href={contractUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm font-semibold text-[#BF9B53] hover:underline"
+        >
+          Open full contract
+        </a>
+      </div>
+
+      {previewLoading && (
+        <div className="h-[420px] flex items-center justify-center text-sm text-gray-500 bg-white">
+          Loading contract preview...
+        </div>
+      )}
+
+      {!previewLoading && previewError && (
+        <div className="h-[240px] flex flex-col items-center justify-center gap-3 text-center bg-white px-4">
+          <p className="text-sm text-gray-600">{previewError}</p>
+          <a
+            href={contractUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-[#BF9B53] text-white text-sm font-semibold"
+          >
+            Open Contract
+          </a>
+        </div>
+      )}
+
+      {!previewLoading && !previewError && isPdfFile(contractUrl) && previewUrl && (
+        <iframe
+          src={previewUrl}
+          title={`Contract ${quote._id}`}
+          className="w-full h-[520px] bg-white"
+        />
+      )}
+
+      {!isPdfFile(contractUrl) && (
+        <img
+          src={contractUrl}
+          alt="Contract"
+          className="w-full max-h-[520px] object-contain bg-white"
+        />
+      )}
+    </div>
+  );
 };
 
 const ShipperQuotesPage = () => {
@@ -54,8 +209,6 @@ const ShipperQuotesPage = () => {
 
   const tabsContainerRef = useRef(null);
   const [activeTab, setActiveTab] = useState("all");
-
-  const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
   const isInTransitQuote = (quote) => {
     if (!quote || quote.isCancelled || quote.status === "cancelled") return false;
@@ -177,17 +330,22 @@ const ShipperQuotesPage = () => {
   return (
     <div className="w-full mx-auto font-[Montserrat]">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between mb-4 gap-4">
-        <h2 className="text-2xl font-semibold text-gray-800 uppercase">
-          My Quotes
-        </h2>
+      <div className="flex flex-col md:flex-row justify-between mb-4 gap-4 bg-white border border-slate-200 p-4">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900 uppercase">
+            My Quotes
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Review shipment offers, contracts, vehicles, and payment status.
+          </p>
+        </div>
         <div className="relative w-full md:w-1/3">
           <input
             type="text"
             placeholder="Search by last 6 characters of shipment ID"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 pl-10 border rounded-lg focus:ring-2 focus:ring-[#997C42] placeholder-gray-400"
+            className="w-full px-4 py-2 pl-10 border border-slate-300 focus:ring-2 focus:ring-[#997C42] placeholder-gray-400"
           />
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
             <TbLocationSearch size={20} color="#997C42" />
@@ -195,7 +353,7 @@ const ShipperQuotesPage = () => {
         </div>{" "}
         <button
           onClick={() => navigate(-1)}
-          className="fixed bottom-6 right-6 bg-gray-600 text-white p-3 rounded-full shadow-lg hover:bg-[#BF9B53] transition"
+          className="fixed bottom-6 right-6 bg-gray-600 text-white p-3 shadow-lg hover:bg-[#BF9B53] transition"
         >
           <IoArrowBack className="w-5 h-5" />
         </button>
@@ -204,7 +362,7 @@ const ShipperQuotesPage = () => {
       {/* TABS */}
       <div
         ref={tabsContainerRef}
-        className="flex gap-4 mb-6 border-b border-gray-200 overflow-x-auto scrollbar-hide"
+        className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto scrollbar-hide bg-white px-2 pt-2"
       >
         {tabData.map((tab) => (
           <button
@@ -218,10 +376,10 @@ const ShipperQuotesPage = () => {
               });
             }}
             id={`tab-${tab.key}`}
-            className={`flex-shrink-0 px-4 py-2 font-semibold rounded-t-lg transition whitespace-nowrap ${
+            className={`flex-shrink-0 px-4 py-2 font-semibold transition whitespace-nowrap border border-b-0 ${
               activeTab === tab.key
-                ? "bg-[#997C42] text-white border-b-2 border-[#997C42]"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-[#997C42] text-white border-[#997C42]"
+                : "bg-gray-50 text-gray-700 border-slate-200 hover:bg-gray-100"
             }`}
           >
             {`${tab.label} (${tab.count})`}
@@ -233,7 +391,7 @@ const ShipperQuotesPage = () => {
       {filteredQuotes.length === 0 ? (
         <NotFound />
       ) : (
-        <div className="grid gap-6">
+        <div className="grid gap-4">
           {filteredQuotes.map((quote) => {
             const isExpired =
               quote.cancellationLastDate &&
@@ -243,248 +401,176 @@ const ShipperQuotesPage = () => {
             return (
               <div
                 key={quote._id}
-                className="bg-white rounded-md shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-[#BF9B53] space-y-5"
+                className="bg-white border border-slate-200 shadow-sm hover:shadow-md transition"
               >
-                {/* HEADER */}
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold text-[#BF9B53] flex items-center gap-2">
-                    <RiFileTextLine /> {quote.shipment?.shipmentCode}
-                  </h2>
+                <div className="grid md:grid-cols-[180px_1fr] gap-4 p-4">
+                  <HorseImageStrip quote={quote} />
 
-                  <span
-                    className={`text-xs px-3 py-1 rounded-full font-medium uppercase ${
-                      quote.isCancelled
-                        ? "bg-red-600 text-[#fff]"
-                        : "bg-green-600 text-white"
-                    }`}
-                  >
-                    {quote.isCancelled ? "Cancelled" : quote.status}
-                  </span>
-                </div>
+                  <div>
+                    <header className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 border-b border-slate-200 pb-3">
+                      <div>
+                        <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                          <RiFileTextLine className="text-[#997C42]" />
+                          {quote.shipment?.shipmentCode || "Shipment"}
+                        </h2>
+                        <p className="mt-1 text-sm text-slate-600">
+                          {quote.shipment?.pickupLocation || "Pickup N/A"} to{" "}
+                          {quote.shipment?.deliveryLocation || "Delivery N/A"}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StatusBadge quote={quote} />
+                        <span className="text-xl font-bold text-[#997C42]">
+                          ${quote.totalPrice || 0}
+                        </span>
+                      </div>
+                    </header>
 
-                {/* GRID */}
-                <div className="grid md:grid-cols-3 gap-6 text-sm">
-                  <div className="space-y-2">
-                    <p className="flex items-center gap-2">
-                      <RiMoneyDollarCircleLine className="text-[#BF9B53]" />
-                      <span className="text-gray-500">Price:</span>
-                      <span className="font-semibold text-[#BF9B53]">
-                        ${quote.totalPrice}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Currency:</span>{" "}
-                      <span className="font-medium text-gray-800">
-                        {quote.currency}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Payment:</span>{" "}
-                      <span className="font-medium text-[#BF9B53]">
-                        {quote.paymentMethod}
-                      </span>
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <p>
-                      <span className="text-gray-500">Transport:</span>{" "}
-                      <span className="text-gray-800">
-                        {quote.transportType}
-                      </span>
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="flex items-center gap-2">
-                      <RiTruckLine className="text-[#BF9B53]" />
-                      <span className="text-gray-500">Stalls:</span>
-                      <span className="text-gray-800">
-                        {quote.stallsRequired}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Payment Status:</span>{" "}
-                      <span className="font-medium text-[#BF9B53]">
-                        {quote.paymentStatus}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Refund:</span>{" "}
-                      <span className="font-medium text-[#BF9B53]">
-                        {quote.refundStatus}
-                      </span>
-                    </p>
-                  </div>
-                </div>
+                    <dl className="grid sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 py-4 text-sm">
+                      <div>
+                        <dt className="text-slate-500">Transport</dt>
+                        <dd className="font-semibold text-slate-800">
+                          {quote.transportType || "N/A"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-slate-500">Payment</dt>
+                        <dd className="font-semibold text-slate-800">
+                          {quote.paymentMethod || "N/A"} /{" "}
+                          {quote.paymentStatus || "N/A"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-slate-500">Stalls</dt>
+                        <dd className="font-semibold text-slate-800">
+                          {quote.stallsRequired || "N/A"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-slate-500">Refund</dt>
+                        <dd className="font-semibold text-slate-800">
+                          {quote.refundStatus || "N/A"}
+                        </dd>
+                      </div>
+                    </dl>
 
-                {/* NOTES */}
-                {quote.notes && (
-                  <div className="bg-[#BF9B53]/10 border border-[#BF9B53]/30 p-3 rounded-lg text-sm">
-                    <span className="font-semibold text-[#BF9B53]">Notes:</span>{" "}
-                    <span className="text-gray-700">{quote.notes}</span>
-                  </div>
-                )}
-
-                {/* VEHICLE */}
-                {quote.vehicle ? (
-                  <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
-                    <p className="flex items-center gap-2">
-                      <RiTruckLine className="text-[#BF9B53]" />
-                      <span className="text-gray-500">Vehicle:</span>
-                      <span className="text-gray-800">
-                        {quote.vehicle.vehicleNumber}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Type:</span>{" "}
-                      <span className="text-gray-800">
-                        {quote.vehicle.vehicleType}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Stalls:</span>{" "}
-                      <span className="text-gray-800">
-                        {quote.vehicle.numberOfStalls}
-                      </span>
-                    </p>
-                    {quote.assignedDriver && (
-                      <p>
-                        <span className="text-gray-500">Driver:</span>{" "}
-                        <span className="text-gray-800">
-                          Assigned
+                    {quote.vehicle && (
+                      <p className="text-sm bg-slate-50 border border-slate-200 p-3">
+                        <RiTruckLine className="inline text-[#997C42] mr-1" />
+                        <span className="font-semibold">Vehicle:</span>{" "}
+                        {quote.vehicle.vehicleNumber || "N/A"} |{" "}
+                        {quote.vehicle.vehicleType || "N/A"} |{" "}
+                        {quote.vehicle.numberOfStalls || 0} stalls | Trip:{" "}
+                        <span className="capitalize">
+                          {quote.tripStatus || "notStarted"}
                         </span>
                       </p>
                     )}
-                    <p>
-                      <span className="text-gray-500">Trip:</span>{" "}
-                      <span className="font-medium text-[#BF9B53] capitalize">
-                        {quote.tripStatus || "notStarted"}
-                      </span>
-                    </p>
-                  </div>
-                ) : (
-                  quote.status === "accepted" &&
-                  !quote.isCancelled && (
-                    <button
-                      onClick={() => {
-                        setSelectedQuote(quote);
-                        setVehicleModalOpen(true);
-                      }}
-                      className="px-4 py-2 bg-[#997C42] text-white rounded-lg text-sm"
-                    >
-                      Assign Vehicle
-                    </button>
-                  )
-                )}
 
-                {/* CANCELLED */}
-                {quote.isCancelled && (
-                  <div className="bg-[#BF9B53]/10 border border-[#BF9B53]/30 p-4 rounded-xl text-sm space-y-1">
-                    <p className="text-[#BF9B53] font-semibold flex items-center gap-2">
-                      <RiCloseCircleLine /> Shipment Cancelled
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Cancelled At:</span>{" "}
-                      <span className="text-gray-800">
+                    {!quote.vehicle &&
+                      quote.status === "accepted" &&
+                      !quote.isCancelled && (
+                        <button
+                          onClick={() => {
+                            setSelectedQuote(quote);
+                            setVehicleModalOpen(true);
+                          }}
+                          className="px-4 py-2 bg-[#997C42] text-white text-sm font-semibold"
+                        >
+                          Assign Vehicle
+                        </button>
+                      )}
+
+                    {quote.notes && (
+                      <p className="mt-3 text-sm bg-[#997C42]/10 border border-[#997C42]/30 p-3">
+                        <span className="font-semibold text-[#997C42]">
+                          Notes:
+                        </span>{" "}
+                        {quote.notes}
+                      </p>
+                    )}
+
+                    {quote.isCancelled && (
+                      <p className="mt-3 text-sm bg-red-50 border border-red-200 p-3 text-red-700">
+                        <RiCloseCircleLine className="inline mr-1" />
+                        Cancelled{" "}
                         {quote.cancelledAt
                           ? new Date(quote.cancelledAt).toLocaleString()
-                          : "N/A"}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Reason:</span>{" "}
-                      <span className="text-gray-800">
-                        {quote.cancelReason || "N/A"}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Refund:</span>{" "}
-                      <span className="text-[#BF9B53]">
-                        ${quote.refundAmount || 0}
-                      </span>
-                    </p>
+                          : ""}
+                        {quote.cancelReason
+                          ? ` | Reason: ${quote.cancelReason}`
+                          : ""}
+                      </p>
+                    )}
+
+                    {!quote.isCancelled && quote.cancellationLastDate && (
+                      <p className="mt-3 text-sm text-[#7f6637] font-medium">
+                        {isExpired
+                          ? "Cancellation expired"
+                          : `Cancel before: ${new Date(
+                              quote.cancellationLastDate
+                            ).toLocaleString()}`}
+                      </p>
+                    )}
+
+                    <footer className="flex flex-wrap gap-3 pt-4 mt-4 border-t border-slate-200">
+                      {quote.contract?.url && (
+                        <button
+                          onClick={() =>
+                            setVisibleContractId(
+                              visibleContractId === quote._id ? null : quote._id
+                            )
+                          }
+                          className="px-4 py-2 bg-[#997C42] hover:bg-[#806834] text-white text-sm font-semibold"
+                        >
+                          {visibleContractId === quote._id
+                            ? "Hide Contract"
+                            : "View Contract"}
+                        </button>
+                      )}
+
+                      {quote.shipperContract?.url && (
+                        <button
+                          onClick={() =>
+                            window.open(
+                              quote.shipperContract.url,
+                              "_blank",
+                              "noopener,noreferrer"
+                            )
+                          }
+                          className="px-4 py-2 border border-[#997C42] text-[#997C42] hover:bg-[#997C42]/10 text-sm font-semibold"
+                        >
+                          View Shipper Contract
+                        </button>
+                      )}
+
+                      {canDelete && (
+                        <button
+                          onClick={() => openModal(quote, "delete")}
+                          className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm font-semibold flex items-center gap-1"
+                        >
+                          <RiDeleteBinLine /> Delete
+                        </button>
+                      )}
+
+                      {activeTab !== "pending" &&
+                        quote.status !== "pending" &&
+                        !isExpired &&
+                        !quote.isCancelled && (
+                          <button
+                            onClick={() => openModal(quote, "cancel")}
+                            className="ml-auto px-4 py-2 border border-red-500 text-red-600 hover:bg-red-50 text-sm font-semibold flex items-center gap-1"
+                          >
+                            <RiCloseCircleLine /> Cancel Quote
+                          </button>
+                        )}
+                    </footer>
+
+                    {visibleContractId === quote._id && (
+                      <ContractPreview quote={quote} />
+                    )}
                   </div>
-                )}
-
-                {!quote.isCancelled && quote.cancellationLastDate && (
-                  <p className="text-sm text-[#BF9B53] font-medium">
-                    {isExpired
-                      ? "Cancellation expired"
-                      : `Cancel before: ${new Date(
-                          quote.cancellationLastDate
-                        ).toLocaleString()}`}
-                  </p>
-                )}
-
-                {/* ACTIONS */}
-                {/* ACTIONS */}
-                <div className="flex flex-wrap gap-3 pt-2 items-center justify-between">
-                  {/* LEFT SIDE BUTTONS */}
-                  <div className="flex gap-3 flex-wrap">
-                    {quote.contract?.url && (
-                      <button
-                        onClick={() =>
-                          setVisibleContractId(
-                            visibleContractId === quote._id ? null : quote._id
-                          )
-                        }
-                        className="px-4 py-2 bg-[#BF9B53] hover:bg-[#a5843f] text-white rounded-lg text-sm"
-                      >
-                        {visibleContractId === quote._id
-                          ? "Hide Contract"
-                          : "View Contract"}
-                      </button>
-                    )}
-
-                    {quote.shipperContract?.url && (
-                      <button
-                        onClick={() =>
-                          window.open(
-                            quote.shipperContract.url,
-                            "_blank",
-                            "noopener,noreferrer"
-                          )
-                        }
-                        className="px-4 py-2 border border-[#BF9B53] text-[#BF9B53] hover:bg-[#BF9B53]/10 rounded-lg text-sm"
-                      >
-                        View Shipper Contract
-                      </button>
-                    )}
-
-                    {canDelete && (
-                      <button
-                        onClick={() => openModal(quote, "delete")}
-                        className="px-4 py-2 border border-[#BF9B53] text-[#BF9B53] hover:bg-[#BF9B53]/10 rounded-lg text-sm flex items-center gap-1"
-                      >
-                        <RiDeleteBinLine /> Delete
-                      </button>
-                    )}
-                  </div>
-
-                  {/* RIGHT SIDE (CANCEL BUTTON) */}
-                  {activeTab !== "pending" &&
-                    quote.status !== "pending" &&
-                    !isExpired &&
-                    !quote.isCancelled && (
-                    <button
-                      onClick={() => openModal(quote, "cancel")}
-                      className="ml-auto px-4 py-2 border border-red-500 text-red-500 hover:bg-[#BF9B53]/10 rounded-lg text-sm flex items-center gap-1"
-                    >
-                      <RiCloseCircleLine /> Cancel Quotes
-                    </button>
-                    )}
                 </div>
-
-                {/* PDF */}
-                {visibleContractId === quote._id && (
-                  <div className="mt-4 border rounded-xl overflow-hidden h-[400px]">
-                    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                      <Viewer
-                        fileUrl={quote.contract.url}
-                        plugins={[defaultLayoutPluginInstance]}
-                      />
-                    </Worker>
-                  </div>
-                )}
               </div>
             );
           })}
@@ -494,7 +580,7 @@ const ShipperQuotesPage = () => {
       {/* CANCEL / DELETE MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white w-[90%] max-w-xl rounded-md shadow-xl p-6">
+          <div className="bg-white w-[90%] max-w-xl shadow-xl p-6">
             {/* HEADER */}
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-800">
@@ -518,7 +604,7 @@ const ShipperQuotesPage = () => {
 
             {modalType === "cancel" &&
               selectedQuote?.paymentStatus === "paid" && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-5 space-y-3">
+                <div className="bg-red-50 border border-red-200 p-4 mb-5 space-y-3">
                   <p className="text-sm font-semibold text-red-600 flex items-center gap-2">
                     Cancellation Charges Will Apply
                   </p>
@@ -529,7 +615,7 @@ const ShipperQuotesPage = () => {
                     <b>100% refund</b>.
                   </p>
 
-                  <div className="bg-white border rounded-md p-3 text-xs text-gray-700 space-y-1">
+                  <div className="bg-white border p-3 text-xs text-gray-700 space-y-1">
                     <p>You (Shipper) will be charged:</p>
                     <p className="ml-2">- Platform service fee</p>
                     <p className="ml-2">- Payment processing fee</p>
@@ -547,7 +633,7 @@ const ShipperQuotesPage = () => {
               {/* NO BUTTON */}
               <button
                 onClick={closeModal}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
               >
                 No
               </button>
@@ -556,7 +642,7 @@ const ShipperQuotesPage = () => {
               <button
                 onClick={handleAction}
                 disabled={actionLoading}
-                className={`px-4 py-2 rounded-lg text-white transition flex items-center justify-center min-w-[120px] ${
+                className={`px-4 py-2 text-white transition flex items-center justify-center min-w-[120px] ${
                   actionLoading
                     ? "bg-red-300 cursor-not-allowed"
                     : "bg-red-500 hover:bg-red-600"
@@ -572,12 +658,12 @@ const ShipperQuotesPage = () => {
       {/* VEHICLE ASSIGN MODAL */}
       {vehicleModalOpen && selectedQuote && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-xl w-[90%] max-w-md">
+          <div className="bg-white p-6 w-[90%] max-w-md">
             <h3 className="text-lg font-semibold mb-3">Assign Vehicle</h3>
             <select
               value={selectedVehicleId || ""}
               onChange={(e) => setSelectedVehicleId(e.target.value)}
-              className="w-full p-2 border rounded mb-4"
+              className="w-full p-2 border mb-4"
             >
               <option value="">Select vehicle</option>
               {vehicles.map((v) => (
@@ -590,7 +676,7 @@ const ShipperQuotesPage = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setVehicleModalOpen(false)}
-                className="px-4 py-2 bg-gray-200 rounded"
+                className="px-4 py-2 bg-gray-200"
               >
                 Cancel
               </button>
@@ -610,7 +696,7 @@ const ShipperQuotesPage = () => {
                     getMyQuotes();
                   } else showToast("Failed to assign vehicle", "error");
                 }}
-                className="px-4 py-2 bg-[#997C42] text-white rounded"
+                className="px-4 py-2 bg-[#997C42] text-white"
               >
                 Assign
               </button>

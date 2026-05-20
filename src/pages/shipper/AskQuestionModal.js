@@ -17,7 +17,7 @@ const sanitizeInput = (text) =>
     .replace(/\s+/g, " ")
     .trim();
 
-const AskQuestionModal = ({ shipmentId, onClose }) => {
+const AskQuestionModal = ({ shipmentId, autoOpenQuestionId, onClose }) => {
   const {
     questions = { answered: [], pending: [] },
     fetchQuestions,
@@ -35,9 +35,15 @@ const AskQuestionModal = ({ shipmentId, onClose }) => {
     }
   }, [shipmentId, fetchQuestions]);
 
-  // 🔹 merge answered and pending to pick the first question
+  // 🔹 merge answered and pending to pick the requested question, or first one
+  const allQuestions = [...(questions.answered || []), ...(questions.pending || [])];
   const existingQuestion =
-    [...(questions.answered || []), ...(questions.pending || [])][0] || null;
+    (autoOpenQuestionId &&
+      allQuestions.find(
+        (item) => String(item._id) === String(autoOpenQuestionId)
+      )) ||
+    allQuestions[0] ||
+    null;
 
   const cleaned = sanitizeInput(question);
 

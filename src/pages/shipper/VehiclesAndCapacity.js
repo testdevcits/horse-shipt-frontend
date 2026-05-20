@@ -386,15 +386,15 @@ const VehiclePage = () => {
 
       {/* Form Modal */}
       {showModal && (
-        <div className="absolute inset-0 z-30 bg-white overflow-y-auto p-2 sm:p-6 md:p-8 min-h-screen vehicle-scroll">
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto p-4 sm:p-6 md:p-8 vehicle-scroll">
           <button
             onClick={closeModal}
-            className="absolute top-4 right-4 text-gray-600 hover:text-[#BF9B53] transition"
+            className="fixed top-4 right-4 z-10 bg-white border border-gray-200 rounded-full p-2 text-gray-600 hover:text-[#BF9B53] transition"
           >
             <FiX size={28} />
           </button>
 
-          <div className="w-full max-w-none">
+          <div className="w-full max-w-6xl mx-auto pb-8">
             <h2 className="font-semibold text-[22px] sm:text-[24px] text-[#333333] mb-6 text-center sm:text-left">
               {editingVehicle ? "Edit Vehicle" : "Add a New Vehicle"}
             </h2>
@@ -570,7 +570,7 @@ const VehiclePage = () => {
                   </div>
 
                   {/* Stall Size */}
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Stall Size
                     </label>
@@ -602,7 +602,7 @@ const VehiclePage = () => {
                   </div>
 
                   {/* Images */}
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Upload Vehicle Images
                     </label>
@@ -643,7 +643,7 @@ const VehiclePage = () => {
                   </div>
 
                   {/* Notes */}
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Notes
                     </label>
@@ -657,7 +657,7 @@ const VehiclePage = () => {
                   </div>
 
                   {/* Buttons */}
-                  <div className="col-span-2 flex justify-end gap-3 mt-6">
+                  <div className="sm:col-span-2 flex justify-end gap-3 mt-6">
                     <button
                       type="button"
                       onClick={closeModal}

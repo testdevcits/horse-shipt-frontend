@@ -116,6 +116,7 @@ const PayoutAndCardPage = () => {
       }
 
       await savePaymentMethod(setupIntent.payment_method);
+      await fetchPaymentStatus();
       Toast.success("Card saved successfully!");
     } catch (err) {
       console.error("Error saving card:", err);

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
 import { FiImage, FiX } from "react-icons/fi";
@@ -31,6 +31,31 @@ const ChatOverview = () => {
 
   const chatEndRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const fetchRoomMessages = useCallback(
+    async (nextRoomId, { silent = false } = {}) => {
+      if (!nextRoomId || !token) return;
+
+      if (!silent) setMessagesLoading(true);
+      try {
+        const messagesRes = await axios.get(
+          `${API_BASE_URL}/shipper/chat/rooms/${nextRoomId}/messages`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        setMessages(messagesRes.data?.messages || []);
+      } catch (err) {
+        if (!silent) {
+          Toast.error(
+            err.response?.data?.message || "Failed to load chat messages"
+          );
+        }
+      } finally {
+        if (!silent) setMessagesLoading(false);
+      }
+    },
+    [token]
+  );
 
   /* ===============================
      FETCH CUSTOMER LIST
@@ -76,14 +101,7 @@ const ChatOverview = () => {
 
         setRoomId(nextRoomId);
 
-        const messagesRes = await axios.get(
-          `${API_BASE_URL}/shipper/chat/rooms/${nextRoomId}/messages`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (!cancelled) {
-          setMessages(messagesRes.data?.messages || []);
-        }
+        if (!cancelled) await fetchRoomMessages(nextRoomId);
 
         if (socket.connected) {
           socket.emit("joinRoom", {
@@ -108,7 +126,7 @@ const ChatOverview = () => {
     return () => {
       cancelled = true;
     };
-  }, [selectedUser, user, token]);
+  }, [selectedUser, user, token, fetchRoomMessages]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -130,6 +148,16 @@ const ChatOverview = () => {
       socket.off("receiveMessage", handleReceiveMessage);
     };
   }, [roomId]);
+
+  useEffect(() => {
+    if (!roomId || !token) return;
+
+    const interval = setInterval(() => {
+      fetchRoomMessages(roomId, { silent: true });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [roomId, token, fetchRoomMessages]);
 
   /* ===============================
      AUTO SCROLL

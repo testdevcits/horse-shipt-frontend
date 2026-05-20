@@ -28,15 +28,62 @@ const getNotificationShipmentId = (notification) => {
   const data = notification?.data || {};
   return (
     normalizeId(data.shipmentId) ||
+    normalizeId(data.message?.shipmentId) ||
     normalizeId(data.shipment?._id || data.shipment) ||
     normalizeId(data.quote?.shipment?._id || data.quote?.shipment) ||
     normalizeId(data.quote?.shipmentId)
   );
 };
 
+const getNotificationShipperId = (notification) => {
+  const data = notification?.data || {};
+  return (
+    normalizeId(data.shipperId) ||
+    normalizeId(data.shipper?._id || data.shipper) ||
+    normalizeId(data.quote?.shipper?._id || data.quote?.shipper) ||
+    normalizeId(data.message?.shipperId)
+  );
+};
+
+const getNotificationCustomerId = (notification) => {
+  const data = notification?.data || {};
+  return (
+    normalizeId(data.customerId) ||
+    normalizeId(data.customer?._id || data.customer) ||
+    normalizeId(data.quote?.customer?._id || data.quote?.customer) ||
+    normalizeId(data.message?.customerId)
+  );
+};
+
+const getNotificationQuestionId = (notification) => {
+  const data = notification?.data || {};
+  return (
+    normalizeId(data.question?._id || data.question) ||
+    normalizeId(data.questionId)
+  );
+};
+
 const isQuoteRequestNotification = (notification) =>
   notification?.type === "shipment_invitation" ||
   notification?.event === "horse_shipt:shipment_invitation_created";
+
+const isQuestionNotification = (notification) =>
+  notification?.type === "question" ||
+  notification?.type === "shipment_question" ||
+  notification?.event === "horse_shipt:shipment_question" ||
+  notification?.event === "horse_shipt:shipment_question_answered";
+
+const isQuoteNotification = (notification) =>
+  notification?.type === "quote_created" ||
+  notification?.type === "quote_accepted" ||
+  notification?.type === "quote_cancelled" ||
+  notification?.event === "horse_shipt:quote_created" ||
+  notification?.event === "horse_shipt:quote_accepted" ||
+  notification?.event === "horse_shipt:quote_cancelled";
+
+const isChatNotification = (notification) =>
+  notification?.type === "chat_message" ||
+  notification?.event === "horse_shipt:chat_message_created";
 
 const NotificationsPage = () => {
   const navigate = useNavigate();
@@ -77,17 +124,54 @@ const NotificationsPage = () => {
     });
 
     if (role === "customer") {
+      if (isChatNotification(item)) {
+        const shipperId = getNotificationShipperId(item);
+        const chatParams = new URLSearchParams({ shipmentId });
+        if (shipperId) chatParams.set("shipperId", shipperId);
+        navigate(`/customer/chats?${chatParams.toString()}`);
+        return;
+      }
+
+      if (isQuestionNotification(item)) {
+        params.set("tab", "questions");
+        const questionId = getNotificationQuestionId(item);
+        if (questionId) params.set("questionId", questionId);
+        navigate(`/customer/my-shipments?${params.toString()}`);
+        return;
+      }
+
+      if (isQuoteNotification(item)) {
+        params.set("tab", "quotes");
+        navigate(`/customer/my-shipments?${params.toString()}`);
+        return;
+      }
+
       navigate(`/customer/my-shipments?${params.toString()}`);
       return;
     }
 
     if (role === "shipper") {
+      if (isChatNotification(item)) {
+        const customerId = getNotificationCustomerId(item);
+        const chatParams = new URLSearchParams({ shipmentId });
+        if (customerId) chatParams.set("customerId", customerId);
+        navigate(`/shipper/chat?${chatParams.toString()}`);
+        return;
+      }
+
+      if (isQuestionNotification(item)) {
+        const questionId = getNotificationQuestionId(item);
+        if (questionId) params.set("questionId", questionId);
+        navigate(`/shipper/shipments/${shipmentId}?${params.toString()}`);
+        return;
+      }
+
       if (isQuoteRequestNotification(item)) {
         navigate(`/shipper/invited-shipments?${params.toString()}`);
         return;
       }
 
-      navigate(`/shipper/shipments/details?${params.toString()}`);
+      navigate(`/shipper/shipments/${shipmentId}?ref=${encodeURIComponent(ref)}`);
     }
   };
 

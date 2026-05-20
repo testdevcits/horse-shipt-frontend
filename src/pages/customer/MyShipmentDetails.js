@@ -26,6 +26,8 @@ const MyShipmentDetails = () => {
   const { id: paramId } = useParams();
   const [searchParams] = useSearchParams();
   const queryId = searchParams.get("shipmentId");
+  const queryTab = searchParams.get("tab");
+  const queryQuestionId = searchParams.get("questionId");
   const shipmentId = paramId || queryId;
   const navigate = useNavigate();
 
@@ -148,6 +150,14 @@ const MyShipmentDetails = () => {
       getQuotesByShipment(shipmentId, true, 1, 5);
     if (id === "questions" && shipmentId) fetchQuestions(shipmentId);
   };
+
+  useEffect(() => {
+    if (queryTab === "questions" || queryTab === "quotes") {
+      handleTabClick(queryTab);
+    }
+    // handleTabClick intentionally stays local to keep tab fetch behavior simple.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryTab, shipmentId]);
 
   const TabButton = ({ id, label, count }) => (
     <button
@@ -468,7 +478,10 @@ const MyShipmentDetails = () => {
       {/* ================= QUESTIONS TAB ================= */}
       {activeTab === "questions" && (
         <div className="mt-6">
-          <ShipmentQuestions shipmentId={shipmentId} />
+          <ShipmentQuestions
+            shipmentId={shipmentId}
+            autoOpenQuestionId={queryQuestionId}
+          />
         </div>
       )}
 

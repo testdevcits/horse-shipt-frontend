@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { validateShipmentQueryToken } from "../../utils/createQueryToken";
 import { SlLocationPin } from "react-icons/sl";
@@ -130,8 +130,14 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
   const shipmentIdFromQuery = searchParams.get("shipmentId");
   const tokenFromQuery = searchParams.get("ref");
+  const questionIdFromQuery = searchParams.get("questionId");
 
-  const { shipments, getAvailableShipments, loading } = useShipperShipment();
+  const {
+    shipments,
+    getAvailableShipments,
+    getShipmentById,
+    loading,
+  } = useShipperShipment();
   const {
     invitations,
     fetchInvitations,
@@ -140,6 +146,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const [isQuestionOpen, setIsQuestionOpen] = useState(false);
 
   const [shipment, setShipment] = useState(null);
+  const directFetchIdRef = useRef(null);
+  const [detailLookupComplete, setDetailLookupComplete] = useState(false);
   const [isOfferOpen, setIsOfferOpen] = useState(false);
   const [expandedHorse, setExpandedHorse] = useState(null);
   const [horseImageIndex, setHorseImageIndex] = useState({});
@@ -159,6 +167,10 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const [isExpired, setIsExpired] = useState(false);
 
   const idToUse = shipmentIdFromQuery || paramId || defaultId;
+
+  useEffect(() => {
+    if (questionIdFromQuery) setIsQuestionOpen(true);
+  }, [questionIdFromQuery]);
 
   // ── Validation & countdown ────────────────────────────────────────────────
   useEffect(() => {
@@ -207,9 +219,14 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
     if (!invitations.length) fetchInvitations();
   }, [invitations.length, fetchInvitations]);
 
+  useEffect(() => {
+    setDetailLookupComplete(false);
+    directFetchIdRef.current = null;
+  }, [idToUse]);
+
   // ── Find shipment ─────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!idToUse || (loading || invitationLoading)) return;
+    if (!idToUse) return;
 
     const invitedShipments = (invitations || [])
       .filter((invite) => invite?.status === "pending")
@@ -219,9 +236,36 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
     const found = [...(shipments || []), ...invitedShipments].find(
       (s) => String(s._id) === String(idToUse)
     );
-    setShipment(found || null);
-    if (found) setExpandedHorse(0);
-  }, [idToUse, shipments, invitations, loading, invitationLoading]);
+
+    if (found) {
+      directFetchIdRef.current = idToUse;
+      setShipment(found);
+      setExpandedHorse(0);
+      setDetailLookupComplete(true);
+      return;
+    }
+
+    if (directFetchIdRef.current === idToUse) return;
+    directFetchIdRef.current = idToUse;
+
+    let cancelled = false;
+
+    getShipmentById(idToUse).then((directShipment) => {
+      if (cancelled) return;
+      setShipment(directShipment || null);
+      if (directShipment) setExpandedHorse(0);
+      setDetailLookupComplete(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    idToUse,
+    shipments,
+    invitations,
+    getShipmentById,
+  ]);
 
   // ── Timer helpers ─────────────────────────────────────────────────────────
   const formatTimeRemaining = (ms) => {
@@ -315,7 +359,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       : "";
 
   // ── Loading ───────────────────────────────────────────────────────────────
-  if (loading || invitationLoading) {
+  if (loading || invitationLoading || !detailLookupComplete) {
     return (
       <div className="flex items-center font-montserrat justify-center h-screen">
         <div className="text-center">
@@ -1193,6 +1237,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       {isQuestionOpen && (
         <AskQuestionModal
           shipmentId={shipment._id}
+          autoOpenQuestionId={questionIdFromQuery}
           onClose={() => setIsQuestionOpen(false)}
         />
       )}

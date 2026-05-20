@@ -93,6 +93,7 @@ export const ShipperPaymentProvider = ({ children }) => {
     } catch (err) {
       console.error("Setup intent error:", err);
       setError("Failed to initialize card setup");
+      throw err;
     }
   }, [token]);
 
@@ -113,9 +114,12 @@ export const ShipperPaymentProvider = ({ children }) => {
             cardLast4: res.data.cardLast4,
           });
         }
+        setClientSecret(null);
+        return res.data;
       } catch (err) {
         console.error("Save payment method error:", err);
-        setError("Failed to save card");
+        setError(err.response?.data?.message || "Failed to save card");
+        throw err;
       }
     },
     [token]

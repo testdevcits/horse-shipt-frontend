@@ -332,7 +332,9 @@ const BillingHistory = () => {
   }, [subscription?.trialEnd, subscription?.status]);
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
-  const getStatusColor = (status) => {
+  const getStatusColor = (status, item = null) => {
+    if (item?.isNoChargeInvoice)
+      return "bg-blue-100 text-blue-800 border-blue-200";
     if (status === "paid" || status === "succeeded")
       return "bg-green-100 text-green-800 border-green-200";
     if (status === "failed" || status === "open")
@@ -453,8 +455,12 @@ const BillingHistory = () => {
     }
   };
 
+  const subscriptionInvoiceIds = new Set(
+    (billingHistory?.subscriptions || []).map((item) => item.id)
+  );
+
   // ─── Merged + filtered billing data ───────────────────────────────────────
-  const mergedData = [
+  const historyData = [
     ...(billingHistory?.subscriptions || []).map((i) => ({
       ...i,
       type: "subscription",
@@ -463,10 +469,49 @@ const BillingHistory = () => {
     ...(billingHistory?.payouts || []).map((i) => ({ ...i, type: "payout" })),
   ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
+  const mergedData = historyData.filter(
+    (item) =>
+      item.type !== "payment" ||
+      !item.invoiceId ||
+      !subscriptionInvoiceIds.has(item.invoiceId)
+  );
+
   const filteredData =
     filter === "all"
       ? mergedData
-      : mergedData.filter((item) => item.type === filter);
+      : historyData.filter((item) => item.type === filter);
+
+  const getHistoryTitle = (item) => {
+    if (item.title) return item.title;
+    if (item.type === "subscription") return "Monthly subscription invoice";
+    if (item.type === "payment") return "Card payment receipt";
+    return "Payout";
+  };
+
+  const getHistoryDetail = (item) => {
+    if (item.description) return item.description;
+    if (item.type === "payment" && item.last4) {
+      return `${item.cardBrand?.toUpperCase() || "CARD"} •••• ${item.last4}`;
+    }
+    if (item.type === "payout" && item.arrivalDate) {
+      return `Arrives: ${formatDate(item.arrivalDate)}`;
+    }
+    if (item.periodStart && item.periodEnd) {
+      return `${formatDate(item.periodStart)} → ${formatDate(item.periodEnd)}`;
+    }
+    return "";
+  };
+
+  const getAmountLabel = (item) =>
+    item.isNoChargeInvoice
+      ? "Free"
+      : `$${item.amount} ${item.currency?.toUpperCase() || ""}`;
+
+  const getStatusLabel = (item) => {
+    if (item.isNoChargeInvoice) return "No charge";
+    if (!item.status) return "—";
+    return item.status.charAt(0).toUpperCase() + item.status.slice(1);
+  };
 
   const filterOptions = [
     { value: "all", label: "All", count: mergedData.length },
@@ -893,6 +938,12 @@ const BillingHistory = () => {
           </div>
 
           <div className="px-6 py-8">
+            <div className="mb-5 border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 rounded-md">
+              Free trial invoices are shown as <b>Free</b> / <b>No charge</b>.
+              Paid monthly invoices are listed once in All; card receipts stay
+              available under the Payments filter.
+            </div>
+
             {/* Filters */}
             <div className="mb-6">
               {/* Mobile */}
@@ -990,9 +1041,7 @@ const BillingHistory = () => {
                       <div className="flex items-start justify-between gap-2 mb-3">
                         <div className="flex-1">
                           <p className="font-semibold text-slate-900 capitalize">
-                            {item.type === "subscription" && "Invoice"}
-                            {item.type === "payment" && "Payment"}
-                            {item.type === "payout" && "Payout"}
+                            {getHistoryTitle(item)}
                           </p>
                           <p className="text-xs text-slate-600 mt-1">
                             {formatDate(item.createdAt)} •{" "}
@@ -1001,18 +1050,17 @@ const BillingHistory = () => {
                         </div>
                         <span
                           className={`px-2.5 py-1 text-xs rounded-full font-semibold whitespace-nowrap flex-shrink-0 border ${getStatusColor(
-                            item.status
+                            item.status,
+                            item
                           )}`}
                         >
-                          {item.status?.charAt(0).toUpperCase() +
-                            item.status?.slice(1)}
+                          {getStatusLabel(item)}
                         </span>
                       </div>
 
                       {item.periodStart && item.periodEnd && (
                         <p className="text-xs text-slate-600 mb-2 pb-2 border-b border-slate-300">
-                          {formatDate(item.periodStart)} →{" "}
-                          {formatDate(item.periodEnd)}
+                          {getHistoryDetail(item)}
                         </p>
                       )}
                       {item.type === "payment" && item.last4 && (
@@ -1029,7 +1077,7 @@ const BillingHistory = () => {
 
                       <div className="flex items-end justify-between gap-2 pt-2">
                         <p className="font-bold text-slate-900">
-                          ${item.amount} {item.currency?.toUpperCase()}
+                          {getAmountLabel(item)}
                         </p>
                         <div className="flex gap-2">
                           {item.type === "subscription" &&
@@ -1105,14 +1153,11 @@ const BillingHistory = () => {
                           <td className="px-6 py-4">
                             <div className="space-y-1">
                               <p className="font-semibold text-slate-900 capitalize">
-                                {item.type === "subscription" && "Invoice"}
-                                {item.type === "payment" && "Payment"}
-                                {item.type === "payout" && "Payout"}
+                                {getHistoryTitle(item)}
                               </p>
                               {item.periodStart && item.periodEnd && (
                                 <p className="text-xs text-slate-600">
-                                  {formatDate(item.periodStart)} →{" "}
-                                  {formatDate(item.periodEnd)}
+                                  {getHistoryDetail(item)}
                                 </p>
                               )}
                               {item.type === "payment" && item.last4 && (
@@ -1138,20 +1183,17 @@ const BillingHistory = () => {
                           </td>
                           <td className="px-6 py-4">
                             <p className="font-bold text-slate-900">
-                              ${item.amount}{" "}
-                              <span className="text-sm text-slate-600">
-                                {item.currency?.toUpperCase()}
-                              </span>
+                              {getAmountLabel(item)}
                             </p>
                           </td>
                           <td className="px-6 py-4">
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(
-                                item.status
+                                item.status,
+                                item
                               )}`}
                             >
-                              {item.status?.charAt(0).toUpperCase() +
-                                item.status?.slice(1)}
+                              {getStatusLabel(item)}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right">
