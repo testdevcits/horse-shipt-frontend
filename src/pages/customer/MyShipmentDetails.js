@@ -190,7 +190,7 @@ const MyShipmentDetails = () => {
 
   const pickupDates = getPickupDates();
   const deliveryDates = getDeliveryDates();
-  const chatAllowedStatuses = ["assigned", "picked", "in_transit", "delivered"];
+  const chatAllowedStatuses = ["assigned", "picked", "in_transit"];
   const canOpenShipmentChat =
     shipment.shipper && chatAllowedStatuses.includes(shipment.status);
   const shipperId =

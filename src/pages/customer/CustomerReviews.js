@@ -1,47 +1,52 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import { FaStar, FaUser } from "react-icons/fa";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
+import { useAuth } from "../../contexts/AuthContext";
+
+const API_BASE_URL = "https://horse-shipt.vercel.app/api";
+
+const getShipperImage = (shipper) =>
+  shipper?.profileImage?.url || shipper?.profileImage || shipper?.profilePicture || "";
 
 const CustomerReviews = () => {
+  const { token } = useAuth();
   const [expandedReview, setExpandedReview] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Sample reviews data - replace with actual API data
-  const reviews = [
-    {
-      id: 1,
-      shipmentRef: "REF-2024-001",
-      rating: 5,
-      title: "Excellent Service",
-      comment:
-        "The shipment arrived on time and in perfect condition. The driver was professional and courteous. Highly recommend this service!",
-      date: "2024-03-28",
-      verified: true,
-    },
-    {
-      id: 2,
-      shipmentRef: "REF-2024-002",
-      rating: 5,
-      title: "Outstanding Experience",
-      comment:
-        "Amazing experience from start to finish. The tracking was accurate and the whole process was seamless. Will definitely use again!",
-      date: "2024-03-15",
-      verified: true,
-    },
-    {
-      id: 3,
-      shipmentRef: "REF-2024-003",
-      rating: 4,
-      title: "Great Service",
-      comment:
-        "Very satisfied with the service. Only minor delay but the team communicated well. Overall very professional.",
-      date: "2024-02-28",
-      verified: true,
-    },
-  ];
+  useEffect(() => {
+    if (!token) return;
 
-  const averageRating = (
-    reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-  ).toFixed(1);
+    setLoading(true);
+    axios
+      .get(`${API_BASE_URL}/customer/reviews/received`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        const normalized = (res.data?.data || []).map((review) => ({
+          id: review._id,
+          shipmentRef: review.shipmentId?.shipmentCode || "Shipment",
+          rating: Number(review.rating || 0),
+          title: review.shipperId?.name || review.shipperName || "Shipper",
+          comment: review.reviewText || "No written comment provided.",
+          date: review.createdAt,
+          verified: true,
+          shipperImage: getShipperImage(review.shipperId),
+        }));
+
+        setReviews(normalized);
+      })
+      .catch(() => setReviews([]))
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  const averageRating = useMemo(() => {
+    if (reviews.length === 0) return "0.0";
+    return (
+      reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    ).toFixed(1);
+  }, [reviews]);
 
   const ratingDistribution = {
     5: reviews.filter((r) => r.rating === 5).length,
@@ -72,6 +77,12 @@ const CustomerReviews = () => {
 
   return (
     <div className="space-y-3">
+      {loading && (
+        <p className="text-xs text-[#8B7043] font-semibold">
+          Loading reviews...
+        </p>
+      )}
+
       {/* Rating Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Overall Rating */}
@@ -116,7 +127,9 @@ const CustomerReviews = () => {
                   className="h-full bg-gradient-to-r from-[#BF9B53] to-[#D4AF85] rounded-full transition-all"
                   style={{
                     width: `${
-                      (ratingDistribution[rating] / reviews.length) * 100
+                      reviews.length > 0
+                        ? (ratingDistribution[rating] / reviews.length) * 100
+                        : 0
                     }%`,
                   }}
                 ></div>
@@ -148,9 +161,17 @@ const CustomerReviews = () => {
               >
                 {/* Avatar */}
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#BF9B53]/20 to-[#D4AF85]/20 rounded-lg flex items-center justify-center">
-                    <FaUser className="text-[#BF9B53] text-sm" />
-                  </div>
+                  {review.shipperImage ? (
+                    <img
+                      src={review.shipperImage}
+                      alt={review.title}
+                      className="w-10 h-10 rounded-lg object-cover border border-[#BF9B53]/30"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#BF9B53]/20 to-[#D4AF85]/20 rounded-lg flex items-center justify-center">
+                      <FaUser className="text-[#BF9B53] text-sm" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Review Info */}
@@ -208,15 +229,6 @@ const CustomerReviews = () => {
                     {review.comment}
                   </p>
 
-                  {/* Review Actions */}
-                  <div className="flex gap-3 mt-3 pt-3 border-t border-[#BF9B53]/20">
-                    <button className="text-xs text-[#BF9B53] hover:text-[#8B7043] font-bold transition-colors">
-                      👍 Helpful
-                    </button>
-                    <button className="text-xs text-[#A88A47] hover:text-red-600 font-bold transition-colors">
-                      👎 Not Helpful
-                    </button>
-                  </div>
                 </div>
               )}
             </div>

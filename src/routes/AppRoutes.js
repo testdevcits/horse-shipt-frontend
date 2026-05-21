@@ -43,6 +43,9 @@ const ShipperLayout = lazy(() => import("../layouts/ShipperLayout"));
 const ShipperDashboard = lazy(() => import("../pages/shipper/Dashboard"));
 const ShipperContract = lazy(() => import("../pages/shipper/Contract"));
 const ShipperProfile = lazy(() => import("../pages/shipper/Profile"));
+const ShipperReviewsPage = lazy(() =>
+  import("../pages/shipper/ShipperReviewsPage")
+);
 const ShipperSettings = lazy(() => import("../pages/shipper/Settings"));
 const ShipmentDetails = lazy(() => import("../pages/shipper/ShipmentDetails"));
 const ShipperEarnings = lazy(() => import("../pages/shipper/PayoutHistory"));
@@ -217,6 +220,7 @@ const AppRoutes = () => {
           <Route path="invited-shipments" element={<InvitedShipments />} />
           <Route path="all-shipment" element={<AllShipments />} />
           <Route path="profile" element={<ShipperProfile />} />
+          <Route path="reviews" element={<ShipperReviewsPage />} />
           <Route path="vehicles" element={<VehiclesAndCapacity />} />
           <Route path="shipment-settings" element={<ShipmentSettings />} />
           <Route path="settings" element={<ShipperSettings />} />

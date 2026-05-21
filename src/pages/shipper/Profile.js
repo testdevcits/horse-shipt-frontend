@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { FiEdit3, FiX, FiCheck } from "react-icons/fi";
+import { FiArrowRight, FiEdit3, FiX, FiCheck } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 import { Autocomplete, GoogleMap, Marker } from "@react-google-maps/api";
 import { useShipperProfile } from "../../contexts/ShipperProfileContext";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import { useNavigate } from "react-router-dom";
 
 const countryCodes = [
   { code: "+1", country: "USA", flag: "🇺🇸" },
@@ -34,6 +35,7 @@ const splitPhoneNumber = (phone = "") => {
 
 const Profile = () => {
   const { profile, updateProfile, loading } = useShipperProfile();
+  const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
   const [autocomplete, setAutocomplete] = useState(null);
@@ -80,29 +82,13 @@ const Profile = () => {
       .max(500, "Maximum 500 characters"),
   });
 
-  const reviews = profile?.reviews || [
-    {
-      id: 1,
-      reviewerName: "Alice Johnson",
-      rating: 5,
-      comment: "Excellent service! Very professional and reliable.",
-      date: "2024-03-15",
-    },
-    {
-      id: 2,
-      reviewerName: "Bob Smith",
-      rating: 4,
-      comment: "Good communication and timely delivery.",
-      date: "2024-03-10",
-    },
-    {
-      id: 3,
-      reviewerName: "Carol Davis",
-      rating: 5,
-      comment: "Outstanding! Highly recommended for logistics.",
-      date: "2024-03-05",
-    },
-  ];
+  const reviews = (profile?.reviews || []).map((review) => ({
+    id: review._id || review.id,
+    reviewerName: review.customerName || review.reviewerName || "Customer",
+    rating: Number(review.rating || 0),
+    comment: review.reviewText || review.comment || "",
+    date: review.createdAt || review.date,
+  }));
 
   const averageRating =
     reviews.length > 0
@@ -463,6 +449,17 @@ const Profile = () => {
                     </div>
                   )}
                 </div>
+                {reviews.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/shipper/reviews")}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#BF9B53] shadow-sm transition-all hover:bg-gray-50 active:scale-95"
+                    title="View all reviews"
+                    aria-label="View all reviews"
+                  >
+                    <FiArrowRight size={18} />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -514,9 +511,11 @@ const Profile = () => {
                         </div>
                       </div>
 
-                      <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">
-                        "{review.comment}"
-                      </p>
+                      {review.comment && (
+                        <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">
+                          "{review.comment}"
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>

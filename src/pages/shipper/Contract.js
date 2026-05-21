@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
 import { useShipperDelivery } from "../../contexts/shipperContext/ShipperDeliveryContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   FiTruck,
   FiMapPin,
@@ -13,10 +15,14 @@ import {
   FiUsers,
   FiAlertCircle,
   FiNavigation,
+  FiStar,
 } from "react-icons/fi";
 import { MdClose } from "react-icons/md";
 import { IoArrowBack } from "react-icons/io5";
 import PageLoader from "../../components/common/PageLoader";
+import Toast from "../../components/common/Toast";
+
+const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
 const hasAssignedVehicle = (quote) => {
   if (!quote?.vehicle) return false;
@@ -77,6 +83,111 @@ const EmptyState = ({ icon, title, subtitle }) => (
   </div>
 );
 
+const CustomerReviewModal = ({ quote, open, onClose, onSubmit, submitting }) => {
+  const [rating, setRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setRating(0);
+      setReviewText("");
+    }
+  }, [open]);
+
+  if (!open || !quote) return null;
+
+  const customer = quote.shipment?.customer;
+
+  const handleSubmit = () => {
+    if (!rating) {
+      Toast.error("Please select a rating");
+      return;
+    }
+
+    onSubmit({ rating, reviewText });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+        >
+          <MdClose size={20} />
+        </button>
+
+        <div className="flex justify-center mb-4">
+          <div className="p-3 bg-[#BF9B53]/10 rounded-full">
+            <FiStar size={28} className="text-[#BF9B53]" />
+          </div>
+        </div>
+
+        <h3 className="text-lg font-bold text-gray-800 text-center">
+          Review Customer
+        </h3>
+        <p className="text-xs text-gray-500 text-center mt-1">
+          Shipment: {quote.shipment?.shipmentCode}
+        </p>
+
+        <div className="mt-4 rounded-xl bg-gray-50 border border-gray-100 p-3 text-center">
+          <p className="font-semibold text-gray-800">
+            {customer?.name || "Customer"}
+          </p>
+          <p className="text-xs text-gray-500">{customer?.email}</p>
+        </div>
+
+        <div className="mt-4">
+          <p className="text-sm font-semibold text-gray-700 mb-2">
+            Your Rating
+          </p>
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setRating(star)}
+                className={`text-3xl leading-none ${
+                  star <= rating ? "text-yellow-500" : "text-gray-300"
+                }`}
+                aria-label={`${star} star rating`}
+              >
+                ★
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <textarea
+          value={reviewText}
+          onChange={(e) => setReviewText(e.target.value)}
+          placeholder="Write your experience with this customer..."
+          className="w-full border rounded-lg p-2 text-sm mt-4 focus:outline-none focus:ring-2 focus:ring-system-primary"
+          rows={3}
+        />
+
+        <div className="flex justify-end gap-2 mt-5">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm border rounded-lg"
+            disabled={submitting}
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="px-4 py-2 text-sm bg-system-primary text-white rounded-lg disabled:opacity-60"
+          >
+            {submitting ? "Submitting..." : "Submit Review"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ─────────────────────────────────────────
    SHIPMENT CARD
 ───────────────────────────────────────────*/
@@ -85,6 +196,8 @@ const ShipmentCard = ({
   tabKey,
   onMarkDelivered,
   onTrack,
+  onReviewCustomer,
+  alreadyReviewedCustomer,
   deliveryLoading,
   selectedQuote,
 }) => {
@@ -277,10 +390,27 @@ const ShipmentCard = ({
 
         {/* Completed pill */}
         {isCompleted && (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 text-sm font-semibold">
-            <FiCheckCircle size={14} />
-            Delivery Verified
-          </div>
+          <>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 text-sm font-semibold">
+              <FiCheckCircle size={14} />
+              Delivery Verified
+            </div>
+            {alreadyReviewedCustomer ? (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-semibold">
+                <FiStar size={14} />
+                Customer Reviewed
+              </div>
+            ) : (
+              <button
+                onClick={() => onReviewCustomer(quote)}
+                className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53]
+                  px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#BF9B53]/5 transition"
+              >
+                <FiStar size={14} />
+                Review Customer
+              </button>
+            )}
+          </>
         )}
 
         {/* Cancelled pill */}
@@ -305,10 +435,14 @@ const AllUpcomingShipments = () => {
     verifyOtp,
     loading: deliveryLoading,
   } = useShipperDelivery();
+  const { token } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("upcoming");
   const [selectedQuote, setSelectedQuote] = useState(null);
+  const [reviewQuote, setReviewQuote] = useState(null);
+  const [myCustomerReviews, setMyCustomerReviews] = useState([]);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [otpModalOpen, setOtpModalOpen] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState("");
@@ -316,6 +450,22 @@ const AllUpcomingShipments = () => {
   useEffect(() => {
     getMyQuotes();
   }, [getMyQuotes]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    axios
+      .get(`${API_BASE_URL}/shipper/customer-reviews/mine`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setMyCustomerReviews(res.data?.data || []))
+      .catch(() => setMyCustomerReviews([]));
+  }, [token]);
+
+  const hasReviewedCustomer = (quote) =>
+    myCustomerReviews.some(
+      (review) => review.shipmentId?.toString() === quote.shipment?._id?.toString()
+    );
 
   const isInTransitQuote = (quote) => {
     if (quote.isCancelled === true || quote.status === "cancelled") return false;
@@ -476,6 +626,37 @@ const AllUpcomingShipments = () => {
     }
   };
 
+  const handleCustomerReviewSubmit = async ({ rating, reviewText }) => {
+    if (!reviewQuote?.shipment?.customer?._id) {
+      Toast.error("Customer details are missing for this shipment");
+      return;
+    }
+
+    setReviewSubmitting(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/shipper/customer-reviews`,
+        {
+          customerId: reviewQuote.shipment.customer._id,
+          shipmentId: reviewQuote.shipment._id,
+          rating,
+          reviewText,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setMyCustomerReviews((prev) => [...prev, res.data?.data]);
+      setReviewQuote(null);
+      Toast.success("Customer review submitted successfully");
+    } catch (err) {
+      Toast.error(
+        err.response?.data?.message || "Failed to submit customer review"
+      );
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
   const closeModal = () => {
     setOtpModalOpen(false);
     setOtp("");
@@ -549,6 +730,14 @@ const AllUpcomingShipments = () => {
       </div>
 
       {/* ── CONTENT ── */}
+      <CustomerReviewModal
+        open={Boolean(reviewQuote)}
+        quote={reviewQuote}
+        onClose={() => setReviewQuote(null)}
+        onSubmit={handleCustomerReviewSubmit}
+        submitting={reviewSubmitting}
+      />
+
       {currentTab.data.length === 0 ? (
         <EmptyState
           icon={currentTab.emptyIcon}
@@ -564,6 +753,8 @@ const AllUpcomingShipments = () => {
               tabKey={activeTab}
               onMarkDelivered={handleMarkDelivered}
               onTrack={handleTrack}
+              onReviewCustomer={setReviewQuote}
+              alreadyReviewedCustomer={hasReviewedCustomer(quote)}
               deliveryLoading={deliveryLoading}
               selectedQuote={selectedQuote}
             />

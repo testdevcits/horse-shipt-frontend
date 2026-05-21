@@ -399,7 +399,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
     );
   }
 
-  const chatAllowedStatuses = ["assigned", "picked", "in_transit", "delivered"];
+  const chatAllowedStatuses = ["assigned", "picked", "in_transit"];
   const canOpenShipmentChat =
     shipment.customer && chatAllowedStatuses.includes(shipment.status);
 

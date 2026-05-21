@@ -330,7 +330,7 @@ const PayoutAndCardPage = () => {
                             ID
                           </p>
                           <div className="flex items-center gap-1 mt-1">
-                            <code className="text-xs font-mono text-slate-700 bg-white px-2 py-1 rounded truncate">
+                            <code className="text-xs font-bold text-slate-700 bg-white px-2 py-1 rounded truncate">
                               {visibleIds[payout.id] ? payout.id : maskId(payout.id)}
                             </code>
                             <button
@@ -414,7 +414,7 @@ const PayoutAndCardPage = () => {
                         >
                           <td className="px-3 py-2">
                             <div className="flex items-center gap-1">
-                              <code className="text-xs font-mono text-slate-700 bg-slate-100 px-2 py-1 rounded">
+                              <code className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded">
                                 {visibleIds[payout.id]
                                   ? payout.id
                                   : maskId(payout.id)}
