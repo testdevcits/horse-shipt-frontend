@@ -45,84 +45,68 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="flex flex-col gap-5 sm:gap-6 font-montserrat">
-      {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900 leading-tight">
+    <div className="flex flex-col gap-5 font-montserrat sm:gap-6">
+      {/* HEADER + STAT CARDS */}
+      <div className="grid gap-4 xl:grid-cols-[minmax(280px,1fr)_minmax(240px,350px)_minmax(240px,350px)] xl:items-start">
+        {/* GREETING */}
+        <div className="min-w-0 py-1">
+          <div className="flex items-center gap-2">
+            <TbCalendarTime className="text-[#735D32]" size={16} />
+            <p className="whitespace-nowrap text-[11px] font-bold uppercase leading-[16px] text-[#4B5563]">
+              {dayName}, {fullDate}
+            </p>
+            <span className="hidden h-px min-w-[70px] flex-1 bg-[#BF9B53] sm:block" />
+            <span className="hidden h-[6px] w-[6px] rounded-full bg-[#BF9B53] sm:block" />
+          </div>
+
+          <h1 className="mt-2 text-[24px] font-semibold leading-[32px] text-[#111827] sm:text-[28px] sm:leading-[36px]">
             {getGreeting()}, {profile?.name || user?.name || "Shipper"}
           </h1>
-          <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#BF9B53] mt-2 p-2">
+
+          <p className="mt-2 text-[9px] font-bold uppercase leading-[14px] tracking-[0.32em] text-[#BF9B53]">
             Track your shipments and manage opportunities
           </p>
         </div>
 
-        {/* DATE */}
-        <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 sm:px-4 py-2">
-          <TbCalendarTime className="text-system-primary text-base sm:text-lg" />
-          <div>
-            <p className="text-system-primary font-semibold text-xs sm:text-sm">
-              {dayName}
-            </p>
-            <p className="text-gray-500 text-[11px] sm:text-xs">{fullDate}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* STAT CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {/* UPCOMING SHIPMENTS */}
         <div
           onClick={() => navigate("/shipper/shipments")}
-          className="group bg-white border border-gray-200 p-4 sm:p-5 md:p-6 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-gray-300"
+          className="group min-h-[80px] cursor-pointer bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:shadow-md sm:min-h-[90px] sm:px-5"
         >
-          <div className="flex justify-between items-start mb-4 sm:mb-6">
-            {/* ICON */}
-            <div className="p-2 bg-gray-50 border border-gray-100">
-              <FiTruck className="text-system-primary text-lg sm:text-xl md:text-2xl" />
-            </div>
-
-            {/* ARROW */}
-            <FiArrowRight
-              className="text-gray-300 text-sm transition-all duration-200 
-              group-hover:text-gray-600 group-hover:translate-x-1"
-            />
+          <div className="mb-1 flex items-start justify-between">
+            <p className="text-[10px] font-bold uppercase leading-[16px] text-[#4B5563]">
+              Upcoming Shipments
+            </p>
+            <FiArrowRight className="text-gray-400 transition-all duration-200 group-hover:translate-x-1 group-hover:text-[#735D32]" />
           </div>
 
-          <p className="text-gray-600 text-[11px] sm:text-xs font-semibold uppercase tracking-wide mb-1 sm:mb-2">
-            Upcoming Shipments
-          </p>
-
-          <p className="text-3xl sm:text-4xl md:text-5xl font-bold text-system-primary">
-            {formatCount(upcomingShipmentsCount)}
-          </p>
+          <div className="flex items-end justify-between gap-4">
+            <p className="text-[38px] font-bold leading-none text-system-primary sm:text-[42px]">
+              {formatCount(upcomingShipmentsCount)}
+            </p>
+            <span className="flex h-[38px] w-[38px] items-center justify-center rounded border border-gray-100 bg-[#FBFAF7] text-[#735D32] sm:h-[40px] sm:w-[40px]">
+              <FiTruck size={22} />
+            </span>
+          </div>
         </div>
 
         {/* SUBMITTED QUOTES */}
         <div
           onClick={() => navigate("/shipper/quotes")}
-          className="group bg-white border border-gray-200 p-4 sm:p-5 md:p-6 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-gray-300"
+          className="group min-h-[80px] cursor-pointer bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:shadow-md sm:min-h-[90px] sm:px-5"
         >
-          <div className="flex justify-between items-start mb-4 sm:mb-6">
-            {/* ICON */}
-            <div className="p-2 bg-gray-50 border border-gray-100">
-              <FiFileText className="text-system-primary text-lg sm:text-xl md:text-2xl" />
-            </div>
-
-            {/* ARROW */}
-            <FiArrowRight
-              className="text-gray-300 text-sm transition-all duration-200 
-              group-hover:text-gray-600 group-hover:translate-x-1"
-            />
-          </div>
-
-          <p className="text-gray-600 text-[11px] sm:text-xs font-semibold uppercase tracking-wide mb-1 sm:mb-2">
+          <p className="mb-1 text-[10px] font-bold uppercase leading-[16px] text-[#4B5563]">
             Submitted Quotes
           </p>
 
-          <p className="text-3xl sm:text-4xl md:text-5xl font-bold text-system-primary">
-            {formatCount(submittedQuotesCount)}
-          </p>
+          <div className="flex items-end justify-between gap-4">
+            <p className="text-[38px] font-bold leading-none text-system-primary sm:text-[42px]">
+              {formatCount(submittedQuotesCount)}
+            </p>
+            <span className="flex h-[38px] w-[38px] items-center justify-center rounded border border-gray-100 bg-[#FBFAF7] text-[#735D32] sm:h-[40px] sm:w-[40px]">
+              <FiFileText size={21} />
+            </span>
+          </div>
         </div>
       </div>
 

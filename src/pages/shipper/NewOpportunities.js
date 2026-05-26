@@ -149,144 +149,130 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
 
   /* ── shared input class ─────────────────────────────────────── */
   const inputCls =
-    "border border-gray-200 bg-white px-3 py-2 rounded-lg text-sm text-dark placeholder-gray-400 focus:outline-none focus:border-system-primary focus:ring-2 focus:ring-system-primary/20 transition font-montserrat";
+    "border-0 bg-[#FBFAF7] px-4 py-3 rounded text-[12px] text-[#4B5563] placeholder-[#4B5563] focus:outline-none focus:ring-1 focus:ring-system-primary/30 transition font-montserrat";
 
   return (
-    <div className="flex flex-col gap-5 font-montserrat w-full">
-      {/* ── TITLE ── */}
-      <div>
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-dark">
-          {title}
-        </h2>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Browse available horse shipments near you
-        </p>
-      </div>
+    <div className="flex w-full flex-col gap-5 font-montserrat">
+      <div className="bg-white px-4 py-5 sm:px-5 md:px-6">
+        <div className="grid gap-4 lg:grid-cols-[minmax(180px,260px)_1fr_auto] lg:items-start">
+          {/* ── TITLE ── */}
+          <div className="min-w-0">
+            <h2 className="text-[20px] font-semibold leading-[28px] text-[#111827] sm:text-[22px]">
+              {title}
+            </h2>
+            <p className="mt-1 text-[9px] font-bold uppercase leading-[14px] tracking-[0.32em] text-[#BF9B53]">
+              Browse available horse shipments near you
+            </p>
+          </div>
 
-      {/* ── SEARCH + TAB ROW ── */}
-      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-        {/* Search */}
-        <div className="relative flex-1">
-          <HiSearch
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            size={18}
-          />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by pickup or delivery location..."
-            className={`${inputCls} w-full pl-10 py-2.5`}
-          />
+          {/* Search */}
+          <div className="relative min-w-0">
+            <HiSearch
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4B5563]"
+              size={18}
+            />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by pickup or delivery location..."
+              className="h-[48px] w-full border-0 bg-[#F3F4F6] pl-12 pr-4 font-montserrat text-[13px] text-[#4B5563] placeholder-[#4B5563] outline-none transition focus:ring-1 focus:ring-system-primary/30"
+            />
+          </div>
+
+          <div className="flex items-center gap-3 lg:justify-end">
+            {/* Mobile filter toggle */}
+            <button
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className={`flex h-[44px] items-center justify-center gap-2 rounded border px-4 text-sm font-semibold transition md:hidden
+                ${
+                  showMobileFilters
+                    ? "border-system-primary bg-system-primary text-white"
+                    : "border-gray-200 text-gray-700 hover:bg-gray-50"
+                }`}
+            >
+              <MdFilterList size={18} />
+              Filters
+              {hasActiveFilters && (
+                <span className="h-2 w-2 flex-shrink-0 rounded-full bg-amber-400" />
+              )}
+            </button>
+
+            {/* List / Map tabs */}
+            {showMapView && (
+              <div className="flex h-[48px] flex-shrink-0 items-center bg-[#F3F4F6] p-1">
+                {[
+                  { id: "list", label: "List", Icon: IoList },
+                  { id: "map", label: "Map", Icon: CiMap },
+                ].map(({ id, label, Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => setActiveTab(id)}
+                    className={`flex h-10 items-center gap-2 px-4 text-[12px] font-bold uppercase transition-all duration-200
+                      ${
+                        activeTab === id
+                          ? "bg-system-primary text-white shadow-sm"
+                          : "text-[#4B5563] hover:text-dark"
+                      }`}
+                  >
+                    <Icon size={18} />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Mobile filter toggle */}
-        <button
-          onClick={() => setShowMobileFilters(!showMobileFilters)}
-          className={`md:hidden flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-semibold transition
-            ${
-              showMobileFilters
-                ? "bg-system-primary text-white border-system-primary"
-                : "border-gray-200 text-gray-700 hover:bg-gray-50"
-            }`}
-        >
-          <MdFilterList size={18} />
-          Filters
-          {hasActiveFilters && (
-            <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
-          )}
-        </button>
-
-        {/* List / Map tabs */}
-        {showMapView && (
-          <div className="flex bg-gray-100 border border-gray-200 rounded-lg p-1 flex-shrink-0">
-            {[
-              { id: "list", label: "List", Icon: IoList },
-              { id: "map", label: "Map", Icon: CiMap },
-            ].map(({ id, label, Icon }) => (
-              <button
-                key={id}
-                onClick={() => setActiveTab(id)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold transition-all duration-200
-                  ${
-                    activeTab === id
-                      ? "bg-system-primary text-white shadow-sm"
-                      : "text-gray-600 hover:text-dark"
-                  }`}
-              >
-                <Icon size={16} />
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* ── DESKTOP FILTERS ── */}
-      <div className="hidden md:flex items-center gap-3 flex-wrap bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mr-1">
-          Filter by:
-        </span>
-
-        <input
-          type="number"
-          name="pickupDistance"
-          placeholder="Pickup distance (km)"
-          value={filters.pickupDistance}
-          onChange={handleFilterChange}
-          className={`${inputCls} w-44`}
-        />
-        <input
-          type="number"
-          name="dropoffDistance"
-          placeholder="Dropoff distance (km)"
-          value={filters.dropoffDistance}
-          onChange={handleFilterChange}
-          className={`${inputCls} w-44`}
-        />
-        <input
-          type="number"
-          name="minHorses"
-          placeholder="Min horses"
-          value={filters.minHorses}
-          onChange={handleFilterChange}
-          className={`${inputCls} w-32`}
-        />
-        <select
-          name="stallSize"
-          value={filters.stallSize}
-          onChange={handleFilterChange}
-          className={`${inputCls} w-36`}
-        >
-          <option value="">Stall size</option>
-          <option value="Box">Box</option>
-          <option value="1/2 Box">1/2 Box</option>
-          <option value="Single">Single</option>
-        </select>
-
-        <button
-          onClick={applyFilters}
-          className="px-5 py-2 bg-system-primary text-white rounded-lg text-sm font-bold hover:bg-tabActive transition"
-        >
-          Apply
-        </button>
-
-        {hasActiveFilters && (
-          <button
-            onClick={resetFilters}
-            className="px-4 py-2 border border-gray-200 bg-white rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition font-semibold"
-          >
-            Reset
-          </button>
-        )}
-
-        {/* Active filter count badge */}
-        {hasActiveFilters && (
-          <span className="ml-auto text-xs bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1 rounded-full font-semibold">
-            {Object.values(filters).filter(Boolean).length} filter
-            {Object.values(filters).filter(Boolean).length > 1 ? "s" : ""}{" "}
-            active
+        {/* ── DESKTOP FILTERS ── */}
+        <div className="mt-7 hidden items-center gap-5 md:flex md:flex-wrap">
+          <span className="text-[11px] font-medium text-[#4B5563]">
+            Filter By:
           </span>
-        )}
+
+          <input
+            type="number"
+            name="pickupDistance"
+            placeholder="Pickup Distance"
+            value={filters.pickupDistance}
+            onChange={handleFilterChange}
+            className={`${inputCls} h-[40px] w-[135px]`}
+          />
+          <input
+            type="number"
+            name="dropoffDistance"
+            placeholder="Dropoff Distance"
+            value={filters.dropoffDistance}
+            onChange={handleFilterChange}
+            className={`${inputCls} h-[40px] w-[145px]`}
+          />
+          <select
+            name="stallSize"
+            value={filters.stallSize}
+            onChange={handleFilterChange}
+            className={`${inputCls} h-[40px] w-[130px]`}
+          >
+            <option value="">Stall Size</option>
+            <option value="Box">Box</option>
+            <option value="1/2 Box">1/2 Box</option>
+            <option value="Single">Single</option>
+          </select>
+
+          <button
+            onClick={applyFilters}
+            className="h-[40px] min-w-[135px] rounded bg-system-primary px-8 text-[13px] font-bold uppercase text-white transition hover:bg-tabActive"
+          >
+            Apply
+          </button>
+
+          {hasActiveFilters && (
+            <button
+              onClick={resetFilters}
+              className="h-[40px] rounded border border-gray-200 bg-white px-5 text-[12px] font-semibold uppercase text-gray-600 transition hover:bg-gray-50 hover:border-gray-300"
+            >
+              Reset
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── MOBILE FILTERS PANEL ── */}

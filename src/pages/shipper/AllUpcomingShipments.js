@@ -8,11 +8,13 @@ import {
   FiXCircle,
   FiClock,
   FiNavigation,
+  FiMapPin,
+  FiHash,
+  FiDollarSign,
+  FiInfo,
 } from "react-icons/fi";
 import { MdClose } from "react-icons/md";
-import { IoArrowBack } from "react-icons/io5";
 import PageLoader from "../../components/common/PageLoader";
-import PublicShipmentCard from "./ShipmentCard";
 
 const hasAssignedVehicle = (quote) => {
   if (!quote?.vehicle) return false;
@@ -24,10 +26,10 @@ const hasAssignedVehicle = (quote) => {
    EMPTY STATE
 ───────────────────────────────────────────*/
 const EmptyState = ({ icon, title, subtitle }) => (
-  <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-gray-200 rounded-2xl bg-gray-50">
-    <div className="p-4 bg-[#BF9B53]/10 rounded-full mb-4">{icon}</div>
-    <h3 className="text-base font-semibold text-gray-700">{title}</h3>
-    <p className="text-gray-400 text-sm mt-1 max-w-xs">{subtitle}</p>
+  <div className="flex flex-col items-center justify-center border border-dashed border-gray-200 bg-white py-16 text-center">
+    <div className="mb-4 bg-[#BF9B53]/10 p-4">{icon}</div>
+    <h3 className="text-base font-semibold text-[#111827]">{title}</h3>
+    <p className="mt-1 max-w-xs text-sm text-gray-500">{subtitle}</p>
   </div>
 );
 
@@ -37,53 +39,105 @@ const EmptyState = ({ icon, title, subtitle }) => (
 const QuoteShipmentCard = ({
   quote,
   tabKey,
-  onMarkDelivered,
   onTrack,
-  deliveryLoading,
-  selectedQuote,
 }) => {
   const isCancelled =
     quote.isCancelled === true || quote.status === "cancelled";
   const isCompleted = tabKey === "completed";
-  const isInTransit = tabKey === "in_transit";
 
-  const normalizedShipment = {
-    ...(quote.shipment || {}),
-    status: isCancelled
-      ? "cancelled"
-      : isCompleted
-      ? "completed"
-      : isInTransit
-      ? "assigned"
-      : quote.shipment?.status || "assigned",
-    transportType: quote.transportType || quote.shipment?.transportType,
-  };
-
-  const isProcessingThis = deliveryLoading && selectedQuote?._id === quote._id;
+  const shipment = quote.shipment || {};
+  const paymentLabel = quote.paymentStatus
+    ? `Payment: ${quote.paymentStatus}`
+    : "Payment: N/A";
+  const priceLabel =
+    quote.totalPrice !== undefined && quote.totalPrice !== null
+      ? `${quote.currency === "USD" ? "$" : quote.currency || "$"}${
+          quote.totalPrice
+        }`
+      : "$0";
 
   return (
-    <div className={isCancelled ? "opacity-75" : ""}>
-      <PublicShipmentCard shipment={normalizedShipment} />
-      <div className="bg-white border-x border-b border-[#BF9B53] rounded-b-sm px-4 py-3 -mt-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 text-xs">
-          <span className="font-semibold text-gray-500">
-            Quote:{" "}
-            <span className="text-[#BF9B53]">
-              {quote.currency === "USD" ? "$" : quote.currency || "$"}
-              {quote.totalPrice || 0}
+    <div
+      className={`min-h-[204px] bg-white px-5 py-5 sm:px-6 lg:px-7 ${
+        isCancelled ? "opacity-75" : ""
+      }`}
+    >
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-400">
+          <FiHash size={12} />
+          <span>{shipment.shipmentCode || shipment._id || quote._id}</span>
+        </div>
+
+        <div className="flex flex-wrap gap-2 sm:justify-end">
+          <span
+            className={`inline-flex h-[26px] items-center gap-1.5 border px-3 text-[11px] font-bold uppercase ${
+              isCancelled
+                ? "border-red-300 bg-red-50 text-red-600"
+                : isCompleted
+                ? "border-blue-300 bg-blue-50 text-blue-600"
+                : "border-emerald-500 bg-emerald-50 text-emerald-700"
+            }`}
+          >
+            {isCancelled ? (
+              <FiXCircle size={13} />
+            ) : isCompleted ? (
+              <FiCheckCircle size={13} />
+            ) : (
+              <FiCheckCircle size={13} />
+            )}
+            {isCancelled ? "Cancelled" : isCompleted ? "Completed" : "Accepted"}
+          </span>
+          <span
+            className={`inline-flex h-[26px] items-center border px-3 text-[11px] font-bold uppercase ${
+              quote.paymentStatus === "paid"
+                ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                : "border-[#BF9B53] bg-[#BF9B53]/5 text-[#735D32]"
+            }`}
+          >
+            {paymentLabel}
+          </span>
+        </div>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(220px,260px)_minmax(260px,1fr)_minmax(220px,260px)] lg:items-center">
+        <div className="space-y-4">
+          <div className="flex items-start gap-2 text-[12px] font-semibold text-[#4B5563]">
+            <FiMapPin className="mt-0.5 shrink-0 text-[#BF9B53]" size={14} />
+            <span>{shipment.pickupLocation || "Pickup location"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-[12px] font-medium text-[#4B5563]">
+            <FiNavigation className="text-[#4B5563]" size={13} />
+            <span>
+              {shipment.numberOfHorses || 1} Horse
+              {(shipment.numberOfHorses || 1) !== 1 ? "s" : ""}
             </span>
-          </span>
-          <span className="font-semibold text-gray-500">
-            Payment:{" "}
-            <span className="text-gray-800">{quote.paymentStatus || "N/A"}</span>
-          </span>
-          <span className="font-semibold text-gray-500">
-            Trip:{" "}
-            <span className="text-gray-800">{quote.tripStatus || "Not started"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-[12px] font-medium text-[#4B5563]">
+            <FiDollarSign className="text-[#4B5563]" size={13} />
+            <span>
+              {priceLabel} · {quote.paymentMethod || "card"} · due on{" "}
+              {quote.paymentDue || "delivery"}
+            </span>
+          </div>
+        </div>
+
+        <div className="relative hidden h-[44px] max-w-[520px] items-center justify-center justify-self-center bg-[#F3F4F6] lg:flex lg:w-full">
+          <span className="absolute left-7 right-7 top-1/2 h-px -translate-y-1/2 bg-[#BF9B53]" />
+          <span className="absolute left-7 top-1/2 h-[6px] w-[6px] -translate-y-1/2 rounded-full bg-[#BF9B53]" />
+          <span className="absolute right-7 top-1/2 h-[6px] w-[6px] -translate-y-1/2 rounded-full bg-[#BF9B53]" />
+          <span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#735D32] shadow-sm">
+            <FiTruck size={18} />
           </span>
         </div>
 
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex items-start gap-2 text-[12px] font-semibold text-[#4B5563] lg:justify-end lg:text-right">
+          <FiMapPin className="mt-0.5 shrink-0 text-emerald-500" size={14} />
+          <span>{shipment.deliveryLocation || "Delivery location"}</span>
+        </div>
+      </div>
+
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-3">
           {quote.shipperContract?.url && (
             <button
               onClick={() =>
@@ -93,42 +147,32 @@ const QuoteShipmentCard = ({
                   "noopener,noreferrer"
                 )
               }
-              className="flex items-center gap-2 border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-50 transition"
+              className="h-[34px] min-w-[130px] bg-[#BF9B53] px-4 text-[12px] font-bold uppercase text-white transition hover:bg-tabActive"
             >
-              Contract
+              View Contract
             </button>
           )}
 
           {!isCancelled && !isCompleted && (
             <button
               onClick={() => onTrack(quote)}
-              className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#BF9B53]/5 transition"
+              className="h-[34px] min-w-[130px] border border-[#BF9B53] px-4 text-[12px] font-bold uppercase text-[#BF9B53] transition hover:bg-[#BF9B53]/5"
             >
-              <FiNavigation size={14} />
-              Track
+              Track Shipment
             </button>
           )}
+        </div>
 
-          {tabKey === "upcoming" && !isCancelled && !isCompleted && (
-            <button
-              className="flex items-center gap-2 bg-[#BF9B53] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#a8863f] disabled:opacity-50 transition"
-              disabled={isProcessingThis}
-              onClick={() => onMarkDelivered(quote)}
-            >
-              <FiTruck size={14} />
-              {isProcessingThis ? "Processing..." : "Mark Delivered"}
-            </button>
-          )}
-
+        <div className="flex flex-wrap gap-2 sm:justify-end">
           {isCompleted && (
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 text-sm font-semibold">
+            <div className="flex h-9 items-center gap-2 border border-blue-200 bg-blue-50 px-3 text-[12px] font-bold uppercase text-blue-600">
               <FiCheckCircle size={14} />
               Delivery Verified
             </div>
           )}
 
           {isCancelled && (
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-500 text-sm font-semibold">
+            <div className="flex h-9 items-center gap-2 border border-red-200 bg-red-50 px-3 text-[12px] font-bold uppercase text-red-500">
               <FiXCircle size={14} />
               Shipment Cancelled
             </div>
@@ -340,25 +384,25 @@ const AllUpcomingShipments = () => {
   }
 
   return (
-    <div className="flex flex-col font-[Montserrat] gap-6">
+    <div className="flex flex-col gap-6 font-montserrat">
       {/* ── HEADER ── */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">
+      <div className="pt-1">
+        <h1 className="text-[24px] font-semibold leading-[34px] text-[#111827] sm:text-[28px]">
           My Shipments
         </h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <p className="mt-2 max-w-5xl text-[13px] leading-[22px] text-[#4B5563]">
           Manage and track all your horse transport shipments in one place. Mark
           deliveries, verify OTPs, and view your complete shipment history.
         </p>
       </div>
 
       {/* ── TABS ── */}
-      <div className="flex flex-wrap sm:flex-nowrap items-center gap-1 border-b border-gray-200">
+      <div className="flex min-h-[48px] flex-wrap items-center bg-white px-4 sm:px-5">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 transition-colors -mb-px
+            className={`flex min-h-[48px] items-center justify-center gap-2 border-b-2 px-3 text-[13px] font-medium transition-colors sm:px-5
         ${
           activeTab === tab.key
             ? "border-[#BF9B53] text-[#BF9B53]"
@@ -372,24 +416,22 @@ const AllUpcomingShipments = () => {
               {tab.label}
             </span>
 
-            {tab.count > 0 && (
-              <span
-                className={`text-[10px] sm:text-xs px-1 py-0.5 rounded-full font-bold
-            ${
-              activeTab === tab.key
-                ? "bg-[#BF9B53]/15 text-[#BF9B53]"
-                : "bg-gray-100 text-gray-500"
-            }`}
-              >
-                {tab.count}
-              </span>
-            )}
+            <span
+              className={`inline-flex h-4 min-w-4 items-center justify-center px-1 text-[10px] font-bold ${
+                activeTab === tab.key
+                  ? "bg-[#BF9B53]/10 text-[#BF9B53]"
+                  : "bg-gray-100 text-gray-500"
+              }`}
+            >
+              {tab.count}
+            </span>
           </button>
         ))}
       </div>
 
       {/* ── INFO BANNER ── */}
-      <div className="bg-[#BF9B53]/5 border border-[#BF9B53]/15 rounded-xl px-4 py-3 text-sm text-gray-600">
+      <div className="flex items-start gap-3 border border-[#BF9B53] bg-[#FFF8E8] px-5 py-4 text-[13px] leading-[22px] text-[#4B5563]">
+        <FiInfo className="mt-1 shrink-0 text-[#BF9B53]" size={17} />
         {currentTab.info}
       </div>
 
@@ -401,7 +443,7 @@ const AllUpcomingShipments = () => {
           subtitle={currentTab.emptySubtitle}
         />
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           {currentTab.data.map((quote) => (
             <QuoteShipmentCard
               key={quote._id}
@@ -494,12 +536,6 @@ const AllUpcomingShipments = () => {
         </div>
       )}
 
-      <button
-        onClick={() => navigate(-1)}
-        className="fixed bottom-6 right-6 bg-gray-600 text-white p-3 rounded-full shadow-lg hover:bg-[#BF9B53] transition"
-      >
-        <IoArrowBack className="w-5 h-5" />
-      </button>
     </div>
   );
 };
