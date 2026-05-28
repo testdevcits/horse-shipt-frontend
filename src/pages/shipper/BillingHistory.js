@@ -919,11 +919,11 @@ const BillingHistory = () => {
         )}
 
         {/* ── Billing History Card ───────────────────────────────────────── */}
-        <div className="bg-white rounded-md border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+        <div className="bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
           {/* Card header */}
           <div className="bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50 px-6 py-5 border-b border-[#BF9B53]">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-white rounded-lg border-2 border-[#BF9B53]">
+              <div className="p-3 bg-white border-2 border-[#BF9B53]">
                 <Calendar className="w-6 h-6 text-[#BF9B53]" />
               </div>
               <div className="flex-1">
@@ -938,7 +938,7 @@ const BillingHistory = () => {
           </div>
 
           <div className="px-6 py-8">
-            <div className="mb-5 border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 rounded-md">
+            <div className="mb-5 border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
               Free trial invoices are shown as <b>Free</b> / <b>No charge</b>.
               Paid monthly invoices are listed once in All; card receipts stay
               available under the Payments filter.
@@ -996,7 +996,7 @@ const BillingHistory = () => {
                   <button
                     key={option.value}
                     onClick={() => setFilter(option.value)}
-                    className={`px-4 py-2 rounded-lg font-semibold text-sm border-2 transition-all duration-200 flex items-center gap-2 ${
+                    className={`px-4 py-2 font-semibold text-sm border-2 transition-all duration-200 flex items-center gap-2 ${
                       filter === option.value
                         ? "bg-[#BF9B53] text-white border-[#BF9B53]"
                         : "bg-white text-slate-700 border-slate-300 hover:border-[#BF9B53]"

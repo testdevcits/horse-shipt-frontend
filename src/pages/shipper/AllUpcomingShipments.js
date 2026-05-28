@@ -58,19 +58,19 @@ const QuoteShipmentCard = ({
 
   return (
     <div
-      className={`min-h-[204px] bg-white px-5 py-5 sm:px-6 lg:px-7 ${
+      className={`bg-white px-4 py-4 sm:px-5 lg:px-6 ${
         isCancelled ? "opacity-75" : ""
       }`}
     >
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-400">
+        <div className="flex items-center gap-1.5 font-montserrat text-[11px] font-medium leading-[18px] text-[#6B7280]">
           <FiHash size={12} />
           <span>{shipment.shipmentCode || shipment._id || quote._id}</span>
         </div>
 
         <div className="flex flex-wrap gap-2 sm:justify-end">
           <span
-            className={`inline-flex h-[26px] items-center gap-1.5 border px-3 text-[11px] font-bold uppercase ${
+            className={`inline-flex h-[26px] items-center gap-1.5 rounded-[4px] border px-3 font-montserrat text-[11px] font-bold uppercase leading-none ${
               isCancelled
                 ? "border-red-300 bg-red-50 text-red-600"
                 : isCompleted
@@ -88,7 +88,7 @@ const QuoteShipmentCard = ({
             {isCancelled ? "Cancelled" : isCompleted ? "Completed" : "Accepted"}
           </span>
           <span
-            className={`inline-flex h-[26px] items-center border px-3 text-[11px] font-bold uppercase ${
+            className={`inline-flex h-[26px] items-center rounded-[4px] border px-3 font-montserrat text-[11px] font-bold uppercase leading-none ${
               quote.paymentStatus === "paid"
                 ? "border-emerald-500 bg-emerald-50 text-emerald-700"
                 : "border-[#BF9B53] bg-[#BF9B53]/5 text-[#735D32]"
@@ -99,20 +99,20 @@ const QuoteShipmentCard = ({
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(220px,260px)_minmax(260px,1fr)_minmax(220px,260px)] lg:items-center">
-        <div className="space-y-4">
-          <div className="flex items-start gap-2 text-[12px] font-semibold text-[#4B5563]">
+      <div className="grid gap-5 lg:grid-cols-[minmax(230px,280px)_minmax(260px,1fr)_minmax(230px,280px)] lg:items-center">
+        <div className="space-y-3">
+          <div className="flex items-start gap-2 font-montserrat text-[12px] font-semibold leading-[20px] text-[#4B5563]">
             <FiMapPin className="mt-0.5 shrink-0 text-[#BF9B53]" size={14} />
             <span>{shipment.pickupLocation || "Pickup location"}</span>
           </div>
-          <div className="flex items-center gap-2 text-[12px] font-medium text-[#4B5563]">
+          <div className="flex items-center gap-2 font-montserrat text-[12px] font-medium leading-[20px] text-[#4B5563]">
             <FiNavigation className="text-[#4B5563]" size={13} />
             <span>
               {shipment.numberOfHorses || 1} Horse
               {(shipment.numberOfHorses || 1) !== 1 ? "s" : ""}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-[12px] font-medium text-[#4B5563]">
+          <div className="flex items-center gap-2 font-montserrat text-[12px] font-medium leading-[20px] text-[#4B5563]">
             <FiDollarSign className="text-[#4B5563]" size={13} />
             <span>
               {priceLabel} · {quote.paymentMethod || "card"} · due on{" "}
@@ -130,13 +130,13 @@ const QuoteShipmentCard = ({
           </span>
         </div>
 
-        <div className="flex items-start gap-2 text-[12px] font-semibold text-[#4B5563] lg:justify-end lg:text-right">
+        <div className="flex items-start gap-2 font-montserrat text-[12px] font-semibold leading-[20px] text-[#4B5563] lg:justify-end lg:text-right">
           <FiMapPin className="mt-0.5 shrink-0 text-emerald-500" size={14} />
           <span>{shipment.deliveryLocation || "Delivery location"}</span>
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-3">
           {quote.shipperContract?.url && (
             <button
@@ -147,7 +147,7 @@ const QuoteShipmentCard = ({
                   "noopener,noreferrer"
                 )
               }
-              className="h-[34px] min-w-[130px] bg-[#BF9B53] px-4 text-[12px] font-bold uppercase text-white transition hover:bg-tabActive"
+              className="h-[34px] min-w-[130px] rounded-[4px] bg-[#BF9B53] px-4 font-montserrat text-[12px] font-bold uppercase text-white transition hover:bg-tabActive"
             >
               View Contract
             </button>
@@ -156,7 +156,7 @@ const QuoteShipmentCard = ({
           {!isCancelled && !isCompleted && (
             <button
               onClick={() => onTrack(quote)}
-              className="h-[34px] min-w-[130px] border border-[#BF9B53] px-4 text-[12px] font-bold uppercase text-[#BF9B53] transition hover:bg-[#BF9B53]/5"
+              className="h-[34px] min-w-[130px] rounded-[4px] border border-[#BF9B53] px-4 font-montserrat text-[12px] font-bold uppercase text-[#BF9B53] transition hover:bg-[#BF9B53]/5"
             >
               Track Shipment
             </button>
@@ -384,25 +384,25 @@ const AllUpcomingShipments = () => {
   }
 
   return (
-    <div className="flex flex-col gap-6 font-montserrat">
+    <div className="flex flex-col gap-5 font-montserrat">
       {/* ── HEADER ── */}
       <div className="pt-1">
-        <h1 className="text-[24px] font-semibold leading-[34px] text-[#111827] sm:text-[28px]">
+        <h1 className="font-montserrat text-[28px] font-semibold leading-[38px] text-[#111827]">
           My Shipments
         </h1>
-        <p className="mt-2 max-w-5xl text-[13px] leading-[22px] text-[#4B5563]">
+        <p className="mt-3 max-w-5xl font-montserrat text-[12px] font-medium leading-[20px] text-[#4B5563]">
           Manage and track all your horse transport shipments in one place. Mark
           deliveries, verify OTPs, and view your complete shipment history.
         </p>
       </div>
 
       {/* ── TABS ── */}
-      <div className="flex min-h-[48px] flex-wrap items-center bg-white px-4 sm:px-5">
+      <div className="flex min-h-[47px] items-center overflow-x-auto bg-white px-4 scrollbar-hide sm:px-5">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex min-h-[48px] items-center justify-center gap-2 border-b-2 px-3 text-[13px] font-medium transition-colors sm:px-5
+            className={`flex min-h-[47px] shrink-0 items-center justify-center gap-2 border-b-2 px-4 font-montserrat text-[12px] font-semibold leading-[20px] transition-colors sm:px-7
         ${
           activeTab === tab.key
             ? "border-[#BF9B53] text-[#BF9B53]"
@@ -412,12 +412,12 @@ const AllUpcomingShipments = () => {
             {tab.icon}
 
             {/* label control */}
-            <span className="truncate max-w-[70px] sm:max-w-none">
+            <span className="whitespace-nowrap">
               {tab.label}
             </span>
 
             <span
-              className={`inline-flex h-4 min-w-4 items-center justify-center px-1 text-[10px] font-bold ${
+              className={`inline-flex h-4 min-w-4 items-center justify-center rounded-[2px] px-1 text-[10px] font-bold ${
                 activeTab === tab.key
                   ? "bg-[#BF9B53]/10 text-[#BF9B53]"
                   : "bg-gray-100 text-gray-500"
@@ -430,7 +430,7 @@ const AllUpcomingShipments = () => {
       </div>
 
       {/* ── INFO BANNER ── */}
-      <div className="flex items-start gap-3 border border-[#BF9B53] bg-[#FFF8E8] px-5 py-4 text-[13px] leading-[22px] text-[#4B5563]">
+      <div className="flex items-start gap-3 rounded-[4px] border border-[#D9AF57] bg-[#FFF9EC] px-5 py-4 font-montserrat text-[12px] font-medium leading-[20px] text-[#4B5563]">
         <FiInfo className="mt-1 shrink-0 text-[#BF9B53]" size={17} />
         {currentTab.info}
       </div>

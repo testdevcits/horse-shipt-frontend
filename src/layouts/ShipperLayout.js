@@ -259,12 +259,12 @@ const ShipperLayout = () => {
 
         {/* MAIN CONTENT */}
         <main
-          className="flex-1 overflow-auto transition-all duration-300"
+          className="flex-1 overflow-auto transition-all duration-300 bg-[#FBF9F4]"
           style={{
             marginLeft: isDesktop ? (sidebarOpen ? "256px" : "64px") : "0",
           }}
         >
-          <div className="p-4 sm:p-6 lg:p-8">
+          <div className="p-4 sm:p-6 lg:p-8 ">
             <Outlet />
           </div>
         </main>

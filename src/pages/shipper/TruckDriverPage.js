@@ -6,7 +6,6 @@ import * as Yup from "yup";
 import Button from "../../components/common/Button";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import PageLoader from "../../components/common/PageLoader";
-import InputField from "../../components/common/InputField";
 import {
   FiFileText,
   FiPhone,
@@ -21,18 +20,18 @@ import { TfiEmail } from "react-icons/tfi";
 import { FaRegAddressCard } from "react-icons/fa";
 
 const DetailItem = ({ icon, label, value }) => (
-  <div className="flex min-w-0 items-center gap-2 px-0 py-2 sm:px-5">
+  <div className="flex min-w-0 items-center gap-3 px-0 py-3 sm:px-6">
 
-    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-gray-100 bg-white text-[#735D32] shadow-sm">
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-gray-100 bg-white text-[#735D32] shadow-sm">
       {icon}
     </div>
 
     <div className="min-w-0">
-      <p className="font-montserrat text-[10px] font-medium leading-[14px] tracking-[0%] text-[#4B5563]">
+      <p className="font-montserrat text-[12px] font-medium leading-[20px] tracking-[0%] text-[#4B5563]">
         {label}:
       </p>
 
-      <p className="truncate font-montserrat text-[12px] font-semibold leading-[18px] tracking-[0%] text-[#BF9B53]">
+      <p className="truncate font-montserrat text-[16px] font-semibold leading-[30px] tracking-[0%] text-[#BF9B53]">
         {value || "N/A"}
       </p>
     </div>
@@ -48,7 +47,7 @@ const DriverActionButton = ({ children, icon, tone = "gold", ...props }) => {
   return (
     <button
       type="button"
-      className={`inline-flex h-[24px] items-center justify-center gap-1.5 rounded border bg-white px-3 text-[10px] font-semibold uppercase leading-none transition ${toneClasses[tone]}`}
+      className={`inline-flex h-[34px] items-center justify-center gap-2 rounded border bg-white px-4 text-[12px] font-semibold uppercase leading-none transition ${toneClasses[tone]}`}
       {...props}
     >
       <span className={tone === "red" ? "text-red-500" : "text-[#735D32]"}>
@@ -179,13 +178,13 @@ const TruckDriverPage = () => {
   return (
     <div className="w-full mx-auto font-montserrat">
       {/* HEADER */}
-      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="font-montserrat text-[26px] font-semibold leading-[34px] text-[#111827] sm:text-[28px] sm:leading-[36px] lg:text-[28px] lg:leading-[38px]">
+      <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="font-montserrat text-[28px] font-semibold leading-[38px] text-[#111827] sm:text-[30px] sm:leading-[40px] lg:text-[32px] lg:leading-[44px]">
           Truck Driver Management
         </h1>
 
         <Button
-          className="h-[30px] min-h-0 self-start rounded px-4 text-[11px] font-bold uppercase sm:self-auto"
+          className="h-[34px] min-h-0 self-start rounded px-4 text-[11px] font-bold uppercase sm:self-auto"
           onClick={() => {
             setShowForm(!showForm);
             setEditingDriver(null);
@@ -209,7 +208,7 @@ const TruckDriverPage = () => {
 
       {/* FORM */}
       {showForm && (
-        <div className="bg-white shadow rounded-md p-6 mb-8">
+        <div className="mb-8 bg-white px-5 py-6 sm:px-7 lg:px-8">
           <Formik
             initialValues={initialValues}
             validationSchema={validationSchema}
@@ -228,81 +227,102 @@ const TruckDriverPage = () => {
             }) => (
               <form
                 onSubmit={handleSubmit}
-                className="grid sm:grid-cols-2 gap-4"
+                className="grid grid-cols-1 gap-5"
                 noValidate
               >
-                <InputField
-                  label="Name"
-                  name="name"
-                  value={values.name}
-                  onChange={handleChange("name")}
-                  onBlur={handleBlur("name")}
-                  error={errors.name}
-                  touched={touched.name || submitCount > 0}
-                />
-                <InputField
-                  label="Email"
-                  name="email"
-                  type="email"
-                  value={values.email}
-                  onChange={handleChange("email")}
-                  onBlur={handleBlur("email")}
-                  error={errors.email}
-                  touched={touched.email || submitCount > 0}
-                />
-                <InputField
-                  label="Phone"
-                  name="phone"
-                  value={values.phone}
-                  onChange={handleChange("phone")}
-                  onBlur={handleBlur("phone")}
-                  error={errors.phone}
-                  touched={touched.phone || submitCount > 0}
-                />
-                <InputField
-                  label="License Number"
-                  name="licenseNumber"
-                  value={values.licenseNumber}
-                  onChange={handleChange("licenseNumber")}
-                  onBlur={handleBlur("licenseNumber")}
-                  error={errors.licenseNumber}
-                  touched={touched.licenseNumber || submitCount > 0}
-                />
-                <InputField
-                  label="Password"
-                  name="password"
-                  type="password"
-                  value={values.password}
-                  onChange={handleChange("password")}
-                  onBlur={handleBlur("password")}
-                  error={errors.password}
-                  touched={touched.password || submitCount > 0}
-                  placeholder={
-                    editingDriver ? "Leave blank if not changing" : ""
-                  }
-                />
-                <InputField
-                  label="Notes"
-                  name="notes"
-                  value={values.notes}
-                  onChange={handleChange("notes")}
-                  onBlur={handleBlur("notes")}
-                  error={errors.notes}
-                  touched={touched.notes || submitCount > 0}
-                  className="sm:col-span-2"
-                />
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+                  {[
+                    { name: "name", placeholder: "Name" },
+                    { name: "email", placeholder: "Email", type: "email" },
+                    { name: "phone", placeholder: "Phone" },
+                  ].map((field) => (
+                    <div key={field.name}>
+                      <input
+                        type={field.type || "text"}
+                        name={field.name}
+                        placeholder={field.placeholder}
+                        value={values[field.name]}
+                        onChange={handleChange(field.name)}
+                        onBlur={handleBlur(field.name)}
+                        className={`h-[42px] w-full bg-[#F7F7F7] px-4 font-montserrat text-[12px] font-medium text-[#4B5563] outline-none placeholder:text-[#4B5563] ${
+                          (touched[field.name] || submitCount > 0) &&
+                          errors[field.name]
+                            ? "ring-1 ring-red-300"
+                            : ""
+                        }`}
+                      />
+                      {(touched[field.name] || submitCount > 0) &&
+                        errors[field.name] && (
+                          <p className="mt-1 text-[11px] font-medium text-red-500">
+                            {errors[field.name]}
+                          </p>
+                        )}
+                    </div>
+                  ))}
+                </div>
 
-                <div className="sm:col-span-2 flex justify-end gap-3 mt-4">
-                  <Button
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                  {[
+                    { name: "licenseNumber", placeholder: "License Number" },
+                    {
+                      name: "password",
+                      placeholder: editingDriver
+                        ? "Leave blank if not changing"
+                        : "Password",
+                      type: "password",
+                    },
+                  ].map((field) => (
+                    <div key={field.name}>
+                      <input
+                        type={field.type || "text"}
+                        name={field.name}
+                        placeholder={field.placeholder}
+                        value={values[field.name]}
+                        onChange={handleChange(field.name)}
+                        onBlur={handleBlur(field.name)}
+                        className={`h-[42px] w-full bg-[#F7F7F7] px-4 font-montserrat text-[12px] font-medium text-[#4B5563] outline-none placeholder:text-[#4B5563] ${
+                          (touched[field.name] || submitCount > 0) &&
+                          errors[field.name]
+                            ? "ring-1 ring-red-300"
+                            : ""
+                        }`}
+                      />
+                      {(touched[field.name] || submitCount > 0) &&
+                        errors[field.name] && (
+                          <p className="mt-1 text-[11px] font-medium text-red-500">
+                            {errors[field.name]}
+                          </p>
+                        )}
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <textarea
+                    name="notes"
+                    placeholder="Notes"
+                    value={values.notes}
+                    onChange={handleChange("notes")}
+                    onBlur={handleBlur("notes")}
+                    className="h-[82px] w-full resize-none bg-[#F7F7F7] px-4 py-3 font-montserrat text-[12px] font-medium text-[#4B5563] outline-none placeholder:text-[#4B5563]"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-1">
+                  <button
                     type="button"
-                    variant="secondary"
                     onClick={() => setShowForm(false)}
+                    className="h-[34px] min-w-[86px] rounded border border-[#BF9B53] bg-white px-5 font-montserrat text-[11px] font-bold uppercase text-[#4B5563] transition hover:bg-[#BF9B53]/5"
                   >
                     Cancel
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="h-[34px] min-w-[86px] rounded bg-[#BF9B53] px-5 font-montserrat text-[11px] font-bold uppercase text-white transition hover:bg-[#a8863f] disabled:opacity-60"
+                  >
                     {editingDriver ? "Update" : "Save"}
-                  </Button>
+                  </button>
                 </div>
               </form>
             )}
@@ -320,32 +340,32 @@ const TruckDriverPage = () => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-5">
             {drivers.map((driver) => (
               <div
                 key={driver._id}
-                className="w-full bg-white px-4 py-3 shadow-sm transition-all hover:shadow-md sm:px-5"
+                className="w-full bg-white px-4 py-5 shadow-sm transition-all hover:shadow-md sm:px-5 lg:px-6"
               >
-                <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="flex items-center gap-3 sm:gap-4">
                     {driver.profileImage?.url ? (
                       <img
                         src={driver.profileImage.url}
                         alt={driver.name}
-                        className="h-[40px] w-[40px] rounded-full border border-[#F8EAC8] object-cover"
+                        className="h-[58px] w-[58px] rounded-full border border-[#F8EAC8] object-cover sm:h-[60px] sm:w-[60px]"
                       />
                     ) : (
-                      <div className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full bg-[#FFF1D5] text-[20px] font-bold leading-none text-gray-950">
+                      <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-full bg-[#FFF1D5] text-[26px] font-bold leading-none text-gray-950 sm:h-[60px] sm:w-[60px] sm:text-[28px]">
                         {driver.name?.charAt(0)?.toUpperCase() || "D"}
                       </div>
                     )}
 
                     <div className="min-w-0">
-                      <h2 className="truncate font-montserrat text-[14px] font-semibold leading-[20px] text-[#4B5563]">
+                      <h2 className="truncate font-montserrat text-[16px] font-semibold leading-[26px] text-[#4B5563] sm:text-[18px] sm:leading-[30px]">
                         {driver.name || "N/A"}
                       </h2>
                       <span
-                        className={`mt-1 inline-flex h-[20px] items-center gap-1.5 rounded-full border px-2 text-[10px] font-medium ${driver.isActive
+                        className={`mt-1 inline-flex h-[24px] items-center gap-2 rounded-full border px-3 text-[12px] font-medium ${driver.isActive
                             ? "border-emerald-600 bg-emerald-50 text-emerald-700"
                             : "border-red-500 bg-red-50 text-red-600"
                           }`}
@@ -389,18 +409,18 @@ const TruckDriverPage = () => {
                   </div>
                 </div>
 
-                <div className="relative isolate grid grid-cols-1 bg-[#F7F7F7] px-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="relative isolate grid grid-cols-1 bg-[#F7F7F7] px-4 sm:grid-cols-2 lg:grid-cols-4">
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute left-1/4 top-1/2 z-10 hidden h-[28px] w-px -translate-x-1/2 -translate-y-1/2 bg-[#E5E7EB] lg:block"
+                    className="pointer-events-none absolute left-1/4 top-1/2 z-10 hidden h-[42px] w-px -translate-x-1/2 -translate-y-1/2 bg-[#E5E7EB] lg:block"
                   />
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden h-[28px] w-px -translate-x-1/2 -translate-y-1/2 bg-[#E5E7EB] lg:block"
+                    className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden h-[42px] w-px -translate-x-1/2 -translate-y-1/2 bg-[#E5E7EB] lg:block"
                   />
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute left-3/4 top-1/2 z-10 hidden h-[28px] w-px -translate-x-1/2 -translate-y-1/2 bg-[#E5E7EB] lg:block"
+                    className="pointer-events-none absolute left-3/4 top-1/2 z-10 hidden h-[42px] w-px -translate-x-1/2 -translate-y-1/2 bg-[#E5E7EB] lg:block"
                   />
                   <DetailItem
                     icon={<FiUser size={18} />}
@@ -424,16 +444,16 @@ const TruckDriverPage = () => {
                   />
                 </div>
 
-                <div className="mt-3 flex min-w-0 items-start gap-2 text-sm">
+                <div className="mt-5 flex min-w-0 items-start gap-2 text-sm">
                   <FiFileText
-                    size={14}
+                    size={20}
                     className="mt-0.5 shrink-0 text-[#735D32]"
                   />
                   <p className="min-w-0 break-words text-gray-600">
-                    <span className="font-montserrat text-[11px] font-semibold leading-[16px] tracking-[0%] text-[#BF9B53]">
+                    <span className="font-montserrat text-[14px] font-semibold leading-[24px] tracking-[0%] text-[#BF9B53]">
                       Notes:
                     </span>{" "}
-                    <span className="font-montserrat text-[11px] font-semibold leading-[16px] tracking-[0%] text-[#4B5563]">
+                    <span className="font-montserrat text-[14px] font-semibold leading-[24px] tracking-[0%] text-[#4B5563]">
                       {driver.notes || "N/A"}
                     </span>
                   </p>

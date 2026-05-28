@@ -7,7 +7,6 @@ import axios from "axios";
 import {
   FiTruck,
   FiMapPin,
-  FiCalendar,
   FiCheckCircle,
   FiXCircle,
   FiClock,
@@ -64,11 +63,11 @@ const StatusBadge = ({ state }) => {
   const cfg = map[state] || map.pending;
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${cfg.cls}`}
-    >
-      {cfg.icon}
-      {cfg.label}
-    </span>
+  className={`inline-flex h-[34px] items-center gap-1.5 rounded-[4px] border border-[#047857] px-3 font-montserrat text-[10px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold uppercase tracking-[0%] ${cfg.cls}`}
+>
+  {cfg.icon}
+  {cfg.label}
+</span>
   );
 };
 
@@ -109,7 +108,7 @@ const CustomerReviewModal = ({ quote, open, onClose, onSubmit, submitting }) => 
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative">
+      <div className="bg-white  rounded-2xl shadow-xl w-full max-w-md p-6 relative">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
@@ -147,9 +146,8 @@ const CustomerReviewModal = ({ quote, open, onClose, onSubmit, submitting }) => 
                 key={star}
                 type="button"
                 onClick={() => setRating(star)}
-                className={`text-3xl leading-none ${
-                  star <= rating ? "text-yellow-500" : "text-gray-300"
-                }`}
+                className={`text-3xl leading-none ${star <= rating ? "text-yellow-500" : "text-gray-300"
+                  }`}
                 aria-label={`${star} star rating`}
               >
                 ★
@@ -212,129 +210,86 @@ const ShipmentCard = ({
   const badgeState = isCancelled
     ? "cancelled"
     : isCompleted
-    ? "completed"
-    : isInTransit
-    ? "in_transit"
-    : "accepted";
+      ? "completed"
+      : isInTransit
+        ? "in_transit"
+        : "accepted";
+  const priceLabel =
+    quote.totalPrice !== undefined && quote.totalPrice !== null
+      ? `${quote.currency === "USD" ? "$" : quote.currency || "$"}${quote.totalPrice}`
+      : "$0";
 
   return (
     <div
-      className={`flex flex-col gap-4 bg-white border rounded-md p-5 shadow-sm transition
-      ${
-        isCancelled
-          ? "border-red-100 opacity-75"
-          : "border-gray-200 hover:shadow-md"
-      }`}
+      className={`bg-white px-5 py-5 transition sm:px-6 lg:px-7
+      ${isCancelled
+          ? "opacity-75"
+          : ""
+        }`}
     >
       {/* ── TOP ROW: Code + Badges ── */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-center gap-1.5 font-montserrat text-[11px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-medium tracking-[0%] text-[#6B7280]">
           <FiHash size={12} />
           <span>{quote.shipment?.shipmentCode || quote._id}</span>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap gap-2 sm:justify-end">
           <StatusBadge state={badgeState} />
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border
-            ${
-              quote.paymentStatus === "paid"
-                ? "bg-green-50 text-green-700 border-green-200"
-                : "bg-yellow-50 text-yellow-700 border-yellow-200"
-            }`}
-          >
+         <span
+  className={`inline-flex h-[34px] items-center rounded-[4px] border px-3 font-montserrat text-[10px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold uppercase tracking-[0%]
+  ${
+    quote.paymentStatus === "paid"
+      ? "border-[#047857] bg-emerald-50 text-[#047857]"
+      : "border-[#BF9B53] bg-[#BF9B53]/5 text-[#735D32]"
+  }`}
+>
             Payment: {quote.paymentStatus}
           </span>
         </div>
       </div>
 
       {/* ── ROUTE ── */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 text-gray-800 font-semibold text-sm">
-          <FiMapPin size={14} className="text-[#BF9B53] shrink-0" />
-          <span>{quote.shipment?.pickupLocation}</span>
-        </div>
-        <span className="text-gray-300 text-base">→</span>
-        <div className="flex items-center gap-1.5 text-gray-800 font-semibold text-sm">
-          <FiMapPin size={14} className="text-green-500 shrink-0" />
-          <span>{quote.shipment?.deliveryLocation}</span>
-        </div>
-      </div>
+      <div className="grid gap-5 lg:grid-cols-[minmax(230px,280px)_minmax(260px,1fr)_minmax(230px,280px)] lg:items-start">
+        <div className="space-y-3">
+          <div className="flex h-[44px] items-center gap-2 font-montserrat text-[11px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold tracking-[0%] text-[#4B5563]">
+            <FiMapPin size={14} className="shrink-0 text-[#BF9B53]" />
 
-      {/* ── META ── */}
-      <div className="flex flex-wrap gap-4 text-xs text-gray-500">
-        {quote.shipment?.pickupDate && (
-          <div className="flex items-center gap-1.5">
-            <FiCalendar size={12} />
-            <span>
-              Pickup:{" "}
-              {new Date(quote.shipment.pickupDate).toLocaleDateString("en-US", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
+            <span className="font-montserrat text-[12px] leading-[18px] sm:text-[14px] sm:leading-[20px] font-semibold tracking-[0%] text-[#4B5563]">
+              {quote.shipment?.pickupLocation || "Pickup location"}
             </span>
           </div>
-        )}
-        {quote.shipment?.deliveryDate && (
-          <div className="flex items-center gap-1.5">
-            <FiCalendar size={12} />
-            <span>
-              Delivery:{" "}
-              {new Date(quote.shipment.deliveryDate).toLocaleDateString(
-                "en-US",
-                { day: "numeric", month: "short", year: "numeric" }
-              )}
-            </span>
-          </div>
-        )}
-        {quote.shipment?.numberOfHorses && (
-          <div className="flex items-center gap-1.5">
+          <div className=" flex items-center gap-2 font-montserrat text-[12px] font-medium leading-[20px] text-[#4B5563]">
             <FiUsers size={12} />
-            <span>
-              {quote.shipment.numberOfHorses} Horse
-              {quote.shipment.numberOfHorses !== 1 ? "s" : ""}
+            <span className="font-montserrat text-[11px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold tracking-[0%] text-[#6B7280]">
+              {quote.shipment?.numberOfHorses || 1} Horse
+              {(quote.shipment?.numberOfHorses || 1) !== 1 ? "s" : ""}
             </span>
           </div>
-        )}
+          <div className="flex items-center gap-2 font-montserrat text-[12px] font-medium leading-[20px] text-[#4B5563]">
+            <span className="font-bold text-[#111827]">{priceLabel}</span>
+            <span className="text-[#6B7280]">
+              · {quote.paymentMethod || "card"} · due on{" "}
+              {quote.paymentDue || "delivery"}
+            </span>
+          </div>
+        </div>
+
+        <div className="relative flex h-[44px] w-full max-w-[720px] items-center justify-center justify-self-center bg-[#F3F4F6]">
+          <span className="absolute left-4 right-4 top-1/2 h-px -translate-y-1/2 bg-[#BF9B53]" />
+          <span className="absolute left-4 top-1/2 h-[6px] w-[6px] -translate-y-1/2 rounded-full bg-[#BF9B53]" />
+          <span className="absolute right-4 top-1/2 h-[6px] w-[6px] -translate-y-1/2 rounded-full bg-[#BF9B53]" />
+          <span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#735D32] shadow-sm">
+            <FiTruck size={18} />
+          </span>
+        </div>
+
+        <div className="flex h-[44px] items-center gap-2 font-montserrat text-[12px] font-semibold leading-[20px] text-[#4B5563] lg:justify-end lg:text-right">
+          <FiMapPin size={14} className="shrink-0 text-emerald-500" />
+          <span className="font-montserrat text-[12px] leading-[18px] sm:text-[14px] sm:leading-[20px] font-semibold tracking-[0%] text-[#4B5563]">
+            {quote.shipment?.deliveryLocation || "Delivery location"}
+          </span>
+        </div>
       </div>
-
-      {/* ── PRICE ── */}
-      {quote.totalPrice && (
-        <div className="flex items-center gap-2 text-sm">
-          <span className="font-bold text-gray-800">
-            {quote.currency === "USD" ? "$" : quote.currency}
-            {quote.totalPrice.toLocaleString()}
-          </span>
-          <span className="text-gray-400 text-xs">
-            · {quote.paymentMethod} · due on {quote.paymentDue}
-          </span>
-        </div>
-      )}
-
-      {(quote.vehicle || quote.assignedDriver) && (
-        <div className="flex flex-wrap gap-4 text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-xl px-3 py-3">
-          {quote.vehicle && (
-            <div className="flex items-center gap-1.5">
-              <FiTruck size={12} className="text-[#BF9B53]" />
-              <span>
-                Vehicle: {quote.vehicle.vehicleNumber || quote.vehicle.vehicleType}
-              </span>
-            </div>
-          )}
-          {quote.assignedDriver && (
-            <div className="flex items-center gap-1.5">
-              <FiUsers size={12} />
-              <span>Driver assigned</span>
-            </div>
-          )}
-          <div className="flex items-center gap-1.5">
-            <FiNavigation size={12} />
-            <span className="capitalize">
-              Trip: {quote.tripStatus || "notStarted"}
-            </span>
-          </div>
-        </div>
-      )}
 
       {/* ── CANCEL REASON ── */}
       {isCancelled && quote.cancelReason && (
@@ -345,7 +300,7 @@ const ShipmentCard = ({
       )}
 
       {/* ── ACTIONS ── */}
-      <div className="flex flex-wrap gap-3 pt-1 border-t border-gray-100">
+      <div className="mt-5 flex flex-wrap gap-3">
         {/* Track only active/upcoming shipments. Completed shipments keep details only. */}
         {quote.shipperContract?.url && (
           <button
@@ -356,8 +311,7 @@ const ShipmentCard = ({
                 "noopener,noreferrer"
               )
             }
-            className="flex items-center gap-2 border border-gray-300 text-gray-700
-              px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-50 transition"
+            className="h-[34px] min-w-[130px] rounded-[4px] bg-[#BF9B53] px-4 font-montserrat text-[12px] font-bold uppercase text-white transition hover:bg-tabActive"
           >
             View Contract
           </button>
@@ -366,10 +320,8 @@ const ShipmentCard = ({
         {!isCancelled && !isCompleted && (
           <button
             onClick={() => onTrack(quote)}
-            className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53]
-              px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#BF9B53]/5 transition"
+            className="flex h-[34px] min-w-[130px] items-center justify-center gap-2 rounded-[4px] border border-[#BF9B53] px-4 font-montserrat text-[12px] font-bold uppercase text-[#BF9B53] transition hover:bg-[#BF9B53]/5"
           >
-            <FiNavigation size={14} />
             Track Shipment
           </button>
         )}
@@ -534,14 +486,14 @@ const AllUpcomingShipments = () => {
         "Shipments you've been accepted for and need to deliver will show up here.",
       info: (
         <p>
-          <span className="font-semibold text-[#BF9B53]">
+          <span className="font-montserrat text-[14px] font-bold leading-[24px] tracking-[0%] text-[#BF9B53]">
             Upcoming shipments
           </span>{" "}
-          — These are shipments where your quote has been accepted by the horse
-          owner and you are scheduled to pick up and deliver the horses. Once
-          you complete delivery, click{" "}
-          <span className="font-semibold">"Mark Delivered"</span> and enter the
-          OTP provided by the horse owner to confirm delivery.
+          <span className="font-montserrat text-[12px] leading-[20px] sm:text-[13px] sm:leading-[22px] lg:text-[14px] lg:leading-[24px] font-semibold tracking-[0%] text-[#4B5563]">
+            — These are shipments where your quote has been accepted by the horse
+            owner and you are scheduled to pick up and deliver the horses. Once
+            you complete delivery, click{" "} "Mark Delivered"and enter the OTP provided by the horse owner to confirm delivery.
+          </span>
         </p>
       ),
     },
@@ -679,10 +631,10 @@ const AllUpcomingShipments = () => {
     <div className="flex flex-col font-[Montserrat] gap-6">
       {/* ── HEADER ── */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">
+        <h1 className="font-montserrat text-[28px] leading-[38px] sm:text-[32px] sm:leading-[44px] lg:text-[36px] lg:leading-[50px] font-semibold tracking-[0%] text-[#111827]">
           My Shipments
         </h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <p className="mt-1 font-montserrat text-[12px] leading-[20px] sm:text-[13px] sm:leading-[22px] lg:text-[14px] lg:leading-[24px] font-medium tracking-[0%] text-[#4B5563]">
           Manage and track all your horse transport shipments in one place. Mark
           deliveries, verify OTPs, and view your complete shipment history.
         </p>
@@ -695,27 +647,30 @@ const AllUpcomingShipments = () => {
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 transition-colors -mb-px
-        ${
-          activeTab === tab.key
-            ? "border-[#BF9B53] text-[#BF9B53]"
-            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-        }`}
+        ${activeTab === tab.key
+                ? "border-[#BF9B53] text-[#BF9B53]"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
           >
             {tab.icon}
 
             {/* label control */}
-            <span className="truncate max-w-[70px] sm:max-w-none">
+            <span
+              className={`truncate max-w-[70px] sm:max-w-none font-montserrat text-[12px] leading-[18px] sm:text-[14px] sm:leading-[20px] font-semibold tracking-[0%] ${activeTab === tab.key
+                ? "text-[#BF9B53]"
+                : "text-[#6B7280]"
+                }`}
+            >
               {tab.label}
             </span>
 
             {tab.count > 0 && (
               <span
                 className={`text-[10px] sm:text-xs px-1 py-0.5 rounded-full font-bold
-            ${
-              activeTab === tab.key
-                ? "bg-[#BF9B53]/15 text-[#BF9B53]"
-                : "bg-gray-100 text-gray-500"
-            }`}
+            ${activeTab === tab.key
+                    ? "bg-[#BF9B53]/15 text-[#BF9B53]"
+                    : "bg-gray-100 text-gray-500"
+                  }`}
               >
                 {tab.count}
               </span>
@@ -725,7 +680,7 @@ const AllUpcomingShipments = () => {
       </div>
 
       {/* ── INFO BANNER ── */}
-      <div className="bg-[#BF9B53]/5 border border-[#BF9B53]/15 rounded-xl px-4 py-3 text-sm text-gray-600">
+      <div className="rounded-[5px] border border-[#BF9B53] bg-[#BF9B53]/5 px-3 py-3 sm:px-4 sm:py-4 text-[12px] leading-[20px] sm:text-[14px] sm:leading-[24px] font-montserrat font-medium tracking-[0%] text-gray-600">
         {currentTab.info}
       </div>
 
