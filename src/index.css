@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@100;400;500;600;700&display=swap');
 
 /* Tailwind base styles */
 @tailwind base;
@@ -15,6 +15,9 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+.d{
+  border: 2px solid red;
+}
 /* Scrollbar customization */
 body::-webkit-scrollbar {
   width: 6px; /* width of scrollbar */
@@ -106,4 +109,3 @@ select::-webkit-scrollbar-thumb {
 select::-webkit-scrollbar-track {
   background-color: #f0f0f0;
 }
-

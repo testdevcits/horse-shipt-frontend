@@ -47,7 +47,7 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col gap-5 font-montserrat sm:gap-6">
       {/* HEADER + STAT CARDS */}
-      <div className="grid gap-4 xl:grid-cols-[minmax(280px,1fr)_minmax(240px,350px)_minmax(240px,350px)] xl:items-start">
+      <div className=" grid gap-4 xl:grid-cols-[minmax(280px,1fr)_minmax(240px,350px)_minmax(240px,350px)] xl:items-start">
         {/* GREETING */}
         <div className="min-w-0 py-1">
           <div className="flex items-center gap-2">

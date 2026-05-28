@@ -1,19 +1,24 @@
 import React, { useEffect, useRef, useState } from "react";
-import { TbLocationSearch } from "react-icons/tb";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
 import PageLoader from "../../components/common/PageLoader";
 import NotFound from "../../components/common/NoData";
 import { IoArrowBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import {
-  RiTruckLine,
-  RiFileTextLine,
+  RiCalendarEventLine,
+  RiCheckboxCircleLine,
   RiCloseCircleLine,
   RiDeleteBinLine,
+  RiTruckLine,
+  RiFileTextLine,
+  RiRefreshLine,
+  RiTimeLine,
 } from "react-icons/ri";
+import { FiCreditCard, FiSearch } from "react-icons/fi";
 import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "react-toastify";
+import { LuBoxes } from "react-icons/lu";
 
 const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
@@ -31,7 +36,7 @@ const getHorseImages = (quote) =>
     .map((horse) => ({
       id: horse._id || horse.name,
       url: horse.photo?.url,
-      name: horse.name || "Horse",
+      name: horse.registeredName || horse.name || horse.barnName || "Horse",
       breed: horse.breed || horse.breedName || "",
     }))
     .filter((horse) => horse.url);
@@ -41,43 +46,82 @@ const HorseImageStrip = ({ quote }) => {
   const firstHorse = horses[0];
 
   return firstHorse ? (
-    <figure className="relative h-32 sm:h-36 bg-slate-100 border border-slate-200 overflow-hidden">
+    <figure className="relative h-[242px] overflow-hidden rounded-[8px] bg-slate-100 sm:w-[223px]">
       <img
         src={firstHorse.url}
         alt={firstHorse.name}
-        className="h-full w-full object-cover"
+        className=" h-full w-full object-cover"
       />
-      <figcaption className="absolute inset-x-0 bottom-0 bg-black/60 px-3 py-2">
-        <p className="text-sm font-semibold text-white truncate">
+      <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/45 to-transparent px-3 pb-3 pt-12">
+        <p className="truncate text-[13px] font-bold leading-4 text-white">
           {firstHorse.name}
         </p>
-        <p className="text-xs text-white/80 truncate">
+        <p className="truncate text-[11px] font-semibold leading-4 text-white">
           {firstHorse.breed || `${horses.length} horse${horses.length > 1 ? "s" : ""}`}
         </p>
       </figcaption>
     </figure>
   ) : (
-    <div className="h-32 sm:h-36 border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+    <div className="flex h-[242px] items-center justify-center rounded-[8px] border border-dashed border-slate-300 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 sm:w-[223px]">
       No horse image
     </div>
   );
 };
 
-const StatusBadge = ({ quote }) => (
-  <span
-    className={`px-3 py-1 text-xs font-semibold uppercase ${
-      quote.isCancelled
-        ? "bg-red-600 text-white"
+const formatTitleCase = (value = "") =>
+  value
+    .toString()
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/[_-]/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
+const formatCurrency = (quote) => {
+  const symbol = quote.currency && quote.currency !== "USD" ? quote.currency : "$";
+  return `${symbol}${quote.totalPrice || 0}`;
+};
+
+const StatusBadge = ({ quote }) => {
+  const isCancelled = quote.isCancelled || quote.status === "cancelled";
+  const label = isCancelled ? "Cancelled" : formatTitleCase(quote.status || "Pending");
+
+  return (
+    <span
+      className={`inline-flex h-[32px] items-center gap-1 rounded-[4px] border px-3 text-[11px] font-bold uppercase ${isCancelled
+        ? "border-red-400 bg-red-50 text-red-600"
         : quote.status === "accepted"
-        ? "bg-emerald-600 text-white"
-        : quote.status === "pending"
-        ? "bg-amber-500 text-white"
-        : "bg-slate-700 text-white"
-    }`}
-  >
-    {quote.isCancelled ? "Cancelled" : quote.status}
-  </span>
+          ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+          : "border-[#BF9B53] bg-[#FBF9F4] text-[#735D32]"
+        }`}
+    >
+      <RiCheckboxCircleLine size={13} />
+      {label}
+    </span>
+  );
+};
+
+const QuoteFact = ({ icon, label, value }) => (
+  <div className="flex w-[136px] min-w-0 items-center gap-3 py-1 pr-6 sm:w-[145px]">
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border border-gray-100 bg-[#FBFAF8] text-[#735D32]">
+      {icon}
+    </div>
+    <div className="min-w-0">
+      <p className="font-montserrat text-[10px] font-medium leading-[16px] tracking-[0%] text-[#4B5563]">
+        {label}
+      </p>
+      <p className="truncate font-montserrat text-[12px] font-semibold leading-[20px] tracking-[0%] text-[#4B5563]">
+        {value || "N/A"}
+      </p>
+    </div>
+  </div>
 );
+
+const tabIcons = {
+  all: <RiCheckboxCircleLine size={14} />,
+  in_transit: <RiTruckLine size={14} />,
+  upcoming: <RiTimeLine size={14} />,
+  cancelled: <RiCloseCircleLine size={14} />,
+  pending: <RiRefreshLine size={14} />,
+};
 
 const ContractPreview = ({ quote }) => {
   const contractUrl = quote?.contract?.url;
@@ -330,30 +374,31 @@ const ShipperQuotesPage = () => {
   return (
     <div className="w-full mx-auto font-[Montserrat]">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between mb-4 gap-4 bg-white border border-slate-200 p-4">
+      <div className="mb-6 flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 uppercase">
+          <h2 className="font-montserrat text-[28px] font-semibold leading-[38px] text-[#111827] sm:text-[32px] sm:leading-[44px] lg:text-[36px] lg:leading-[50px]">
             My Quotes
           </h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="mt-3 font-montserrat text-[14px] font-medium leading-[24px] tracking-[0%] text-[#4B5563]">
             Review shipment offers, contracts, vehicles, and payment status.
           </p>
         </div>
-        <div className="relative w-full md:w-1/3">
+        <div className="relative w-full md:w-[56%]">
           <input
             type="text"
             placeholder="Search by last 6 characters of shipment ID"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 pl-10 border border-slate-300 focus:ring-2 focus:ring-[#997C42] placeholder-gray-400"
+            className="h-[38px] w-full border border-gray-100 bg-white px-4 pl-10 text-[12px] font-medium text-gray-700 outline-none transition placeholder:text-gray-500 focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/15"
           />
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-            <TbLocationSearch size={20} color="#997C42" />
+            <FiSearch size={16} />
           </span>
         </div>{" "}
         <button
           onClick={() => navigate(-1)}
-          className="fixed bottom-6 right-6 bg-gray-600 text-white p-3 shadow-lg hover:bg-[#BF9B53] transition"
+          className="fixed bottom-6 right-6 z-30 bg-gray-600 p-3 text-white shadow-lg transition hover:bg-[#BF9B53]"
+          title="Back"
         >
           <IoArrowBack className="w-5 h-5" />
         </button>
@@ -362,7 +407,7 @@ const ShipperQuotesPage = () => {
       {/* TABS */}
       <div
         ref={tabsContainerRef}
-        className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto scrollbar-hide bg-white px-2 pt-2"
+        className="mb-6 flex h-auto gap-8 overflow-x-auto bg-white px-5 pt-3 scrollbar-hide sm:h-[47px]"
       >
         {tabData.map((tab) => (
           <button
@@ -376,13 +421,21 @@ const ShipperQuotesPage = () => {
               });
             }}
             id={`tab-${tab.key}`}
-            className={`flex-shrink-0 px-4 py-2 font-semibold transition whitespace-nowrap border border-b-0 ${
-              activeTab === tab.key
-                ? "bg-[#997C42] text-white border-[#997C42]"
-                : "bg-gray-50 text-gray-700 border-slate-200 hover:bg-gray-100"
-            }`}
+            className={`flex shrink-0 items-center gap-2 border-b-2 pb-3 font-montserrat text-[14px] font-semibold leading-[20px] tracking-[0%] transition whitespace-nowrap ${activeTab === tab.key
+              ? "border-[#BF9B53] text-[#BF9B53]"
+              : "border-transparent text-[#4B5563] hover:text-[#BF9B53]"
+              }`}
           >
-            {`${tab.label} (${tab.count})`}
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center">{tabIcons[tab.key]}</span>
+            <span>{tab.label}</span>
+            <span
+              className={`inline-flex h-5 min-w-5 items-center justify-center rounded-[2px] px-1 font-montserrat text-[11px] font-bold leading-none transition ${activeTab === tab.key
+                ? "bg-[#FFF1D5] text-[#BF9B53]"
+                : "bg-gray-200 text-gray-500"
+                }`}
+            >
+              {tab.count}
+            </span>
           </button>
         ))}
       </div>
@@ -397,73 +450,68 @@ const ShipperQuotesPage = () => {
               quote.cancellationLastDate &&
               new Date() > new Date(quote.cancellationLastDate);
             const canDelete = !quote.contractAccepted;
+            const shipment = quote.shipment || {};
+            const vehicle = quote.vehicle || {};
+            const tripStatus = formatTitleCase(quote.tripStatus || "notStarted");
 
             return (
               <div
                 key={quote._id}
-                className="bg-white border border-slate-200 shadow-sm hover:shadow-md transition"
+                className="bg-white p-3 shadow-sm transition hover:shadow-md sm:p-4"
               >
-                <div className="grid md:grid-cols-[180px_1fr] gap-4 p-4">
+                <div className="grid gap-5 lg:grid-cols-[223px_minmax(0,1fr)] lg:gap-6">
                   <HorseImageStrip quote={quote} />
 
-                  <div>
-                    <header className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 border-b border-slate-200 pb-3">
-                      <div>
-                        <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                          <RiFileTextLine className="text-[#997C42]" />
-                          {quote.shipment?.shipmentCode || "Shipment"}
+                  <div className="min-w-0">
+                    <header className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="min-w-0">
+                        <h2 className="flex min-w-0 items-center gap-2 text-[16px] font-bold leading-6 text-gray-700 sm:text-[17px]">
+                          <RiFileTextLine className="shrink-0 text-[#735D32]" size={20} />
+                          <span className="min-w-0 break-words">
+                            {shipment.shipmentCode || "Shipment"}
+                          </span>
                         </h2>
-                        <p className="mt-1 text-sm text-slate-600">
-                          {quote.shipment?.pickupLocation || "Pickup N/A"} to{" "}
-                          {quote.shipment?.deliveryLocation || "Delivery N/A"}
+                        <p className="mt-1 break-words font-montserrat text-[12px] font-medium leading-[20px] tracking-[0%] text-[#735D32]">
+                          {shipment.pickupLocation || "Pickup N/A"} TO{" "}
+                          {shipment.deliveryLocation || "Delivery N/A"}
                         </p>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex shrink-0 flex-row items-center justify-between gap-3 lg:flex-col lg:items-end">
                         <StatusBadge quote={quote} />
-                        <span className="text-xl font-bold text-[#997C42]">
-                          ${quote.totalPrice || 0}
+                        <span className="text-[22px] font-bold leading-7 text-[#BF9B53]">
+                          {formatCurrency(quote)}
                         </span>
                       </div>
                     </header>
 
-                    <dl className="grid sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-3 py-4 text-sm">
-                      <div>
-                        <dt className="text-slate-500">Transport</dt>
-                        <dd className="font-semibold text-slate-800">
-                          {quote.transportType || "N/A"}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-slate-500">Payment</dt>
-                        <dd className="font-semibold text-slate-800">
-                          {quote.paymentMethod || "N/A"} /{" "}
-                          {quote.paymentStatus || "N/A"}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-slate-500">Stalls</dt>
-                        <dd className="font-semibold text-slate-800">
-                          {quote.stallsRequired || "N/A"}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-slate-500">Refund</dt>
-                        <dd className="font-semibold text-slate-800">
-                          {quote.refundStatus || "N/A"}
-                        </dd>
-                      </div>
-                    </dl>
+                    <div className="mt-5 flex w-fit max-w-full flex-wrap items-center gap-x-7 gap-y-4 overflow-hidden [&>*:not(:last-child)]:border-r [&>*:not(:last-child)]:border-gray-200">
+                      <QuoteFact
+                        icon={<RiTruckLine size={16} />}
+                        label="Transport"
+                        value={quote.transportType || "Trucking"}
+                      />
+                      <QuoteFact
+                        icon={<FiCreditCard size={15} />}
+                        label="Payment"
+                        value={`${quote.paymentMethod || "card"} / ${quote.paymentStatus || "pending"
+                          }`}
+                      />
+                      <QuoteFact
+                        icon={<LuBoxes size={15} />}
+                        label="Stalls"
+                        value={quote.stallsRequired || "01"}
+                      />
+                      <QuoteFact
+                        icon={<RiRefreshLine size={16} />}
+                        label="Refund"
+                        value={quote.refundStatus || "Pending"}
+                      />
+                    </div>
 
                     {quote.vehicle && (
-                      <p className="text-sm bg-slate-50 border border-slate-200 p-3">
-                        <RiTruckLine className="inline text-[#997C42] mr-1" />
-                        <span className="font-semibold">Vehicle:</span>{" "}
-                        {quote.vehicle.vehicleNumber || "N/A"} |{" "}
-                        {quote.vehicle.vehicleType || "N/A"} |{" "}
-                        {quote.vehicle.numberOfStalls || 0} stalls | Trip:{" "}
-                        <span className="capitalize">
-                          {quote.tripStatus || "notStarted"}
-                        </span>
+                      <p className="mt-5 flex items-start gap-2 bg-[#F3F4F6] px-3 py-3 text-[13px] font-semibold leading-5 text-gray-700">
+                        <RiTruckLine className="shrink-0 text-[#735D32]" size={18} />
+                        <span className="min-w-0 break-words font-montserrat text-[13px] font-semibold leading-[22px] tracking-[0%] text-[#374151] sm:text-[14px] sm:leading-[24px]">Vehicle: {vehicle.vehicleNumber || "N/A"} | {vehicle.vehicleType || "N/A"} | {vehicle.numberOfStalls || 0} stalls | Trip: {tripStatus}</span>
                       </p>
                     )}
 
@@ -475,45 +523,49 @@ const ShipperQuotesPage = () => {
                             setSelectedQuote(quote);
                             setVehicleModalOpen(true);
                           }}
-                          className="px-4 py-2 bg-[#997C42] text-white text-sm font-semibold"
+                          className="mt-5 bg-[#BF9B53] px-4 py-2 text-[12px] font-bold uppercase text-white transition hover:bg-[#a6813f]"
                         >
                           Assign Vehicle
                         </button>
                       )}
 
-                    {quote.notes && (
-                      <p className="mt-3 text-sm bg-[#997C42]/10 border border-[#997C42]/30 p-3">
-                        <span className="font-semibold text-[#997C42]">
-                          Notes:
-                        </span>{" "}
-                        {quote.notes}
+                    <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                      <p className="flex items-start gap-2 rounded-[4px] border border-[#D9AF57] bg-[#FFF9EC] px-3 py-3 text-[14px] leading-5 text-gray-700 sm:px-4">
+                        <RiFileTextLine className="shrink-0 text-[#735D32]" size={17} />
+                        <span className="min-w-0 break-words font-montserrat leading-[24px] tracking-[0%]">
+                          <span className="font-semibold text-[#BF9B53]">Notes:</span>{" "}
+                          <span className="font-medium text-[#4B5563]">{quote.notes || "N/A"}</span>
+                        </span>
                       </p>
-                    )}
 
-                    {quote.isCancelled && (
-                      <p className="mt-3 text-sm bg-red-50 border border-red-200 p-3 text-red-700">
-                        <RiCloseCircleLine className="inline mr-1" />
-                        Cancelled{" "}
-                        {quote.cancelledAt
-                          ? new Date(quote.cancelledAt).toLocaleString()
-                          : ""}
-                        {quote.cancelReason
-                          ? ` | Reason: ${quote.cancelReason}`
-                          : ""}
-                      </p>
-                    )}
+                      {quote.isCancelled ? (
+                        <p className="flex items-start gap-2 rounded-[4px] border border-red-300 bg-red-50 px-3 py-3 text-[12px] font-semibold leading-5 text-[#BF5353] sm:px-4">
+                          <RiCloseCircleLine className="shrink-0" size={17} />
+                          <span className="min-w-0 break-words">
+                            Cancelled{" "}
+                            {quote.cancelledAt
+                              ? new Date(quote.cancelledAt).toLocaleString()
+                              : ""}
+                            {quote.cancelReason
+                              ? ` | Reason: ${quote.cancelReason}`
+                              : ""}
+                          </span>
+                        </p>
+                      ) : quote.cancellationLastDate ? (
+                        <p className="flex items-start gap-2 rounded-[4px] border border-red-300 bg-red-50 px-3 py-3 text-[12px] font-semibold leading-5 text-[#BF5353] sm:px-4">
+                          <RiCalendarEventLine className="shrink-0" size={17} />
+                          <span className="min-w-0 break-words">
+                            {isExpired
+                              ? "Cancellation expired"
+                              : `Cancel before: ${new Date(
+                                quote.cancellationLastDate
+                              ).toLocaleString()}`}
+                          </span>
+                        </p>
+                      ) : null}
+                    </div>
 
-                    {!quote.isCancelled && quote.cancellationLastDate && (
-                      <p className="mt-3 text-sm text-[#7f6637] font-medium">
-                        {isExpired
-                          ? "Cancellation expired"
-                          : `Cancel before: ${new Date(
-                              quote.cancellationLastDate
-                            ).toLocaleString()}`}
-                      </p>
-                    )}
-
-                    <footer className="flex flex-wrap gap-3 pt-4 mt-4 border-t border-slate-200">
+                    <footer className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                       {quote.contract?.url && (
                         <button
                           onClick={() =>
@@ -521,7 +573,7 @@ const ShipperQuotesPage = () => {
                               visibleContractId === quote._id ? null : quote._id
                             )
                           }
-                          className="px-4 py-2 bg-[#997C42] hover:bg-[#806834] text-white text-sm font-semibold"
+                          className="h-[38px] w-full rounded-[5px] bg-[#BF9B53] px-5 text-[12px] font-bold uppercase text-white transition hover:bg-[#a6813f] sm:h-[34px] sm:w-auto"
                         >
                           {visibleContractId === quote._id
                             ? "Hide Contract"
@@ -538,7 +590,7 @@ const ShipperQuotesPage = () => {
                               "noopener,noreferrer"
                             )
                           }
-                          className="px-4 py-2 border border-[#997C42] text-[#997C42] hover:bg-[#997C42]/10 text-sm font-semibold"
+                          className="h-[38px] w-full rounded-[5px] border border-[#BF9B53] px-4 text-[12px] font-bold uppercase text-[#735D32] transition hover:bg-[#BF9B53]/10 sm:h-[34px] sm:w-auto"
                         >
                           View Shipper Contract
                         </button>
@@ -547,7 +599,7 @@ const ShipperQuotesPage = () => {
                       {canDelete && (
                         <button
                           onClick={() => openModal(quote, "delete")}
-                          className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm font-semibold flex items-center gap-1"
+                          className="flex h-[38px] w-full items-center justify-center gap-1 rounded-[5px] border border-slate-300 px-4 text-[12px] font-bold uppercase text-slate-700 transition hover:bg-slate-50 sm:h-[34px] sm:w-auto"
                         >
                           <RiDeleteBinLine /> Delete
                         </button>
@@ -559,7 +611,7 @@ const ShipperQuotesPage = () => {
                         !quote.isCancelled && (
                           <button
                             onClick={() => openModal(quote, "cancel")}
-                            className="ml-auto px-4 py-2 border border-red-500 text-red-600 hover:bg-red-50 text-sm font-semibold flex items-center gap-1"
+                            className="flex h-[38px] w-full items-center justify-center gap-1 border border-red-500 px-4 text-[12px] font-bold uppercase text-red-600 transition hover:bg-red-50 sm:h-[34px] sm:w-auto lg:ml-auto"
                           >
                             <RiCloseCircleLine /> Cancel Quote
                           </button>
@@ -642,11 +694,10 @@ const ShipperQuotesPage = () => {
               <button
                 onClick={handleAction}
                 disabled={actionLoading}
-                className={`px-4 py-2 text-white transition flex items-center justify-center min-w-[120px] ${
-                  actionLoading
-                    ? "bg-red-300 cursor-not-allowed"
-                    : "bg-red-500 hover:bg-red-600"
-                }`}
+                className={`px-4 py-2 text-white transition flex items-center justify-center min-w-[120px] ${actionLoading
+                  ? "bg-red-300 cursor-not-allowed"
+                  : "bg-red-500 hover:bg-red-600"
+                  }`}
               >
                 {actionLoading ? "Processing..." : "Yes, Cancel Shipment"}
               </button>

@@ -180,7 +180,7 @@ const ShipmentMap = ({ shipments = [], pagination = {}, onPageChange }) => {
    */
   return (
     <>
-      <div className="flex flex-col lg:flex-row gap-6 w-full">
+      <div className=" flex flex-col lg:flex-row gap-6 w-full">
         {/* ==================== MAP SECTION ==================== */}
         <div className="order-1 lg:order-2 w-full lg:w-[65%] flex flex-col gap-2">
           {/* Map Header */}

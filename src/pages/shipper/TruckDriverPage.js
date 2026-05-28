@@ -7,8 +7,57 @@ import Button from "../../components/common/Button";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import PageLoader from "../../components/common/PageLoader";
 import InputField from "../../components/common/InputField";
-import { FiX } from "react-icons/fi";
-import StatusBadge from "../../components/common/StatusBadge";
+import {
+  FiFileText,
+  FiPhone,
+  FiPlus,
+  FiPower,
+  FiUser,
+  FiX,
+} from "react-icons/fi";
+import { MdEditSquare } from "react-icons/md";
+import { FaTrashCan } from "react-icons/fa6";
+import { TfiEmail } from "react-icons/tfi";
+import { FaRegAddressCard } from "react-icons/fa";
+
+const DetailItem = ({ icon, label, value }) => (
+  <div className="flex min-w-0 items-center gap-2 px-0 py-2 sm:px-5">
+
+    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-gray-100 bg-white text-[#735D32] shadow-sm">
+      {icon}
+    </div>
+
+    <div className="min-w-0">
+      <p className="font-montserrat text-[10px] font-medium leading-[14px] tracking-[0%] text-[#4B5563]">
+        {label}:
+      </p>
+
+      <p className="truncate font-montserrat text-[12px] font-semibold leading-[18px] tracking-[0%] text-[#BF9B53]">
+        {value || "N/A"}
+      </p>
+    </div>
+  </div>
+);
+
+const DriverActionButton = ({ children, icon, tone = "gold", ...props }) => {
+  const toneClasses = {
+    gold: "border-[#BF9B53] text-gray-700 hover:bg-[#BF9B53]/10",
+    red: "border-red-500 text-gray-700 hover:bg-red-50",
+  };
+
+  return (
+    <button
+      type="button"
+      className={`inline-flex h-[24px] items-center justify-center gap-1.5 rounded border bg-white px-3 text-[10px] font-semibold uppercase leading-none transition ${toneClasses[tone]}`}
+      {...props}
+    >
+      <span className={tone === "red" ? "text-red-500" : "text-[#735D32]"}>
+        {icon}
+      </span>
+      {children}
+    </button>
+  );
+};
 
 const TruckDriverPage = () => {
   const {
@@ -53,8 +102,8 @@ const TruckDriverPage = () => {
     password: editingDriver
       ? Yup.string()
       : Yup.string()
-          .min(6, "Password must be at least 6 characters")
-          .required("Password is required"),
+        .min(6, "Password must be at least 6 characters")
+        .required("Password is required"),
     notes: Yup.string().trim(),
   });
 
@@ -130,12 +179,13 @@ const TruckDriverPage = () => {
   return (
     <div className="w-full mx-auto font-montserrat">
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="font-semibold text-2xl text-gray-800">
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="font-montserrat text-[26px] font-semibold leading-[34px] text-[#111827] sm:text-[28px] sm:leading-[36px] lg:text-[28px] lg:leading-[38px]">
           Truck Driver Management
         </h1>
 
         <Button
+          className="h-[30px] min-h-0 self-start rounded px-4 text-[11px] font-bold uppercase sm:self-auto"
           onClick={() => {
             setShowForm(!showForm);
             setEditingDriver(null);
@@ -146,7 +196,10 @@ const TruckDriverPage = () => {
               <FiX /> Close
             </span>
           ) : (
-            "Add New Driver"
+            <span className="flex items-center gap-2">
+              <FiPlus size={16} />
+              Add New Driver
+            </span>
           )}
         </Button>
       </div>
@@ -267,119 +320,123 @@ const TruckDriverPage = () => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
-            {drivers.map((driver, index) => (
+          <div className="grid grid-cols-1 gap-4">
+            {drivers.map((driver) => (
               <div
                 key={driver._id}
-                className="w-full bg-white border border-2 border-[#BF9B53] rounded-md p-5 shadow-sm hover:shadow-md transition-all"
+                className="w-full bg-white px-4 py-3 shadow-sm transition-all hover:shadow-md sm:px-5"
               >
-                {/* ================= HEADER ================= */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                  {/* LEFT: IMAGE + NAME */}
-                  <div className="flex items-center gap-3">
+                <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex items-center gap-3 sm:gap-4">
                     {driver.profileImage?.url ? (
                       <img
                         src={driver.profileImage.url}
                         alt={driver.name}
-                        className="w-12 h-12 rounded-full object-cover border"
+                        className="h-[40px] w-[40px] rounded-full border border-[#F8EAC8] object-cover"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-[#BF9B53]/20 text-[#BF9B53] flex items-center justify-center font-bold">
+                      <div className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full bg-[#FFF1D5] text-[20px] font-bold leading-none text-gray-950">
                         {driver.name?.charAt(0)?.toUpperCase() || "D"}
                       </div>
                     )}
 
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-800">
-                        {driver.name}
+                    <div className="min-w-0">
+                      <h2 className="truncate font-montserrat text-[14px] font-semibold leading-[20px] text-[#4B5563]">
+                        {driver.name || "N/A"}
                       </h2>
+                      <span
+                        className={`mt-1 inline-flex h-[20px] items-center gap-1.5 rounded-full border px-2 text-[10px] font-medium ${driver.isActive
+                            ? "border-emerald-600 bg-emerald-50 text-emerald-700"
+                            : "border-red-500 bg-red-50 text-red-600"
+                          }`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${driver.isActive ? "bg-emerald-600" : "bg-red-500"
+                            }`}
+                        />
+                        {driver.isActive ? "Active" : "Inactive"}
+                      </span>
                     </div>
                   </div>
 
-                  {/* RIGHT: ACTIONS */}
-                  <div className="flex gap-2 flex-wrap">
-                    <button
+                  <div className="flex flex-wrap gap-2 lg:justify-end">
+                    <DriverActionButton
+                      icon={<MdEditSquare size={16} />}
                       onClick={() => {
                         setEditingDriver(driver);
                         setShowForm(true);
                       }}
-                      className="px-3 py-1.5 bg-[#BF9B53] text-white rounded-lg text-sm hover:opacity-90"
                     >
                       Edit
-                    </button>
+                    </DriverActionButton>
 
-                    <button
+                    <DriverActionButton
+                      tone="red"
+                      icon={<FaTrashCan size={16} />}
                       onClick={() =>
                         setConfirmDelete({ show: true, id: driver._id })
                       }
-                      className="px-3 py-1.5 border border-red-300 text-red-500 rounded-lg text-sm hover:bg-red-50"
                     >
                       Delete
-                    </button>
+                    </DriverActionButton>
 
-                    <button
+                    <DriverActionButton
+                      icon={<FiPower size={16} />}
                       onClick={() => handleToggleStatus(driver)}
-                      className={`px-3 py-1.5 rounded-lg text-sm ${
-                        driver.isActive
-                          ? "border text-gray-600 hover:bg-gray-50"
-                          : "bg-[#BF9B53] text-white hover:opacity-90"
-                      }`}
                     >
                       {driver.isActive ? "Deactivate" : "Activate"}
-                    </button>
+                    </DriverActionButton>
                   </div>
                 </div>
 
-                {/* ================= STATUS ================= */}
-                <div className="mb-4">
-                  <div className="w-[80px]">
-                    <StatusBadge
-                      text={driver.isActive ? "Active" : "Inactive"}
-                      type={driver.isActive ? "success" : "danger"}
-                    />
-                  </div>
+                <div className="relative isolate grid grid-cols-1 bg-[#F7F7F7] px-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-1/4 top-1/2 z-10 hidden h-[28px] w-px -translate-x-1/2 -translate-y-1/2 bg-[#E5E7EB] lg:block"
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden h-[28px] w-px -translate-x-1/2 -translate-y-1/2 bg-[#E5E7EB] lg:block"
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-3/4 top-1/2 z-10 hidden h-[28px] w-px -translate-x-1/2 -translate-y-1/2 bg-[#E5E7EB] lg:block"
+                  />
+                  <DetailItem
+                    icon={<FiUser size={18} />}
+                    label="Name"
+                    value={driver.name}
+                  />
+                  <DetailItem
+                    icon={<FaRegAddressCard size={18} />}
+                    label="License"
+                    value={driver.licenseNumber}
+                  />
+                  <DetailItem
+                    icon={<TfiEmail size={17} />}
+                    label="Email"
+                    value={driver.email}
+                  />
+                  <DetailItem
+                    icon={<FiPhone size={17} />}
+                    label="Phone"
+                    value={driver.phone}
+                  />
                 </div>
 
-                {/* ================= DETAILS ================= */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                  <div className="flex gap-2">
-                    <p>Name:</p>
-                    <p className="font-semibold text-[#BF9B53]">
-                      {driver.name || "N/A"}
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <p>Email:</p>
-                    <p className="font-semibold text-[#BF9B53]">
-                      {driver.email || "N/A"}
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <p>Phone:</p>
-                    <p className="font-semibold text-[#BF9B53]">
-                      {driver.phone || "N/A"}
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <p>License:</p>
-                    <p className="font-semibold text-[#BF9B53]">
-                      {driver.licenseNumber || "N/A"}
-                    </p>
-                  </div>
-
-                  <div className="col-span-1 sm:col-span-2 lg:col-span-3 border-b border-[#BF9B53] my-2"></div>
-
-                  {driver.notes && (
-                    <div className="flex gap-2 sm:col-span-2 lg:col-span-3">
-                      <p>Notes:</p>
-                      <p className="font-semibold text-[#BF9B53]">
-                        {driver.notes}
-                      </p>
-                    </div>
-                  )}
+                <div className="mt-3 flex min-w-0 items-start gap-2 text-sm">
+                  <FiFileText
+                    size={14}
+                    className="mt-0.5 shrink-0 text-[#735D32]"
+                  />
+                  <p className="min-w-0 break-words text-gray-600">
+                    <span className="font-montserrat text-[11px] font-semibold leading-[16px] tracking-[0%] text-[#BF9B53]">
+                      Notes:
+                    </span>{" "}
+                    <span className="font-montserrat text-[11px] font-semibold leading-[16px] tracking-[0%] text-[#4B5563]">
+                      {driver.notes || "N/A"}
+                    </span>
+                  </p>
                 </div>
               </div>
             ))}

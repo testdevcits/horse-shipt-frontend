@@ -419,7 +419,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
 
         {/* Map View */}
         {!isLoading && !noData && activeTab === "map" && (
-          <div className="rounded-xl overflow-hidden border border-gray-200">
+          <div className="rounded overflow-hidden">
             <ShipmentMap
               shipments={
                 filteredShipments.length > 0

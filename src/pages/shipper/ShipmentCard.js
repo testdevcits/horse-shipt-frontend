@@ -298,7 +298,7 @@ const ShipmentCard = ({ shipment, invitation, isHighlighted = false }) => {
                       <FiMapPin size={18} />
                     </span>
 
-                    <div className="min-w-0 space-y-[1px] sm:min-w-[82px]">
+                    <div className="min-w-0 space-y-[1px] ">
                       <p className="font-montserrat text-[10px] font-medium leading-[14px] tracking-normal text-[#4B5563]">
                         Distance
                       </p>
@@ -313,18 +313,6 @@ const ShipmentCard = ({ shipment, invitation, isHighlighted = false }) => {
                 </>
               )}
 
-              {/* <div className="flex items-center gap-3">
-                <span className="w-9 h-9 rounded bg-[#FBF9F3] border border-gray-100 flex items-center justify-center text-[#8A6E2F]">
-                  <FaHorse size={18} />
-                </span>
-                <div>
-                  <p className="font-montserrat text-[10px] font-medium leading-[20px] tracking-[0%] text-[#4B5563]">Horses</p>
-                  <p className="font-montserrat text-[12px] font-semibold leading-[20px] tracking-[0%] text-[#4B5563]">
-                    {shipment.numberOfHorses || "01"}
-                  </p>
-                </div>
-              </div> */}
-
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded border border-gray-100 bg-[#FBF9F3]">
 
@@ -336,7 +324,7 @@ const ShipmentCard = ({ shipment, invitation, isHighlighted = false }) => {
 
                 </span>
 
-                <div className="min-w-0 space-y-[1px] sm:min-w-[82px]">
+                <div className="min-w-0 space-y-[1px]">
                   <p className="font-montserrat text-[10px] font-medium leading-[14px] tracking-normal text-[#4B5563]">
                     Horses
                   </p>
