@@ -7,10 +7,6 @@ import {
   FiExternalLink,
   FiInfo,
   FiLink,
-  FiMapPin,
-  FiSearch,
-  FiShield,
-  FiStar,
 } from "react-icons/fi";
 import ConfirmModal from "../../components/common/ConfirmModal";
 
