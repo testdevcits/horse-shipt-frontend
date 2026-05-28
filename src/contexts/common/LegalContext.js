@@ -9,9 +9,7 @@ export const LegalProvider = ({ children }) => {
   const [termsConditions, setTermsConditions] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // =========================
-  // GET PRIVACY POLICIES (ACTIVE)
-  // =========================
+ 
   const fetchPrivacyPolicies = async () => {
     try {
       setLoading(true);
