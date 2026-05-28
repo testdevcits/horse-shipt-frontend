@@ -108,7 +108,7 @@ const Profile = () => {
       <div className="w-full">
         <div className="space-y-4">
           {/* ===== PROFILE CARD ===== */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+          <div className="bg-white shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
             {/* Header */}
             <div className="bg-gradient-to-r from-[#BF9B53] to-[#D4AF77] px-4 sm:px-5 lg:px-6 py-4 sm:py-5">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
@@ -152,7 +152,7 @@ const Profile = () => {
                     <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
                       Description
                     </label>
-                    <div className="bg-gray-50 border border-gray-200 p-3 sm:p-4 rounded-lg">
+                    <div className="bg-gray-50 border border-gray-200 p-3 sm:p-4">
                       <p className="text-gray-800 text-sm leading-relaxed">
                         {profile.description || "No description provided"}
                       </p>
@@ -382,7 +382,7 @@ const Profile = () => {
                             onChange={handleChange}
                             placeholder="Add a description..."
                             rows={4}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53] focus:ring-opacity-50 focus:border-transparent transition-all resize-none"
+                            className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53] focus:ring-opacity-50 focus:border-transparent transition-all resize-none"
                           />
                           {errors.description && touched.description && (
                             <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
@@ -423,7 +423,7 @@ const Profile = () => {
           </div>
 
           {/* ===== REVIEWS SECTION ===== */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+          <div className="bg-white shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
             {/* Reviews Header */}
             <div className="bg-gradient-to-r from-[#BF9B53] to-[#D4AF77] px-4 sm:px-5 lg:px-6 py-4 sm:py-5">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
@@ -470,7 +470,7 @@ const Profile = () => {
                   {reviews.map((review) => (
                     <div
                       key={review.id}
-                      className="bg-gray-50 border border-gray-200 p-3 sm:p-4 rounded-lg hover:shadow-md transition-all hover:border-[#BF9B53]/30"
+                      className="bg-gray-50 border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-all hover:border-[#BF9B53]/30"
                     >
                       <div className="flex justify-between items-start gap-2 mb-3">
                         <div>

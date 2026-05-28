@@ -234,7 +234,6 @@ const ShipperNotifications = () => {
         style={{
           background: "#ffffff",
           border: "1px solid #E8D5A3",
-          borderRadius: 10,
           overflow: "hidden",
           boxShadow: "0 1px 4px 0 rgba(191,155,83,0.08)",
         }}

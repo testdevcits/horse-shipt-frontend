@@ -254,7 +254,7 @@ const PaymentsSettings = () => {
         )}
 
         {/* ── Main Card ── */}
-        <div className="bg-white border border-[#E8D5A3] rounded-md overflow-hidden shadow-[0_1px_4px_0_rgba(191,155,83,0.08)]">
+        <div className="bg-white border border-[#E8D5A3] overflow-hidden shadow-[0_1px_4px_0_rgba(191,155,83,0.08)]">
           {/* Card Header */}
           <div className="px-4 sm:px-6 py-4 sm:py-5 bg-[#FFFDF7] border-b border-[#F0E4C0]">
             <div className="flex items-center justify-between gap-2">
@@ -327,7 +327,7 @@ const PaymentsSettings = () => {
           <div className="px-4 sm:px-6 py-4 sm:py-5">
             {/* Success */}
             {statusType === "success" && (
-              <div className="flex items-start gap-3 bg-green-50 border border-green-200 rounded-md px-4 py-3.5">
+              <div className="flex items-start gap-3 bg-green-50 border border-green-200 px-4 py-3.5">
                 <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center text-green-700 flex-shrink-0">
                   <CheckIcon />
                 </div>

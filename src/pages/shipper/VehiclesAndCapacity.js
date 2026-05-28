@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { FiPlus, FiX } from "react-icons/fi";
+import {
+  FiCheckCircle,
+  FiPlus,
+  FiUserCheck,
+  FiX,
+} from "react-icons/fi";
+import { MdEditSquare } from "react-icons/md";
+import { FaTrashCan } from "react-icons/fa6";
 import { RiImageAddLine } from "react-icons/ri";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -123,6 +130,20 @@ const VehiclePage = () => {
     images: vehicle?.images || [],
   });
 
+  const getVerificationStyle = (status = "PENDING") => {
+    const normalized = status.toUpperCase();
+
+    if (normalized === "VERIFIED") {
+      return "border-emerald-300 bg-emerald-50 text-emerald-700";
+    }
+
+    if (normalized === "REJECTED") {
+      return "border-red-300 bg-red-50 text-red-600";
+    }
+
+    return "border-[#D9AF57] bg-[#FFF9EC] text-[#BF9B53]";
+  };
+
   // --------- Form submit handler ---------
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     const formData = new FormData();
@@ -170,21 +191,22 @@ const VehiclePage = () => {
       />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3 bg-white border border-slate-200 p-4">
+      <div className="mb-7 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="font-montserrat font-semibold text-2xl text-gray-800">
+          <h1 className="font-montserrat text-[36px] font-semibold leading-[50px] tracking-[0%] text-[#111827]">
             My Registered Vehicles
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="mt-3 font-montserrat text-[14px] font-medium leading-[24px] tracking-[0%] text-[#4B5563]">
             {vehicles.length} vehicle{vehicles.length === 1 ? "" : "s"} added
             to your carrier profile
           </p>
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center justify-center gap-2 bg-[#bf9b53] text-white px-4 py-2 hover:bg-opacity-90 transition w-full sm:w-auto"
+          className="flex h-[40px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#BF9B53] px-4 font-montserrat text-[12px] font-bold uppercase leading-[20px] tracking-[0%] text-white transition hover:bg-opacity-90 sm:w-[172px]"
         >
-          <FiPlus className="text-lg" /> <span>Add Vehicle</span>
+          <FiPlus size={16} />
+          <span>Add Vehicle</span>
         </button>
       </div>
 
@@ -204,153 +226,162 @@ const VehiclePage = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full">
+        <div className="grid grid-cols-1 gap-5 w-full">
           {vehicles.map((vehicle, index) => (
             <div
               key={vehicle._id}
-              className="w-full bg-white border border-slate-200 shadow-sm hover:shadow-md transition"
+              className="w-full bg-white px-3 py-3 shadow-sm transition hover:shadow-md sm:px-4 lg:py-2.5"
             >
-              <div className="grid sm:grid-cols-[150px_1fr] gap-4 p-4">
-                <div className="h-36 bg-slate-100 border border-slate-200 overflow-hidden">
+              <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)]">
+                <div className="aspect-[1.12/1] w-full overflow-hidden rounded-[5px] bg-slate-100 sm:aspect-[1.45/1] lg:h-[270px] lg:w-[260px] lg:aspect-auto xl:h-[305px] xl:w-[280px]">
                   {vehicle.images?.[0]?.url ? (
                     <img
                       src={vehicle.images[0].url}
                       alt={vehicle.vehicleNumber || "vehicle"}
-                      className="w-full h-full object-cover"
+                      className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                    <div className="flex h-full w-full flex-col items-center justify-center text-slate-400">
                       <RiImageAddLine className="text-3xl" />
                       <span className="text-xs mt-1">No image</span>
                     </div>
                   )}
                 </div>
 
-                <div className="min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div className="min-w-0 py-0.5 lg:pr-1">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+                      <p className="font-montserrat text-[12px] font-semibold leading-[20px] tracking-[0%] text-[#4B5563]">
                         Vehicle {index + 1}
                       </p>
-                      <h2 className="text-lg font-semibold text-slate-900 uppercase mt-1">
+                      <h2 className="mt-1 font-montserrat text-[16px] leading-[28px] sm:text-[18px] sm:leading-[30px] lg:text-[20px] lg:leading-[35px] font-semibold uppercase tracking-[0%] text-[#4B5563]">
                         {vehicle.vehicleNumber || "Vehicle number N/A"}
                       </h2>
-                      <p className="text-sm text-slate-600 mt-1">
+                      <p className="font-montserrat text-[11px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-medium tracking-[0%] text-[#735D32]">
                         {vehicle.vehicleType || "N/A"} |{" "}
                         {vehicle.transportType || "N/A"}
                       </p>
                     </div>
 
                     <span
-                      className={`px-3 py-1 text-xs font-semibold w-fit ${
-                        vehicle.verificationStatus === "VERIFIED"
-                          ? "bg-green-100 text-green-700"
-                          : vehicle.verificationStatus === "REJECTED"
-                          ? "bg-red-100 text-red-600"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
+                      className={`inline-flex h-[34px] w-fit items-center gap-1 rounded-[4px] border border-[#BF9B53] px-3 font-montserrat text-[10px] leading-none sm:text-[12px] sm:leading-[20px] font-semibold uppercase tracking-[0%] ${getVerificationStyle(
+                        vehicle.verificationStatus
+                      )}`}
                     >
-                      {vehicle.verificationStatus || "PENDING"}
+                      <FiCheckCircle size={12} />
+                      <span className="font-montserrat text-[10px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold uppercase tracking-[0%] text-[#BF9B53]">
+  {vehicle.verificationStatus || "PENDING"}
+</span>
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mt-4">
-                    <p>
-                      <span className="text-slate-500">VIN:</span>{" "}
-                      <span className="font-semibold text-[#BF9B53] uppercase">
+                  <div className="mt-5 grid w-full max-w-[460px] grid-cols-2 gap-y-3 overflow-hidden text-[11px] sm:inline-grid sm:w-fit sm:grid-cols-4 [&>*:not(:last-child)]:border-r [&>*:not(:last-child)]:border-gray-200 [&>*:nth-child(2)]:border-r-0 sm:[&>*:nth-child(2)]:border-r sm:[&>*:last-child]:border-r-0">
+                    <p className="min-w-0 pr-4 sm:w-[120px] sm:pr-5">
+                      <span className="block font-montserrat text-[10px] leading-[18px] sm:text-[10px] sm:leading-[20px] font-medium tracking-[0%] text-[#4B5563]">VIN:</span>
+                      <span className="block truncate font-montserrat text-[11px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold tracking-[0%] text-[#4B5563]">
                         {vehicle.vinNumber || "N/A"}
                       </span>
                     </p>
-                    <p>
-                      <span className="text-slate-500">Stalls:</span>{" "}
-                      <span className="font-semibold text-[#BF9B53]">
+                    <p className="min-w-0 px-4 sm:w-[80px] sm:px-5">
+                      <span className="block font-montserrat text-[10px] leading-[18px] sm:text-[10px] sm:leading-[20px] font-medium tracking-[0%] text-[#4B5563]">Stalls:</span>
+                      <span className="block truncate font-montserrat text-[11px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold tracking-[0%] text-[#4B5563]">
                         {vehicle.numberOfStalls || "N/A"}
                       </span>
                     </p>
-                    <p>
-                      <span className="text-slate-500">Stall Type:</span>{" "}
-                      <span className="font-semibold text-[#BF9B53]">
+                    <p className="min-w-0 pr-4 sm:w-[110px] sm:px-5">
+                      <span className="block font-montserrat text-[10px] leading-[18px] sm:text-[10px] sm:leading-[20px] font-medium tracking-[0%] text-[#4B5563]">Stall Type:</span>
+                      <span className="block truncate font-montserrat text-[11px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold tracking-[0%] text-[#4B5563]">
                         {vehicle.trailerType || "N/A"}
                       </span>
                     </p>
-                    <p>
-                      <span className="text-slate-500">Size:</span>{" "}
-                      <span className="font-semibold text-[#BF9B53]">
+                    <p className="min-w-0 px-4 sm:w-[110px] sm:px-5">
+                      <span className="block font-montserrat text-[10px] leading-[18px] sm:text-[10px] sm:leading-[20px] font-medium tracking-[0%] text-[#4B5563]">Size:</span>
+                      <span className="block truncate font-montserrat text-[11px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold tracking-[0%] text-[#4B5563]">
                         {vehicle.stallSize || "N/A"}
                       </span>
                     </p>
                   </div>
 
                   {vehicle.driver && (
-                    <p className="mt-3 text-sm font-semibold text-green-600">
+                    <p className="mt-4 font-montserrat text-[11px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold tracking-[0%] text-[#047857]">
                       Assigned Driver: {vehicle.driver.name}
                     </p>
                   )}
 
-                  {vehicle.notes && (
-                    <p className="mt-3 text-sm text-slate-600 border-l-4 border-[#BF9B53] pl-3">
-                      {vehicle.notes}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* DRIVER ASSIGNMENT */}
-              <div className="border-t border-slate-200 p-4 bg-slate-50">
-                <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-                  <select
-                    value={selectedDriver[vehicle._id] || ""}
-                    onChange={(e) =>
-                      setSelectedDriver((prev) => ({
-                        ...prev,
-                        [vehicle._id]: e.target.value,
-                      }))
-                    }
-                    className="flex-1 border border-gray-300 px-2.5 py-2 text-sm bg-white"
-                    disabled={activeDrivers.length === 0}
-                  >
-                    <option value="">
-                      {activeDrivers.length === 0
-                        ? "Driver not available"
-                        : "Select Driver"}
-                    </option>
-                    {activeDrivers.map((driver) => (
-                      <option key={driver._id} value={driver._id}>
-                        {driver.name}
-                      </option>
-                    ))}
-                  </select>
-
-                  <button
-                    onClick={() => handleAssignDriver(vehicle._id)}
-                    disabled={activeDrivers.length === 0}
-                    className="bg-[#BF9B53] text-white px-4 py-2 hover:bg-green-700 transition text-sm whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Assign
-                  </button>
-                  <button
-                    onClick={() => openModal(vehicle)}
-                    className="px-4 py-2 text-white bg-[#BF9B53] hover:opacity-90 text-sm"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      setConfirmData({ show: true, id: vehicle._id })
-                    }
-                    className="px-4 py-2 border border-red-300 text-red-500 hover:bg-red-50 text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
-
-                {activeDrivers.length === 0 && (
-                  <p className="mt-2 text-xs font-medium text-red-500">
-                    Driver not available. Please add new driver.
+                  <p className="mt-4 max-w-full break-words border-l-4 border-[#BF9B53] bg-[#F3F4F6] px-3 py-3 font-montserrat text-[12px] leading-[20px] sm:text-[13px] sm:leading-[22px] lg:text-[14px] lg:leading-[24px] font-medium tracking-[0%] text-[#4B5563]">
+                    {vehicle.notes ||
+                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}
                   </p>
-                )}
 
+                  <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="w-full sm:max-w-[380px]">
+                      <select
+                        value={selectedDriver[vehicle._id] || ""}
+                        onChange={(e) =>
+                          setSelectedDriver((prev) => ({
+                            ...prev,
+                            [vehicle._id]: e.target.value,
+                          }))
+                        }
+                        className="h-[40px] w-full rounded-[5px] border border-gray-200 bg-white px-3 font-montserrat text-[12px] leading-[20px] sm:text-[14px] sm:leading-[24px] font-normal tracking-[0%] text-[#4B5563] outline-none"
+                        disabled={activeDrivers.length === 0}
+                      >
+                        <option
+                          value=""
+                          className="font-montserrat text-[14px] font-normal leading-[24px] tracking-[0%] text-[#4B5563]"
+                        >
+                          {activeDrivers.length === 0
+                            ? "Driver not available"
+                            : "Select Driver"}
+                        </option>
+
+                        {activeDrivers.map((driver) => (
+                          <option
+                            key={driver._id}
+                            value={driver._id}
+                            className="font-montserrat text-[14px] font-normal leading-[24px] tracking-[0%] text-[#4B5563]"
+                          >
+                            {driver.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      {activeDrivers.length === 0 && (
+                        <p className="mt-2 text-xs font-medium text-red-500">
+                          Driver not available. Please add new driver.
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex w-full items-center justify-between gap-4 sm:w-auto sm:justify-end">
+                      <button
+                        onClick={() => handleAssignDriver(vehicle._id)}
+                        disabled={activeDrivers.length === 0}
+                        className="flex h-10 w-10 items-center justify-center text-[#CE9F2D] transition hover:text-[#bd9027] disabled:cursor-not-allowed disabled:opacity-50 sm:h-auto sm:w-auto"
+                        title="Assign driver"
+                      >
+                        <FiUserCheck size={20} />
+                      </button>
+                      <button
+                        onClick={() => openModal(vehicle)}
+                        className="flex h-10 w-10 items-center justify-center text-[#CE9F2D] transition hover:text-[#bd9027] sm:h-auto sm:w-auto"
+                        title="Edit vehicle"
+                      >
+                        <MdEditSquare size={20} />
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          setConfirmData({ show: true, id: vehicle._id })
+                        }
+                        className="flex h-10 w-10 items-center justify-center text-red-500 transition hover:text-red-600 sm:h-auto sm:w-auto"
+                        title="Delete vehicle"
+                      >
+                        <FaTrashCan size={20} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -411,12 +442,11 @@ const VehiclePage = () => {
                     <Field
                       as="select"
                       name="vehicleType"
-                      className={`w-full rounded-sm px-2.5 py-1.5 ${
-                        (touched.vehicleType || submitCount > 0) &&
+                      className={`w-full rounded-sm px-2.5 py-1.5 ${(touched.vehicleType || submitCount > 0) &&
                         errors.vehicleType
-                          ? "border border-red-400"
-                          : "border border-gray-300"
-                      }`}
+                        ? "border border-red-400"
+                        : "border border-gray-300"
+                        }`}
                     >
                       <option value="">Select Vehicle Type</option>
                       <option value="Truck">Truck</option>
@@ -439,12 +469,11 @@ const VehiclePage = () => {
                       type="text"
                       name="vehicleNumber"
                       placeholder="Enter vehicle number"
-                      className={`w-full rounded-sm px-2.5 py-1.5 uppercase ${
-                        (touched.vehicleNumber || submitCount > 0) &&
+                      className={`w-full rounded-sm px-2.5 py-1.5 uppercase ${(touched.vehicleNumber || submitCount > 0) &&
                         errors.vehicleNumber
-                          ? "border border-red-400"
-                          : "border border-gray-300"
-                      }`}
+                        ? "border border-red-400"
+                        : "border border-gray-300"
+                        }`}
                       onChange={(e) =>
                         setFieldValue(
                           "vehicleNumber",
@@ -469,12 +498,11 @@ const VehiclePage = () => {
                       type="text"
                       name="vinNumber"
                       placeholder="Enter VIN number"
-                      className={`w-full rounded-sm px-2.5 py-1.5 uppercase ${
-                        (touched.vinNumber || submitCount > 0) &&
+                      className={`w-full rounded-sm px-2.5 py-1.5 uppercase ${(touched.vinNumber || submitCount > 0) &&
                         errors.vinNumber
-                          ? "border border-red-400"
-                          : "border border-gray-300"
-                      }`}
+                        ? "border border-red-400"
+                        : "border border-gray-300"
+                        }`}
                       onChange={(e) =>
                         setFieldValue("vinNumber", e.target.value.toUpperCase())
                       }
@@ -495,12 +523,11 @@ const VehiclePage = () => {
                     <Field
                       type="number"
                       name="numberOfStalls"
-                      className={`w-full rounded-sm px-2.5 py-1.5 ${
-                        (touched.numberOfStalls || submitCount > 0) &&
+                      className={`w-full rounded-sm px-2.5 py-1.5 ${(touched.numberOfStalls || submitCount > 0) &&
                         errors.numberOfStalls
-                          ? "border border-red-400"
-                          : "border border-gray-300"
-                      }`}
+                        ? "border border-red-400"
+                        : "border border-gray-300"
+                        }`}
                     />
                     <ErrorMessage
                       name="numberOfStalls"
@@ -517,12 +544,11 @@ const VehiclePage = () => {
                     <Field
                       as="select"
                       name="trailerType"
-                      className={`w-full rounded-sm px-2.5 py-1.5 ${
-                        (touched.trailerType || submitCount > 0) &&
+                      className={`w-full rounded-sm px-2.5 py-1.5 ${(touched.trailerType || submitCount > 0) &&
                         errors.trailerType
-                          ? "border border-red-400"
-                          : "border border-gray-300"
-                      }`}
+                        ? "border border-red-400"
+                        : "border border-gray-300"
+                        }`}
                     >
                       <option value="">Select Stall Type</option>
                       {[
@@ -550,12 +576,11 @@ const VehiclePage = () => {
                     <Field
                       as="select"
                       name="stallSize"
-                      className={`w-full rounded-sm px-2.5 py-1.5 ${
-                        (touched.stallSize || submitCount > 0) &&
+                      className={`w-full rounded-sm px-2.5 py-1.5 ${(touched.stallSize || submitCount > 0) &&
                         errors.stallSize
-                          ? "border border-red-400"
-                          : "border border-gray-300"
-                      }`}
+                        ? "border border-red-400"
+                        : "border border-gray-300"
+                        }`}
                     >
                       <option value="">Select Stall Size</option>
                       {[
