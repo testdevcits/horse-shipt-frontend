@@ -23,10 +23,6 @@ const mapContainerStyle = {
   height: "260px",
 };
 
-const savedAreaMapContainerStyle = {
-  width: "100%",
-  height: "220px",
-};
 
 const allAreasMapContainerStyle = {
   width: "100%",
