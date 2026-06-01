@@ -92,7 +92,7 @@ const Step1Pickup = ({
   );
 
   return (
-    <div className="flex flex-col w-full gap-6 bg-white p-4 md:p-6 rounded-lg font-montserrat">
+    <div className="flex flex-col w-full gap-6 bg-white p-4 md:p-6 font-montserrat">
       <div>
         <label className="block text-sm font-semibold mb-2 text-gray-600">
           Pickup Location <span className="text-red-500">*</span>
@@ -106,7 +106,7 @@ const Step1Pickup = ({
             type="text"
             value={pickupLocation}
             placeholder="Search pickup address"
-            className={`w-full border-2 rounded-lg px-4 py-2 md:py-3 text-gray-700 text-sm md:text-base focus:outline-none transition-all ${
+            className={`w-full border-2 px-4 py-2 md:py-3 text-gray-700 text-sm md:text-base focus:outline-none transition-all ${
               errors?.pickupLocation
                 ? "border-red-500 focus:ring-2 focus:ring-red-300"
                 : "border-gray-300 focus:ring-2 focus:ring-[#BF9B53]"
@@ -127,7 +127,7 @@ const Step1Pickup = ({
       </div>
 
       {/* Google Map */}
-      <div className="w-full rounded-lg overflow-hidden border-2 border-gray-200">
+      <div className="w-full overflow-hidden border-2 border-gray-200">
         <GoogleMap
           mapContainerStyle={containerStyle}
           center={pickupCoords || defaultCenter}
@@ -189,7 +189,7 @@ const Step1Pickup = ({
         </p>
       </div>
 
-      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 rounded-lg space-y-4">
+      <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 space-y-4">
         <p className="text-xs md:text-sm text-gray-900">
           Please enter your pickup address or adjust the map marker to set the
           exact location.

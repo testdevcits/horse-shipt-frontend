@@ -95,9 +95,12 @@ const Dashboard = () => {
           onClick={() => navigate("/shipper/quotes")}
           className="group min-h-[80px] cursor-pointer bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:shadow-md sm:min-h-[90px] sm:px-5"
         >
+          <div className="mb-1 flex items-start justify-between">
           <p className="mb-1 text-[10px] font-bold uppercase leading-[16px] text-[#4B5563]">
             Submitted Quotes
           </p>
+          <FiArrowRight className="text-gray-400 transition-all duration-200 group-hover:translate-x-1 group-hover:text-[#735D32]" />
+          </div>
 
           <div className="flex items-end justify-between gap-4">
             <p className="text-[38px] font-bold leading-none text-system-primary sm:text-[42px]">

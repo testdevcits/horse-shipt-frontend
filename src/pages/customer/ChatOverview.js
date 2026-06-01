@@ -277,7 +277,7 @@ const CustomerChatOverview = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search shipment or shipper"
-            className="w-full border rounded-md pl-10 py-2"
+            className="w-full border pl-10 py-2"
           />
         </div>
 
@@ -286,7 +286,7 @@ const CustomerChatOverview = () => {
             <button
               key={type}
               onClick={() => setFilter(type)}
-              className={`flex-1 py-2 rounded text-sm font-medium border
+              className={`flex-1 py-2 text-sm font-medium border
                 ${
                   filter === type
                     ? "bg-system-primary text-white border-system-primary"

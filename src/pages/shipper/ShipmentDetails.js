@@ -21,6 +21,13 @@ import {
 } from "lucide-react";
 import { useShipperPayments } from "../../contexts/shipperContext/ShipperPaymentContext";
 import { useSubscription } from "../../contexts/shipperContext/SubscriptionContext";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import ImageSwiper from "../../components/common/ImageSwiper";
 
 /**
  * ============================================================
@@ -82,16 +89,16 @@ const normalizeInvitationShipment = (invite) => {
     invite.shipment && typeof invite.shipment === "object"
       ? invite.shipment
       : {
-          _id: invite.shipment,
-          shipmentCode: invite.shipmentCode,
-          pickupLocation: invite.pickupLocation,
-          pickupCoords: invite.pickupCoords,
-          deliveryLocation: invite.deliveryLocation,
-          deliveryCoords: invite.deliveryCoords,
-          status: "open_for_offers",
-          horses: [],
-          numberOfHorses: invite.numberOfHorses,
-        };
+        _id: invite.shipment,
+        shipmentCode: invite.shipmentCode,
+        pickupLocation: invite.pickupLocation,
+        pickupCoords: invite.pickupCoords,
+        deliveryLocation: invite.deliveryLocation,
+        deliveryCoords: invite.deliveryCoords,
+        status: "open_for_offers",
+        horses: [],
+        numberOfHorses: invite.numberOfHorses,
+      };
 
   if (!baseShipment?._id) return null;
 
@@ -144,6 +151,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
     loading: invitationLoading,
   } = useShipperInvitations();
   const [isQuestionOpen, setIsQuestionOpen] = useState(false);
+
+  const [activeHorseIndex, setActiveHorseIndex] = useState(0);
 
   const [shipment, setShipment] = useState(null);
   const directFetchIdRef = useRef(null);
@@ -350,12 +359,12 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const formatNoteDate = (dateString) =>
     dateString
       ? new Date(dateString).toLocaleString("en-US", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-        })
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
       : "";
 
   // ── Loading ───────────────────────────────────────────────────────────────
@@ -398,6 +407,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       </div>
     );
   }
+
+  console.log('shipmenttttttttttttt: ', shipment.horses);
 
   const chatAllowedStatuses = ["assigned", "picked", "in_transit"];
   const canOpenShipmentChat =
@@ -599,7 +610,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 Shipment Details
               </h1>
               <div className="inline-block bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-2 py-0.5 rounded-sm text-xs sm:text-sm font-bold">
-                {shipment.shipmentCode}
+                {shipment.shipmentCode} 
               </div>
             </div>
             <div className="text-left sm:text-right">
@@ -626,32 +637,23 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* LEFT: First horse photo + map */}
           <div className="lg:col-span-1">
-            <div className="relative overflow-hidden rounded-sm border border-[#BF9B53] shadow-sm bg-white group h-[260px] sm:h-[320px] lg:h-[360px]">
-              {shipment.horses[0]?.photo?.url ? (
-                <img
-                  src={shipment.horses[0].photo.url}
-                  alt={shipment.horses[0]?.registeredName}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "flex";
-                  }}
-                />
-              ) : null}
-              {/* Fallback */}
-              <div
-                className="absolute inset-0"
-                style={{
-                  display: shipment.horses[0]?.photo?.url ? "none" : "flex",
-                }}
-              >
-                <HorseFallback />
+            <div className="relative">
+              <div className="absolute top-3 left-3 z-20 bg-white/95 backdrop-blur px-3 py-1.5 rounded-sm text-xs sm:text-sm font-bold text-gray-900 shadow-sm">
+                Horse {activeHorseIndex + 1} of {shipment.numberOfHorses}
               </div>
 
-              <div className="absolute top-3 left-3 bg-white/95 backdrop-blur px-3 py-1.5 rounded-sm text-xs sm:text-sm font-bold text-gray-900 shadow-sm">
-                Horse 1 of {shipment.numberOfHorses}
-              </div>
-              <div className="absolute bottom-3 left-3 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-3 py-1.5 rounded-sm text-xs font-bold uppercase shadow-sm">
+              <ImageSwiper
+                images={shipment.horses.map((horse) => ({
+                  url: horse?.photo?.url,
+                  alt: horse?.registeredName,
+                }))}
+                altPrefix="horse"
+                fallbackText="No horse image"
+                className="h-[260px] rounded-sm border border-[#BF9B53] bg-white shadow-sm sm:h-[320px] lg:h-[360px]"
+                imageClassName="transition-transform duration-500 group-hover:scale-105"
+                onSlideChange={(swiper) => setActiveHorseIndex(swiper.realIndex)}
+              />
+              <div className="absolute bottom-3 left-3 z-20 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-3 py-1.5 rounded-sm text-xs font-bold uppercase shadow-sm">
                 {shipment.status?.replace("_", " ")}
               </div>
             </div>
@@ -997,10 +999,9 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                                     label: doc.label,
                                   })
                                 }
-                                className={`flex items-center gap-2 px-3 py-2 rounded-sm border font-bold text-sm transition-all duration-200 shadow-sm hover:shadow-md ${
-                                  DOC_COLORS[doc.key] ||
+                                className={`flex items-center gap-2 px-3 py-2 rounded-sm border font-bold text-sm transition-all duration-200 shadow-sm hover:shadow-md ${DOC_COLORS[doc.key] ||
                                   "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
-                                }`}
+                                  }`}
                               >
                                 <FiFileText size={18} />
                                 {doc.label}
@@ -1042,7 +1043,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                               className="rounded-sm border border-gray-100 bg-gray-50 p-3"
                             >
                               <p className="text-xs font-black text-gray-500 uppercase mb-1">
-                                {label} :-
+                                {label}:
                               </p>
                               <p className="text-sm sm:text-base font-bold text-[#BF9B53] break-words">
                                 {value || "—"}
@@ -1054,7 +1055,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                         {horse.generalInfo && (
                           <div className="bg-yellow-50 border border-[#BF9B53] rounded-sm p-3">
                             <p className="text-xs font-black text-gray-700 uppercase tracking-wider mb-2">
-                              General Information :-
+                              General Information:
                             </p>
                             <p className="text-[#BF9B53] leading-relaxed text-base font-semibold">
                               {horse.generalInfo}

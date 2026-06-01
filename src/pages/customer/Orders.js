@@ -45,7 +45,7 @@ const StatusChip = ({ status }) => {
       );
     case "open_for_offers":
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold uppercase bg-purple-100 text-purple-700">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold uppercase bg-purple-100 text-purple-700">
           <span className="w-1 h-1 rounded-full bg-purple-500 shrink-0" />
           Open
         </span>
@@ -69,7 +69,7 @@ const HorseCard = ({ horse, idx }) => {
   };
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm mb-3">
+    <div className="border border-gray-200 overflow-hidden bg-white shadow-sm mb-3">
       {/* Image — taller and full width */}
       {horse.photo?.url ? (
         <div className="relative">
@@ -118,7 +118,7 @@ const HorseCard = ({ horse, idx }) => {
             .map((tag, i) => (
               <span
                 key={i}
-                className="text-xs bg-gray-50 border border-gray-200 text-gray-600 font-medium px-2 py-0.5 rounded-full"
+                className="text-xs bg-gray-50 border border-gray-200 text-gray-600 font-medium px-2 py-0.5 "
               >
                 {tag}
               </span>
@@ -316,7 +316,7 @@ const ShipmentDrawer = ({
           )}
 
           {/* Route */}
-          <div className="bg-gray-50 border border-gray-200 rounded-sm p-3">
+          <div className="bg-gray-50 border border-gray-200 p-3">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
               Route
             </p>
@@ -345,7 +345,7 @@ const ShipmentDrawer = ({
 
           {/* Info Grid */}
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
+            <div className="bg-gray-50 border border-gray-200 p-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                 Pickup Date
               </p>
@@ -353,7 +353,7 @@ const ShipmentDrawer = ({
                 {getPickupDisplay()}
               </p>
             </div>
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
+            <div className="bg-gray-50 border border-gray-200 p-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                 {isDelivered ? "Delivered At" : "Delivery Date"}
               </p>
@@ -366,7 +366,7 @@ const ShipmentDrawer = ({
                 </p>
               )}
             </div>
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
+            <div className="bg-gray-50 border border-gray-200 p-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                 Horses
               </p>
@@ -374,7 +374,7 @@ const ShipmentDrawer = ({
                 {shipment.numberOfHorses}
               </p>
             </div>
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-2">
+            <div className="bg-gray-50 border border-gray-200 p-2">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
                 Status
               </p>
@@ -409,7 +409,7 @@ const ShipmentDrawer = ({
               </span>
             </div>
           ) : (
-            <div className="border border-dashed border-gray-200 rounded-md p-3 flex items-center gap-2">
+            <div className="border border-dashed border-gray-200 p-3 flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 text-sm" />
               <p className="text-xs text-gray-400 italic">
                 No shipper assigned yet
@@ -584,14 +584,14 @@ const ShipmentRow = ({ s, onView }) => {
 
   return (
     <div
-      className={`bg-white border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-all duration-200 w-full ${
+      className={`bg-white border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-all duration-200 w-full ${
         isCancelled ? "opacity-70" : ""
       }`}
     >
       {/* Desktop View - Horizontal Layout */}
       <div className="hidden sm:flex items-center gap-3">
         {/* Image */}
-        <div className="w-16 h-16 rounded-lg shrink-0 overflow-hidden border border-gray-300">
+        <div className="w-16 h-16 shrink-0 overflow-hidden border border-gray-300">
           {firstHorseImage ? (
             <img
               src={firstHorseImage}
@@ -620,7 +620,7 @@ const ShipmentRow = ({ s, onView }) => {
             </span>
             <StatusChip status={s.status} />
             {pendingQuestionCount > 0 && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold uppercase bg-red-100 text-red-700">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5  text-xs font-bold uppercase bg-red-100 text-red-700">
                 Question - {pendingQuestionCount}
               </span>
             )}
@@ -634,17 +634,17 @@ const ShipmentRow = ({ s, onView }) => {
 
           {/* Details Row */}
           <div className="flex items-center gap-3 text-xs">
-            <div className="bg-blue-50 px-2.5 py-1.5 rounded-md border border-blue-200">
+            <div className="bg-blue-50 px-2.5 py-1.5 border border-blue-200">
               <span className="font-semibold text-blue-700">
                 {getRowPickupDisplay()}
               </span>
             </div>
-            <div className="bg-amber-50 px-2.5 py-1.5 rounded-md border border-amber-200">
+            <div className="bg-amber-50 px-2.5 py-1.5 border border-amber-200">
               <span className="font-semibold text-amber-700">
                 {s.numberOfHorses} horses
               </span>
             </div>
-            <div className="bg-green-50 px-2.5 py-1.5 rounded-md border border-green-200">
+            <div className="bg-green-50 px-2.5 py-1.5 border border-green-200">
               <span className="font-semibold text-green-700 truncate">
                 {s.shipper?.name ? truncateText(s.shipper.name, 15) : "Pending"}
               </span>
@@ -655,7 +655,7 @@ const ShipmentRow = ({ s, onView }) => {
         {/* Button */}
         <button
           onClick={() => onView(s)}
-          className="shrink-0 px-4 py-2 bg-[#BF9B53] hover:bg-[#A88A47] text-white font-bold text-xs rounded-sm transition-all duration-200 shadow-sm hover:shadow-md"
+          className="shrink-0 px-4 py-2 bg-[#BF9B53] hover:bg-[#A88A47] text-white font-bold text-xs transition-all duration-200 shadow-sm hover:shadow-md"
         >
           View
         </button>

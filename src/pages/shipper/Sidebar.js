@@ -7,6 +7,7 @@ import { CiCircleQuestion } from "react-icons/ci";
 import { IoStarHalf } from "react-icons/io5";
 import { MdPayments } from "react-icons/md";
 import { useAuth } from "../../contexts/AuthContext";
+import SidebarSupportPopup from "../../components/common/SidebarSupportPopup";
 
 // COMMON ICONS
 import {
@@ -91,7 +92,9 @@ const Sidebar = ({
   const [hoveredItem, setHoveredItem] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const menuItemsRef = useRef({});
+  const helpRef = useRef(null);
   const [activeItem, setActiveItem] = useState("Dashboard");
+  const [helpOpen, setHelpOpen] = useState(false);
 
   /**
    * ================= AUTO LOGOUT ON TOKEN EXPIRY =================
@@ -112,6 +115,25 @@ const Sidebar = ({
 
     return () => axios.interceptors.response.eject(interceptor);
   }, [token, logout, navigate]);
+
+  useEffect(() => {
+    if (!helpOpen) return;
+
+    const handleClickOutside = (event) => {
+      if (helpRef.current && !helpRef.current.contains(event.target)) {
+        setHelpOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [helpOpen]);
+
+  useEffect(() => {
+    if (!sidebarOpen && !mobileOpen) {
+      setHelpOpen(false);
+    }
+  }, [sidebarOpen, mobileOpen]);
 
   /**
    * ================= CHECK IF PATH IS ACTIVE =================
@@ -276,9 +298,25 @@ const Sidebar = ({
         </nav>
 
         {/* ===================== HELP BUTTON ===================== */}
-        <div className="flex-shrink-0 border-t border-gray-100 p-3">
+        <div
+          ref={helpRef}
+          className="relative flex-shrink-0 border-t border-gray-100 p-3"
+        >
+          <SidebarSupportPopup
+            isOpen={helpOpen}
+            onClose={() => setHelpOpen(false)}
+            role="shipper"
+            sidebarOpen={sidebarOpen}
+            mobileOpen={mobileOpen}
+          />
+
           <button
-            className="flex w-full items-center justify-center rounded-[7px] bg-[#F3F4F6] py-3 text-[#BF9B53] transition-all duration-200 hover:bg-[#FBFAF7]"
+            type="button"
+            onClick={() => {
+              setHoveredItem(null);
+              setHelpOpen((current) => !current);
+            }}
+            className="group flex w-full items-center justify-center rounded-[7px] bg-[#F3F4F6] py-3 text-[#BF9B53] transition-all duration-200 hover:bg-[#FBFAF7]"
             title="Help"
             onMouseEnter={(e) => handleMouseEnter(e, "Help")}
             onMouseLeave={handleMouseLeave}
@@ -292,7 +330,7 @@ const Sidebar = ({
       </div>
 
       {/* ================= TOOLTIP - FIXED TO HOVERED ITEM ================= */}
-      {hoveredItem && !sidebarOpen && !mobileOpen && (
+      {hoveredItem && !helpOpen && !sidebarOpen && !mobileOpen && (
         <div
           className="fixed z-50 pointer-events-none animate-fadeIn"
           style={{

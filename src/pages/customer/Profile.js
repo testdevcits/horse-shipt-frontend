@@ -141,12 +141,12 @@ const CustomerProfile = () => {
           <div className="absolute -top-20 -right-20  bg-gradient-to-br from-[#BF9B53] to-[#D4AF85] rounded-full blur-3xl opacity-10 pointer-events-none"></div>
           <div className="absolute -bottom-20 -left-20  bg-gradient-to-tr from-[#8B7043] to-[#BF9B53] rounded-full blur-3xl opacity-10 pointer-events-none"></div>
 
-          <div className="relative bg-gradient-to-br from-white to-amber-50/50 backdrop-blur-xl border-2 border-[#BF9B53]/30 rounded-md p-4 sm:p-6 shadow-lg overflow-hidden">
+          <div className="relative bg-gradient-to-br from-white to-amber-50/50 backdrop-blur-xl border-2 border-[#BF9B53]/30 p-4 sm:p-6 shadow-lg overflow-hidden">
             <div className="flex flex-col sm:flex-row items-center gap-4">
               {/* Profile Image Section */}
               <div className="relative flex-shrink-0">
                 {/* Image Container */}
-                <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-3 border-[#BF9B53] shadow-lg ring-2 ring-[#BF9B53]/20">
+                <div className="relative w-28 h-28 sm:w-32 sm:h-32 overflow-hidden border-3 border-[#BF9B53] shadow-lg ring-2 ring-[#BF9B53]/20">
                   <img
                     src={currentImage}
                     alt="Profile"
@@ -167,7 +167,7 @@ const CustomerProfile = () => {
                 <button
                   disabled={loading}
                   onClick={() => profileInputRef.current.click()}
-                  className="absolute bottom-0 right-0 bg-gradient-to-br from-[#BF9B53] to-[#9D7E3E] text-white p-2 rounded-lg shadow-lg hover:shadow-xl hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed border-3 border-white"
+                  className="absolute bottom-0 right-0 bg-gradient-to-br from-[#BF9B53] to-[#9D7E3E] text-white p-2  shadow-lg hover:shadow-xl hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed border-3 border-white"
                   title="Change Profile Picture"
                 >
                   <HiPencil size={14} />
@@ -205,7 +205,7 @@ const CustomerProfile = () => {
                 {!isEditing ? (
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#BF9B53] to-[#D4AF85] text-white font-bold text-xs sm:text-sm rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all mt-2 border border-[#8B7043]/20"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#BF9B53] to-[#D4AF85] text-white font-bold text-xs sm:text-sm hover:shadow-lg hover:-translate-y-1 transition-all mt-2 border border-[#8B7043]/20"
                   >
                     <HiPencil size={14} />
                     <span>Edit</span>
@@ -228,9 +228,9 @@ const CustomerProfile = () => {
             EDIT PROFILE SECTION
         =============================== */}
         {isEditing && (
-          <div className="bg-gradient-to-br from-white to-amber-50/50 backdrop-blur-xl border-2 border-[#BF9B53]/30 rounded-md p-4 shadow-lg animate-slide-in">
+          <div className="bg-gradient-to-br from-white to-amber-50/50 backdrop-blur-xl border-2 border-[#BF9B53]/30  p-4 shadow-lg animate-slide-in">
             <h2 className="text-lg font-bold text-[#BF9B53] mb-4 flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#BF9B53] to-[#D4AF85] rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-[#BF9B53] to-[#D4AF85] flex items-center justify-center">
                 <HiPencil className="text-white text-sm" />
               </div>
               Edit Information
@@ -365,9 +365,9 @@ const CustomerProfile = () => {
             PROFILE DETAILS CARD
         =============================== */}
         {!isEditing && (
-          <div className="bg-gradient-to-br from-white to-amber-50/50 backdrop-blur-xl border-2 border-[#BF9B53]/30 rounded-md p-4 shadow-lg">
+          <div className="bg-gradient-to-br from-white to-amber-50/50 backdrop-blur-xl border-2 border-[#BF9B53]/30  p-4 shadow-lg">
             <h2 className="text-lg font-bold text-[#BF9B53] mb-3 flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#BF9B53] to-[#D4AF85] rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-[#BF9B53] to-[#D4AF85] flex items-center justify-center">
                 <HiCheck className="text-white text-sm" />
               </div>
               Profile Details
@@ -375,7 +375,7 @@ const CustomerProfile = () => {
 
             <div className="space-y-2">
               {/* Full Name */}
-              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#BF9B53]/10 to-[#D4AF85]/10 rounded-lg border border-[#BF9B53]/20 hover:border-[#BF9B53]/50 transition-all">
+              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#BF9B53]/10 to-[#D4AF85]/10  border border-[#BF9B53]/20 hover:border-[#BF9B53]/50 transition-all">
                 <div>
                   <p className="text-xs font-bold text-[#8B7043]">FULL NAME</p>
                   <p className="text-sm font-bold text-[#BF9B53] mt-1">
@@ -387,7 +387,7 @@ const CustomerProfile = () => {
               </div>
 
               {/* Email */}
-              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#BF9B53]/10 to-[#D4AF85]/10 rounded-lg border border-[#BF9B53]/20 hover:border-[#BF9B53]/50 transition-all">
+              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#BF9B53]/10 to-[#D4AF85]/10  border border-[#BF9B53]/20 hover:border-[#BF9B53]/50 transition-all">
                 <div>
                   <p className="text-xs font-bold text-[#8B7043]">EMAIL</p>
                   <p className="text-sm font-bold text-[#BF9B53] mt-1">
@@ -397,7 +397,7 @@ const CustomerProfile = () => {
               </div>
 
               {/* Phone */}
-              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#BF9B53]/10 to-[#D4AF85]/10 rounded-lg border border-[#BF9B53]/20 hover:border-[#BF9B53]/50 transition-all">
+              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#BF9B53]/10 to-[#D4AF85]/10  border border-[#BF9B53]/20 hover:border-[#BF9B53]/50 transition-all">
                 <div>
                   <p className="text-xs font-bold text-[#8B7043]">PHONE</p>
                   <p className="text-sm font-bold text-[#BF9B53] mt-1">
@@ -471,9 +471,9 @@ const CustomerProfile = () => {
         {/* ===============================
             CUSTOMER REVIEWS SECTION
         =============================== */}
-        <div className="bg-gradient-to-br from-white to-amber-50/50 backdrop-blur-xl border-2 border-[#BF9B53]/30 rounded-md p-4 shadow-lg">
+        <div className="bg-gradient-to-br from-white to-amber-50/50 backdrop-blur-xl border-2 border-[#BF9B53]/30  p-4 shadow-lg">
           <h2 className="text-lg font-bold text-[#BF9B53] mb-4 flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#BF9B53] to-[#D4AF85] rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-[#BF9B53] to-[#D4AF85] flex items-center justify-center">
               <FaStar className="text-white text-sm" />
             </div>
             Customer Reviews

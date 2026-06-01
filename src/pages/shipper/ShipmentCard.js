@@ -124,7 +124,7 @@ const ShipmentCard = ({ shipment, invitation, isHighlighted = false }) => {
   {isInvitedShipment ? (
 
     /* Quote Requested Card */
-    <div className="rounded-[16px] bg-[#BF9B53] p-[8px]">
+    <div className="rounded-[16px] bg-[#BF9B53] p-[8px] relative w-full h-full group overflow-hidden ">
 
       {/* Heading */}
       <div className="flex h-10 items-center justify-center">
@@ -134,7 +134,7 @@ const ShipmentCard = ({ shipment, invitation, isHighlighted = false }) => {
       </div>
 
       {/* Image */}
-      <div className="overflow-hidden rounded-[12px] bg-white">
+       <div className="overflow-hidden rounded-[12px] bg-white relative w-full h-full object-cover">
         <img
           src={
             horse?.photo?.url ||

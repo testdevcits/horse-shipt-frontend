@@ -46,11 +46,11 @@ const HorseImageStrip = ({ quote }) => {
   const firstHorse = horses[0];
 
   return firstHorse ? (
-    <figure className="relative h-[242px] overflow-hidden rounded-[8px] bg-slate-100 sm:w-[223px]">
+      <figure className="relative w-full h-full group overflow-hidden rounded-[8px] bg-slate-100">
       <img
         src={firstHorse.url}
         alt={firstHorse.name}
-        className=" h-full w-full object-cover"
+        className=" h-full w-full object-cover "
       />
       <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/45 to-transparent px-3 pb-3 pt-12">
         <p className="truncate text-[13px] font-bold leading-4 text-white">
@@ -446,6 +446,7 @@ const ShipperQuotesPage = () => {
       ) : (
         <div className="grid gap-4">
           {filteredQuotes.map((quote) => {
+            console.log('quote: ', quote.notes);
             const isExpired =
               quote.cancellationLastDate &&
               new Date() > new Date(quote.cancellationLastDate);
@@ -509,9 +510,22 @@ const ShipperQuotesPage = () => {
                     </div>
 
                     {quote.vehicle && (
-                      <p className="mt-5 flex items-start gap-2 bg-[#F3F4F6] px-3 py-3 text-[13px] font-semibold leading-5 text-gray-700">
-                        <RiTruckLine className="shrink-0 text-[#735D32]" size={18} />
-                        <span className="min-w-0 break-words font-montserrat text-[13px] font-semibold leading-[22px] tracking-[0%] text-[#374151] sm:text-[14px] sm:leading-[24px]">Vehicle: {vehicle.vehicleNumber || "N/A"} | {vehicle.vehicleType || "N/A"} | {vehicle.numberOfStalls || 0} stalls | Trip: {tripStatus}</span>
+                      <p className="mt-5 flex items-start gap-2 bg-[#F3F4F6] px-3 py-3 text-[13px] font-semibold leading-5 text-gray-700 ">
+                        <RiTruckLine
+                          className="shrink-0 text-[#735D32]"
+                          size={18}
+                        />
+                        <span className="flex flex-wrap items-center gap-3 font-montserrat text-[13px] font-semibold leading-[22px] text-[#374151] sm:text-[14px] sm:leading-[24px]">
+                          <span>Vehicle: {vehicle.vehicleNumber || "N/A"}</span>
+                          <span className="text-[#9CA3AF]">|</span>
+                          <span>{vehicle.vehicleType || "N/A"}</span>
+                          <span className="text-[#9CA3AF]">|</span>
+                          <span>{vehicle.numberOfStalls || 0} stalls</span>
+                          <span className="text-[#9CA3AF]">|</span>
+                          <span>Trip: {tripStatus}</span>
+                          <span className="text-[#9CA3AF]">|</span>
+                          <span>Driver: {vehicle?.driver?.name || "N/A"}</span>
+                        </span>
                       </p>
                     )}
 
@@ -530,16 +544,22 @@ const ShipperQuotesPage = () => {
                       )}
 
                     <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                      <p className="flex items-start gap-2 rounded-[4px] border border-[#D9AF57] bg-[#FFF9EC] px-3 py-3 text-[14px] leading-5 text-gray-700 sm:px-4">
+                      <p className="flex items-start gap-2 border border-[#D9AF57] bg-[#FFF9EC] px-3 py-3 text-[14px] leading-5 text-gray-700 sm:px-4">
                         <RiFileTextLine className="shrink-0 text-[#735D32]" size={17} />
                         <span className="min-w-0 break-words font-montserrat leading-[24px] tracking-[0%]">
                           <span className="font-semibold text-[#BF9B53]">Notes:</span>{" "}
-                          <span className="font-medium text-[#4B5563]">{quote.notes || "N/A"}</span>
+                          <span className="font-medium text-[#4B5563]">
+                            {quote.notes
+                              ? quote.notes.length > 80
+                                ? `${quote.notes.slice(0, 150).split(" ").slice(0, -1).join(" ")}...`
+                                : quote.notes
+                              : "N/A"}
+                          </span>
                         </span>
                       </p>
 
                       {quote.isCancelled ? (
-                        <p className="flex items-start gap-2 rounded-[4px] border border-red-300 bg-red-50 px-3 py-3 text-[12px] font-semibold leading-5 text-[#BF5353] sm:px-4">
+                        <p className="flex items-start gap-2 border border-red-300 bg-red-50 px-3 py-3 text-[12px] font-semibold leading-5 text-[#BF5353] sm:px-4">
                           <RiCloseCircleLine className="shrink-0" size={17} />
                           <span className="min-w-0 break-words">
                             Cancelled{" "}
@@ -552,7 +572,7 @@ const ShipperQuotesPage = () => {
                           </span>
                         </p>
                       ) : quote.cancellationLastDate ? (
-                        <p className="flex items-start gap-2 rounded-[4px] border border-red-300 bg-red-50 px-3 py-3 text-[12px] font-semibold leading-5 text-[#BF5353] sm:px-4">
+                        <p className="flex items-start gap-2 border border-red-300 bg-red-50 px-3 py-3 text-[12px] font-semibold leading-5 text-[#BF5353] sm:px-4">
                           <RiCalendarEventLine className="shrink-0" size={17} />
                           <span className="min-w-0 break-words">
                             {isExpired
@@ -573,7 +593,7 @@ const ShipperQuotesPage = () => {
                               visibleContractId === quote._id ? null : quote._id
                             )
                           }
-                          className="h-[38px] w-full rounded-[5px] bg-[#BF9B53] px-5 text-[12px] font-bold uppercase text-white transition hover:bg-[#a6813f] sm:h-[34px] sm:w-auto"
+                          className="h-[38px] w-full bg-[#BF9B53] px-5 text-[12px] font-bold uppercase text-white transition hover:bg-[#a6813f] sm:h-[34px] sm:w-auto"
                         >
                           {visibleContractId === quote._id
                             ? "Hide Contract"
@@ -590,7 +610,7 @@ const ShipperQuotesPage = () => {
                               "noopener,noreferrer"
                             )
                           }
-                          className="h-[38px] w-full rounded-[5px] border border-[#BF9B53] px-4 text-[12px] font-bold uppercase text-[#735D32] transition hover:bg-[#BF9B53]/10 sm:h-[34px] sm:w-auto"
+                          className="h-[38px] w-full border border-[#BF9B53] px-4 text-[12px] font-bold uppercase text-[#735D32] transition hover:bg-[#BF9B53]/10 sm:h-[34px] sm:w-auto"
                         >
                           View Shipper Contract
                         </button>
@@ -599,7 +619,7 @@ const ShipperQuotesPage = () => {
                       {canDelete && (
                         <button
                           onClick={() => openModal(quote, "delete")}
-                          className="flex h-[38px] w-full items-center justify-center gap-1 rounded-[5px] border border-slate-300 px-4 text-[12px] font-bold uppercase text-slate-700 transition hover:bg-slate-50 sm:h-[34px] sm:w-auto"
+                          className="flex h-[38px] w-full items-center justify-center gap-1 border border-slate-300 px-4 text-[12px] font-bold uppercase text-slate-700 transition hover:bg-slate-50 sm:h-[34px] sm:w-auto"
                         >
                           <RiDeleteBinLine /> Delete
                         </button>
