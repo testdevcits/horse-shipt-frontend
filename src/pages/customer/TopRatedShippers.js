@@ -16,7 +16,7 @@ import PageLoader from "../../components/common/PageLoader";
  * ============================================================
  */
 
-const TopRatedShippers = () => {
+const TopRatedShippers = ({ dashboardMode = false }) => {
   const navigate = useNavigate();
   const { topRatedShippers, topShippersLoading, fetchTopRatedShippers } =
     useReview();
@@ -86,7 +86,7 @@ const TopRatedShippers = () => {
   });
 
   // Show first 6 after filtering
-  const shippersToShow = sortedShippers.slice(0, 6);
+  const shippersToShow = sortedShippers.slice(0, dashboardMode ? 3 : 6);
 
   // ===================== HANDLERS =====================
   const handleSeeAll = () => {
@@ -126,7 +126,7 @@ const TopRatedShippers = () => {
   // ===================== EMPTY STATE =====================
   if (topRatedShippers.length === 0) {
     return (
-      <div className="w-full">
+      <div className="w-full font-montserrat">
         {/* Header */}
         <div className="flex flex-col gap-2 mb-8">
           <h1 className="font-montserrat font-bold text-3xl md:text-4xl text-gray-900">
@@ -158,78 +158,73 @@ const TopRatedShippers = () => {
 
   // ===================== RENDER =====================
   return (
-    <div className="w-full">
-      {/* ===================== HEADER ===================== */}
-      <div className="mb-8">
-        <h1 className="font-montserrat font-bold text-3xl md:text-4xl text-gray-900 mb-2">
-          Top Rated Shippers
-        </h1>
-        <p className="text-gray-600 text-base">
-          Discover the most trusted and reliable shippers in our network
-        </p>
-      </div>
+    <section className="w-full min-w-0 overflow-hidden bg-[#F7F5F1] font-montserrat">
+      {/* ===================== HEADER + FILTERS ===================== */}
+      <div className="mb-5 bg-white px-4 py-5 shadow-sm sm:px-5 sm:py-6 md:px-6">
+        <div className="grid items-center gap-5 lg:grid-cols-[320px_1fr_auto]">
+          <div>
+            <h1 className="text-[24px] font-semibold leading-[35px] text-[#111827] font-montserrat">
+              Top Rated Shippers
+            </h1>
+            <p className="mt-3 max-w-[338px] font-montserrat text-[10px] font-bold uppercase leading-[20px] tracking-[0.2em] text-[#BF9B53]">
+              Discover the most trusted and reliable shippers in our network
+            </p>
+          </div>
 
-      {/* ===================== SEARCH & FILTERS BAR ===================== */}
-      <div className="bg-white rounded-md border border-gray-200 p-4 md:p-6 mb-6 shadow-sm">
-        {/* Search Bar */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <div className="relative flex-1">
+          <div className="relative">
             <HiSearch
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={20}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#475569]"
+              size={18}
             />
             <input
               type="text"
               placeholder="Search shipper by name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30 focus:border-[#BF9B53] transition-all"
+              className="h-12 w-full border-0 bg-[#F0F1F4] pl-11 pr-4 text-[13px] font-medium text-[#111827] outline-none transition focus:ring-2 focus:ring-[#BF9B53]/30"
             />
           </div>
 
-          {/* Filter Button (Mobile) */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`sm:hidden flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 font-medium transition-all ${
-              showFilters || hasActiveFilters
-                ? "bg-[#BF9B53] text-white border-[#BF9B53]"
-                : "border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
-            }`}
-          >
-            <FiFilter size={18} />
-            Filters
-            {hasActiveFilters && (
-              <span className="ml-1 inline-flex items-center justify-center w-5 h-5 bg-white text-[#BF9B53] rounded-full text-xs font-bold">
-                {
-                  [
-                    minRating > 0,
-                    transportType,
-                    experienceLevel,
-                    responseTime,
-                    priceRange,
-                  ].filter(Boolean).length
-                }
-              </span>
-            )}
-          </button>
+          <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex h-10 items-center justify-center gap-2 px-4 text-[11px] font-bold uppercase tracking-wide transition sm:hidden ${showFilters || hasActiveFilters
+                  ? "bg-[#BF9B53] text-white"
+                  : "bg-[#F3F4F6] text-[#374151] hover:bg-[#E5E7EB]"
+                }`}
+              type="button"
+            >
+              <FiFilter size={16} />
+              Filters
+              {hasActiveFilters && (
+                <span className="ml-1 inline-flex h-5 w-5 items-center justify-center bg-white text-xs font-bold text-[#BF9B53]">
+                  {
+                    [
+                      minRating > 0,
+                      transportType,
+                      experienceLevel,
+                      responseTime,
+                      priceRange,
+                    ].filter(Boolean).length
+                  }
+                </span>
+              )}
+            </button>
 
-          {/* Sort Dropdown (Desktop) */}
-          <div className="hidden sm:flex gap-2">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-3 border border-gray-300 rounded-lg text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30 focus:border-[#BF9B53] transition-all"
+              className="h-10 border-0 bg-[#F3F4F6] px-4 text-[10px] font-bold uppercase tracking-wide text-[#BF9B53] outline-none transition focus:ring-2 focus:ring-[#BF9B53]/30"
             >
               <option value="rating">Highest Rated</option>
               <option value="reviews">Most Reviews</option>
               <option value="name">Name (A-Z)</option>
             </select>
 
-            {/* Rating Filter */}
             <select
               value={minRating}
               onChange={(e) => setMinRating(Number(e.target.value))}
-              className="px-4 py-3 border border-gray-300 rounded-lg text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30 focus:border-[#BF9B53] transition-all"
+              className="h-10 border-0 bg-[#F3F4F6] px-4 text-[10px] font-bold uppercase tracking-wide text-[#374151] outline-none transition focus:ring-2 focus:ring-[#BF9B53]/30"
             >
               <option value={0}>All Ratings</option>
               <option value={4}>4+ Stars</option>
@@ -241,7 +236,7 @@ const TopRatedShippers = () => {
 
         {/* Mobile Filter Panel */}
         {showFilters && (
-          <div className="sm:hidden border-t border-gray-200 pt-4 space-y-4">
+          <div className="mt-5 border-t border-gray-200 pt-4 sm:hidden space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {/* Rating */}
               <div>
@@ -251,7 +246,7 @@ const TopRatedShippers = () => {
                 <select
                   value={minRating}
                   onChange={(e) => setMinRating(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30"
+                  className="w-full px-3 py-2 border border-gray-300  text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30"
                 >
                   <option value={0}>All</option>
                   <option value={4}>4+</option>
@@ -341,64 +336,6 @@ const TopRatedShippers = () => {
             )}
           </div>
         )}
-
-        {/* Desktop Filters (Hidden on Mobile) */}
-        <div className="hidden sm:flex gap-3 pt-4 border-t border-gray-200 flex-wrap">
-          {/* <select
-            value={transportType}
-            onChange={(e) => setTransportType(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30"
-          >
-            <option value="">All Transport Types</option>
-            <option value="Trucking">Trucking</option>
-            <option value="Hauling">Hauling</option>
-            <option value="Local">Local</option>
-          </select>
-
-          <select
-            value={experienceLevel}
-            onChange={(e) => setExperienceLevel(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30"
-          >
-            <option value="">All Experience Levels</option>
-            <option value="Expert">Expert</option>
-            <option value="Professional">Professional</option>
-            <option value="Experienced">Experienced</option>
-          </select>
-
-          <select
-            value={responseTime}
-            onChange={(e) => setResponseTime(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30"
-          >
-            <option value="">Any Response Time</option>
-            <option value="Very Fast">Very Fast</option>
-            <option value="Fast">Fast</option>
-            <option value="Standard">Standard</option>
-          </select> */}
-
-          {/* <select
-            value={priceRange}
-            onChange={(e) => setPriceRange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30"
-          >
-            <option value="">Any Price Range</option>
-            <option value="Budget">Budget</option>
-            <option value="Standard">Standard</option>
-            <option value="Premium">Premium</option>
-          </select> */}
-
-          {/* Reset Button */}
-          {hasActiveFilters && (
-            <button
-              onClick={resetFilters}
-              className="flex items-center gap-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
-            >
-              <MdClose size={16} />
-              Reset
-            </button>
-          )}
-        </div>
       </div>
 
       {/* ===================== NO RESULTS STATE ===================== */}
@@ -430,25 +367,17 @@ const TopRatedShippers = () => {
       ) : (
         <>
           {/* ===================== RESULTS INFO ===================== */}
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-sm text-gray-600 font-medium">
-              Showing {shippersToShow.length} of {filteredShippers.length}{" "}
-              shipper{filteredShippers.length !== 1 ? "s" : ""}
+          <div className="mb-5">
+            <p className="text-[14px] font-medium text-[#667085]">
+              Showing{" "}
+              <span className="font-bold text-[#344054]">
+                {shippersToShow.length} of {filteredShippers.length} shippers
+              </span>
             </p>
-            {/* Sort Dropdown (Mobile) */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="sm:hidden px-3 py-2 border border-gray-300 rounded-lg text-xs font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30"
-            >
-              <option value="rating">Highest Rated</option>
-              <option value="reviews">Most Reviews</option>
-              <option value="name">Name (A-Z)</option>
-            </select>
           </div>
 
           {/* ===================== SHIPPER CARDS GRID ===================== */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+          <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {shippersToShow.map((shipper) => (
               <ShipperReviewCard
                 key={shipper.id}
@@ -487,7 +416,7 @@ const TopRatedShippers = () => {
           )}
         </>
       )}
-    </div>
+    </section>
   );
 };
 

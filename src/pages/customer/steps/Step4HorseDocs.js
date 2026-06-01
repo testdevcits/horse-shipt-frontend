@@ -65,9 +65,13 @@ const Step4HorseDocuments = ({
                   <span className="text-red-500">*</span>
                 </label>
               </div>
-              <p style={descriptionStyle}>
-                A clear, professional photo helps buyers better evaluate the
-                horse. JPG, PNG (Max 10MB)
+              <p
+                style={descriptionStyle}
+                className="bg-[#BF9B53]/10 p-2 text-xs font-medium text-[#BF9B53]"
+              >
+                <strong className="font-bold">Image Requirement:</strong> Upload images up to
+                1024 × 768 px. Larger images are not recommended. Keep the original aspect
+                ratio to avoid distortion.
               </p>
               <ImageInput
                 file={horse?.photo}

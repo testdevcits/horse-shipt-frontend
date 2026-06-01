@@ -518,11 +518,10 @@ const ShipperPreferredAreaPage = () => {
                     return (
                       <div
                         key={area._id}
-                        className={`w-full text-left rounded-md border px-3 py-2.5 transition ${
-                          isActive
-                            ? "border-[#BF9B53] bg-[#fff8ea] shadow-sm"
-                            : "border-gray-200 bg-white hover:border-[#BF9B53]/40"
-                        }`}
+                        className={`w-full text-left rounded-md border px-3 py-2.5 transition ${isActive
+                          ? "border-[#BF9B53] bg-[#fff8ea] shadow-sm"
+                          : "border-gray-200 bg-white hover:border-[#BF9B53]/40"
+                          }`}
                       >
                         <div className="flex items-start gap-3">
                           <label
@@ -539,11 +538,10 @@ const ShipperPreferredAreaPage = () => {
                             />
                           </label>
                           <div
-                            className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 font-bold text-sm ${
-                              isActive
-                                ? "bg-[#BF9B53] text-white"
-                                : "bg-[#BF9B53]/10 text-[#BF9B53]"
-                            }`}
+                            className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 font-bold text-sm ${isActive
+                              ? "bg-[#BF9B53] text-white"
+                              : "bg-[#BF9B53]/10 text-[#BF9B53]"
+                              }`}
                           >
                             {idx + 1}
                           </div>
@@ -640,11 +638,10 @@ const ShipperPreferredAreaPage = () => {
               {[0, 1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className={`min-w-[68px] rounded-md border px-2.5 py-2.5 text-center transition-all ${
-                    i < preferredAreas.length
-                      ? "bg-[#BF9B53] border-[#BF9B53] text-white shadow-sm"
-                      : "bg-white border-gray-200 text-gray-400"
-                  }`}
+                  className={`min-w-[68px] rounded-md border px-2.5 py-2.5 text-center transition-all ${i < preferredAreas.length
+                    ? "bg-[#BF9B53] border-[#BF9B53] text-white shadow-sm"
+                    : "bg-white border-gray-200 text-gray-400"
+                    }`}
                 >
                   <p className="text-lg font-bold leading-none">{i + 1}</p>
                   <p className="text-[11px] mt-1 font-semibold uppercase tracking-wide">
@@ -1134,30 +1131,30 @@ const ShipperPreferredAreaPage = () => {
 
           {!showAddForm && !editingId && (
             <div className="space-y-3">
-            {!hasFetchedPreferredAreas ? (
-              <div className="text-center text-gray-400 text-sm py-10 border border-dashed border-gray-200 rounded-md bg-white">
-                <FiMap size={24} className="mx-auto mb-2 text-gray-300" />
-                <p className="font-semibold text-gray-700">
-                  Saved preferred areas are not loaded yet
-                </p>
-                <p className="text-xs mt-1 mb-4">
-                  This page will only fetch them when you ask for them.
-                </p>
-                <button
-                  onClick={handleLoadPreferredAreas}
-                  disabled={loading}
-                  className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-bold transition disabled:opacity-60"
-                >
-                  <FiMap size={15} />
-                  {loading ? "Loading..." : "Load Preferred Areas"}
-                </button>
-              </div>
-            ) : preferredAreas.length === 0 ? (
-              <div className="text-center text-gray-400 text-sm py-10 border-2 border-dashed border-gray-200 rounded-md bg-white">
-                <FiMapPin size={26} className="mx-auto mb-2 text-gray-300" />
-                <p className="font-semibold text-gray-600">
-                  No preferred areas yet
-                </p>
+              {!hasFetchedPreferredAreas ? (
+                <div className="text-center text-gray-400 text-sm py-10 border border-dashed border-gray-200 rounded-md bg-white">
+                  <FiMap size={24} className="mx-auto mb-2 text-gray-300" />
+                  <p className="font-semibold text-gray-700">
+                    Saved preferred areas are not loaded yet
+                  </p>
+                  <p className="text-xs mt-1 mb-4">
+                    This page will only fetch them when you ask for them.
+                  </p>
+                  <button
+                    onClick={handleLoadPreferredAreas}
+                    disabled={loading}
+                    className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-bold transition disabled:opacity-60"
+                  >
+                    <FiMap size={15} />
+                    {loading ? "Loading..." : "Load Preferred Areas"}
+                  </button>
+                </div>
+              ) : preferredAreas.length === 0 ? (
+                <div className="text-center text-gray-400 text-sm py-10 border-2 border-dashed border-gray-200 rounded-md bg-white">
+                  <FiMapPin size={26} className="mx-auto mb-2 text-gray-300" />
+                  <p className="font-semibold text-gray-600">
+                    No preferred areas yet
+                  </p>
                   <p className="text-xs mt-1">
                     Add your first service area above.
                   </p>
@@ -1174,44 +1171,50 @@ const ShipperPreferredAreaPage = () => {
                     >
                       {!isEditing ? (
                         <div className="p-3 sm:p-3.5">
-                          <div className="flex flex-col lg:flex-row lg:items-start gap-3">
-                            <div className="flex items-start gap-3 flex-1 min-w-0">
-                              <div className="w-10 h-10 rounded-md bg-[#BF9B53]/10 flex items-center justify-center shrink-0 mt-0.5">
-                                <span className="text-sm font-bold text-[#BF9B53]">
-                                  #{idx + 1}
-                                </span>
-                              </div>
+                          <div className="grid grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)] gap-4">
+                            {/* LEFT SIDE DETAILS */}
+                            <div className="flex h-full min-w-0 flex-col">
+                              {/* TOP CONTENT */}
+                              <div className="flex-1">
+                                {/* INDEX + ADDRESS + RADIUS */}
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-[#BF9B53]/10 flex items-center justify-center shrink-0">
+                                    <span className="text-sm font-bold text-[#BF9B53]">
+                                      #{idx + 1}
+                                    </span>
+                                  </div>
 
-                              <div className="flex-1 min-w-0">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <p className="text-base font-bold text-gray-900 leading-tight break-words">
-                                    {area.locationName || "Unnamed Location"}
-                                  </p>
-                                  <span className="inline-flex items-center gap-1 text-xs font-semibold bg-[#BF9B53]/10 text-[#BF9B53] px-2.5 py-1 rounded-md">
-                                    <MdRadar size={12} />
-                                    {area.radiusKm} km radius
-                                  </span>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <p className="text-base font-bold text-gray-900 leading-tight break-words">
+                                        {area.locationName || "Unnamed Location"}
+                                      </p>
+
+                                      <span className="inline-flex items-center gap-1 text-xs font-semibold bg-[#BF9B53]/10 text-[#BF9B53] px-2.5 py-1">
+                                        <MdRadar size={12} />
+                                        {area.radiusKm} km radius
+                                      </span>
+                                    </div>
+                                  </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
-                                  <div className="rounded-md bg-gray-50 border border-gray-100 px-3 py-2">
+                                {/* LATITUDE + LONGITUDE */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                                  <div className=" bg-gray-50 border border-gray-100 px-3 py-2">
                                     <p className="text-[11px] uppercase tracking-wide text-gray-400">
                                       Latitude
                                     </p>
                                     <p className="text-sm font-semibold text-gray-800 mt-1">
-                                      {formatCoord(
-                                        area.coordinates?.coordinates?.[1]
-                                      )}
+                                      {formatCoord(area.coordinates?.coordinates?.[1])}
                                     </p>
                                   </div>
-                                  <div className="rounded-md bg-gray-50 border border-gray-100 px-3 py-2">
+
+                                  <div className=" bg-gray-50 border border-gray-100 px-3 py-2">
                                     <p className="text-[11px] uppercase tracking-wide text-gray-400">
                                       Longitude
                                     </p>
                                     <p className="text-sm font-semibold text-gray-800 mt-1">
-                                      {formatCoord(
-                                        area.coordinates?.coordinates?.[0]
-                                      )}
+                                      {formatCoord(area.coordinates?.coordinates?.[0])}
                                     </p>
                                   </div>
                                 </div>
@@ -1221,54 +1224,63 @@ const ShipperPreferredAreaPage = () => {
                                   Exact saved point for this preferred area
                                 </p>
                               </div>
+
+                              {/* BOTTOM BUTTONS */}
+                              <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-2 pt-4">
+                                <button
+                                  onClick={() => handleStartEdit(area)}
+                                  className="inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-gray-900 hover:bg-blue-600 text-white text-sm font-semibold transition"
+                                  title="Edit"
+                                >
+                                  <FiEdit2 size={14} />
+                                  Edit Area
+                                </button>
+
+                                <button
+                                  onClick={() =>
+                                    setConfirmModal({
+                                      open: true,
+                                      areaId: area._id,
+                                    })
+                                  }
+                                  className="inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-semibold transition border border-red-100"
+                                  title="Delete"
+                                >
+                                  <FiTrash2 size={14} />
+                                  Delete
+                                </button>
+                              </div>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row lg:flex-col gap-2 shrink-0 w-full lg:w-[132px]">
-                              <button
-                                onClick={() => handleStartEdit(area)}
-                                className="inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-md bg-gray-900 hover:bg-blue-600 text-white text-sm font-semibold transition"
-                                title="Edit"
-                              >
-                                <FiEdit2 size={14} />
-                                Edit Area
-                              </button>
-
-                              <button
-                                onClick={() =>
-                                  setConfirmModal({
-                                    open: true,
-                                    areaId: area._id,
-                                  })
-                                }
-                                className="inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 text-sm font-semibold transition border border-red-100"
-                                title="Delete"
-                              >
-                                <FiTrash2 size={14} />
-                                Delete
-                              </button>
+                            {/* RIGHT SIDE MAP */}
+                            <div className="min-h-[320px] rounded-md overflow-hidden border border-gray-200">
+                              {areaCoords ? (
+                                <GoogleMap
+                                  mapContainerStyle={{
+                                    width: "100%",
+                                    height: "100%",
+                                  }}
+                                  center={areaCoords}
+                                  zoom={11}
+                                  onLoad={(map) =>
+                                    fitMapToRadius(map, areaCoords, area.radiusKm)
+                                  }
+                                  options={mapOptions}
+                                >
+                                  <Circle
+                                    center={areaCoords}
+                                    radius={getRadiusMeters(area.radiusKm)}
+                                    options={radiusCircleOptions}
+                                  />
+                                  <Marker position={areaCoords} />
+                                </GoogleMap>
+                              ) : (
+                                <div className="flex h-full min-h-[320px] items-center justify-center text-sm text-gray-400">
+                                  Map location not available
+                                </div>
+                              )}
                             </div>
                           </div>
-
-                          {areaCoords && (
-                            <div className="mt-3 rounded-md overflow-hidden border border-gray-200">
-                              <GoogleMap
-                                mapContainerStyle={savedAreaMapContainerStyle}
-                                center={areaCoords}
-                                zoom={11}
-                                onLoad={(map) =>
-                                  fitMapToRadius(map, areaCoords, area.radiusKm)
-                                }
-                                options={mapOptions}
-                              >
-                                <Circle
-                                  center={areaCoords}
-                                  radius={getRadiusMeters(area.radiusKm)}
-                                  options={radiusCircleOptions}
-                                />
-                                <Marker position={areaCoords} />
-                              </GoogleMap>
-                            </div>
-                          )}
                         </div>
                       ) : (
                         <div className="p-3 sm:p-3.5 bg-[#fffdf8]">
@@ -1281,6 +1293,7 @@ const ShipperPreferredAreaPage = () => {
                                 Update location and radius
                               </h3>
                             </div>
+
                             <button
                               onClick={handleCancelEdit}
                               className="w-9 h-9 rounded-md bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center justify-center"
@@ -1289,12 +1302,14 @@ const ShipperPreferredAreaPage = () => {
                             </button>
                           </div>
 
-                          <div className="grid grid-cols-1 xl:grid-cols-[1.02fr_0.98fr] gap-3 lg:gap-4">
+                          <div className="grid grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)] gap-4">
+                            {/* LEFT SIDE FORM */}
                             <div className="space-y-3">
                               <div>
                                 <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">
                                   Location Search
                                 </label>
+
                                 <Autocomplete
                                   onLoad={(auto) =>
                                     (editAutocompleteRef.current = auto)
@@ -1336,6 +1351,7 @@ const ShipperPreferredAreaPage = () => {
                                     className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
                                   />
                                 </div>
+
                                 <div>
                                   <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">
                                     Longitude
@@ -1359,9 +1375,10 @@ const ShipperPreferredAreaPage = () => {
 
                               <div className="rounded-md border border-[#efe4ce] bg-white px-3 py-2.5">
                                 <p className="text-xs font-semibold text-gray-700">
-                                  Coordinates are visible while editing so the
-                                  user can verify the exact saved point.
+                                  Coordinates are visible while editing so the user can
+                                  verify the exact saved point.
                                 </p>
+
                                 <div className="grid grid-cols-2 gap-3 mt-3">
                                   <div>
                                     <p className="text-[11px] uppercase tracking-wide text-gray-400">
@@ -1371,6 +1388,7 @@ const ShipperPreferredAreaPage = () => {
                                       {formatCoord(editForm.latitude)}
                                     </p>
                                   </div>
+
                                   <div>
                                     <p className="text-[11px] uppercase tracking-wide text-gray-400">
                                       Longitude
@@ -1391,6 +1409,7 @@ const ShipperPreferredAreaPage = () => {
                                     {editForm.radiusKm} km
                                   </span>
                                 </div>
+
                                 <input
                                   type="range"
                                   min="10"
@@ -1405,13 +1424,32 @@ const ShipperPreferredAreaPage = () => {
                                   }
                                   className="w-full accent-[#BF9B53]"
                                 />
+
                                 <div className="flex justify-between text-xs text-gray-400 mt-1">
                                   <span>10 km</span>
                                   <span>200 km</span>
                                 </div>
                               </div>
+
+                              <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+                                <button
+                                  onClick={handleCancelEdit}
+                                  className="flex-1 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-50 transition"
+                                >
+                                  Cancel
+                                </button>
+
+                                <button
+                                  onClick={handleSaveEdit}
+                                  disabled={loading || !editCoords}
+                                  className="flex-1 py-2.5 rounded-md bg-[#BF9B53] hover:bg-[#a8863e] disabled:opacity-50 text-white text-sm font-bold transition flex items-center justify-center gap-2"
+                                >
+                                  {loading ? "Saving Changes..." : "Save Changes"}
+                                </button>
+                              </div>
                             </div>
 
+                            {/* RIGHT SIDE MAP */}
                             <div className="space-y-2.5">
                               <LocationMapCard
                                 title="Adjust Exact Location"
@@ -1425,56 +1463,12 @@ const ShipperPreferredAreaPage = () => {
                                 mapRef={editMapRef}
                                 onMarkerDragEnd={handleEditMarkerDragEnd}
                               />
+
                               <p className="text-xs text-gray-500 leading-relaxed">
-                                You can update the address search, type latitude
-                                and longitude manually, or drag the marker to
-                                the exact point.
+                                You can update the address search, type latitude and
+                                longitude manually, or drag the marker to the exact point.
                               </p>
                             </div>
-                          </div>
-
-                          <div className="flex flex-col sm:flex-row gap-2.5 pt-4">
-                            <button
-                              onClick={handleCancelEdit}
-                              className="flex-1 py-2.5 rounded-md border border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-50 transition"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              onClick={handleSaveEdit}
-                              disabled={loading || !editCoords}
-                              className="flex-1 py-2.5 rounded-md bg-[#BF9B53] hover:bg-[#a8863e] disabled:opacity-50 text-white text-sm font-bold transition flex items-center justify-center gap-2"
-                            >
-                              {loading ? (
-                                <>
-                                  <svg
-                                    className="animate-spin w-4 h-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <circle
-                                      className="opacity-25"
-                                      cx="12"
-                                      cy="12"
-                                      r="10"
-                                      stroke="currentColor"
-                                      strokeWidth="4"
-                                    />
-                                    <path
-                                      className="opacity-75"
-                                      fill="currentColor"
-                                      d="M4 12a8 8 0 018-8v8H4z"
-                                    />
-                                  </svg>
-                                  Saving Changes...
-                                </>
-                              ) : (
-                                <>
-                                  <FiCheck size={14} />
-                                  Save Changes
-                                </>
-                              )}
-                            </button>
                           </div>
                         </div>
                       )}

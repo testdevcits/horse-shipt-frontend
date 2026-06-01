@@ -86,7 +86,7 @@ const CustomerReviews = () => {
       {/* Rating Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Overall Rating */}
-        <div className="bg-gradient-to-br from-[#BF9B53]/10 to-[#D4AF85]/10 rounded-lg p-4 border border-[#BF9B53]/30">
+        <div className="bg-gradient-to-br from-[#BF9B53]/10 to-[#D4AF85]/10 p-4 border border-[#BF9B53]/30">
           <p className="text-xs font-bold text-[#8B7043]">OVERALL RATING</p>
           <div className="flex items-center gap-2 mt-2">
             <div className="text-4xl font-bold text-[#BF9B53]">

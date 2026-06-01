@@ -162,7 +162,7 @@ const ShipperAvatar = ({ src, name, className = "" }) => {
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 const StatCard = ({ label, value }) => (
-  <div className="bg-white rounded-md p-3 shadow-sm text-center">
+  <div className="bg-white p-3 shadow-sm text-center">
     <p className="text-[14px] text-black mb-1">{label}</p>
     <p className="text-base font-bold text-dark font-montserrat">{value}</p>
   </div>
@@ -333,7 +333,7 @@ const TxnCard = ({ item, isActive, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-md px-4 py-3.5 flex items-center gap-3 cursor-pointer transition-all duration-200
+      className={`bg-white px-4 py-3.5 flex items-center gap-3 cursor-pointer transition-all duration-200
         ${
           isActive
             ? "ring-2 ring-system-primary shadow-md scale-[0.995]"
@@ -369,7 +369,7 @@ const TxnCard = ({ item, isActive, onClick }) => {
           {item.currency?.toUpperCase()} {item.amount?.toFixed(2)}
         </p>
         <span
-          className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full mt-1 inline-block ${s.classes}`}
+          className={`text-[11px] font-semibold px-2.5 py-0.5 mt-1 inline-block ${s.classes}`}
         >
           {s.label}
         </span>
@@ -478,7 +478,7 @@ const Payment = () => {
 
   // ── Header bar ──
   const Header = () => (
-    <div className="bg-white rounded-md shadow-sm px-4 py-3 flex items-center gap-3 mb-4">
+    <div className="bg-white shadow-sm px-4 py-3 flex items-center gap-3 mb-4">
       <div className="w-10 h-10 rounded-full bg-system-primary flex items-center justify-center flex-shrink-0">
         <TruckIcon size={20} color="#fff" />
       </div>
@@ -493,7 +493,7 @@ const Payment = () => {
       <button
         onClick={handleRefresh}
         disabled={refreshing}
-        className="flex items-center gap-1.5 text-xs font-semibold text-system-primary border border-system-primary rounded-xl px-3 py-1.5 hover:bg-header transition-colors disabled:opacity-50 flex-shrink-0 font-montserrat"
+        className="flex items-center gap-1.5 text-xs font-semibold text-system-primary border border-system-primary  px-3 py-1.5 hover:bg-header transition-colors disabled:opacity-50 flex-shrink-0 font-montserrat"
       >
         <RefreshIcon spinning={refreshing} />
         Refresh

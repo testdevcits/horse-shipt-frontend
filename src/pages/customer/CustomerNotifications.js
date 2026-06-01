@@ -156,7 +156,7 @@ const CustomerNotifications = () => {
               key={item.id}
               onClick={() => setSelectedNotification(item)}
               className={`
-                group flex items-center justify-between gap-4 p-4 rounded-md border
+                group flex items-center justify-between gap-4 p-4 border
                 transition-all duration-200 cursor-pointer select-none
                 ${
                   isChecked
@@ -203,7 +203,7 @@ const CustomerNotifications = () => {
 
       {selectedNotification && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-5 w-[90%] max-w-md shadow-xl">
+          <div className="bg-white p-5 w-[90%] max-w-md shadow-xl">
             <h2 className="text-lg font-semibold mb-2">
               {selectedNotification.label}
             </h2>

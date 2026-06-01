@@ -583,7 +583,7 @@ const MyHorses = () => {
               {horses.map((horse) => (
                 <div
                   key={horse._id}
-                  className="relative border border-[#BF9B53]/30 rounded-lg p-5 bg-white shadow-sm hover:shadow-md transition-all duration-300"
+                  className="relative border border-[#BF9B53]/30 p-5 bg-white shadow-sm hover:shadow-md transition-all duration-300"
                 >
                   {/* Card Header */}
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
@@ -658,7 +658,7 @@ const MyHorses = () => {
 
                   {/* Notes */}
                   {horse.notes && (
-                    <div className="mt-4 p-3 rounded-lg bg-[#BF9B53]/10 border border-[#BF9B53]/20">
+                    <div className="mt-4 p-3 bg-[#BF9B53]/10 border border-[#BF9B53]/20">
                       <p className="text-sm text-gray-700">
                         <span className="font-semibold text-[#BF9B53]">
                           Notes:

@@ -7,6 +7,7 @@ import { CiCircleQuestion } from "react-icons/ci";
 import { LiaHorseHeadSolid } from "react-icons/lia";
 
 import { useAuth } from "../../contexts/AuthContext";
+import SidebarSupportPopup from "../../components/common/SidebarSupportPopup";
 
 // COMMON ICONS
 import {
@@ -73,7 +74,9 @@ const CustomerSidebar = ({
   const [hoveredItem, setHoveredItem] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const menuItemsRef = useRef({});
+  const helpRef = useRef(null);
   const [activeItem, setActiveItem] = useState("Dashboard");
+  const [helpOpen, setHelpOpen] = useState(false);
 
   /**
    * ================= AUTO LOGOUT ON TOKEN EXPIRY =================
@@ -94,6 +97,25 @@ const CustomerSidebar = ({
 
     return () => axios.interceptors.response.eject(interceptor);
   }, [token, logout, navigate]);
+
+  useEffect(() => {
+    if (!helpOpen) return;
+
+    const handleClickOutside = (event) => {
+      if (helpRef.current && !helpRef.current.contains(event.target)) {
+        setHelpOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [helpOpen]);
+
+  useEffect(() => {
+    if (!sidebarOpen && !mobileOpen) {
+      setHelpOpen(false);
+    }
+  }, [sidebarOpen, mobileOpen]);
 
   /**
    * ================= CHECK IF PATH IS ACTIVE =================
@@ -148,39 +170,39 @@ const CustomerSidebar = ({
     <>
       {/* ================= SIDEBAR ================= */}
       <div
-        className={`fixed top-18 left-0 h-[calc(100%-64px)] bg-white shadow-lg z-40 transform transition-all duration-300 font-montserrat flex flex-col
+        className={`fixed top-18 left-0 h-[calc(100%-64px)] bg-white border-r border-gray-200 shadow-[4px_0_18px_rgba(17,24,39,0.06)] z-40 transform transition-all duration-300 font-montserrat flex flex-col
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
         style={{ width: sidebarWidth }}
       >
         {/* ===================== DESKTOP TOGGLE ===================== */}
-        <div className="flex justify-end p-3 hidden lg:flex border-b border-gray-200">
+        <div className="hidden min-h-[54px] items-center border-b border-gray-100 px-3 lg:flex">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="flex items-center justify-between w-full p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            className="flex w-full items-center justify-between px-2 py-2 text-[#111827] transition-colors duration-200 hover:bg-[#FBFAF7]"
             title={sidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
           >
             {sidebarOpen ? (
               <>
-                <span className="text-sm font-semibold text-[#BF9B53]">
+                <span className="truncate text-[13px] font-semibold text-[#111827]">
                   {activeItem || "Dashboard"}
                 </span>
-                <LuArrowLeftFromLine size={20} className="text-gray-600" />
+                <LuArrowLeftFromLine size={18} className="text-[#4B5563]" />
               </>
             ) : (
-              <LuArrowRightFromLine size={20} className="text-gray-600" />
+              <LuArrowRightFromLine size={18} className="text-[#4B5563]" />
             )}
           </button>
         </div>
 
         {/* ===================== NAVIGATION ===================== */}
         <nav className="flex-1 overflow-y-auto px-2 py-4 vehicle-scroll">
-          <ul className="space-y-2">
+          <ul className="space-y-1">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
 
               return (
-                <li key={item.path}>
+                <li key={item.path} className="border-b border-gray-100 pb-1">
                   {/* ================= MAIN MENU ITEM ================= */}
                   <NavLink
                     to={item.path}
@@ -190,16 +212,16 @@ const CustomerSidebar = ({
                     }}
                     onMouseEnter={(e) => handleMouseEnter(e, item.name)}
                     onMouseLeave={handleMouseLeave}
-                    className={`flex items-center px-3 py-3 rounded-lg transition-all duration-300 relative group
+                    className={`relative flex min-h-[42px] items-center rounded-[7px] border-l-[3px] px-3 py-2 transition-all duration-200 group
                       ${
                         sidebarOpen || mobileOpen
-                          ? "gap-4 justify-start"
+                          ? "gap-3 justify-start"
                           : "justify-center"
                       }
                       ${
                         active
-                          ? "bg-gradient-to-r from-blue-50 to-blue-50/50 text-[#BF9B53] font-semibold border-l-4 border-[#BF9B53]/100"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          ? "border-[#BF9B53] bg-[#FBFAF7] text-[#BF9B53]"
+                          : "border-transparent text-[#4B5563] hover:bg-[#FBFAF7] hover:text-[#111827]"
                       }
                     `}
                     title={sidebarOpen || mobileOpen ? "" : item.name}
@@ -207,7 +229,7 @@ const CustomerSidebar = ({
                     {/* ================= ICON ================= */}
                     <div
                       className={`flex-shrink-0 transition-all duration-300 ${
-                        active ? "text-[#BF9B53]" : "text-gray-600"
+                        active ? "text-[#BF9B53]" : "text-[#BF9B53]"
                       }`}
                     >
                       {item.icon}
@@ -215,18 +237,18 @@ const CustomerSidebar = ({
 
                     {/* ================= TEXT ================= */}
                     {(sidebarOpen || mobileOpen) && (
-                      <span className="text-sm font-medium">{item.name}</span>
+                      <span className="text-[13px] font-medium">{item.name}</span>
                     )}
 
                     {/* ================= ACTIVE INDICATOR (COLLAPSED) ================= */}
                     {active && !sidebarOpen && !mobileOpen && (
-                      <div className="absolute right-2 w-2 h-2 bg-[#BF9B53]/100 rounded-full animate-pulse" />
+                      <div className="absolute right-2 h-1.5 w-1.5 rounded-full bg-[#BF9B53]" />
                     )}
                   </NavLink>
 
                   {/* ================= SUBMENU ================= */}
                   {item.subPaths && (sidebarOpen || mobileOpen) && (
-                    <div className="ml-4 mt-2 border-l-2 border-gray-200 pl-4 flex flex-col gap-1">
+                    <div className="ml-8 mt-1 flex flex-col gap-1 pb-1">
                       {item.subPaths.map((sub) => {
                         const subActive = window.location.pathname === sub.path;
                         return (
@@ -237,11 +259,11 @@ const CustomerSidebar = ({
                               setActiveItem(item.name);
                               mobileOpen && setMobileOpen(false);
                             }}
-                            className={`block px-3 py-2 rounded-lg transition-all duration-300 text-xs font-medium
+                            className={`block px-3 py-1.5 text-[12px] font-medium transition-all duration-200
                             ${
                               subActive
-                                ? "bg-blue-50 text-[#BF9B53] font-semibold"
-                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                ? "text-[#BF9B53] font-semibold"
+                                : "text-[#4B5563] hover:text-[#111827]"
                             }
                           `}
                           >
@@ -258,9 +280,25 @@ const CustomerSidebar = ({
         </nav>
 
         {/* ===================== HELP BUTTON ===================== */}
-        <div className="p-3 flex-shrink-0 border-t border-gray-200">
+        <div
+          ref={helpRef}
+          className="relative flex-shrink-0 border-t border-gray-100 p-3"
+        >
+          <SidebarSupportPopup
+            isOpen={helpOpen}
+            onClose={() => setHelpOpen(false)}
+            role="customer"
+            sidebarOpen={sidebarOpen}
+            mobileOpen={mobileOpen}
+          />
+
           <button
-            className="flex items-center justify-center w-full py-3 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 text-blue-600 rounded-lg transition-all duration-300 group"
+            type="button"
+            onClick={() => {
+              setHoveredItem(null);
+              setHelpOpen((current) => !current);
+            }}
+            className="group flex w-full items-center justify-center rounded-[7px] bg-[#F3F4F6] py-3 text-[#BF9B53] transition-all duration-200 hover:bg-[#FBFAF7]"
             title="Help"
             onMouseEnter={(e) => handleMouseEnter(e, "Help")}
             onMouseLeave={handleMouseLeave}
@@ -274,7 +312,7 @@ const CustomerSidebar = ({
       </div>
 
       {/* ================= TOOLTIP - FIXED TO HOVERED ITEM ================= */}
-      {hoveredItem && !sidebarOpen && !mobileOpen && (
+      {hoveredItem && !helpOpen && !sidebarOpen && !mobileOpen && (
         <div
           className="fixed z-50 pointer-events-none animate-fadeIn"
           style={{
@@ -282,7 +320,7 @@ const CustomerSidebar = ({
             left: `${tooltipPos.left}px`,
           }}
         >
-          <div className="bg-[#BF9B53]/100 text-white px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap shadow-xl">
+          <div className="bg-[#BF9B53]/100 text-white px-4 py-2 rounded-sm text-sm font-semibold whitespace-nowrap shadow-xl">
             {hoveredItem}
             {/* Arrow pointing left */}
             <div className="absolute right-full top-1/2 -translate-y-1/2 border-6 border-transparent border-r-gray-900" />

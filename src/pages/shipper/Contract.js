@@ -63,11 +63,11 @@ const StatusBadge = ({ state }) => {
   const cfg = map[state] || map.pending;
   return (
     <span
-  className={`inline-flex h-[34px] items-center gap-1.5 rounded-[4px] border border-[#047857] px-3 font-montserrat text-[10px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold uppercase tracking-[0%] ${cfg.cls}`}
->
-  {cfg.icon}
-  {cfg.label}
-</span>
+      className={`inline-flex h-[34px] items-center gap-1.5 rounded-[4px] border border-[#047857] px-3 font-montserrat text-[10px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold uppercase tracking-[0%] ${cfg.cls}`}
+    >
+      {cfg.icon}
+      {cfg.label}
+    </span>
   );
 };
 
@@ -235,21 +235,20 @@ const ShipmentCard = ({
         </div>
         <div className="flex flex-wrap gap-2 sm:justify-end">
           <StatusBadge state={badgeState} />
-         <span
-  className={`inline-flex h-[34px] items-center rounded-[4px] border px-3 font-montserrat text-[10px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold uppercase tracking-[0%]
-  ${
-    quote.paymentStatus === "paid"
-      ? "border-[#047857] bg-emerald-50 text-[#047857]"
-      : "border-[#BF9B53] bg-[#BF9B53]/5 text-[#735D32]"
-  }`}
->
+          <span
+            className={`inline-flex h-[34px] items-center rounded-[4px] border px-3 font-montserrat text-[10px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold uppercase tracking-[0%]
+  ${quote.paymentStatus === "paid"
+                ? "border-[#047857] bg-emerald-50 text-[#047857]"
+                : "border-[#BF9B53] bg-[#BF9B53]/5 text-[#735D32]"
+              }`}
+          >
             Payment: {quote.paymentStatus}
           </span>
         </div>
       </div>
 
       {/* ── ROUTE ── */}
-      <div className="grid gap-5 lg:grid-cols-[minmax(230px,280px)_minmax(260px,1fr)_minmax(230px,280px)] lg:items-start">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         <div className="space-y-3">
           <div className="flex h-[44px] items-center gap-2 font-montserrat text-[11px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold tracking-[0%] text-[#4B5563]">
             <FiMapPin size={14} className="shrink-0 text-[#BF9B53]" />

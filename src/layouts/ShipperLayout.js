@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../pages/shipper/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
@@ -25,6 +25,7 @@ const ShipperLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const popupRef = useRef(null)
   const { user, logout } = useAuth();
   const { profile, loading } = useShipperProfile();
   const { fetchStripeStatus, needsOnboarding } = useShipperPayments();
@@ -81,6 +82,23 @@ const ShipperLayout = () => {
       }
     }
   }, [isSubscribed, needsOnboarding, isPaymentTab]);
+
+  useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (
+      popupRef.current &&
+      !popupRef.current.contains(event.target)
+    ) {
+      setProfilePopup(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
 
   const handleShare = async () => {
     const shareData = {
@@ -181,7 +199,7 @@ const ShipperLayout = () => {
             <div className="h-6 w-px bg-gray-200 hidden lg:block mx-1" />
 
             {/* Profile section */}
-            <div className="relative">
+           <div className="relative" ref={popupRef}>
               <button
                 onClick={() => !loading && setProfilePopup(!profilePopup)}
                 disabled={loading}

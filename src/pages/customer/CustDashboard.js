@@ -1,9 +1,8 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { TbCalendarTime } from "react-icons/tb";
 
 import { useAuth } from "../../contexts/AuthContext";
-import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import MyUpcomingShipments from "./MyUpcomingShipments";
 import TopRatedShippers from "./TopRatedShippers";
 import Button from "../../components/common/Button";
@@ -12,7 +11,6 @@ import logo from "../../assets/images/mobileLogo.png";
 const CustDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { shipments, fetchShipments, loading } = useCustomerShipments();
 
   const now = new Date();
   const dayName = now.toLocaleDateString("en-US", { weekday: "long" });
@@ -51,103 +49,87 @@ const CustDashboard = () => {
     navigate("/customer/new-shipment");
   };
 
-  useEffect(() => {
-    fetchShipments();
-  }, [fetchShipments]);
+ return (
+  <div className="mx-auto flex w-full max-w-[1540px] min-w-0 flex-col gap-5 overflow-hidden font-[Montserrat] sm:gap-6 lg:gap-7">
+    <section className="grid w-full min-w-0 grid-cols-1 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(420px,640px)]">
+      <div className="min-w-0 self-center">
+        <div className="mb-3 flex flex-wrap items-center gap-2 sm:gap-3">
+          <TbCalendarTime size={16} className="shrink-0 text-[#BF9B53]" />
 
-  return (
-    <div className="flex flex-col font-[Montserrat] gap-6 md:gap-8 w-full">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-        <div className="flex items-start gap-4">
-          {/* User Profile Image */}
+          <span className="whitespace-nowrap text-[10px] font-semibold uppercase leading-[18px] text-[#4B5563] sm:text-[11px] md:text-[12px]">
+            {dayName}, {fullDate}
+          </span>
 
-          <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-800">
-              {getGreeting()}, {getUserDisplayName()}
-            </h1>
-            <p className="text-gray-500 mt-1 text-sm md:text-base">
-              Here's what's happening with your shipments today
-            </p>
+          <div className="flex min-w-[80px] flex-1 items-center overflow-hidden sm:min-w-[120px]">
+            <span className="h-px w-full bg-[#BF9B53]" />
+            <span className="-ml-px h-[5px] w-[5px] shrink-0 rounded-full bg-[#BF9B53] sm:h-[6px] sm:w-[6px]" />
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto bg-[#BF9B53]/10 border border-[#BF9B53]/20 rounded-md px-4 py-2.5">
-          <TbCalendarTime size={18} className="text-[#BF9B53]" />
-          <div className="flex flex-row sm:flex-col items-center sm:items-start gap-1 sm:gap-0 leading-tight">
-            <span className="text-[#BF9B53] font-bold text-sm">{dayName}</span>
-            <span className="text-gray-500 text-xs">{fullDate}</span>
-          </div>
-        </div>
+        <h1 className="break-words text-[24px] font-semibold leading-[34px] text-[#111827] xs:text-[26px] sm:text-[32px] sm:leading-[44px] md:text-[36px] md:leading-[50px]">
+          {getGreeting()}, {getUserDisplayName()}
+        </h1>
+
+        <p className="mt-2 text-[9px] font-bold uppercase leading-[18px] tracking-[0.12em] text-[#BF9B53] sm:mt-3 sm:text-[10px] sm:leading-[20px] sm:tracking-[0.2em]">
+          Track your shipments and manage opportunities
+        </p>
       </div>
 
-      <div className="relative w-full bg-gradient-to-br from-white via-gray-50 to-white border border-gray-100 rounded-xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 group overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#BF9B53]/5 to-[#8B7D4A]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-        <div className="absolute -top-4 -right-4 w-20 h-20 bg-gradient-to-br from-[#BF9B53]/10 to-[#8B7D4A]/10 rounded-3xl blur-xl animate-pulse" />
-        <div className="absolute -bottom-6 left-8 w-16 h-16 bg-gradient-to-tr from-blue-100/50 to-indigo-100/30 rounded-2xl blur-xl animate-bounce [animation-delay:1s]" />
-
-        <div className="relative z-10 flex flex-col items-center justify-center text-center gap-6">
-          {/* Logo */}
-          <div className="relative group/logo">
-            <div className="w-20 h-16 bg-gradient-to-br from-[#BF9B53] to-[#8B7D4A] rounded-2xl p-2 shadow-2xl group-hover/logo:scale-110 transition-all duration-300">
-              <img
-                src={logo}
-                alt="Logo"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#BF9B53] to-[#8B7D4A] rounded-2xl blur-xl opacity-30 group-hover/logo:opacity-50 transition-opacity duration-300 -z-10" />
+      <aside className="flex min-w-0 flex-col gap-4 bg-white px-4 py-5 shadow-sm sm:px-6 md:flex-row md:items-center md:justify-between md:gap-5 md:px-7">
+        <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-5">
+          <div className="h-14 w-16 shrink-0 sm:h-16 sm:w-20">
+            <img
+              src={logo}
+              alt="Logo"
+              className="h-full w-full object-contain"
+            />
           </div>
 
-          <div className="space-y-2">
-            <h2 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-[#BF9B53] via-[#8B7D4A] to-gray-700 bg-clip-text text-transparent drop-shadow-lg">
+          <div className="min-w-0 ">
+            <h2 className="break-words text-[20px] font-bold leading-[28px] text-[#BF9B53] sm:text-[26px] sm:leading-[34px] lg:text-[30px] lg:leading-[40px]">
               Ready to ship something?
             </h2>
-            <p className="text-sm text-gray-500 font-medium max-w-md mx-auto leading-relaxed">
+
+            <p className="mt-1 text-[9px] font-semibold uppercase leading-[16px] tracking-[0.08em] text-[#6B7280] sm:mt-2 sm:text-[10px] sm:leading-[18px] md:whitespace-nowrap md:tracking-[0.12em]">
               Get started with your first shipment in just a few clicks
             </p>
           </div>
-
-          <div className="relative">
-            <Button
-              variant="custom"
-              bgColor="transparent"
-              textColor="#1F2937"
-              hoverBgColor="transparent"
-              className="group/btn relative px-8 py-4 text-base font-semibold bg-white/80 backdrop-blur-xl border-2 border-gray-200 rounded-2xl shadow-xl hover:shadow-2xl hover:border-[#BF9B53]/50 hover:bg-white/100 transition-all duration-300 overflow-hidden transform hover:-translate-y-1 hover:scale-[1.02]"
-              onClick={handleStartShipment}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-[#BF9B53]/0 via-[#BF9B53]/20 to-[#8B7D4A]/20 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700" />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 transform -translate-x-[100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
-              <span className="relative z-10 flex items-center gap-2">
-                <svg
-                  className="w-5 h-5 group-hover/btn:rotate-12 transition-transform duration-300"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
-                Start New Shipment
-              </span>
-            </Button>
-            <div className="absolute -inset-2 bg-gradient-to-r from-[#BF9B53]/20 to-[#8B7D4A]/20 rounded-3xl blur-xl opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500 -z-10 animate-pulse" />
-          </div>
         </div>
-      </div>
 
-      <div className="flex flex-col gap-6">
-        <MyUpcomingShipments shipments={shipments} loading={loading} />
-        <div className="w-full border-2 border-t border-[#BF9B53]"></div>
-        <TopRatedShippers />
-      </div>
-    </div>
-  );
+        <Button
+          variant="custom"
+          bgColor="#BF9B53"
+          textColor="#ffffff"
+          hoverBgColor="#A8843F"
+          onClick={handleStartShipment}
+          className="h-[42px] w-full shrink-0 rounded-[5px] px-4 text-[11px] font-bold uppercase tracking-normal sm:w-auto sm:min-w-[210px] md:h-[45px] md:min-w-[227px] md:text-[14px]"
+        >
+          <span className="flex items-center justify-center gap-2 whitespace-nowrap">
+            <svg
+              className="h-4 w-4 shrink-0 md:h-[18px] md:w-[18px]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+              />
+            </svg>
+
+            <span>START NEW SHIPMENT</span>
+          </span>
+        </Button>
+      </aside>
+    </section>
+
+    <MyUpcomingShipments />
+
+    <TopRatedShippers dashboardMode />
+  </div>
+);
 };
 
 export default CustDashboard;

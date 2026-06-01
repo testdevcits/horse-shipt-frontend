@@ -16,6 +16,7 @@ import { useDriver } from "../../contexts/shipperContext/DriverContext";
 
 import ConfirmModal from "../../components/common/ConfirmModal";
 import PageLoader from "../../components/common/PageLoader";
+import ImageSwiper from "../../components/common/ImageSwiper";
 
 const VehiclePage = () => {
   // --------- Vehicle Context ---------
@@ -234,16 +235,18 @@ const VehiclePage = () => {
             >
               <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)]">
                 <div className="aspect-[1.12/1] w-full overflow-hidden rounded-[5px] bg-slate-100 sm:aspect-[1.45/1] lg:h-[270px] lg:w-[260px] lg:aspect-auto xl:h-[305px] xl:w-[280px]">
-                  {vehicle.images?.[0]?.url ? (
-                    <img
-                      src={vehicle.images[0].url}
-                      alt={vehicle.vehicleNumber || "vehicle"}
-                      className="h-full w-full object-cover"
+
+                  {vehicle.images?.length ? (
+                    <ImageSwiper
+                      images={vehicle.images}
+                      altPrefix="vehicle"
+                      fallbackText="No image"
+                      className="aspect-[1.12/1] w-full rounded-[5px] sm:aspect-[1.45/1] lg:h-[270px] lg:w-[260px] lg:aspect-auto xl:h-[305px] xl:w-[280px]"
                     />
                   ) : (
                     <div className="flex h-full w-full flex-col items-center justify-center text-slate-400">
                       <RiImageAddLine className="text-3xl" />
-                      <span className="text-xs mt-1">No image</span>
+                      <span className="mt-1 text-xs">No image</span>
                     </div>
                   )}
                 </div>
@@ -270,8 +273,8 @@ const VehiclePage = () => {
                     >
                       <FiCheckCircle size={12} />
                       <span className="font-montserrat text-[10px] leading-[18px] sm:text-[12px] sm:leading-[20px] font-semibold uppercase tracking-[0%] text-[#BF9B53]">
-  {vehicle.verificationStatus || "PENDING"}
-</span>
+                        {vehicle.verificationStatus || "PENDING"}
+                      </span>
                     </span>
                   </div>
 
@@ -650,7 +653,7 @@ const VehiclePage = () => {
                       name="notes"
                       rows="3"
                       placeholder="Add any additional notes about this vehicle"
-                      className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5"
+                      className="min-h-[140px] w-full rounded-sm border border-gray-300 px-2.5 py-2"
                     />
                   </div>
 

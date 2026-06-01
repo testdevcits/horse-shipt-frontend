@@ -105,7 +105,7 @@ const Step2Delivery = ({
   const deliveryMinDate = getDeliveryMinDate();
 
   return (
-    <div className="flex flex-col w-full gap-6 bg-white p-4 md:p-6 rounded-lg font-montserrat">
+    <div className="flex flex-col w-full gap-6 bg-white p-4 md:p-6 font-montserrat">
       <div>
         <label className="block text-sm font-semibold mb-2 text-gray-600">
           Delivery Location <span className="text-red-500">*</span>
@@ -140,7 +140,7 @@ const Step2Delivery = ({
       </div>
 
       {/* Google Map */}
-      <div className="w-full rounded-lg overflow-hidden border-2 border-gray-200">
+      <div className="w-full overflow-hidden border-2 border-gray-200">
         <GoogleMap
           mapContainerStyle={containerStyle}
           center={deliveryCoords || defaultCenter}
@@ -170,7 +170,7 @@ const Step2Delivery = ({
 
         {/* Hint when pickup end date is set */}
         {pickupEndDate && (
-          <p className="text-xs text-[#BF9B53] font-medium bg-[#BF9B53]/10 p-2 rounded">
+          <p className="text-xs text-[#BF9B53] font-medium bg-[#BF9B53]/10 p-2">
             Delivery must start AFTER pickup end date ({pickupEndDate}).
             Earliest delivery start date is {deliveryMinDate}.
           </p>

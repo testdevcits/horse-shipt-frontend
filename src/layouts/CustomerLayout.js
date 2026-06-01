@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "../pages/customer/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
@@ -22,6 +22,7 @@ const CustomerLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const popupRef = useRef(null)
   const displayedProfileImage =
     (typeof profileImage === "string" ? profileImage : profileImage?.url) ||
     user?.photo ||
@@ -44,6 +45,23 @@ const CustomerLayout = () => {
       setMobileOpen(false);
     }
   }, [isDesktop]);
+
+   useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(event.target)
+      ) {
+        setProfilePopup(false);
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+  
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleShare = async () => {
     const shareData = {
@@ -149,7 +167,7 @@ const CustomerLayout = () => {
             </button>
 
             {profilePopup && (
-              <div className="absolute right-0 mt-2 w-56 bg-white border border-[#BF9B53] rounded-sm shadow-lg z-50 overflow-hidden font-montserrat">
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-[#BF9B53] rounded-sm shadow-lg z-50 overflow-hidden font-montserrat" ref={popupRef}>
                 <div className="px-4 py-4 bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-b border-gray-100">
                   <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
                     Profile
@@ -188,8 +206,8 @@ const CustomerLayout = () => {
         />
 
         <main
-          className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300"
-          style={{ marginLeft: isDesktop ? (sidebarOpen ? 256 : 64) : 0 }}
+          className=" bg-[#F7F5F1] flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300"
+          style={{ marginLeft: isDesktop ? (sidebarOpen ? 256 : 80) : 0 }}
         >
           <Outlet />
         </main>

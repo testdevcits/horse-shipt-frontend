@@ -127,7 +127,7 @@ const DateInput = ({
           onClick={handleInputClick}
           placeholder={placeholder || "Select date"}
           disabled={disabled}
-          className={`w-full border-2 rounded-lg px-4 py-2 md:py-3 text-gray-700 cursor-pointer focus:outline-none transition-all text-sm md:text-base ${
+          className={`w-full border-2 px-4 py-2 md:py-3 text-gray-700 cursor-pointer focus:outline-none transition-all text-sm md:text-base ${
             disabled
               ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
               : error

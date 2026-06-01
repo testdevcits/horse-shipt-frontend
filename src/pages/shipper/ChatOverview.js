@@ -281,7 +281,7 @@ const ChatOverview = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search shipment or customer"
-            className="w-full border rounded-md pl-10 py-2"
+            className="w-full border pl-10 py-2"
           />
         </div>
 

@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { IoLocationOutline } from "react-icons/io5";
-import { LuCalendarDays } from "react-icons/lu";
-import { FiArrowRight } from "react-icons/fi";
+import { FiTruck } from "react-icons/fi";
+import { HiArrowUpRight } from "react-icons/hi2";
 import { createShipmentQueryToken } from "../../utils/createQueryToken";
 
 const CustomerShipmentCard = ({ shipment }) => {
@@ -12,9 +12,17 @@ const CustomerShipmentCard = ({ shipment }) => {
 
   const horse = shipment.horses[0];
 
-  const truncateText = (text, maxLength = 30) => {
+  const truncateText = (text, maxLength = 18) => {
     if (!text) return "";
-    return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "Pending";
+    return new Date(date).toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+    });
   };
 
   const handleNavigateWithQuery = () => {
@@ -26,145 +34,121 @@ const CustomerShipmentCard = ({ shipment }) => {
     navigate(`/customer/my-shipments?${params.toString()}`);
   };
 
-  // ✅ UPDATED: handle range dates safely
-  const formatDate = (date) => {
-    if (!date) return "Pending";
-    return new Date(date).toLocaleDateString("en-US", {
-      day: "numeric",
-      month: "short",
-    });
-  };
+  const pickupDateText = `${formatDate(shipment?.pickupDateRange?.start)} - ${formatDate(
+    shipment?.pickupDateRange?.end
+  )}`;
 
-  const pickupStart = shipment?.pickupDateRange?.start;
-  const pickupEnd = shipment?.pickupDateRange?.end;
-
-  const deliveryStart = shipment?.deliveryDateRange?.start;
-  const deliveryEnd = shipment?.deliveryDateRange?.end;
-
-  const isPickupToday =
-    pickupStart &&
-    new Date(pickupStart).toDateString() === new Date().toDateString();
-  const pendingQuestionCount =
-    shipment.questionSummary?.unreadForCustomer ??
-    shipment.questionSummary?.pending ??
-    0;
+  const deliveryDateText = `${formatDate(shipment?.deliveryDateRange?.start)} - ${formatDate(
+    shipment?.deliveryDateRange?.end
+  )}`;
 
   return (
     <div
       onClick={handleNavigateWithQuery}
-      className="group flex flex-col sm:flex-row bg-white border border-2 border-[#8B7D4A] rounded-md p-4 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer gap-4"
+      className="
+    group relative w-full cursor-pointer
+    bg-white p-3 shadow-[0_6px_18px_rgba(0,0,0,0.08)]
+    transition-all duration-300
+    hover:shadow-[0_10px_24px_rgba(0,0,0,0.12)]
+    sm:p-4
+    lg:p-5
+    lg:hover:-translate-y-1
+    lg:shadow-[0_8px_22px_rgba(0,0,0,0.10)]
+    lg:hover:shadow-[0_14px_30px_rgba(0,0,0,0.14)]
+  "
     >
-      {/* HORSE IMAGE */}
-      <div className="flex-shrink-0 w-full sm:w-[120px] md:w-[140px]">
+      <button
+        type="button"
+        className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-[4px] bg-[#BF9B53] text-white sm:right-4 sm:top-4"
+      >
+        <HiArrowUpRight size={16} />
+      </button>
+
+      <div className="flex flex-col gap-4 min-[1400px]:flex-row">
         <img
-          src={
-            horse?.photo?.url || "https://via.placeholder.com/150?text=Horse"
-          }
+          src={horse?.photo?.url || "https://via.placeholder.com/150?text=Horse"}
           alt={horse?.registeredName || "Horse"}
-          className="w-full h-[140px] sm:h-[150px] md:h-[180px] rounded-lg object-cover border border-gray-200 group-hover:border-[#BF9B53]"
+          className="h-[200px] w-full shrink-0 rounded-[6px] object-cover object-center sm:h-[220px] lg:h-[190px] min-[1400px]:h-[210px] min-[1400px]:w-[240px]"
           onError={(e) => {
             e.target.src = "https://via.placeholder.com/150?text=Horse";
           }}
         />
-      </div>
 
-      {/* DETAILS */}
-      <div className="flex-1 flex flex-col justify-between min-w-0">
-        {/* HEADER */}
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-sm md:text-base font-semibold text-gray-900 leading-snug truncate">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <h3 className="pr-8 font-[Montserrat] text-[18px] font-bold leading-[28px] text-[#111827] md:leading-[32px] xl:text-[24px] lg:leading-[35px]">
             {shipment.numberOfHorses} Horse
             {shipment.numberOfHorses > 1 ? "s" : ""} Shipment
           </h3>
 
-          <div className="flex items-center gap-2">
-            {pendingQuestionCount > 0 && (
-              <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-bold">
-                Question - {pendingQuestionCount}
+          <div className="grid grid-cols-1 gap-2 py-2 sm:grid-cols-2">
+            <div className="flex items-center gap-1 text-[8px] text-[#4B5563]">
+              <IoLocationOutline
+                size={10}
+                className="shrink-0 text-[#735D32] sm:h-[11px] sm:w-[11px] md:h-[13px] md:w-[9px]"
+              />
+              <span
+                className="truncate font-[Montserrat]  font-semibold leading-[16px] text-[#4B5563] sm:text-[8px] sm:leading-[18px] text-[10px] md:leading-[20px]"
+                title={shipment.pickupLocation}
+              >
+                {truncateText(shipment.pickupLocation, 18)}
               </span>
-            )}
-            {isPickupToday && (
-              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
-                Today
+            </div>
+            <div className="flex items-center gap-1 text-[8px] text-[#4B5563] sm:justify-end">
+              <IoLocationOutline
+                size={10}
+                className="shrink-0 text-[#735D32] sm:h-[11px] sm:w-[11px] md:h-[13px] md:w-[9px]"
+              />
+              <span className="truncate font-[Montserrat] font-semibold leading-[16px] text-[#4B5563] sm:text-[8px] sm:leading-[18px] text-[10px] md:leading-[20px]" title={shipment.deliveryLocation}>
+                {truncateText(shipment.deliveryLocation, 18)}
               </span>
-            )}
-            <FiArrowRight className="text-gray-400 group-hover:text-[#BF9B53] transition" />
-          </div>
-        </div>
-
-        {/* PICKUP & DELIVERY TIMELINE */}
-        <div className="flex gap-3">
-          {/* TIMELINE */}
-          <div className="flex flex-col items-center mt-1">
-            <div className="w-2.5 h-2.5 bg-[#BF9B53] rounded-full" />
-            <div className="w-[2px] h-14 bg-[#BF9B53]" />
-            <div className="w-2.5 h-2.5 bg-[#BF9B53] rounded-full" />
+            </div>
           </div>
 
-          {/* LOCATIONS & DATES */}
-          <div className="flex-1 space-y-3">
-            {/* PICKUP */}
+          <div className="grid grid-cols-[minmax(88px,112px)_minmax(42px,1fr)_minmax(88px,112px)] items-center gap-2 sm:gap-3">
             <div>
-              <p className="text-xs text-gray-500 mb-1">Pickup</p>
-
-              <div className="flex items-center gap-2 text-sm text-gray-800">
-                <IoLocationOutline size={16} />
-                <span title={shipment.pickupLocation}>
-                  {truncateText(shipment.pickupLocation, 30)}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                <LuCalendarDays size={14} />
-                <span>
-                  {pickupStart ? formatDate(pickupStart) : "Pending"} -{" "}
-                  {pickupEnd ? formatDate(pickupEnd) : "Pending"}
-                </span>
+              <div className="w-full rounded-[5px] border border-[#735D32] bg-white px-2 py-2 text-center md:py-[6px]">
+                <p className="font-[Montserrat] text-[8px] font-semibold uppercase leading-[16px] text-center text-[#4B5563] sm:text-[9px] sm:leading-[18px] md:text-[10px] md:leading-[20px]">
+                  Pickup
+                </p>
+                <p className="font-[Montserrat] text-[10px] font-bold uppercase leading-[18px] text-center text-[#735D32] sm:text-[11px] sm:leading-[19px] md:text-[12px] md:leading-[20px]">
+                  {pickupDateText}
+                </p>
               </div>
             </div>
 
-            {/* DELIVERY */}
-            <div>
-              <p className="text-xs text-gray-500 mb-1">Delivery</p>
-
-              <div className="flex items-center gap-2 text-sm text-gray-800">
-                <IoLocationOutline size={16} />
-                <span title={shipment.deliveryLocation}>
-                  {truncateText(shipment.deliveryLocation, 30)}
-                </span>
+            <div className="relative flex min-w-0 items-center justify-center">
+              <span className="h-px w-full bg-[#BF9B53]" />
+              <span className="absolute left-0 h-[6px] w-[6px] rounded-full bg-[#BF9B53]" />
+              <div className="absolute left-1/2 top-1/2 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#FAF7EF] text-[#BF9B53]">
+                <FiTruck size={17} />
               </div>
+              <span className="absolute right-0 h-[6px] w-[6px] rounded-full bg-[#BF9B53]" />
+            </div>
 
-              <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                <LuCalendarDays size={14} />
-                <span>
-                  {deliveryStart ? formatDate(deliveryStart) : "Pending"} -{" "}
-                  {deliveryEnd ? formatDate(deliveryEnd) : "Pending"}
-                </span>
+            <div>
+              <div className="w-full rounded-[5px] border border-[#735D32] bg-white px-2 py-2 text-center md:py-[6px]">
+                <p className="font-[Montserrat] text-[8px] font-semibold uppercase leading-[16px] text-center text-[#4B5563] sm:text-[9px] sm:leading-[18px] md:text-[10px] md:leading-[20px]">
+                  Delivery
+                </p>
+                <p className="font-[Montserrat] text-[10px] font-bold uppercase leading-[18px] text-center text-[#735D32] sm:text-[11px] sm:leading-[19px] md:text-[12px] md:leading-[20px]">
+                  {deliveryDateText}
+                </p>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* FOOTER */}
-        <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center text-xs">
-          <span className="text-gray-500">
-            Horses:{" "}
-            <span className="font-semibold text-gray-800">
-              {shipment.numberOfHorses}
+          <div className="mt-5 flex flex-col gap-3 border-t border-[#EFEFEF] pt-4 sm:mt-auto sm:flex-row sm:items-center sm:justify-between sm:pt-7">
+            <p className="font-[Montserrat] text-[12px] font-medium leading-[16px] text-[#4B5563] sm:text-[9px] sm:leading-[18px] md:text-[10px] md:leading-[20px]">
+              Horses:{" "}
+              <span className="font-[Montserrat] text-[8px] font-medium leading-[16px] tracking-normal text-[#4B5563] sm:text-[9px] sm:leading-[18px] md:text-[10px] md:leading-[20px]">
+                {shipment.numberOfHorses}
+              </span>
+            </p>
+
+            <span className="w-fit border border-[#BF9B53] px-4 py-2 font-[Montserrat] text-[10px] font-semibold uppercase text-[#BF9B53]">
+              {shipment.status || "OPEN FOR OFFERS"}
             </span>
-          </span>
-
-          <span
-            className={`px-2 py-0.5 rounded-full font-medium uppercase ${
-              shipment.status === "delivered"
-                ? "bg-green-100 text-green-700"
-                : shipment.status === "assigned"
-                ? "bg-blue-100 text-blue-700"
-                : "bg-yellow-500 text-white"
-            }`}
-          >
-            {shipment.status || "Pending"}
-          </span>
+          </div>
         </div>
       </div>
     </div>
