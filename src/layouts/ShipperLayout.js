@@ -13,7 +13,7 @@ import { CgMenu } from "react-icons/cg";
 import { IoMdClose } from "react-icons/io";
 import { MdOutlineNotificationsActive } from "react-icons/md";
 import { IoShareSocial } from "react-icons/io5";
-import { BiChevronDown } from "react-icons/bi";
+import { BiChevronDown, BiChevronRight } from "react-icons/bi";
 
 import StatusBadge from "../components/common/StatusBadge";
 import logo from "../assets/images/HorseShipt 1.svg";
@@ -120,6 +120,11 @@ const ShipperLayout = () => {
 
   const handleLogout = () => {
     logout();
+    setProfilePopup(false);
+  };
+
+  const handleProfileSettings = () => {
+    navigate("/shipper/settings?tab=profile");
     setProfilePopup(false);
   };
 
@@ -233,14 +238,25 @@ const ShipperLayout = () => {
                       Profile
                     </p>
 
-                    <div className="mt-2">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
-                        {user?.name || "User Name"}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {user?.email || "user@email.com"}
-                      </p>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={handleProfileSettings}
+                      className="-mx-2 mt-2 flex w-[calc(100%+1rem)] cursor-pointer items-center justify-between gap-3 rounded-md px-2 py-2 text-left transition hover:bg-[#BF9B53]/10 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40"
+                      title="Open profile settings"
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold text-gray-900 truncate">
+                          {user?.name || "User Name"}
+                        </span>
+                        <span className="block text-xs text-gray-500 truncate">
+                          {user?.email || "user@email.com"}
+                        </span>
+                      </span>
+                      <BiChevronRight
+                        size={18}
+                        className="flex-shrink-0 text-[#BF9B53]"
+                      />
+                    </button>
                   </div>
 
                   {/* Actions */}
