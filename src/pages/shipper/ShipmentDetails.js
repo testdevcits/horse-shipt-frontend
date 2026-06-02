@@ -176,6 +176,18 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const idToUse = shipmentIdFromQuery || paramId || defaultId;
 
   useEffect(() => {
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+
+      document.querySelectorAll("main").forEach((scrollContainer) => {
+        scrollContainer.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      });
+    });
+  }, [idToUse]);
+
+  useEffect(() => {
     if (questionIdFromQuery) setIsQuestionOpen(true);
   }, [questionIdFromQuery]);
 
