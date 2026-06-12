@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkhorse_shipt_frontend=self.webpackChunkhorse_shipt_frontend||[]).push([[67],{67:(e,s,t)=>{t.d(s,{A:()=>h});t(5043);const h=t.p+"static/media/HorseShipt_White.bee90b6fc07e84f6c12378b06fd2d1d6.svg"}}]);
+//# sourceMappingURL=67.fb91c013.chunk.js.map
