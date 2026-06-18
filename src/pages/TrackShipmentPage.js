@@ -490,7 +490,8 @@ const TrackShipmentPage = () => {
     );
   }
 
-  const { tripStatus, driver, pickup, delivery } = trackingData;
+  const { tripStatus, message: trackingMessage, driver, pickup, delivery } =
+    trackingData;
 
   const driverPos = isValidCoord(driver?.lat, driver?.lng)
     ? { lat: driver.lat, lng: driver.lng }
@@ -527,6 +528,20 @@ const TrackShipmentPage = () => {
       border: "border-amber-200",
       dot: "bg-amber-400",
       text: "text-amber-700",
+    },
+    notStarted: {
+      label: "Not Started",
+      bg: "bg-amber-50",
+      border: "border-amber-200",
+      dot: "bg-amber-400",
+      text: "text-amber-700",
+    },
+    started: {
+      label: "Started",
+      bg: "bg-blue-50",
+      border: "border-blue-200",
+      dot: "bg-blue-500 animate-pulse",
+      text: "text-blue-700",
     },
   };
   const statusCfg = statusMap[tripStatus] || {
@@ -585,6 +600,11 @@ const TrackShipmentPage = () => {
                 </span>
               </div>
             </div>
+            {trackingMessage && (
+              <div className="mt-4 rounded-xl border border-[#BF9B53]/25 bg-[#fffaf2] px-4 py-3 text-sm font-semibold text-[#735D32]">
+                {trackingMessage}
+              </div>
+            )}
           </div>
 
           {/* ── Main Grid ── */}
@@ -813,7 +833,7 @@ const TrackShipmentPage = () => {
                   </div>
                 ) : (
                   <p className="text-sm text-gray-400 text-center py-2">
-                    Driver location unavailable
+                    {trackingMessage || "Driver location unavailable"}
                   </p>
                 )}
               </InfoCard>

@@ -4,6 +4,7 @@ import React, {
   useState,
   useCallback,
   useEffect,
+  useRef,
 } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
@@ -18,6 +19,15 @@ export const DriverProvider = ({ children }) => {
 
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [hasFetchedDrivers, setHasFetchedDrivers] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    total: 0,
+  });
+  const listCacheRef = useRef(new Map());
+  const inFlightRef = useRef(new Map());
 
   // ---------------- TOAST HANDLER ----------------
   const showToast = (message, type = "info") => {
@@ -31,23 +41,65 @@ export const DriverProvider = ({ children }) => {
   // ====================================================
   // FETCH DRIVERS
   // ====================================================
-  const fetchDrivers = useCallback(async () => {
+  const fetchDrivers = useCallback(async (filters = {}) => {
     if (!token) {
       setDrivers([]);
+      setHasFetchedDrivers(false);
       return;
     }
 
+    const params = {
+      page: filters.page || 1,
+      limit: filters.limit || 10,
+      search: filters.search || "",
+      status: filters.status || "",
+      sortBy: filters.sortBy || "createdAt",
+      sortOrder: filters.sortOrder || "desc",
+    };
+    const cacheKey = JSON.stringify(params);
+    const cached = listCacheRef.current.get(cacheKey);
+
+    if (cached) {
+      setDrivers(cached.data);
+      setPagination(cached.pagination);
+      setHasFetchedDrivers(true);
+      return cached.response;
+    }
+
+    if (inFlightRef.current.has(cacheKey)) {
+      return inFlightRef.current.get(cacheKey);
+    }
+
+    const request = (async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/drivers`, {
         headers: { Authorization: `Bearer ${token}` },
+        params,
       });
 
-      if (Array.isArray(response?.data?.drivers)) {
-        setDrivers(response.data.drivers);
+      const nextDrivers = Array.isArray(response?.data?.data)
+        ? response.data.data
+        : response?.data?.drivers || [];
+      const nextPagination = {
+        page: response.data.pagination?.page || params.page,
+        limit: response.data.pagination?.limit || params.limit,
+        totalPages: response.data.pagination?.totalPages || 1,
+        total: response.data.total || nextDrivers.length,
+      };
+
+      if (Array.isArray(nextDrivers)) {
+        setDrivers(nextDrivers);
+        setPagination(nextPagination);
+        listCacheRef.current.set(cacheKey, {
+          data: nextDrivers,
+          pagination: nextPagination,
+          response: response.data,
+        });
       } else {
         setDrivers([]);
       }
+      return response.data;
     } catch (err) {
       setDrivers([]);
       showToast(
@@ -55,8 +107,14 @@ export const DriverProvider = ({ children }) => {
         "error"
       );
     } finally {
+      setHasFetchedDrivers(true);
       setLoading(false);
+      inFlightRef.current.delete(cacheKey);
     }
+    })();
+
+    inFlightRef.current.set(cacheKey, request);
+    return request;
   }, [token]);
 
   // ====================================================
@@ -71,6 +129,7 @@ export const DriverProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      listCacheRef.current.clear();
       await fetchDrivers();
       showToast("Driver added successfully", "success");
 
@@ -98,6 +157,7 @@ export const DriverProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      listCacheRef.current.clear();
       await fetchDrivers();
       showToast("Driver updated successfully", "success");
 
@@ -125,6 +185,7 @@ export const DriverProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      listCacheRef.current.clear();
       await fetchDrivers();
       showToast("Driver deleted successfully", "success");
 
@@ -154,6 +215,7 @@ export const DriverProvider = ({ children }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      listCacheRef.current.clear();
       await fetchDrivers();
       showToast("Vehicles assigned successfully", "success");
 
@@ -183,6 +245,7 @@ export const DriverProvider = ({ children }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      listCacheRef.current.clear();
       await fetchDrivers();
 
       showToast(
@@ -210,6 +273,7 @@ export const DriverProvider = ({ children }) => {
       fetchDrivers();
     } else {
       setDrivers([]);
+      setHasFetchedDrivers(false);
     }
   }, [token, user, fetchDrivers]);
 
@@ -218,6 +282,8 @@ export const DriverProvider = ({ children }) => {
       value={{
         drivers,
         loading,
+        hasFetchedDrivers,
+        pagination,
         fetchDrivers,
         addDriver,
         updateDriver,

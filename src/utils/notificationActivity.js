@@ -210,8 +210,28 @@ export const markNotificationActivityReadRemote = async ({
   role,
   userId,
   token,
+  ids = [],
 }) => {
-  markNotificationActivityRead({ role, userId });
+  const selectedIds = Array.isArray(ids) ? ids.filter(Boolean) : [];
+  if (selectedIds.length) {
+    const key = getNotificationStorageKey({ role, userId });
+    if (key) {
+      const next = loadNotificationActivity({ role, userId }).map((item) =>
+        selectedIds.includes(item.id) ? { ...item, read: true } : item
+      );
+      localStorage.setItem(key, JSON.stringify(next));
+      setActivityCache({
+        role,
+        userId,
+        value: {
+          notifications: next,
+          unreadCount: next.filter((item) => !item.read).length,
+        },
+      });
+    }
+  } else {
+    markNotificationActivityRead({ role, userId });
+  }
 
   const path = getActivityPath(role);
   if (!path || !token) return;
@@ -219,7 +239,11 @@ export const markNotificationActivityReadRemote = async ({
 
   await fetch(`${API_BASE_URL}/${path}/read`, {
     method: "PATCH",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(selectedIds.length ? { ids: selectedIds } : {}),
   });
 };
 
@@ -251,4 +275,43 @@ export const deleteNotificationActivity = async ({
   );
 
   if (!res.ok) throw new Error("Failed to delete notification");
+};
+
+export const deleteNotificationActivities = async ({
+  role,
+  userId,
+  token,
+  ids = [],
+  all = false,
+}) => {
+  const selectedIds = Array.isArray(ids) ? ids.filter(Boolean) : [];
+  const key = getNotificationStorageKey({ role, userId });
+
+  if (key) {
+    const next = all
+      ? []
+      : loadNotificationActivity({ role, userId }).filter(
+          (item) => !selectedIds.includes(item.id)
+        );
+    localStorage.setItem(key, JSON.stringify(next));
+  }
+
+  invalidateNotificationActivityCache({ role, userId });
+
+  const path = getActivityPath(role);
+  if (!path || !token || (!all && selectedIds.length === 0)) return;
+
+  const serverIds = selectedIds.filter((id) => /^[a-f\d]{24}$/i.test(id));
+  if (!all && serverIds.length === 0) return;
+
+  const res = await fetch(`${API_BASE_URL}/${path}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(all ? { all: true } : { ids: serverIds }),
+  });
+
+  if (!res.ok) throw new Error("Failed to delete notifications");
 };

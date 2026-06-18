@@ -29,7 +29,12 @@ const ShipperLayout = () => {
   const { user, logout } = useAuth();
   const { profile, loading } = useShipperProfile();
   const { fetchStripeStatus, needsOnboarding } = useShipperPayments();
-  const { subscription, loading: subLoading } = useSubscription();
+  const {
+    subscription,
+    loading: subLoading,
+    subscriptionReady,
+    hasAccess: hasSubscriptionAccess,
+  } = useSubscription();
 
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -44,7 +49,8 @@ const ShipperLayout = () => {
     queryParams.get("tab") === "payment";
 
   const isSubscribed =
-    subscription && ["active", "trialing"].includes(subscription.status);
+    hasSubscriptionAccess ||
+    ["active", "trialing", "past_due"].includes(subscription?.status);
 
   const showStripeBanner = isSubscribed && needsOnboarding;
 
@@ -312,7 +318,7 @@ const ShipperLayout = () => {
         />
       )}
 
-      {!subLoading && !isSubscribed && <SubscriptionPopup />}
+      {subscriptionReady && !subLoading && !isSubscribed && <SubscriptionPopup />}
     </div>
   );
 };

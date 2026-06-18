@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { useAuth } from "./AuthContext";
 import {
+  deleteNotificationActivities,
   deleteNotificationActivity,
   fetchNotificationActivity,
   loadNotificationActivity,
@@ -98,6 +99,29 @@ export const NotificationActivityProvider = ({ children }) => {
     await markNotificationActivityReadRemote({ role, userId, token });
   }, [role, token, userId]);
 
+  const markSelectedRead = useCallback(
+    async (ids = []) => {
+      const selectedIds = Array.isArray(ids) ? ids.filter(Boolean) : [];
+      if (!role || !userId || selectedIds.length === 0) return;
+
+      setNotifications((prev) => {
+        const next = prev.map((item) =>
+          selectedIds.includes(item.id) ? { ...item, read: true } : item
+        );
+        setUnreadCount(next.filter((item) => !item.read).length);
+        return next;
+      });
+
+      await markNotificationActivityReadRemote({
+        role,
+        userId,
+        token,
+        ids: selectedIds,
+      });
+    },
+    [role, token, userId]
+  );
+
   const deleteNotification = useCallback(
     async (notificationId) => {
       if (!role || !userId || !notificationId) return;
@@ -117,6 +141,41 @@ export const NotificationActivityProvider = ({ children }) => {
     },
     [role, token, userId]
   );
+
+  const deleteSelectedNotifications = useCallback(
+    async (ids = []) => {
+      const selectedIds = Array.isArray(ids) ? ids.filter(Boolean) : [];
+      if (!role || !userId || selectedIds.length === 0) return;
+
+      setNotifications((prev) => {
+        const next = prev.filter((item) => !selectedIds.includes(item.id));
+        setUnreadCount(next.filter((item) => !item.read).length);
+        return next;
+      });
+
+      await deleteNotificationActivities({
+        role,
+        userId,
+        token,
+        ids: selectedIds,
+      });
+    },
+    [role, token, userId]
+  );
+
+  const clearAllNotifications = useCallback(async () => {
+    if (!role || !userId) return;
+
+    setNotifications([]);
+    setUnreadCount(0);
+
+    await deleteNotificationActivities({
+      role,
+      userId,
+      token,
+      all: true,
+    });
+  }, [role, token, userId]);
 
   useEffect(() => {
     seenNotificationIdsRef.current = new Set();
@@ -157,13 +216,19 @@ export const NotificationActivityProvider = ({ children }) => {
       refresh,
       saveIncomingNotification,
       markAllRead,
+      markSelectedRead,
       deleteNotification,
+      deleteSelectedNotifications,
+      clearAllNotifications,
     }),
     [
+      clearAllNotifications,
       deleteNotification,
+      deleteSelectedNotifications,
       initialized,
       loading,
       markAllRead,
+      markSelectedRead,
       notifications,
       refresh,
       saveIncomingNotification,

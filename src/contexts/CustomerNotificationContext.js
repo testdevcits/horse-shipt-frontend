@@ -119,8 +119,6 @@ export const CustomerNotificationProvider = ({ children }) => {
         { subscription },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      // console.log(" Customer subscribed to push notifications");
     } catch (err) {
       console.error("Push subscription failed:", err);
       setError("Push subscription failed. Please allow notifications.");

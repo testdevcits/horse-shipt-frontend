@@ -759,7 +759,7 @@ const AllShipments = () => {
     useDeliveredShipments();
   const { publishShipment, deleteShipment, fetchShipmentById } =
     useCustomerShipments();
-  const { addReview, myReviews } = useReview();
+  const { addReview, myReviews, fetchMyReviews } = useReview();
 
   const [selected, setSelected] = React.useState(null);
   const [reviewOpen, setReviewOpen] = React.useState(false);
@@ -792,6 +792,10 @@ const AllShipments = () => {
     fetchCompletedShipments();
   }, [fetchCompletedShipments]);
 
+  React.useEffect(() => {
+    fetchMyReviews?.();
+  }, [fetchMyReviews]);
+
   const handleTabChange = (key) => {
     setTab(key);
     const params = new URLSearchParams(location.search);
@@ -810,6 +814,7 @@ const AllShipments = () => {
       });
       Toast.success("Review submitted successfully!");
       setReviewOpen(false);
+      fetchMyReviews?.();
       setTimeout(() => setSelected(null), 100);
     } catch (err) {
       Toast.error(err.message || "Failed to submit review");
@@ -931,7 +936,14 @@ const AllShipments = () => {
     setSelected(null);
   };
 
-  const hasReviewed = (id) => myReviews.some((r) => r.shipmentId === id);
+  const normalizeId = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    return (value._id || value.id || "").toString();
+  };
+
+  const hasReviewed = (id) =>
+    myReviews.some((r) => normalizeId(r.shipmentId) === normalizeId(id));
 
   if (loading)
     return <PageLoader text="Loading shipments..." fullScreen={false} />;

@@ -47,7 +47,10 @@ const ShipmentQuotes = ({
   totalPages = 1,
 }) => {
   const navigate = useNavigate();
-  const { getQuotesByShipment, loading: fetchLoading } = useCustomerQuote();
+  const {
+    getQuotesByShipment,
+    loading: fetchLoading,
+  } = useCustomerQuote();
 
   const [page, setPage] = useState(currentPage);
 
@@ -122,7 +125,6 @@ const ShipmentQuotes = ({
                 quote.shipper?.companyName ||
                 quote.shipper?.name ||
                 "Unknown Shipper";
-
               return (
                 <div
                   key={quote._id}
@@ -167,13 +169,15 @@ const ShipmentQuotes = ({
                       )}
                     </div>
 
-                    <button
-                      onClick={() => onSelectQuote(quote)}
-                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] border border-[#BF9B53] text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all duration-200"
-                    >
-                      View Details
-                      <LuCircleChevronRight size={18} />
-                    </button>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <button
+                        onClick={() => onSelectQuote(quote)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] border border-[#BF9B53] text-white font-semibold text-sm hover:shadow-lg transition-all duration-200"
+                      >
+                        View Details
+                        <LuCircleChevronRight size={18} />
+                      </button>
+                    </div>
                   </div>
 
                   {/* ---- VIEW SHIPPER REVIEWS — per quote ---- */}
@@ -273,6 +277,7 @@ const ShipmentQuotes = ({
           )}
         </>
       )}
+
     </div>
   );
 };

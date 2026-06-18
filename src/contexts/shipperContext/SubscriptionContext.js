@@ -20,6 +20,7 @@ export const SubscriptionProvider = ({ children }) => {
   const [plan, setPlan] = useState(null);
 
   const [loading, setLoading] = useState(false);
+  const [subscriptionReady, setSubscriptionReady] = useState(false);
   const [planLoading, setPlanLoading] = useState(false);
 
   // ✅ FIX: must be object (not array)
@@ -31,7 +32,7 @@ export const SubscriptionProvider = ({ children }) => {
 
   const [billingLoading, setBillingLoading] = useState(false);
 
-  const hasFetched = useRef(false);
+  const hasFetched = useRef(null);
 
   /* ===============================
        NORMALIZE SUBSCRIPTION
@@ -59,13 +60,18 @@ export const SubscriptionProvider = ({ children }) => {
       data.remainingTrialDays = remainingDays > 0 ? remainingDays : 0;
     }
 
+    const currentPeriodEnd = data.currentPeriodEnd || data.nextBillingDate?.iso;
+    const isStillInPeriod = currentPeriodEnd
+      ? new Date(currentPeriodEnd) > new Date()
+      : false;
+
     data.hasAccess =
       data.hasAccess ??
-      (["active", "trialing"].includes(status) ||
-        (data.cancelAtPeriodEnd && data.currentPeriodEnd));
+      (["active", "trialing", "past_due"].includes(status) ||
+        (data.cancelAtPeriodEnd && isStillInPeriod));
 
-    if (!data.currentPeriodEnd && data.nextBillingDate?.iso) {
-      data.currentPeriodEnd = data.nextBillingDate.iso;
+    if (!data.currentPeriodEnd && currentPeriodEnd) {
+      data.currentPeriodEnd = currentPeriodEnd;
     }
 
     if (data.cancelAtPeriodEnd && data.currentPeriodEnd) {
@@ -110,6 +116,7 @@ export const SubscriptionProvider = ({ children }) => {
     if (!token || !isShipper) return;
 
     setLoading(true);
+    setSubscriptionReady(false);
 
     try {
       const res = await axios.get(
@@ -129,6 +136,7 @@ export const SubscriptionProvider = ({ children }) => {
       setSubscription(null);
     } finally {
       setLoading(false);
+      setSubscriptionReady(true);
     }
   }, [token, isShipper, normalizeSubscriptionData]);
 
@@ -263,11 +271,18 @@ export const SubscriptionProvider = ({ children }) => {
        AUTO LOAD (ONCE)
   =================================*/
   useEffect(() => {
-    if (!token || !isShipper) return;
+    if (!token || !isShipper) {
+      hasFetched.current = null;
+      setSubscription(null);
+      setPlan(null);
+      setSubscriptionReady(false);
+      return;
+    }
 
-    if (hasFetched.current) return;
+    const fetchKey = `${token}:${isShipper}`;
+    if (hasFetched.current === fetchKey) return;
 
-    hasFetched.current = true;
+    hasFetched.current = fetchKey;
 
     getMySubscription();
     getSubscriptionPlan();
@@ -287,12 +302,13 @@ export const SubscriptionProvider = ({ children }) => {
         plan,
 
         loading,
+        subscriptionReady,
         planLoading,
 
         billingHistory,
         billingLoading,
 
-        hasAccess: subscription?.hasAccess || false,
+        hasAccess: subscription?.hasAccess === true,
         isTrial: subscription?.status === "trialing",
         isCanceled: subscription?.status === "canceled",
         cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd,

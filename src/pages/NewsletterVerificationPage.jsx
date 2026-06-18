@@ -24,9 +24,7 @@ const NewsletterVerificationPage = () => {
 
     const verifyEmail = async () => {
       try {
-        console.log("[DEBUG] Verifying token:", token);
         const res = await verify(token);
-        console.log("[DEBUG] Verify API response:", res);
 
         if (res.success) {
           setStatus("success");

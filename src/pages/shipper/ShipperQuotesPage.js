@@ -446,7 +446,6 @@ const ShipperQuotesPage = () => {
       ) : (
         <div className="grid gap-4">
           {filteredQuotes.map((quote) => {
-            console.log('quote: ', quote.notes);
             const isExpired =
               quote.cancellationLastDate &&
               new Date() > new Date(quote.cancellationLastDate);
@@ -775,6 +774,7 @@ const ShipperQuotesPage = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

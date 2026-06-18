@@ -13,6 +13,34 @@ import { socket } from "../../services/socket";
 const ShipperQuoteContext = createContext();
 const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
+const mergeQuote = (current = {}, incoming = {}) => {
+  if (!incoming?._id) return current;
+
+  const merged = { ...current, ...incoming };
+  const currentShipment = current.shipment;
+  const incomingShipment = incoming.shipment;
+
+  if (
+    currentShipment &&
+    typeof currentShipment === "object" &&
+    incomingShipment
+  ) {
+    if (typeof incomingShipment === "string") {
+      merged.shipment = currentShipment;
+    } else {
+      merged.shipment = {
+        ...currentShipment,
+        ...incomingShipment,
+        horses: Array.isArray(incomingShipment.horses)
+          ? incomingShipment.horses
+          : currentShipment.horses,
+      };
+    }
+  }
+
+  return merged;
+};
+
 export const ShipperQuoteProvider = ({ children }) => {
   const { token, user, isShipper } = useAuth();
 
@@ -169,10 +197,22 @@ export const ShipperQuoteProvider = ({ children }) => {
       setQuotes((prev) => {
         const exists = prev.some((item) => item._id === quote._id);
         if (exists) {
-          return prev.map((item) => (item._id === quote._id ? quote : item));
+          return prev.map((item) =>
+            item._id === quote._id ? mergeQuote(item, quote) : item
+          );
         }
         return [quote, ...prev];
       });
+    };
+
+    const handleQuoteRejected = ({ quote, quoteId }) => {
+      const rejectedQuoteId = quote?._id || quoteId;
+      if (!rejectedQuoteId) return;
+
+      Toast.info(
+        "Your quote was rejected by the customer and has been removed. You can send a new quote now."
+      );
+      setQuotes((prev) => prev.filter((item) => item._id !== rejectedQuoteId));
     };
 
     const markQuoteCancelled = ({ quote }) => {
@@ -181,18 +221,20 @@ export const ShipperQuoteProvider = ({ children }) => {
       setQuotes((prev) =>
         prev.map((item) =>
           item._id === quote._id
-            ? { ...item, ...quote, status: quote.status || "cancelled" }
+            ? mergeQuote(item, { ...quote, status: quote.status || "cancelled" })
             : item
         )
       );
     };
 
     socket.on("horse_shipt:quote_accepted", upsertQuote);
+    socket.on("horse_shipt:quote_rejected", handleQuoteRejected);
     socket.on("horse_shipt:quote_cancelled", markQuoteCancelled);
     socket.on("horse_shipt:quote_vehicle_assigned", upsertQuote);
 
     return () => {
       socket.off("horse_shipt:quote_accepted", upsertQuote);
+      socket.off("horse_shipt:quote_rejected", handleQuoteRejected);
       socket.off("horse_shipt:quote_cancelled", markQuoteCancelled);
       socket.off("horse_shipt:quote_vehicle_assigned", upsertQuote);
     };

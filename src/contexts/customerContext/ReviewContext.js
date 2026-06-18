@@ -47,13 +47,13 @@ export const ReviewProvider = ({ children }) => {
         );
 
         setMyReviews((prev) => [
-          ...prev,
-          {
+          res.data?.data || {
             shipperId,
             shipmentId,
             rating,
             reviewText,
           },
+          ...prev,
         ]);
 
         return res.data;

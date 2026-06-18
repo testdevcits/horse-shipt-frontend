@@ -41,6 +41,8 @@ const SubscriptionPopup = () => {
   const {
     subscription,
     loading: subLoading,
+    subscriptionReady,
+    hasAccess,
     createSubscription,
     plan, // raw API response: { data: { daily: {...}, trialDays, currency } }
   } = useSubscription();
@@ -69,28 +71,47 @@ const SubscriptionPopup = () => {
 
   useEffect(() => {
     const openPopup = () => {
+      const hasSubscriptionAccess =
+        hasAccess === true ||
+        ["active", "trialing", "past_due"].includes(subscription?.status);
+
+      if (!subscriptionReady || subLoading || hasSubscriptionAccess) {
+        setIsOpen(false);
+        return;
+      }
+
       setDismissed(false);
       setIsOpen(true);
     };
 
     window.addEventListener("openSubscriptionPopup", openPopup);
     return () => window.removeEventListener("openSubscriptionPopup", openPopup);
-  }, []);
+  }, [hasAccess, subscription?.status, subscriptionReady, subLoading]);
 
   // ── Auto-open for unsubscribed users ──
   useEffect(() => {
-    if (!subLoading && !needsOnboarding && !dismissed) {
-      const hasSubscriptionAccess =
-        subscription?.hasAccess === true ||
-        ["active", "trialing"].includes(subscription?.status);
+    if (!subscriptionReady || subLoading) return;
 
-      if (!hasSubscriptionAccess) {
-        setIsOpen(true);
-      } else {
-        setIsOpen(false);
-      }
+    const hasSubscriptionAccess =
+      hasAccess === true ||
+      ["active", "trialing", "past_due"].includes(subscription?.status);
+
+    if (hasSubscriptionAccess) {
+      setIsOpen(false);
+      return;
     }
-  }, [subscription, subLoading, needsOnboarding, dismissed]);
+
+    if (!needsOnboarding && !dismissed) {
+        setIsOpen(true);
+    }
+  }, [
+    subscription?.status,
+    subLoading,
+    subscriptionReady,
+    hasAccess,
+    needsOnboarding,
+    dismissed,
+  ]);
 
   // =====================================================
   // DERIVE PLAN DETAILS from API response
@@ -206,10 +227,10 @@ const SubscriptionPopup = () => {
   // GUARD
   // =====================================================
   const isSubscribed =
-    subscription?.hasAccess === true ||
-    ["active", "trialing"].includes(subscription?.status);
+    hasAccess === true ||
+    ["active", "trialing", "past_due"].includes(subscription?.status);
 
-  if (!isOpen || isSubscribed) return null;
+  if (!subscriptionReady || !isOpen || isSubscribed) return null;
 
   const closePopup = () => {
     if (processing) return;

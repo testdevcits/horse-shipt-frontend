@@ -61,14 +61,6 @@ const getToastContainer = () => {
   return toastContainer;
 };
 
-// ---------------- API ----------------
-const Toast = {
-  success: (msg, duration) => renderToast(msg, "success", duration),
-  error: (msg, duration) => renderToast(msg, "error", duration),
-  info: (msg, duration) => renderToast(msg, "info", duration),
-  warning: (msg, duration) => renderToast(msg, "warning", duration),
-};
-
 // ---------------- Render Function ----------------
 const renderToast = (message, type, duration = 3000) => {
   const container = getToastContainer();
@@ -92,4 +84,11 @@ const renderToast = (message, type, duration = 3000) => {
   );
 };
 
-export default Toast;
+ToastComponent.success = (msg, duration) =>
+  renderToast(msg, "success", duration);
+ToastComponent.error = (msg, duration) => renderToast(msg, "error", duration);
+ToastComponent.info = (msg, duration) => renderToast(msg, "info", duration);
+ToastComponent.warning = (msg, duration) =>
+  renderToast(msg, "warning", duration);
+
+export default ToastComponent;

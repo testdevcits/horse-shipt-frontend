@@ -43,6 +43,12 @@ const defaultHorse = {
   notesLog: [],
 };
 
+const getMediaUrl = (media) => {
+  if (!media) return "";
+  if (typeof media === "string") return media.trim();
+  return media.url || media.secure_url || media.path || "";
+};
+
 const NewShipment = () => {
   const navigate = useNavigate();
   const {
@@ -522,6 +528,11 @@ const NewShipment = () => {
 
         if (h.photo instanceof File) {
           formData.append(`horses[${idx}][photo]`, h.photo);
+        } else {
+          const photoUrl = getMediaUrl(h.photo);
+          if (photoUrl) {
+            formData.append(`horses[${idx}][photoUrl]`, photoUrl);
+          }
         }
         if (h.cogins instanceof File) {
           formData.append(`horses[${idx}][cogins]`, h.cogins);

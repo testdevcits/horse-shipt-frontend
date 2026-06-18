@@ -91,6 +91,7 @@ const DriverShipmentsPage = lazy(() =>
 
 // ---------------- Common Pages ----------------
 const Home = lazy(() => import("../pages/Home"));
+const HappyConsumers = lazy(() => import("../pages/HappyConsumers"));
 const NotFoundPage = lazy(() => import("../pages/NotFound"));
 
 const AppRoutes = () => {
@@ -142,6 +143,7 @@ const AppRoutes = () => {
           <Route path="/verify" element={<NewsletterVerificationPage />} />
           <Route path="/newsletter-success" element={<NewsletterSuccess />} />
           <Route path="/newsletter-error" element={<NewsletterError />} />
+          <Route path="/happy-consumers" element={<HappyConsumers />} />
         </Route>
 
         {/* ---------- Auth Pages ---------- */}

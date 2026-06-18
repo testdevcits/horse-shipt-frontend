@@ -203,7 +203,7 @@ const DetailPanel = ({ payment, onClose, mode }) => {
       </div>
 
       {/* Scrollable body */}
-      <div className="flex-1 overflow-y-auto hide-scrollbar bg-light px-1 py-5 space-y-3">
+      <div className="flex-1 overflow-y-auto hide-scrollbar   px-1 py-5 space-y-3">
         {/* Shipper Hero */}
         <div className="bg-white rounded-md px-5 py-6 text-center shadow-sm">
           <div className="flex justify-center mb-3">
@@ -502,7 +502,7 @@ const Payment = () => {
   );
 
   return (
-    <div className="min-h-screen bg-light font-montserrat w-full">
+    <div className="min-h-screen  font-montserrat w-full">
       {/* ════════════ MOBILE (< md) ════════════ */}
       <div className="md:hidden">
         {/* Mobile — Detail full screen (slide in from right) */}

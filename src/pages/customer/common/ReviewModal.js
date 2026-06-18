@@ -3,17 +3,21 @@ import React, { useState, useEffect } from "react";
 const ReviewModal = ({ open, onClose, shipment, onSubmit }) => {
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (open) {
       setRating(0);
       setReviewText("");
+      setSubmitting(false);
     }
   }, [open]);
 
   if (!open || !shipment) return null;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (submitting || rating < 1) return;
+
     const payload = {
       shipmentId: shipment._id,
       shipperId: shipment.shipper?._id,
@@ -21,8 +25,12 @@ const ReviewModal = ({ open, onClose, shipment, onSubmit }) => {
       reviewText,
     };
 
-    onSubmit(payload);
-    onClose();
+    setSubmitting(true);
+    try {
+      await onSubmit(payload);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -47,6 +55,11 @@ const ReviewModal = ({ open, onClose, shipment, onSubmit }) => {
               <span
                 key={star}
                 onClick={() => setRating(star)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") setRating(star);
+                }}
                 className={`cursor-pointer text-3xl ${
                   star <= rating ? "text-yellow-500" : "text-gray-300"
                 }`}
@@ -68,6 +81,7 @@ const ReviewModal = ({ open, onClose, shipment, onSubmit }) => {
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
+            disabled={submitting}
             className="px-4 py-2 text-sm border rounded-lg"
           >
             Cancel
@@ -75,9 +89,10 @@ const ReviewModal = ({ open, onClose, shipment, onSubmit }) => {
 
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 text-sm bg-system-primary text-white rounded-lg"
+            disabled={submitting || rating < 1}
+            className="px-4 py-2 text-sm bg-system-primary text-white rounded-lg disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Submit
+            {submitting ? "Submitting..." : "Submit"}
           </button>
         </div>
       </div>

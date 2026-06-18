@@ -17,8 +17,6 @@ export const subscribeUser = async (token) => {
     { subscription },
     { headers: { Authorization: `Bearer ${token}` } }
   );
-
-  console.log("Subscribed for push notifications:", subscription);
 };
 
 // Convert VAPID key

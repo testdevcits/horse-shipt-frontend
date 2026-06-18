@@ -81,7 +81,10 @@ const ImageInput = ({ file, onChange, label, required, error }) => {
             <img
               src={previewUrl}
               alt="preview"
-              className="h-full w-full object-cover rounded-lg"
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full rounded-lg"
+              style={{ objectFit: "contain", objectPosition: "center" }}
             />
 
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-200 flex items-center justify-center rounded-lg">

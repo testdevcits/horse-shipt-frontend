@@ -1,5 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FiX } from "react-icons/fi";
+import {
+  FiCheckCircle,
+  FiCreditCard,
+  FiDollarSign,
+  FiFileText,
+  FiTruck,
+  FiX,
+} from "react-icons/fi";
 import SignatureCanvas from "react-signature-canvas";
 import Toast from "../../components/common/Toast";
 import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteContext";
@@ -17,7 +24,7 @@ import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
 const AcceptQuoteModal = ({ quote, onClose }) => {
-  const { acceptQuote, cancelQuote } = useCustomerQuote();
+  const { acceptQuote, rejectQuote, cancelQuote } = useCustomerQuote();
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
@@ -35,6 +42,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   const [canvasWidth, setCanvasWidth] = useState(0);
 
   const isAccepted = quote.status === "accepted";
+  const canRejectQuote = quote.status === "pending" && !quote.contractAccepted;
 
   const isCancellationExpired =
     quote.cancellationLastDate &&
@@ -44,6 +52,11 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
     quote?.cancellationLastDate &&
     new Date() < new Date(quote.cancellationLastDate) &&
     !quote.isCancelled;
+
+  const shipperName =
+    quote.shipper?.companyName || quote.shipper?.name || "Shipper";
+  const quotePrice = `$${Number(quote.totalPrice || 0).toLocaleString()}`;
+  const statusLabel = (quote.status || "pending").toString();
 
   useEffect(() => {
     const updateWidth = () => {
@@ -87,7 +100,10 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         const paymentData = await res.json();
 
         if (!paymentData.clientSecret) {
-          Toast.error("Failed to create payment intent");
+          Toast.error(
+            paymentData.message ||
+              "This quote is no longer available."
+          );
           setSubmitting(false);
           return;
         }
@@ -158,8 +174,23 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
     }
   };
 
+  const handleRejectQuote = async () => {
+    try {
+      const res = await rejectQuote(quote._id, cancelReason);
+
+      if (res.success) {
+        Toast.success("Quote rejected successfully");
+        setShowCancelModal(false);
+        onClose();
+      } else {
+        Toast.error(res.message || "Reject failed");
+      }
+    } catch (err) {
+      Toast.error("Something went wrong");
+    }
+  };
+
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
-  const strongLabelClass = "text-gray-700 font-semibold";
   const shipperContractUrl = quote.shipperContract?.url;
   const shipperContractName =
     quote.shipperContract?.originalName || "Shipper Contract";
@@ -167,6 +198,117 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
     if (submitting || showSuccessPopup) return;
     onClose();
   };
+
+  const detailItems = [
+    {
+      label: "Shipper",
+      value: shipperName,
+    },
+    { label: "Email", value: quote.shipper?.email || "N/A", breakWords: true },
+    {
+      label: "Total Price",
+      value: quotePrice,
+      accent: true,
+    },
+    {
+      label: "Status",
+      value: quote.status || "pending",
+      capitalize: true,
+    },
+    {
+      label: "Payment Method",
+      value: quote.paymentMethod || "N/A",
+      capitalize: true,
+    },
+    {
+      label: "Payment Status",
+      value: quote.paymentStatus || "pending",
+      capitalize: true,
+    },
+    { label: "Payment Due", value: quote.paymentDue || "N/A" },
+    {
+      label: "Delivery Days",
+      value: quote.estimatedDeliveryDays || "N/A",
+    },
+    {
+      label: "Transport",
+      value: quote.transportType || "N/A",
+      capitalize: true,
+    },
+    {
+      label: "Stalls Required",
+      value: quote.stallsRequired || "N/A",
+    },
+  ];
+
+  const vehicleItems = quote.vehicle
+    ? [
+        { label: "Vehicle Number", value: quote.vehicle.vehicleNumber || "N/A" },
+        { label: "Vehicle Type", value: quote.vehicle.vehicleType || "N/A" },
+        {
+          label: "Stalls",
+          value:
+            quote.vehicle.numberOfStalls || quote.vehicle.stallSize
+              ? `${quote.vehicle.numberOfStalls || "N/A"} x ${
+                  quote.vehicle.stallSize || "N/A"
+                }`
+              : "N/A",
+        },
+      ]
+    : [];
+
+  const DetailCell = ({
+    label,
+    value,
+    subValue,
+    accent = false,
+    breakWords = false,
+    capitalize = false,
+  }) => (
+    <div className="min-w-0 border border-slate-200 bg-white px-3 py-3">
+      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+        {label}
+      </p>
+      <p
+        className={`mt-1 text-sm font-semibold leading-5 ${
+          accent ? "text-[#BF9B53]" : "text-slate-800"
+        } ${breakWords ? "break-all" : "break-words"} ${
+          capitalize ? "capitalize" : ""
+        }`}
+      >
+        {value}
+      </p>
+      {subValue && (
+        <p className="mt-1 text-xs font-semibold leading-4 text-[#735D32]">
+          {subValue}
+        </p>
+      )}
+    </div>
+  );
+
+  const StatPanel = ({ icon, label, value, tone = "default" }) => (
+    <div
+      className={`border px-4 py-3 ${
+        tone === "gold"
+          ? "border-[#D9AF57] bg-[#FFF9EC]"
+          : "border-slate-200 bg-slate-50"
+      }`}
+    >
+      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+        <span className={tone === "gold" ? "text-[#735D32]" : "text-slate-500"}>
+          {icon}
+        </span>
+        {label}
+      </div>
+      <p
+        className={`mt-1 truncate text-lg font-bold ${
+          tone === "gold" ? "text-[#BF9B53]" : "text-slate-900"
+        }`}
+      >
+        {value}
+      </p>
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center overflow-y-auto px-2 sm:px-4 py-4 sm:py-8">
@@ -199,7 +341,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
       )}
 
       {!showSuccessPopup && (
-        <div className="relative bg-white w-full sm:max-w-2xl xl:max-w-7xl rounded-xl flex flex-col overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="relative bg-white w-full sm:max-w-2xl xl:max-w-6xl flex flex-col overflow-hidden shadow-xl max-h-[90vh] overflow-y-auto">
           {submitting && (
             <div className="absolute inset-0 z-30 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
               <LoaderCircle className="w-9 h-9 animate-spin text-[#BF9B53]" />
@@ -213,18 +355,24 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
             <button
               onClick={handleModalClose}
               disabled={submitting}
-              className="absolute right-4 top-4 text-gray-500 hover:text-black transition-colors"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center border border-slate-200 text-gray-500 transition-colors hover:border-slate-400 hover:text-black disabled:opacity-50"
+              aria-label="Close quote modal"
             >
-              <FiX size={24} />
+              <FiX size={20} />
             </button>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 pr-8">
-              {isAccepted ? "Quote Details" : "Accept Quote"}
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {isAccepted
-                ? "This quote has already been accepted."
-                : "Review the quote details and sign digitally to accept."}
-            </p>
+            <div className="pr-12">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[#735D32]">
+                {isAccepted ? "Accepted Quote" : "Quote Review"}
+              </p>
+              <h2 className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl">
+                {isAccepted ? "Quote Details" : "Accept Quote"}
+              </h2>
+              <p className="mt-1 text-sm text-gray-600">
+                {isAccepted
+                  ? "This quote has already been accepted."
+                  : "Review pricing, documents, payment, and signature before accepting. Use chat for any discussion with the shipper."}
+              </p>
+            </div>
           </div>
 
           {/* ── Cancellation Notice ─────────────────────────────────────────── */}
@@ -263,88 +411,77 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
           {/* ── Body ────────────────────────────────────────────────────────── */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 vehicle-scroll">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+            <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+              <StatPanel
+                icon={<FiDollarSign size={15} />}
+                label="Total Price"
+                value={quotePrice}
+                tone="gold"
+              />
+              <StatPanel
+                icon={<FiCheckCircle size={15} />}
+                label="Status"
+                value={statusLabel}
+              />
+              <StatPanel
+                icon={<FiTruck size={15} />}
+                label="Shipper"
+                value={shipperName}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)] sm:gap-6">
               {/* ──────── LEFT: Quote Details ────────────────────────────── */}
               <div className="space-y-4">
-                {/* Basic Info */}
-                <div className="border-2 border-[#BF9B53] rounded-lg p-4 bg-amber-50 space-y-2 text-xs sm:text-sm">
-                  <div>
-                    <p className={strongLabelClass}>Shipper</p>
-                    <p className="text-gray-700">
-                      {quote.shipper?.companyName ||
-                        quote.shipper?.name ||
-                        "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className={strongLabelClass}>Email</p>
-                    <p className="text-gray-700 break-all">
-                      {quote.shipper?.email}
-                    </p>
-                  </div>
-                  <hr className="border-amber-200 my-2" />
-                  <div>
-                    <p className={strongLabelClass}>Total Price</p>
-                    <p className="text-lg text-[#BF9B53] font-bold">
-                      ${quote.totalPrice}
-                    </p>
-                  </div>
-                  <div>
-                    <p className={strongLabelClass}>Payment Method</p>
-                    <p className="text-gray-700 capitalize">
-                      {quote.paymentMethod}
-                    </p>
-                  </div>
-                  <div>
-                    <p className={strongLabelClass}>Payment Due</p>
-                    <p className="text-gray-700">{quote.paymentDue || "N/A"}</p>
-                  </div>
-                  <div>
-                    <p className={strongLabelClass}>Status</p>
-                    <span className="inline-block px-2 py-1 bg-emerald-100 text-emerald-700 rounded font-semibold capitalize text-xs">
-                      {quote.status}
+                <section className="border border-[#D9AF57] bg-[#FFF9EC] p-4">
+                  <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h3 className="flex items-center gap-2 text-base font-bold text-slate-900">
+                        <FiDollarSign className="text-[#735D32]" size={17} />
+                        Quote Summary
+                      </h3>
+                      <p className="mt-1 text-xs font-medium text-slate-600">
+                        Review shipper, pricing, and payment details.
+                      </p>
+                    </div>
+                    <span className="border border-[#D9AF57] bg-white px-2.5 py-1 text-xs font-bold uppercase text-[#735D32]">
+                      {quote.status || "pending"}
                     </span>
                   </div>
-                </div>
 
-                {/* Vehicle Info */}
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {detailItems.map((item) => (
+                      <DetailCell key={item.label} {...item} />
+                    ))}
+                  </div>
+                </section>
+
                 {quote.vehicle && (
-                  <div className="border rounded-lg p-4 bg-slate-50 space-y-2 text-xs sm:text-sm">
-                    <h3 className="font-semibold text-slate-900">Vehicle</h3>
-                    <div>
-                      <p className={strongLabelClass}>Number</p>
-                      <p className="text-gray-700">
-                        {quote.vehicle.vehicleNumber}
-                      </p>
+                  <section className="border border-slate-200 bg-slate-50 p-4">
+                    <h3 className="text-base font-bold text-slate-900">
+                      Vehicle Details
+                    </h3>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      {vehicleItems.map((item) => (
+                        <DetailCell key={item.label} {...item} />
+                      ))}
                     </div>
-                    <div>
-                      <p className={strongLabelClass}>Type</p>
-                      <p className="text-gray-700">
-                        {quote.vehicle.vehicleType}
-                      </p>
-                    </div>
-                    <div>
-                      <p className={strongLabelClass}>Stalls</p>
-                      <p className="text-gray-700">
-                        {quote.vehicle.numberOfStalls} ×{" "}
-                        {quote.vehicle.stallSize}
-                      </p>
-                    </div>
-                  </div>
+                  </section>
                 )}
 
-                {quote.notes && (
-                  <div className="border rounded-lg p-4 bg-slate-50 text-xs sm:text-sm">
-                    <p className={strongLabelClass}>Notes</p>
-                    <p className="text-gray-700 mt-2">{quote.notes}</p>
-                  </div>
-                )}
+                <section className="border border-slate-200 bg-slate-50 p-4">
+                  <h3 className="text-base font-bold text-slate-900">Notes</h3>
+                  <p className="mt-2 whitespace-pre-wrap break-words text-sm font-medium leading-6 text-slate-700">
+                    {quote.notes || "No notes provided for this quote."}
+                  </p>
+                </section>
               </div>
 
               {/* ──────── RIGHT: Actions ────────────────────────────────── */}
               <div className="flex flex-col gap-4">
-                <div className="border rounded-lg p-4 bg-white space-y-3">
-                  <h3 className="font-semibold text-slate-900">
+                <div className="border border-slate-200 bg-white p-4 space-y-3">
+                  <h3 className="flex items-center gap-2 font-semibold text-slate-900">
+                    <FiFileText className="text-[#735D32]" size={17} />
                     Documents to Review
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-600">
@@ -357,7 +494,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                       <button
                         type="button"
                         onClick={() => setShowPDF(true)}
-                        className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border border-[#BF9B53] text-[#9d7d42] hover:bg-[#BF9B53]/10 font-semibold rounded-lg transition-colors text-sm"
+                        className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border border-[#BF9B53] text-[#9d7d42] hover:bg-[#BF9B53]/10 font-semibold transition-colors text-sm"
                       >
                         <span>Generated Quote Contract</span>
                         <span className="text-xs">View</span>
@@ -374,7 +511,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                             "noopener,noreferrer"
                           )
                         }
-                        className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-slate-50 border border-slate-300 text-slate-800 hover:bg-slate-100 font-semibold rounded-lg transition-colors text-sm"
+                        className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-slate-50 border border-slate-300 text-slate-800 hover:bg-slate-100 font-semibold transition-colors text-sm"
                       >
                         <span className="truncate">{shipperContractName}</span>
                         <span className="text-xs">Open</span>
@@ -391,7 +528,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
                 {/* Acceptance Form */}
                 {isAccepted ? (
-                  <div className="border-2 border-emerald-300 bg-emerald-50 rounded-lg p-4 space-y-3">
+                  <div className="border-2 border-emerald-300 bg-emerald-50 p-4 space-y-3">
                     <div className="flex items-start gap-3">
                       <MdCheckCircle className="text-emerald-600 w-6 h-6 flex-shrink-0 mt-0.5" />
                       <div>
@@ -416,7 +553,16 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                     </div>
                   </div>
                 ) : (
-                  <div className="border-2 border-[#BF9B53] rounded-lg p-4 space-y-4 bg-amber-50">
+                  <div className="border-2 border-[#BF9B53] bg-amber-50">
+                    <div className="border-b border-[#D9AF57] bg-white/60 px-4 py-3">
+                      <h3 className="text-sm font-bold text-slate-900">
+                        Acceptance Form
+                      </h3>
+                      <p className="mt-1 text-xs font-medium text-slate-600">
+                        Complete payment details if required, then sign below.
+                      </p>
+                    </div>
+                    <div className="space-y-4 p-4">
                     {/* Agreement Checkbox */}
                     <Checkbox
                       checked={agreed}
@@ -436,8 +582,9 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                     {/* Card Payment */}
                     {quote.paymentMethod === "card" &&
                       quote.paymentStatus !== "paid" && (
-                        <div className="border-2 border-slate-300 rounded-lg p-3 bg-white">
-                          <label className="block text-xs sm:text-sm font-semibold text-slate-900 mb-2">
+                        <div className="border-2 border-slate-300 p-3 bg-white">
+                          <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-900 sm:text-sm">
+                            <FiCreditCard className="text-[#735D32]" size={16} />
                             Card Details
                           </label>
                           <CardElement options={{ hidePostalCode: true }} />
@@ -450,7 +597,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                       </label>
                       <div
                         ref={sigWrapperRef}
-                        className="w-full border-2 border-slate-300 rounded-lg overflow-hidden bg-white"
+                        className="w-full border-2 border-slate-300 overflow-hidden bg-white"
                       >
                         {canvasWidth > 0 && (
                           <SignatureCanvas
@@ -474,12 +621,13 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                         Clear Signature
                       </button>
                     </div>
+                    </div>
                   </div>
                 )}
 
                 {showPDF && quote.contract?.url && (
                   <>
-                    <div className="border rounded-lg overflow-hidden h-64 sm:h-96">
+                    <div className="border overflow-hidden h-64 sm:h-96">
                       <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
                         <Viewer
                           fileUrl={quote.contract.url}
@@ -489,7 +637,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                     </div>
                     <button
                       onClick={() => setShowPDF(false)}
-                      className="w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold rounded-lg transition-colors"
+                      className="w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold transition-colors"
                     >
                       Hide Contract
                     </button>
@@ -498,13 +646,13 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-2 mt-auto pt-4">
-                  {isCancelable && (
+                  {(isCancelable || canRejectQuote) && (
                     <button
                       onClick={() => setShowCancelModal(true)}
                       disabled={submitting}
-                      className="flex-1 px-4 py-2.5 border border-red-500 text-red-600 hover:bg-red-600 hover:text-white font-semibold rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 px-4 py-2.5 border border-red-500 text-red-600 hover:bg-red-600 hover:text-white font-semibold transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Cancel Quote
+                      {canRejectQuote ? "Reject Quote" : "Cancel Quote"}
                     </button>
                   )}
                   {/* <button
@@ -519,7 +667,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                     <button
                       onClick={handleSubmit}
                       disabled={submitting}
-                      className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all text-sm"
+                      className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold transition-all text-sm"
                     >
                       {submitting ? (
                         <span className="flex items-center justify-center gap-2">
@@ -538,7 +686,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         </div>
       )}
 
-      {/* ── Cancel Modal ───────────────────────────────────────────────────── */}
+      {/* ── Reject / Cancel Modal ───────────────────────────────────────────── */}
       {showCancelModal && (
         <div className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center px-4 py-4">
           <div className="bg-white w-full border border-2 border-[#BF9B53] max-w-sm rounded-md shadow-lg p-6 relative">
@@ -549,15 +697,21 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
               <FiX size={20} />
             </button>
             <h2 className="text-lg font-bold text-slate-900 mb-2">
-              Cancel Quote
+              {canRejectQuote ? "Reject Quote" : "Cancel Quote"}
             </h2>
             <p className="text-xs sm:text-sm text-gray-600 mb-4">
-              Please provide a reason for cancellation.
+              {canRejectQuote
+                ? "You can reject this quote now. The shipper can send a new quote again after rejection."
+                : "Please provide a reason for cancellation."}
             </p>
             <textarea
               className="w-full border-2 border-slate-300 rounded-lg p-3 text-xs sm:text-sm focus:outline-none focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/20 transition-all resize-none"
               rows={4}
-              placeholder="Enter cancel reason..."
+              placeholder={
+                canRejectQuote
+                  ? "Optional rejection reason..."
+                  : "Enter cancel reason..."
+              }
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
             />
@@ -569,7 +723,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                 Back
               </button>
               <button
-                onClick={handleCancelQuote}
+                onClick={canRejectQuote ? handleRejectQuote : handleCancelQuote}
                 className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm transition-colors"
               >
                 Confirm

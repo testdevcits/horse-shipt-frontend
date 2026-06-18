@@ -1,10 +1,21 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiTrash2 } from "react-icons/fi";
-import { SettingsIcon } from "../../components/common/ColoredIcons"; // shared icon
+import {
+  FiBell,
+  FiCheck,
+  FiChevronLeft,
+  FiChevronRight,
+  FiInbox,
+  FiSettings,
+  FiTrash2,
+} from "react-icons/fi";
+import ConfirmModal from "../../components/common/ConfirmModal";
+import PageLoader from "../../components/common/PageLoader";
 import { useAuth } from "../../contexts/AuthContext";
 import { createShipmentQueryToken } from "../../utils/createQueryToken";
 import { useNotificationActivity } from "../../contexts/NotificationActivityContext";
+
+const PAGE_SIZE = 10;
 
 const formatTime = (dateValue) => {
   if (!dateValue) return "";
@@ -13,6 +24,7 @@ const formatTime = (dateValue) => {
   return date.toLocaleString("en-US", {
     month: "short",
     day: "numeric",
+    year: "numeric",
     hour: "numeric",
     minute: "2-digit",
   });
@@ -76,33 +88,45 @@ const isQuestionNotification = (notification) =>
 const isQuoteNotification = (notification) =>
   notification?.type === "quote_created" ||
   notification?.type === "quote_accepted" ||
+  notification?.type === "quote_rejected" ||
   notification?.type === "quote_cancelled" ||
   notification?.event === "horse_shipt:quote_created" ||
   notification?.event === "horse_shipt:quote_accepted" ||
+  notification?.event === "horse_shipt:quote_rejected" ||
   notification?.event === "horse_shipt:quote_cancelled";
+
+const isQuoteRejectedNotification = (notification) =>
+  notification?.type === "quote_rejected" ||
+  notification?.event === "horse_shipt:quote_rejected";
 
 const isChatNotification = (notification) =>
   notification?.type === "chat_message" ||
   notification?.event === "horse_shipt:chat_message_created";
 
+const filterOptions = [
+  { key: "all", label: "All" },
+  { key: "unread", label: "Unread" },
+  { key: "read", label: "Read" },
+];
+
 const NotificationsPage = () => {
   const navigate = useNavigate();
   const { role } = useAuth();
   const {
-    deleteNotification,
+    clearAllNotifications,
+    deleteSelectedNotifications,
     loading,
     markAllRead,
+    markSelectedRead,
     notifications,
     refresh,
   } = useNotificationActivity();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      markAllRead();
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [markAllRead]);
+  const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     refresh({ force: true, silent: true });
@@ -113,15 +137,59 @@ const NotificationsPage = () => {
       ? "/customer/settings?tab=notification"
       : "/shipper/settings?tab=notification";
 
+  const filteredNotifications = useMemo(() => {
+    if (filter === "read") return notifications.filter((item) => item.read);
+    if (filter === "unread") return notifications.filter((item) => !item.read);
+    return notifications;
+  }, [filter, notifications]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredNotifications.length / PAGE_SIZE)
+  );
+  const visibleNotifications = filteredNotifications.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
+
+  const allVisibleSelected =
+    visibleNotifications.length > 0 &&
+    visibleNotifications.every((item) => selectedIds.includes(item.id));
+
+  const unreadCount = notifications.filter((item) => !item.read).length;
+
+  useEffect(() => {
+    setPage(1);
+    setSelectedIds([]);
+  }, [filter]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const toggleSelected = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllVisible = () => {
+    const visibleIds = visibleNotifications.map((item) => item.id);
+    setSelectedIds((prev) =>
+      allVisibleSelected
+        ? prev.filter((id) => !visibleIds.includes(id))
+        : Array.from(new Set([...prev, ...visibleIds]))
+    );
+  };
+
   const handleNotificationClick = (item) => {
+    if (isQuoteRejectedNotification(item)) return;
+
     const shipmentId = getNotificationShipmentId(item);
     if (!shipmentId) return;
 
     const ref = createShipmentQueryToken(shipmentId);
-    const params = new URLSearchParams({
-      shipmentId,
-      ref,
-    });
+    const params = new URLSearchParams({ shipmentId, ref });
 
     if (role === "customer") {
       if (isChatNotification(item)) {
@@ -175,112 +243,290 @@ const NotificationsPage = () => {
     }
   };
 
-  const handleDeleteNotification = async (event, item) => {
-    event.stopPropagation();
-    if (!item?.id) return;
+  const runAction = async () => {
+    if (!confirmAction) return;
 
+    setActionLoading(true);
     try {
-      await deleteNotification(item.id);
+      if (confirmAction === "delete-selected") {
+        await deleteSelectedNotifications(selectedIds);
+        setSelectedIds([]);
+      }
+      if (confirmAction === "clear-all") {
+        await clearAllNotifications();
+        setSelectedIds([]);
+      }
+      setConfirmAction(null);
     } catch {
       refresh({ force: true, silent: true });
+      setConfirmAction(null);
+    } finally {
+      setActionLoading(false);
     }
   };
 
+  const handleDeleteSingle = (event, item) => {
+    event.stopPropagation();
+    setSelectedIds([item.id]);
+    setConfirmAction("delete-selected");
+  };
+
+  const handleMarkSelectedRead = async () => {
+    if (selectedIds.length === 0) return;
+    setActionLoading(true);
+    try {
+      await markSelectedRead(selectedIds);
+      setSelectedIds([]);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    setActionLoading(true);
+    try {
+      await markAllRead();
+      setSelectedIds([]);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const confirmCopy =
+    confirmAction === "clear-all"
+      ? {
+          title: "Clear all notifications?",
+          message: "This will permanently delete every notification in this list.",
+          confirmText: "Clear All",
+        }
+      : {
+          title: "Delete selected notifications?",
+          message: `This will permanently delete ${selectedIds.length} selected notification${
+            selectedIds.length === 1 ? "" : "s"
+          }.`,
+          confirmText: "Delete",
+        };
+
   return (
     <div className="font-montserrat">
-      {/* Page Header */}
-      <div className="flex items-center justify-between mb-6 px-2">
-        <h1 className="text-sidebar font-semibold text-systemText text-2xl">
-          Notifications
-        </h1>
-        <div
-          className="cursor-pointer"
+      <div className="mb-6 flex flex-col gap-4 px-1 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-950">Notifications</h1>
+          <p className="mt-1 text-sm font-medium text-slate-500">
+            {unreadCount} unread of {notifications.length} total
+          </p>
+        </div>
+        <button
+          type="button"
           onClick={() => navigate(settingsPath)}
-          title="Notification settings"
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:border-[#BF9B53] hover:text-[#735D32]"
         >
-          <SettingsIcon size="text-2xl" />
+          <FiSettings size={16} />
+          Settings
+        </button>
+      </div>
+
+      <div className="mb-5 rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {filterOptions.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => setFilter(option.key)}
+                className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
+                  filter === option.key
+                    ? "bg-[#BF9B53] text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-[#FFF9EC] hover:text-[#735D32]"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={toggleSelectAllVisible}
+              disabled={visibleNotifications.length === 0 || actionLoading}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold uppercase text-slate-600 transition hover:border-[#BF9B53] hover:text-[#735D32] disabled:opacity-50"
+            >
+              {allVisibleSelected ? "Unselect All" : "Select All"}
+            </button>
+            <button
+              type="button"
+              onClick={handleMarkSelectedRead}
+              disabled={selectedIds.length === 0 || actionLoading}
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold uppercase text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
+            >
+              <FiCheck size={14} />
+              Mark Selected Read
+            </button>
+            <button
+              type="button"
+              onClick={handleMarkAllRead}
+              disabled={notifications.length === 0 || actionLoading}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold uppercase text-slate-600 transition hover:border-[#BF9B53] hover:text-[#735D32] disabled:opacity-50"
+            >
+              Mark All Read
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmAction("delete-selected")}
+              disabled={selectedIds.length === 0 || actionLoading}
+              className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold uppercase text-red-600 transition hover:bg-red-100 disabled:opacity-50"
+            >
+              <FiTrash2 size={14} />
+              Delete Selected
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmAction("clear-all")}
+              disabled={notifications.length === 0 || actionLoading}
+              className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold uppercase text-white transition hover:bg-slate-800 disabled:opacity-50"
+            >
+              Clear All
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Divider line */}
-      <div className="border-b border-gray-300 mb-6" />
-
-      {/* Notification List */}
-      <div className="space-y-4">
-        {notifications.map((item) => {
-          const shipmentId = getNotificationShipmentId(item);
-          const canOpenShipment =
-            (role === "customer" || role === "shipper") && shipmentId;
-
-          return (
-          <div
-            key={item.id}
-            onClick={() => handleNotificationClick(item)}
-            className={`flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white transition-all ${
-              canOpenShipment
-                ? "cursor-pointer hover:border-[#BF9B53]/50 hover:shadow-sm"
-                : ""
-            }`}
-            role={canOpenShipment ? "button" : undefined}
-            tabIndex={canOpenShipment ? 0 : undefined}
-            onKeyDown={(event) => {
-              if (
-                canOpenShipment &&
-                (event.key === "Enter" || event.key === " ")
-              ) {
-                event.preventDefault();
-                handleNotificationClick(item);
-              }
-            }}
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-11 h-11 rounded-full bg-[#BF9B53]/10 text-[#9A7D3A] flex items-center justify-center flex-shrink-0 font-semibold">
-                {(item.title || "N").charAt(0)}
-              </div>
-
-              {/* Notification Content */}
-              <div className="flex flex-col">
-                <p className="text-sm font-semibold text-gray-900">
-                  {item.title || "Notification"}
-                </p>
-                {/* Notification Message */}
-                <p className="text-[15px] leading-[22px] font-normal text-gray-800">
-                  {item.message}
-                </p>
-
-                {/* Time on second line */}
-                <p className="text-[12px] leading-[18px] mt-1 font-normal text-gray-500">
-                  {formatTime(item.createdAt)}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              {!item.read && (
-                <span className="w-2 h-2 bg-[#10B981] rounded-full mt-2" />
-              )}
-              <button
-                type="button"
-                onClick={(event) => handleDeleteNotification(event, item)}
-                className="p-2 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
-                title="Delete notification"
-                aria-label="Delete notification"
-              >
-                <FiTrash2 size={16} />
-              </button>
-            </div>
+      {loading ? (
+        <div className="py-16">
+          <PageLoader text="Loading notifications..." fullScreen={false} />
+        </div>
+      ) : visibleNotifications.length === 0 ? (
+        <div className="rounded-md border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-md bg-[#FFF9EC] text-[#BF9B53]">
+            <FiInbox size={26} />
           </div>
-          );
-        })}
-      </div>
+          <h2 className="mt-4 text-lg font-bold text-slate-900">
+            No notifications available.
+          </h2>
+          <p className="mt-2 text-sm font-medium text-slate-500">
+            New shipment, quote, chat, and question updates will appear here.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {visibleNotifications.map((item) => {
+            const shipmentId = getNotificationShipmentId(item);
+            const canOpenShipment =
+              (role === "customer" || role === "shipper") && shipmentId;
+            const checked = selectedIds.includes(item.id);
 
-      {/* Empty State */}
-      {!loading && notifications.length === 0 && (
-        <div className="flex flex-col items-center justify-center mt-20 text-gray-500">
-          <SettingsIcon />
-          <p className="mt-2">No notifications available</p>
+            return (
+              <div
+                key={item.id}
+                onClick={() => handleNotificationClick(item)}
+                className={`group flex gap-4 rounded-md border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#BF9B53]/60 hover:shadow-md ${
+                  item.read ? "border-slate-100" : "border-[#BF9B53]/40"
+                } ${canOpenShipment ? "cursor-pointer" : ""}`}
+                role={canOpenShipment ? "button" : undefined}
+                tabIndex={canOpenShipment ? 0 : undefined}
+                onKeyDown={(event) => {
+                  if (
+                    canOpenShipment &&
+                    (event.key === "Enter" || event.key === " ")
+                  ) {
+                    event.preventDefault();
+                    handleNotificationClick(item);
+                  }
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggleSelected(item.id)}
+                  onClick={(event) => event.stopPropagation()}
+                  className="mt-4 h-4 w-4 rounded border-slate-300 accent-[#BF9B53]"
+                  aria-label="Select notification"
+                />
+
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[#FFF9EC] text-[#735D32]">
+                  <FiBell size={20} />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <h2 className="truncate text-sm font-bold text-slate-950">
+                        {item.title || "Notification"}
+                      </h2>
+                      <p className="mt-1 text-sm font-medium leading-6 text-slate-600">
+                        {item.message}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase ${
+                          item.read
+                            ? "bg-slate-100 text-slate-500"
+                            : "bg-emerald-50 text-emerald-700"
+                        }`}
+                      >
+                        {item.read ? "Read" : "Unread"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(event) => handleDeleteSingle(event, item)}
+                        className="rounded-full p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                        title="Delete notification"
+                        aria-label="Delete notification"
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs font-semibold text-slate-400">
+                    {formatTime(item.createdAt)}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
+
+      {filteredNotifications.length > PAGE_SIZE && (
+        <div className="mt-6 flex items-center justify-between rounded-md border border-slate-200 bg-white px-4 py-3 shadow-sm">
+          <p className="text-sm font-semibold text-slate-500">
+            Page {page} of {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={page === 1}
+              className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:border-[#BF9B53] hover:text-[#735D32] disabled:opacity-40"
+              aria-label="Previous page"
+            >
+              <FiChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setPage((current) => Math.min(totalPages, current + 1))
+              }
+              disabled={page === totalPages}
+              className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:border-[#BF9B53] hover:text-[#735D32] disabled:opacity-40"
+              aria-label="Next page"
+            >
+              <FiChevronRight size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <ConfirmModal
+        show={Boolean(confirmAction)}
+        title={confirmCopy.title}
+        message={confirmCopy.message}
+        confirmText={actionLoading ? "Please wait..." : confirmCopy.confirmText}
+        onCancel={() => (actionLoading ? null : setConfirmAction(null))}
+        onConfirm={runAction}
+      />
     </div>
   );
 };

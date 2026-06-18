@@ -7,6 +7,8 @@ import Button from "../../components/common/Button";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import PageLoader from "../../components/common/PageLoader";
 import {
+  FiEye,
+  FiEyeOff,
   FiFileText,
   FiPhone,
   FiPlus,
@@ -18,6 +20,7 @@ import { MdEditSquare } from "react-icons/md";
 import { FaTrashCan } from "react-icons/fa6";
 import { TfiEmail } from "react-icons/tfi";
 import { FaRegAddressCard } from "react-icons/fa";
+import useDebouncedValue from "../../hooks/useDebouncedValue";
 
 const DetailItem = ({ icon, label, value }) => (
   <div className="flex min-w-0 items-center gap-3 px-0 py-3 sm:px-6">
@@ -61,29 +64,41 @@ const DriverActionButton = ({ children, icon, tone = "gold", ...props }) => {
 const TruckDriverPage = () => {
   const {
     drivers = [],
-    fetchDrivers,
     addDriver,
     updateDriver,
     deleteDriver,
     assignVehicles,
     toggleDriverStatus,
+    fetchDrivers,
+    pagination,
     loading,
+    hasFetchedDrivers,
   } = useDriver() || {};
 
   const { vehicles = [] } = useVehicle() || {};
 
   const [showForm, setShowForm] = useState(false);
   const [editingDriver, setEditingDriver] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [selectedVehicles, setSelectedVehicles] = useState([]);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 350);
   const [confirmDelete, setConfirmDelete] = useState({
     show: false,
     id: null,
   });
 
   useEffect(() => {
-    fetchDrivers?.();
-  }, [fetchDrivers]);
+    fetchDrivers?.({
+      page,
+      limit: 10,
+      search: debouncedSearch,
+      status,
+    });
+  }, [debouncedSearch, fetchDrivers, page, status]);
 
   /* ================= VALIDATION ================= */
 
@@ -101,7 +116,7 @@ const TruckDriverPage = () => {
     password: editingDriver
       ? Yup.string()
       : Yup.string()
-        .min(6, "Password must be at least 6 characters")
+        .min(8, "Password must be at least 8 characters")
         .required("Password is required"),
     notes: Yup.string().trim(),
   });
@@ -127,7 +142,6 @@ const TruckDriverPage = () => {
     }
 
     if (result?.success) {
-      fetchDrivers?.();
       resetForm();
       setEditingDriver(null);
       setShowForm(false);
@@ -142,7 +156,6 @@ const TruckDriverPage = () => {
     setConfirmDelete({ show: false, id: null });
 
     if (result?.success) {
-      fetchDrivers?.();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -159,7 +172,6 @@ const TruckDriverPage = () => {
     if (result?.success) {
       setSelectedDriver(null);
       setSelectedVehicles([]);
-      fetchDrivers?.();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -170,10 +182,17 @@ const TruckDriverPage = () => {
     const result = await toggleDriverStatus(driver._id, !driver.isActive);
 
     if (result?.success) {
-      fetchDrivers?.();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  if (loading && !hasFetchedDrivers) {
+    return (
+      <div className="min-h-[520px] w-full">
+        <PageLoader text="Loading drivers..." fullScreen={false} />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full mx-auto font-montserrat">
@@ -185,10 +204,12 @@ const TruckDriverPage = () => {
 
         <Button
           className="h-[34px] min-h-0 self-start rounded px-4 text-[11px] font-bold uppercase sm:self-auto"
-          onClick={() => {
-            setShowForm(!showForm);
-            setEditingDriver(null);
-          }}
+          disabled={loading}
+	          onClick={() => {
+	            setShowForm(!showForm);
+	            setEditingDriver(null);
+	            setShowPassword(false);
+	          }}
         >
           {showForm ? (
             <span className="flex gap-1 items-center">
@@ -204,11 +225,50 @@ const TruckDriverPage = () => {
       </div>
 
       {/* LOADER */}
-      {loading && <PageLoader text="Loading drivers..." />}
+      {loading && hasFetchedDrivers && (
+        <div className="mb-4 border border-[#F1DEB2] bg-[#FFF9EC] px-4 py-3 text-sm font-semibold text-[#735D32]">
+          Refreshing driver list...
+        </div>
+      )}
+
+      {!showForm && (
+        <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_180px]">
+          <input
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
+            placeholder="Search drivers"
+            className="h-10 border border-gray-300 bg-white px-3 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#BF9B53]"
+          />
+          <select
+            value={status}
+            onChange={(event) => {
+              setStatus(event.target.value);
+              setPage(1);
+            }}
+            className="h-10 border border-gray-300 bg-white px-3 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#BF9B53]"
+          >
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      )}
 
       {/* FORM */}
       {showForm && (
-        <div className="mb-8 bg-white px-5 py-6 sm:px-7 lg:px-8">
+        <div className="mb-8 border border-gray-200 bg-white px-5 py-6 shadow-sm sm:px-7 lg:px-8">
+          <div className="mb-6 border-b border-gray-200 pb-4">
+            <h2 className="font-montserrat text-[20px] font-semibold leading-7 text-[#111827]">
+              {editingDriver ? "Edit Driver" : "Add Driver"}
+            </h2>
+            <p className="mt-1 text-[13px] font-medium leading-5 text-[#6B7280]">
+              Enter the driver's contact details and license information.
+            </p>
+          </div>
+
           <Formik
             initialValues={initialValues}
             validationSchema={validationSchema}
@@ -227,101 +287,225 @@ const TruckDriverPage = () => {
             }) => (
               <form
                 onSubmit={handleSubmit}
-                className="grid grid-cols-1 gap-5"
+                className="grid grid-cols-1 gap-6"
                 noValidate
               >
-                <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+                <div>
+                  <p className="mb-3 text-[12px] font-bold uppercase tracking-wide text-[#735D32]">
+                    Contact Information
+                  </p>
+                  <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
                   {[
-                    { name: "name", placeholder: "Name" },
-                    { name: "email", placeholder: "Email", type: "email" },
-                    { name: "phone", placeholder: "Phone" },
-                  ].map((field) => (
-                    <div key={field.name}>
-                      <input
-                        type={field.type || "text"}
-                        name={field.name}
-                        placeholder={field.placeholder}
-                        value={values[field.name]}
-                        onChange={handleChange(field.name)}
-                        onBlur={handleBlur(field.name)}
-                        className={`h-[42px] w-full bg-[#F7F7F7] px-4 font-montserrat text-[12px] font-medium text-[#4B5563] outline-none placeholder:text-[#4B5563] ${
-                          (touched[field.name] || submitCount > 0) &&
-                          errors[field.name]
-                            ? "ring-1 ring-red-300"
-                            : ""
-                        }`}
-                      />
-                      {(touched[field.name] || submitCount > 0) &&
-                        errors[field.name] && (
-                          <p className="mt-1 text-[11px] font-medium text-red-500">
-                            {errors[field.name]}
-                          </p>
-                        )}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                  {[
-                    { name: "licenseNumber", placeholder: "License Number" },
                     {
-                      name: "password",
-                      placeholder: editingDriver
-                        ? "Leave blank if not changing"
-                        : "Password",
-                      type: "password",
+                      name: "name",
+                      label: "Driver Name",
+                      helper: "Full legal or display name.",
+                      required: true,
+                    },
+                    {
+                      name: "email",
+                      label: "Email Address",
+                      helper: "Used for driver login and notifications.",
+                      type: "email",
+                      required: true,
+                    },
+                    {
+                      name: "phone",
+                      label: "Phone Number",
+                      helper: "Include country code if needed.",
+                      required: true,
                     },
                   ].map((field) => (
                     <div key={field.name}>
-                      <input
-                        type={field.type || "text"}
-                        name={field.name}
-                        placeholder={field.placeholder}
-                        value={values[field.name]}
-                        onChange={handleChange(field.name)}
-                        onBlur={handleBlur(field.name)}
-                        className={`h-[42px] w-full bg-[#F7F7F7] px-4 font-montserrat text-[12px] font-medium text-[#4B5563] outline-none placeholder:text-[#4B5563] ${
-                          (touched[field.name] || submitCount > 0) &&
-                          errors[field.name]
-                            ? "ring-1 ring-red-300"
-                            : ""
-                        }`}
-                      />
+                      <label
+                        htmlFor={`driver-${field.name}`}
+                        className="mb-2 block font-montserrat text-[13px] font-semibold leading-5 text-[#111827]"
+                      >
+                        {field.label}
+                        {field.required && (
+                          <span className="ml-1 text-red-500">*</span>
+                        )}
+                      </label>
+                      <div className="relative">
+                        <input
+                          id={`driver-${field.name}`}
+                          type={
+                            field.name === "password"
+                              ? showPassword
+                                ? "text"
+                                : "password"
+                              : field.type || "text"
+                          }
+                          name={field.name}
+                          placeholder=""
+                          value={values[field.name]}
+                          onChange={handleChange(field.name)}
+                          onBlur={handleBlur(field.name)}
+                          className={`h-[46px] w-full border bg-white px-4 font-montserrat text-[14px] font-semibold text-[#111827] outline-none transition focus:border-[#BF9B53] focus:bg-[#FFFDF8] ${
+                            field.name === "password" ? "pr-12" : ""
+                          } ${
+                            (touched[field.name] || submitCount > 0) &&
+                            errors[field.name]
+                              ? "border-red-300 bg-red-50"
+                              : "border-gray-300"
+                          }`}
+                        />
+                        {field.name === "password" && (
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-[#6B7280] transition hover:text-[#735D32]"
+                            aria-label={
+                              showPassword ? "Hide password" : "Show password"
+                            }
+                            title={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? (
+                              <FiEyeOff size={18} />
+                            ) : (
+                              <FiEye size={18} />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                      <p className="mt-1.5 min-h-[16px] text-[11px] font-medium leading-4 text-[#6B7280]">
+                        {field.helper}
+                      </p>
                       {(touched[field.name] || submitCount > 0) &&
                         errors[field.name] && (
-                          <p className="mt-1 text-[11px] font-medium text-red-500">
+                          <p className="mt-1 text-[11px] font-semibold text-red-500">
                             {errors[field.name]}
                           </p>
                         )}
                     </div>
                   ))}
+                  </div>
                 </div>
 
                 <div>
+                  <p className="mb-3 text-[12px] font-bold uppercase tracking-wide text-[#735D32]">
+                    License & Access
+                  </p>
+                  <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                  {[
+                    {
+                      name: "licenseNumber",
+                      label: "License Number",
+                      helper: "Driver license or transport permit number.",
+                      required: true,
+                    },
+                    {
+                      name: "password",
+                      label: editingDriver ? "New Password" : "Password",
+                      helper: editingDriver
+                        ? "Leave blank to keep current password"
+                        : "Create login password",
+                      type: "password",
+                      required: !editingDriver,
+                    },
+                  ].map((field) => (
+                    <div key={field.name}>
+                      <label
+                        htmlFor={`driver-${field.name}`}
+                        className="mb-2 block font-montserrat text-[13px] font-semibold leading-5 text-[#111827]"
+                      >
+                        {field.label}
+                        {field.required && (
+                          <span className="ml-1 text-red-500">*</span>
+                        )}
+                      </label>
+                      <div className="relative">
+                        <input
+                          id={`driver-${field.name}`}
+                          type={
+                            field.name === "password"
+                              ? showPassword
+                                ? "text"
+                                : "password"
+                              : field.type || "text"
+                          }
+                          name={field.name}
+                          placeholder=""
+                          value={values[field.name]}
+                          onChange={handleChange(field.name)}
+                          onBlur={handleBlur(field.name)}
+                          className={`h-[46px] w-full border bg-white px-4 font-montserrat text-[14px] font-semibold text-[#111827] outline-none transition focus:border-[#BF9B53] focus:bg-[#FFFDF8] ${
+                            field.name === "password" ? "pr-12" : ""
+                          } ${
+                            (touched[field.name] || submitCount > 0) &&
+                            errors[field.name]
+                              ? "border-red-300 bg-red-50"
+                              : "border-gray-300"
+                          }`}
+                        />
+                        {field.name === "password" && (
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-[#6B7280] transition hover:text-[#735D32]"
+                            aria-label={
+                              showPassword ? "Hide password" : "Show password"
+                            }
+                            title={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? (
+                              <FiEyeOff size={18} />
+                            ) : (
+                              <FiEye size={18} />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                      <p className="mt-1.5 min-h-[16px] text-[11px] font-medium leading-4 text-[#6B7280]">
+                        {field.helper}
+                      </p>
+                      {(touched[field.name] || submitCount > 0) &&
+                        errors[field.name] && (
+                          <p className="mt-1 text-[11px] font-semibold text-red-500">
+                            {errors[field.name]}
+                          </p>
+                        )}
+                    </div>
+                  ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="driver-notes"
+                    className="mb-2 block font-montserrat text-[13px] font-semibold leading-5 text-[#111827]"
+                  >
+                    Notes
+                  </label>
                   <textarea
+                    id="driver-notes"
                     name="notes"
-                    placeholder="Notes"
+                    placeholder=""
                     value={values.notes}
                     onChange={handleChange("notes")}
                     onBlur={handleBlur("notes")}
-                    className="h-[82px] w-full resize-none bg-[#F7F7F7] px-4 py-3 font-montserrat text-[12px] font-medium text-[#4B5563] outline-none placeholder:text-[#4B5563]"
+                    className="h-[96px] w-full resize-none border border-gray-300 bg-white px-4 py-3 font-montserrat text-[14px] font-semibold text-[#111827] outline-none transition focus:border-[#BF9B53] focus:bg-[#FFFDF8]"
                   />
+                  <p className="mt-1.5 text-[11px] font-medium leading-4 text-[#6B7280]">
+                    Add shift details, availability, or internal notes.
+                  </p>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-1">
+                <div className="flex justify-end gap-3 border-t border-gray-200 pt-5">
                   <button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    className="h-[34px] min-w-[86px] rounded border border-[#BF9B53] bg-white px-5 font-montserrat text-[11px] font-bold uppercase text-[#4B5563] transition hover:bg-[#BF9B53]/5"
+                    disabled={isSubmitting || loading}
+                    className="h-[38px] min-w-[96px] border border-[#BF9B53] bg-white px-5 font-montserrat text-[11px] font-bold uppercase text-[#4B5563] transition hover:bg-[#BF9B53]/5"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={isSubmitting}
-                    className="h-[34px] min-w-[86px] rounded bg-[#BF9B53] px-5 font-montserrat text-[11px] font-bold uppercase text-white transition hover:bg-[#a8863f] disabled:opacity-60"
+                    disabled={isSubmitting || loading}
+                    className="h-[38px] min-w-[96px] bg-[#BF9B53] px-5 font-montserrat text-[11px] font-bold uppercase text-white transition hover:bg-[#a8863f] disabled:opacity-60"
                   >
-                    {editingDriver ? "Update" : "Save"}
+                    {isSubmitting || loading ? "Saving..." : editingDriver ? "Update" : "Save"}
                   </button>
                 </div>
               </form>
@@ -463,6 +647,39 @@ const TruckDriverPage = () => {
           </div>
         ))}
 
+      {!showForm && !loading && (pagination?.totalPages || 1) > 1 && (
+        <div className="mt-5 flex flex-col items-center justify-between gap-3 border border-gray-200 bg-white px-4 py-3 sm:flex-row">
+          <p className="text-sm font-semibold text-gray-600">
+            Page {pagination?.page || page} of {pagination?.totalPages || 1}
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={(pagination?.page || page) <= 1 || loading}
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              className="h-9 border border-[#BF9B53] px-4 text-xs font-bold uppercase text-[#735D32] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              disabled={
+                (pagination?.page || page) >= (pagination?.totalPages || 1) ||
+                loading
+              }
+              onClick={() =>
+                setPage((prev) =>
+                  Math.min(prev + 1, pagination?.totalPages || prev + 1)
+                )
+              }
+              className="h-9 bg-[#BF9B53] px-4 text-xs font-bold uppercase text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ASSIGN VEHICLE MODAL */}
       {selectedDriver && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -489,7 +706,9 @@ const TruckDriverPage = () => {
             ))}
 
             <div className="flex justify-end gap-2 mt-4">
-              <Button onClick={handleAssignVehicles}>Assign</Button>
+              <Button onClick={handleAssignVehicles} disabled={loading}>
+                {loading ? "Assigning..." : "Assign"}
+              </Button>
               <Button
                 variant="secondary"
                 onClick={() => setSelectedDriver(null)}

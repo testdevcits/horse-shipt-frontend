@@ -123,10 +123,13 @@ const CustomerReviewModal = ({ quote, open, onClose, onSubmit, submitting }) => 
         </div>
 
         <h3 className="text-lg font-bold text-gray-800 text-center">
-          Review Customer
+          Review Customer for Shipment
         </h3>
-        <p className="text-xs text-gray-500 text-center mt-1">
-          Shipment: {quote.shipment?.shipmentCode}
+        <p className="mt-1 text-center text-xs font-semibold text-[#735D32]">
+          Shipment: {quote.shipment?.shipmentCode || "N/A"}
+        </p>
+        <p className="mt-1 text-center text-[11px] text-gray-500">
+          This review is saved only for this completed shipment.
         </p>
 
         <div className="mt-4 rounded-xl bg-gray-50 border border-gray-100 p-3 text-center">
@@ -413,9 +416,15 @@ const AllUpcomingShipments = () => {
       .catch(() => setMyCustomerReviews([]));
   }, [token]);
 
+  const normalizeId = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    return (value._id || value.id || "").toString();
+  };
+
   const hasReviewedCustomer = (quote) =>
     myCustomerReviews.some(
-      (review) => review.shipmentId?.toString() === quote.shipment?._id?.toString()
+      (review) => normalizeId(review.shipmentId) === normalizeId(quote.shipment)
     );
 
   const isInTransitQuote = (quote) => {

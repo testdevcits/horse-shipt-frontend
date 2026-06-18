@@ -161,10 +161,15 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const [showQuoteSuccess, setShowQuoteSuccess] = useState(false);
 
   const { needsOnboarding } = useShipperPayments();
-  const { subscription, loading: subscriptionLoading } = useSubscription();
+  const {
+    subscription,
+    loading: subscriptionLoading,
+    subscriptionReady,
+    hasAccess,
+  } = useSubscription();
   const hasSubscriptionAccess =
-    subscription?.hasAccess === true ||
-    ["active", "trialing"].includes(subscription?.status);
+    hasAccess === true ||
+    ["active", "trialing", "past_due"].includes(subscription?.status);
 
   // ── Document viewer state ──────────────────────────────────────────────────
   const [viewingDoc, setViewingDoc] = useState(null); // { url, label }
@@ -177,12 +182,10 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
   useEffect(() => {
     requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
 
       document.querySelectorAll("main").forEach((scrollContainer) => {
-        scrollContainer.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        scrollContainer.scrollTo({ top: 0, left: 0, behavior: "smooth" });
       });
     });
   }, [idToUse]);
@@ -417,8 +420,6 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       </div>
     );
   }
-
-  console.log('shipmenttttttttttttt: ', shipment.horses);
 
   const chatAllowedStatuses = ["assigned", "picked", "in_transit"];
   const canOpenShipmentChat =
@@ -1164,7 +1165,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 </div>
               </div>
 
-              {!hasSubscriptionAccess && !subscriptionLoading ? (
+              {subscriptionReady && !hasSubscriptionAccess && !subscriptionLoading ? (
                 <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l border-[#BF9B53] p-3 rounded-sm shadow-sm flex flex-col items-center text-center gap-3">
                   <p className="text-sm text-gray-700 font-medium">
                     You can review opportunities without subscribing. Start a

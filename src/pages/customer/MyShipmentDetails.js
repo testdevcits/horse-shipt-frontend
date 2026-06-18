@@ -56,6 +56,9 @@ const MyShipmentDetails = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedShipmentId, setSelectedShipmentId] = useState(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const latestSelectedQuote = selectedQuote
+    ? quotes.find((quote) => quote._id === selectedQuote._id) || selectedQuote
+    : null;
 
   const showToast = (message, type = "info") => {
     Toast[type](message);
@@ -492,10 +495,10 @@ const MyShipmentDetails = () => {
       )}
 
       {/* ================= ACCEPT QUOTE MODAL ================= */}
-      {selectedQuote && (
+      {latestSelectedQuote && (
         <Elements stripe={stripePromise}>
           <AcceptQuoteModal
-            quote={selectedQuote}
+            quote={latestSelectedQuote}
             onClose={() => setSelectedQuote(null)}
           />
         </Elements>

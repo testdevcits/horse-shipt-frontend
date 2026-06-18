@@ -16,6 +16,7 @@ const ImageSwiper = ({
   topContent,
   bottomContent,
   imageClassName = "",
+  imageFit = "cover",
 
   onSlideChange   
 }) => {
@@ -37,7 +38,13 @@ const ImageSwiper = ({
                   <img
                     src={image.url}
                     alt={image?.alt || `${altPrefix}-${index + 1}`}
-                    className={`h-full w-full object-cover ${imageClassName}`}
+                    loading="lazy"
+                    decoding="async"
+                    className={`h-full w-full ${imageClassName}`}
+                    style={{
+                      objectFit: imageFit,
+                      objectPosition: "center",
+                    }}
                   />
                 ) : (
                   <div className="flex h-full w-full flex-col items-center justify-center text-slate-400">

@@ -52,7 +52,6 @@ export const TrackingProvider = ({ children }) => {
             prev.lat === newDriver.lat && prev.lng === newDriver.lng;
 
           if (isSameLocation) {
-            console.log(" No movement detected → skipping state update");
             return;
           }
         }
@@ -67,6 +66,7 @@ export const TrackingProvider = ({ children }) => {
 
         setTrackingData({
           tripStatus: data.tripStatus,
+          message: data.message || "",
           driver: data.driver,
           pickup: data.pickup,
           delivery: data.delivery,

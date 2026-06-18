@@ -160,6 +160,37 @@ export const CustomerQuoteProvider = ({ children }) => {
     }
   };
 
+  /* =========================================================
+     REJECT QUOTE
+  ========================================================= */
+  const rejectQuote = async (quoteId, reason = "") => {
+    if (!token || !quoteId) return { success: false };
+
+    setLoading(true);
+    try {
+      const res = await axios.put(
+        `${API_BASE_URL}/customer/quotes/${quoteId}/reject`,
+        { reason },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setQuotes((prev) => prev.filter((item) => item._id !== quoteId));
+      setTotalQuotes((prev) => Math.max(0, prev - 1));
+      showToast(res.data.message || "Quote rejected", "success");
+      return { success: true, quoteId, deleted: true };
+    } catch (error) {
+      showToast(
+        error.response?.data?.message || "Failed to reject quote",
+        "error"
+      );
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!token || !isCustomer || !user?._id) return;
 
@@ -181,8 +212,9 @@ export const CustomerQuoteProvider = ({ children }) => {
       setTotalQuotes((prev) => prev + 1);
     };
 
-    const updateQuote = ({ quote, shipmentId }) => {
-      if (!quote?._id) return;
+    const updateQuote = ({ quote, quoteId, shipmentId, deleted }) => {
+      const targetQuoteId = quote?._id || quoteId;
+      if (!targetQuoteId) return;
       if (
         activeShipmentId &&
         normalizeId(shipmentId)?.toString() !== activeShipmentId.toString()
@@ -190,19 +222,27 @@ export const CustomerQuoteProvider = ({ children }) => {
         return;
       }
 
-      setQuotes((prev) =>
-        prev.map((item) => (item._id === quote._id ? { ...item, ...quote } : item))
-      );
+      setQuotes((prev) => {
+        if (deleted || quote?.isDeleted || quote?.status === "rejected") {
+          return prev.filter((item) => item._id !== targetQuoteId);
+        }
+
+        return prev.map((item) =>
+          item._id === targetQuoteId ? { ...item, ...quote } : item
+        );
+      });
     };
 
     socket.on("horse_shipt:quote_created", handleQuoteCreated);
     socket.on("horse_shipt:quote_accepted", updateQuote);
+    socket.on("horse_shipt:quote_rejected", updateQuote);
     socket.on("horse_shipt:quote_cancelled", updateQuote);
     socket.on("horse_shipt:quote_vehicle_assigned", updateQuote);
 
     return () => {
       socket.off("horse_shipt:quote_created", handleQuoteCreated);
       socket.off("horse_shipt:quote_accepted", updateQuote);
+      socket.off("horse_shipt:quote_rejected", updateQuote);
       socket.off("horse_shipt:quote_cancelled", updateQuote);
       socket.off("horse_shipt:quote_vehicle_assigned", updateQuote);
     };
@@ -218,6 +258,7 @@ export const CustomerQuoteProvider = ({ children }) => {
         loading,
         getQuotesByShipment,
         acceptQuote,
+        rejectQuote,
         cancelQuote,
       }}
     >

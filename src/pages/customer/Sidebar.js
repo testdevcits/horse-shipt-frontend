@@ -196,7 +196,7 @@ const CustomerSidebar = ({
         </div>
 
         {/* ===================== NAVIGATION ===================== */}
-        <nav className="flex-1 overflow-y-auto px-2 py-4 vehicle-scroll">
+        <nav className="flex-1 overflow-y-auto px-2 py-4 app-sidebar-scrollbar">
           <ul className="space-y-1">
             {navItems.map((item) => {
               const active = isActivePath(item.path, item.subPaths);
