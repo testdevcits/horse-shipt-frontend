@@ -46,11 +46,11 @@ const HorseImageStrip = ({ quote }) => {
   const firstHorse = horses[0];
 
   return firstHorse ? (
-      <figure className="relative w-full h-full group overflow-hidden rounded-[8px] bg-slate-100">
+      <figure className="relative h-[242px] w-full self-start overflow-hidden rounded-[8px] bg-slate-100 lg:w-[223px]">
       <img
         src={firstHorse.url}
         alt={firstHorse.name}
-        className=" h-full w-full object-cover "
+        className="h-full w-full object-cover"
       />
       <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/45 to-transparent px-3 pb-3 pt-12">
         <p className="truncate text-[13px] font-bold leading-4 text-white">
@@ -62,7 +62,7 @@ const HorseImageStrip = ({ quote }) => {
       </figcaption>
     </figure>
   ) : (
-    <div className="flex h-[242px] items-center justify-center rounded-[8px] border border-dashed border-slate-300 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 sm:w-[223px]">
+    <div className="flex h-[242px] w-full self-start items-center justify-center rounded-[8px] border border-dashed border-slate-300 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 lg:w-[223px]">
       No horse image
     </div>
   );
