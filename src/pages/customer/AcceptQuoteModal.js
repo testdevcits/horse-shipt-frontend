@@ -32,6 +32,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   const [sigPad, setSigPad] = useState(null);
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [cancelActionLoading, setCancelActionLoading] = useState(false);
   const [showPDF, setShowPDF] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
@@ -155,11 +156,14 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   };
 
   const handleCancelQuote = async () => {
+    if (cancelActionLoading) return;
+
     try {
       if (!cancelReason.trim()) {
         return Toast.error("Please enter cancel reason");
       }
 
+      setCancelActionLoading(true);
       const res = await cancelQuote(quote._id, cancelReason);
 
       if (res.success) {
@@ -171,11 +175,16 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
       }
     } catch (err) {
       Toast.error("Something went wrong");
+    } finally {
+      setCancelActionLoading(false);
     }
   };
 
   const handleRejectQuote = async () => {
+    if (cancelActionLoading) return;
+
     try {
+      setCancelActionLoading(true);
       const res = await rejectQuote(quote._id, cancelReason);
 
       if (res.success) {
@@ -187,6 +196,8 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
       }
     } catch (err) {
       Toast.error("Something went wrong");
+    } finally {
+      setCancelActionLoading(false);
     }
   };
 
@@ -691,8 +702,11 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         <div className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center px-4 py-4">
           <div className="bg-white w-full border border-2 border-[#BF9B53] max-w-sm rounded-md shadow-lg p-6 relative">
             <button
-              onClick={() => setShowCancelModal(false)}
-              className="absolute right-4 top-4 text-gray-500 hover:text-black"
+              onClick={() => {
+                if (!cancelActionLoading) setShowCancelModal(false);
+              }}
+              disabled={cancelActionLoading}
+              className="absolute right-4 top-4 text-gray-500 hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
             >
               <FiX size={20} />
             </button>
@@ -713,20 +727,30 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                   : "Enter cancel reason..."
               }
               value={cancelReason}
+              disabled={cancelActionLoading}
               onChange={(e) => setCancelReason(e.target.value)}
             />
             <div className="flex gap-3 mt-4">
               <button
                 onClick={() => setShowCancelModal(false)}
-                className="flex-1 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 font-semibold rounded-lg text-sm transition-colors"
+                disabled={cancelActionLoading}
+                className="flex-1 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 font-semibold rounded-lg text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Back
               </button>
               <button
                 onClick={canRejectQuote ? handleRejectQuote : handleCancelQuote}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm transition-colors"
+                disabled={cancelActionLoading}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-70"
               >
-                Confirm
+                {cancelActionLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <LoaderCircle className="w-4 h-4 animate-spin" />
+                    {canRejectQuote ? "Rejecting..." : "Canceling..."}
+                  </span>
+                ) : (
+                  "Confirm"
+                )}
               </button>
             </div>
           </div>

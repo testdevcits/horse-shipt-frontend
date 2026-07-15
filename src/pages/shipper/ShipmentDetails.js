@@ -934,21 +934,11 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                     <div className="p-3 sm:p-4 bg-white space-y-5">
                       {/* ── PHOTO CAROUSEL (horse images only) ─────────────────── */}
                       <div className="space-y-3">
-                        <h4 className="text-sm font-black text-gray-500 uppercase tracking-wider">
-                          Horse Photo
-                        </h4>
+                        
 
                         {photos.length > 0 ? (
                           <div className="relative overflow-hidden rounded-sm border border-gray-200 bg-gray-100">
-                            <img
-                              src={photos[imgIdx]?.url}
-                              alt={photos[imgIdx]?.label}
-                              className="w-full h-56 sm:h-72 object-cover"
-                              onError={(e) => {
-                                e.target.style.display = "none";
-                                e.target.nextSibling.style.display = "flex";
-                              }}
-                            />
+                           
                             {/* Fallback inside carousel */}
                             <div
                               className="w-full h-56 sm:h-72 items-center justify-center"
@@ -1202,7 +1192,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                     onClick={() => setIsOfferOpen(true)}
                     className="relative group bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] text-white px-4 py-3 rounded-sm font-black text-base hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden"
                   >
-                    <span className="absolute inset-0 bg-white/20 group-hover:bg-white/30 transition-colors" />
+                    <span className="absolute inset-0 group-hover:bg-white/10 transition-colors" />
                     <span className="relative">Submit an Offer</span>
                   </button>
 

@@ -34,6 +34,7 @@ import InvitedShipments from "../pages/shipper/InvitedShipments";
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 const SignupPage = lazy(() => import("../pages/auth/SignupPage"));
+const ForgotPasswordPage = lazy(() => import("../pages/auth/ForgotPasswordPage"));
 const OAuthSuccessPage = lazy(() => import("../pages/auth/OAuthSuccessPage"));
 const PrivacyPage = lazy(() => import("../pages/PrivacyPage"));
 const TermsPage = lazy(() => import("../pages/TermsPage"));
@@ -163,6 +164,7 @@ const AppRoutes = () => {
             </RedirectIfAuth>
           }
         />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/oauth-success" element={<OAuthSuccessPage />} />
         <Route path="/oauth-error" element={<OAuthErrorPage />} />
 
@@ -173,6 +175,10 @@ const AppRoutes = () => {
             <DriverAuthProvider>
               <Routes>
                 <Route path="login" element={<DriverLoginPage />} />
+                <Route
+                  path="forgot-password"
+                  element={<ForgotPasswordPage />}
+                />
 
                 <Route
                   path="dashboard"

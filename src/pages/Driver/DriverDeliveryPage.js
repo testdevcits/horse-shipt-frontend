@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDriverAuth } from "../../contexts/DriverAuthContext";
 import {
@@ -38,58 +38,96 @@ const Step = ({ number, label, active, done }) => (
 
 /* ─── OTP Input ─── */
 const OtpInput = ({ value, onChange }) => {
-  const refs = React.useRef([]);
-  const digits = value.split("").concat(Array(6).fill("")).slice(0, 6);
+  const inputRefs = useRef([]);
+  const digits = Array.from({ length: 6 }, (_, index) => value[index] || "");
 
-  const handleKey = (idx, e) => {
-    if (e.key === "Backspace") {
-      const newVal = value.slice(0, idx) + value.slice(idx + 1);
-      onChange(newVal);
-      if (idx > 0) refs.current[idx - 1]?.focus();
+  const setOtpValue = (nextDigits) => {
+    onChange(nextDigits.join("").replace(/\D/g, "").slice(0, 6));
+  };
+
+  const focusInput = (index) => {
+    inputRefs.current[index]?.focus();
+    inputRefs.current[index]?.select();
+  };
+
+  const handleChange = (index, rawValue) => {
+    const cleanValue = rawValue.replace(/\D/g, "");
+    if (!cleanValue) {
+      const nextDigits = [...digits];
+      nextDigits[index] = "";
+      setOtpValue(nextDigits);
+      return;
+    }
+
+    const nextDigits = [...digits];
+    cleanValue
+      .slice(0, 6 - index)
+      .split("")
+      .forEach((digit, offset) => {
+        nextDigits[index + offset] = digit;
+      });
+    setOtpValue(nextDigits);
+    focusInput(Math.min(index + cleanValue.length, 5));
+  };
+
+  const handleKeyDown = (index, event) => {
+    if (event.key === "Backspace" && !digits[index] && index > 0) {
+      event.preventDefault();
+      const nextDigits = [...digits];
+      nextDigits[index - 1] = "";
+      setOtpValue(nextDigits);
+      focusInput(index - 1);
+    }
+
+    if (event.key === "ArrowLeft" && index > 0) {
+      event.preventDefault();
+      focusInput(index - 1);
+    }
+
+    if (event.key === "ArrowRight" && index < 5) {
+      event.preventDefault();
+      focusInput(index + 1);
     }
   };
 
-  const handleChange = (idx, e) => {
-    const char = e.target.value.replace(/\D/g, "").slice(-1);
-    if (!char) return;
-    const arr = digits.map((d, i) => (i === idx ? char : d));
-    onChange(arr.join("").replace(/\s/g, "").slice(0, 6));
-    if (idx < 5) refs.current[idx + 1]?.focus();
-  };
-
-  const handlePaste = (e) => {
-    const pasted = e.clipboardData
+  const handlePaste = (index, event) => {
+    event.preventDefault();
+    const pastedDigits = event.clipboardData
       .getData("text")
       .replace(/\D/g, "")
       .slice(0, 6);
-    if (pasted) {
-      onChange(pasted);
-      refs.current[Math.min(pasted.length, 5)]?.focus();
-    }
-    e.preventDefault();
+    if (!pastedDigits) return;
+
+    const nextDigits = [...digits];
+    pastedDigits
+      .slice(0, 6 - index)
+      .split("")
+      .forEach((digit, offset) => {
+        nextDigits[index + offset] = digit;
+      });
+    setOtpValue(nextDigits);
+    focusInput(Math.min(index + pastedDigits.length, 5));
   };
 
   return (
-    <div className="flex gap-2 justify-center" onPaste={handlePaste}>
-      {digits.map((digit, idx) => (
+    <div className="grid grid-cols-6 gap-2 sm:gap-3">
+      {digits.map((digit, index) => (
         <input
-          key={idx}
-          ref={(el) => (refs.current[idx] = el)}
+          key={index}
+          ref={(element) => {
+            inputRefs.current[index] = element;
+          }}
           type="text"
           inputMode="numeric"
+          autoComplete={index === 0 ? "one-time-code" : "off"}
           pattern="[0-9]*"
           maxLength={1}
           value={digit}
-          onChange={(e) => handleChange(idx, e)}
-          onKeyDown={(e) => handleKey(idx, e)}
-          className={`w-11 h-13 text-center text-xl font-black rounded-xl border-2 outline-none transition-all
-            ${
-              digit
-                ? "border-[#BF9B53] bg-[#BF9B53]/5 text-[#BF9B53]"
-                : "border-gray-200 bg-gray-50 text-gray-800"
-            }
-            focus:border-[#BF9B53] focus:bg-[#BF9B53]/5 focus:ring-2 focus:ring-[#BF9B53]/15`}
-          style={{ height: "52px" }}
+          onChange={(event) => handleChange(index, event.target.value)}
+          onKeyDown={(event) => handleKeyDown(index, event)}
+          onPaste={(event) => handlePaste(index, event)}
+          aria-label={`Delivery OTP digit ${index + 1}`}
+          className="h-12 w-full rounded-xl border border-gray-300 bg-white text-center text-lg font-black text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#BF9B53] focus:ring-4 focus:ring-[#BF9B53]/15 sm:h-14 sm:text-xl"
         />
       ))}
     </div>
@@ -251,7 +289,7 @@ const DriverDeliveryPage = () => {
         <button
           onClick={handleSendOtp}
           disabled={actionLoading}
-          className={`${baseClass} bg-[#BF9B53] shadow-md shadow-[#BF9B53]/20 hover:brightness-105 active:scale-95`}
+          className={`${baseClass} bg-[#BF9B53] shadow-md shadow-[#BF9B53]/20 hover:brightness-105 active:scale-95 mt-4 `}
         >
           {actionLoading ? (
             <>
@@ -548,7 +586,7 @@ const DriverDeliveryPage = () => {
               <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
                 <div className="max-w-xl">
                   <ShipmentInfoCard shipmentDetails={currentShipmentDetails} />
-                  <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5 mb-5 w-full">
+                  <div className="mt-5 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5 mb-5 w-full">
                     <FiCheckCircle size={14} className="text-emerald-600 shrink-0" />
                     <p className="text-xs text-emerald-700 font-semibold">
                       OTP sent to customer successfully
@@ -601,7 +639,7 @@ const DriverDeliveryPage = () => {
               <p className="text-gray-500 text-sm text-center leading-relaxed mb-5 max-w-xs">
                 Ask the horse owner for the 6-digit OTP sent to their phone.
               </p>
-              <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5 mb-5 w-full">
+              <div className="mt-3 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5 mb-5 w-full">
                 <FiCheckCircle size={14} className="text-emerald-600 shrink-0" />
                 <p className="text-xs text-emerald-700 font-semibold">
                   OTP sent to customer successfully

@@ -1,10 +1,5 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
-import {
-  FaTruck,
-  FaMapLocationDot,
-  FaLocationDot,
-  FaHorse,
-} from "react-icons/fa6";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { FaTruck, FaHorse } from "react-icons/fa6";
 import {
   FiX,
   FiLogOut,
@@ -13,7 +8,6 @@ import {
   FiFileText,
   FiMapPin,
   FiCalendar,
-  FiClock,
   FiChevronDown,
   FiChevronUp,
   FiHome,
@@ -22,6 +16,7 @@ import {
   FiList,
   FiPackage,
   FiCheckCircle,
+  FiSend,
 } from "react-icons/fi";
 import { MdMyLocation } from "react-icons/md";
 import ConfirmModal from "../../components/common/ConfirmModal";
@@ -29,7 +24,13 @@ import Toast from "../../components/common/Toast";
 import { useDriverAuth } from "../../contexts/DriverAuthContext";
 import RouteMapModal from "./Routemapmodal";
 import UpdateLocation from "./Updatelocation";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
+import logo from "../../assets/images/logo.png";
+import fallbackHorseImage from "../../assets/images/horse1.jpg";
+
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 /* ─── SHIMMER ─── */
 const Shimmer = ({ className = "" }) => (
@@ -208,65 +209,43 @@ const InfoRow = ({ icon, label, value }) => (
   </div>
 );
 
-/* ─── LOCATION CARD ─── */
-const LocationCard = ({ type, location, date, time, icon, color }) => (
-  <div
-    className={`rounded-md border p-3 ${
-      color === "gold"
-        ? "border-[#BF9B53] bg-header"
-        : "border-[#BF9B53] bg-white"
-    }`}
-  >
-    <div className="flex items-center gap-2 mb-1.5">
-      <div
-        className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${
-          color === "gold" ? "bg-[#BF9B53]" : "bg-[#BF9B53]"
-        }`}
-      >
-        {icon}
-      </div>
-      <span className="font-black text-[10px] text-tabActive/80 uppercase tracking-wider">
-        {type}
-      </span>
-    </div>
-    <p className="text-sm font-bold text-systemText leading-snug mb-1.5">
-      {location || "N/A"}
-    </p>
-    <div className="flex gap-4 text-[11px] text-tabActive/70">
-      <span className="flex items-center gap-1">
-        <FiCalendar size={9} />
-        {date}
-      </span>
-      <span className="flex items-center gap-1">
-        <FiClock size={9} />
-        {time}
-      </span>
-    </div>
-  </div>
-);
+const shortLocation = (value, fallback = "N/A") =>
+  value?.split(",")?.[0]?.trim() || fallback;
+
+const tripStatusLabel = (status) => {
+  if (status === "started") return "In Transit";
+  if (status === "completed") return "Completed";
+  return "Not Started";
+};
 
 /* ─── PERMISSION ALERT ─── */
 const PermissionAlert = ({ permission, onRequest }) => {
   if (permission === "granted") return null;
   return (
-    <div className="bg-header border border-[#BF9B53] rounded-md p-4 space-y-3 shadow-sm">
+    <div className="flex flex-col gap-4 bg-white border border-[#f0eadf] px-4 py-4 md:flex-row md:items-center md:justify-between md:px-5">
       <div className="flex items-start gap-3">
-        <FiAlertCircle size={16} className="text-[#BF9B53] shrink-0 mt-0.5" />
-        <div>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d8bb75] bg-[#fff8e7]">
+          <FiAlertCircle size={16} className="text-[#BF9B53]" />
+        </span>
+        <div className="pt-0.5">
           <p className="font-black text-systemText text-sm">
             Location Permission Required
           </p>
-          <p className="text-xs text-tabActive mt-0.5 leading-relaxed">
+          <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
             Enable location access to start trips and use live tracking.
           </p>
         </div>
       </div>
-      <button
-        onClick={onRequest}
-        className="w-full py-2.5 bg-[#BF9B53] border border-[#BF9B53] text-white font-black text-xs rounded-md hover:brightness-110 active:scale-95 transition-all"
-      >
-        Enable Location Access
-      </button>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onRequest}
+          className="inline-flex items-center justify-center gap-2 bg-[#c09a4a] px-5 py-2.5 text-xs font-black text-white transition hover:bg-[#aa8439]"
+        >
+          <FiMapPin size={14} />
+          Enable Location Access
+        </button>
+        <FiX size={16} className="hidden text-slate-500 md:block" />
+      </div>
     </div>
   );
 };
@@ -291,172 +270,163 @@ const HomeTab = ({
   const normalizedTripStatus = getShipmentTripStatus(currentShipment);
   const shipmentNotes =
     currentShipment?.shipment?.notes || currentShipment?.notes || "";
+  const horses = currentShipment?.shipment?.horses || [];
+  const horseCount =
+    currentShipment?.shipment?.numberOfHorses || horses.length || 0;
+  const pickupLabel = shortLocation(
+    currentShipment?.shipment?.pickupLocation,
+    "Pickup"
+  );
+  const deliveryLabel = shortLocation(
+    currentShipment?.shipment?.deliveryLocation,
+    "Delivery"
+  );
 
   return (
-    <div className="w-full px-4 pt-4 pb-28 md:px-0 md:pb-8 space-y-4">
+    <div className="w-full px-4 pt-4 pb-28 md:px-0 md:pb-8">
       <PermissionAlert
         permission={locationPermission}
         onRequest={onRequestPermission}
       />
 
       {currentShipment ? (
-        <SectionCard title="Current Shipment" accent>
-          <div className="mb-4 rounded-md border border-[#BF9B53] bg-header p-4 shadow-sm">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-tabActive">
-                  Active Route
-                </p>
-                <p className="mt-1 text-base md:text-lg font-black text-systemText">
-                  {currentShipment.shipment?.pickupLocation?.split(",")?.[0] ||
-                    "Pickup"}
-                  <span className="mx-2 text-[#BF9B53]">→</span>
-                  {currentShipment.shipment?.deliveryLocation?.split(
-                    ","
-                  )?.[0] || "Delivery"}
-                </p>
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-md border border-[#BF9B53] bg-white px-3 py-2 shadow-sm">
-                <FaTruck size={13} className="text-[#BF9B53]" />
-                <span className="text-xs font-black text-tabActive">
-                  {currentShipment.shipment?.numberOfHorses ||
-                    currentShipment.shipment?.horses?.length ||
-                    0}{" "}
-                  Horse Shipment
-                </span>
+        <div className="mt-7 space-y-7">
+          <div>
+            <p className="mb-4 text-sm font-semibold text-slate-800">
+              Current Shipment
+            </p>
+            <div className="bg-[#f4f6fa] px-5 py-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400 bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    Active Route
+                  </span>
+                  <p className="mt-3 text-base font-black text-slate-900">
+                    {pickupLabel} &gt; {deliveryLabel}
+                  </p>
+                </div>
+                <div className="inline-flex w-fit items-center gap-2 bg-[#c09a4a] px-4 py-2 text-xs font-black text-white">
+                  <FaHorse size={14} />
+                  {horseCount} Horse Shipment
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="mb-4 flex items-center justify-between bg-white border border-[#BF9B53] rounded-md px-3 py-2.5">
-            <span className="text-xs font-semibold text-tabActive/80">
-              Trip Status
-            </span>
-            <div className="flex items-center gap-1.5">
-              <div
-                className={`w-2 h-2 rounded-full ${
-                  normalizedTripStatus === "started"
-                    ? "bg-success animate-pulse"
-                    : normalizedTripStatus === "completed"
-                    ? "bg-[#BF9B53]"
-                    : "bg-header0"
-                }`}
-              />
-              <span
-                className={`text-xs font-black uppercase tracking-wider ${
-                  normalizedTripStatus === "started"
-                    ? "text-success-700"
-                    : normalizedTripStatus === "completed"
-                    ? "text-tabActive"
-                    : "text-tabActive"
-                }`}
-              >
-                {normalizedTripStatus === "started"
-                  ? "IN TRANSIT"
-                  : normalizedTripStatus === "completed"
-                  ? "COMPLETED"
-                  : "NOT STARTED"}
+            <div className="mt-5 flex items-center justify-between bg-white px-5 py-4">
+              <span className="text-xs font-medium text-slate-700">
+                Trip Status
+              </span>
+              <span className="border border-[#b98f38] px-5 py-2 text-[11px] font-medium text-[#7c5e24]">
+                {tripStatusLabel(normalizedTripStatus)}
               </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] gap-3 mb-4 items-center">
-            <LocationCard
-              type="Pickup"
-              icon={<FaLocationDot className="text-white" size={11} />}
-              color="gold"
-              location={currentShipment.shipment?.pickupLocation}
-              date={formatDate(currentShipment.shipment?.pickupDate)}
-            />
-            <div className="flex justify-center py-0.5 xl:py-0">
-              <div className="flex flex-col items-center gap-0.5">
-                {[0, 1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className="w-0.5 h-1.5 bg-[#BF9B53] rounded-full"
-                  />
-                ))}
-                <FiMapPin size={11} className="text-[#BF9B53] mt-0.5" />
+          <div className="bg-white p-5">
+            <div className="grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)]">
+              <div className="flex h-[220px] items-center justify-center overflow-hidden bg-[#f4f6fa] p-3 lg:h-[300px]">
+                <img
+                  src={horses[0]?.photo?.url || fallbackHorseImage}
+                  alt={horses[0]?.registeredName || "Horse"}
+                  onClick={() =>
+                    horses[0]?.photo?.url && setSelectedImage(horses[0].photo.url)
+                  }
+                  className="h-full w-full object-contain"
+                />
               </div>
-            </div>
-            <LocationCard
-              type="Delivery"
-              icon={<FaMapLocationDot className="text-white" size={11} />}
-              color="green"
-              location={currentShipment.shipment?.deliveryLocation}
-              date={formatDate(currentShipment.shipment?.deliveryDate)}
-            />
-          </div>
 
-          {/* Horses */}
-          {currentShipment.shipment?.horses?.length > 0 && (
-            <div className="mb-4">
-              <p className="text-[10px] font-black text-tabActive/70 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <FaHorse size={10} className="text-[#BF9B53]" /> Horses (
-                {currentShipment.shipment.horses.length})
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {currentShipment.shipment.horses.map((horse, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-white border border-[#BF9B53] rounded-md p-3 shadow-sm"
-                  >
-                    {horse.photo?.url && (
-                      <img
-                        src={horse.photo.url}
-                        alt={horse.registeredName}
-                        onClick={() => setSelectedImage(horse.photo.url)}
-                        className="w-full h-20 object-cover rounded-lg mb-2 cursor-pointer"
-                      />
-                    )}
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      {[
-                        ["Registered", horse.registeredName],
-                        ["Barn", horse.barnName],
-                        ["Breed", horse.breed],
-                        ["Sex", horse.sex],
-                      ].map(([lbl, val]) => (
-                        <div key={lbl}>
-                          <p className="text-[9px] font-black text-tabActive/70 uppercase mb-0.5">
-                            {lbl}
-                          </p>
-                          <p className="font-semibold text-systemText truncate">
-                            {val || "N/A"}
-                          </p>
-                        </div>
-                      ))}
+              <div className="min-w-0">
+                <h2 className="text-xl font-black text-slate-900">
+                  Horses ({horses.length || horseCount})
+                </h2>
+                <div className="mt-2 bg-[#f1f3f7] px-4 py-4">
+                  <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-[120px_1fr_120px]">
+                    <div>
+                      <p className="mb-2 text-[10px] text-slate-500">
+                        <FiMapPin className="mr-1 inline" size={10} />
+                        {shortLocation(currentShipment.shipment?.pickupLocation)}
+                      </p>
+                      <div className="border border-[#b98f38] bg-white px-4 py-2 text-center">
+                        <p className="text-[9px] font-black uppercase text-[#7c5e24]">
+                          Pickup Date
+                        </p>
+                        <p className="text-[11px] font-bold text-slate-700">
+                          {formatDate(currentShipment.shipment?.pickupDate)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="relative hidden items-center justify-center md:flex">
+                      <div className="h-px w-full bg-[#c09a4a]" />
+                      <div className="absolute flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#7c5e24] shadow-sm">
+                        <FaTruck size={17} />
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="mb-2 text-[10px] text-slate-500 md:text-right">
+                        <FiMapPin className="mr-1 inline" size={10} />
+                        {shortLocation(currentShipment.shipment?.deliveryLocation)}
+                      </p>
+                      <div className="border border-[#b98f38] bg-white px-4 py-2 text-center">
+                        <p className="text-[9px] font-black uppercase text-[#7c5e24]">
+                          Delivery Date
+                        </p>
+                        <p className="text-[11px] font-bold text-slate-700">
+                          {formatDate(currentShipment.shipment?.deliveryDate)}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                ))}
+
+                  <div className="mt-5 grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
+                    {[
+                      ["Barn", horses[0]?.barnName || "Horse"],
+                      ["Sex", horses[0]?.sex || "N/A"],
+                      ["Breed", horses[0]?.breed || "N/A"],
+                      ["Registered", horses[0]?.registeredName || "N/A"],
+                    ].map(([label, value]) => (
+                      <div key={label} className="flex items-center gap-2">
+                        <span className="flex h-8 w-8 items-center justify-center bg-white text-[#b98f38]">
+                          <FaHorse size={13} />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-[10px] text-slate-500">{label}</p>
+                          <p className="truncate text-xs font-semibold text-slate-800">
+                            {value}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    <span className="col-span-2 ml-auto self-center bg-slate-700 px-5 py-2 text-[10px] font-black uppercase text-white md:col-span-4">
+                      Assigned
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4 border border-[#eee7d9] p-3">
+                  <p className="text-[10px] font-black uppercase text-[#7c5e24]">
+                    Notes
+                  </p>
+                  <p className="mt-1 text-xs text-slate-700">
+                    {shipmentNotes || "No notes provided."}
+                  </p>
+                  <button
+                    onClick={() => setMapModalOpen(true)}
+                    disabled={!driverLocation}
+                    className="mt-4 w-full bg-[#c09a4a] py-3 text-sm font-black uppercase text-white transition hover:bg-[#aa8439] disabled:opacity-40"
+                  >
+                    View Route on Map
+                  </button>
+                </div>
               </div>
             </div>
-          )}
-
-          {/* Notes */}
-          {shipmentNotes && (
-            <div className="mb-4 bg-header border border-[#BF9B53] rounded-md p-3">
-              <p className="text-[10px] font-black text-tabActive uppercase mb-1">
-                Notes
-              </p>
-              <p className="text-xs text-systemText leading-relaxed">
-                {shipmentNotes}
-              </p>
-            </div>
-          )}
-          <div className="pt-1">
-            <button
-              onClick={() => setMapModalOpen(true)}
-              disabled={!driverLocation}
-              className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#BF9B53] border border-[#BF9B53] text-white font-black text-sm rounded-md hover:brightness-110 active:scale-95 transition-all disabled:opacity-40"
-            >
-              <FaMapLocationDot size={15} />
-              View Route on Map
-            </button>
           </div>
-        </SectionCard>
+        </div>
       ) : (
-        <div className="bg-white rounded-md border border-dashed border-[#BF9B53] px-6 py-14 text-center shadow-sm">
-          <div className="w-14 h-14 bg-header rounded-md flex items-center justify-center mx-auto mb-3">
+        <div className="mt-7 bg-white border border-dashed border-[#e5dac7] px-6 py-14 text-center">
+          <div className="w-14 h-14 bg-[#f8f3e8] flex items-center justify-center mx-auto mb-3">
             <FaTruck className="text-[#BF9B53] text-2xl" />
           </div>
           <p className="text-systemText font-bold text-sm">
@@ -468,7 +438,7 @@ const HomeTab = ({
           {(allShipments?.length || 0) > 0 && (
             <button
               onClick={() => navigate("/driver/shipments")}
-              className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-[#BF9B53] border border-[#BF9B53] text-white font-black text-xs rounded-md hover:brightness-110 active:scale-95 transition-all"
+              className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-[#BF9B53] text-white font-black text-xs hover:brightness-110 active:scale-95 transition-all"
             >
               <FiList size={12} />
               View All Shipments
@@ -479,96 +449,75 @@ const HomeTab = ({
 
       {/* Vehicle */}
       {assignedVehicles.length > 0 && (
-        <SectionCard title="Assigned Vehicle" collapsible defaultOpen={false}>
-          <div className="space-y-4">
+        <div className="mt-7 space-y-4">
             {assignedVehicles.map((veh) => (
               <div
                 key={veh._id}
-                className="overflow-hidden rounded-md border border-[#BF9B53] bg-white shadow-sm"
+                className="overflow-hidden bg-white p-5"
               >
-                <div className="grid grid-cols-1 md:grid-cols-[230px_1fr]">
-                  <div className="relative h-44 md:h-full bg-header">
-                    {veh.images?.[0]?.url ? (
-                      <img
-                        src={veh.images[0].url}
-                        alt={veh.vehicleNumber || "Vehicle"}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
+	                <div className="grid grid-cols-1 gap-5 md:grid-cols-[260px_1fr]">
+	                  <div className="relative flex h-[220px] items-center justify-center overflow-hidden bg-[#f4f6fa] p-3">
+	                    {veh.images?.[0]?.url ? (
+	                      <img
+	                        src={veh.images[0].url}
+	                        alt={veh.vehicleNumber || "Vehicle"}
+	                        className="h-full w-full object-contain"
+	                      />
+	                    ) : (
                       <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-tabActive">
                         <FaTruck size={30} />
                         <p className="text-xs font-black">No vehicle image</p>
                       </div>
                     )}
-                    <div className="absolute left-3 top-3 rounded-md bg-white px-3 py-1 text-[10px] font-black uppercase tracking-wider text-tabActive shadow-sm border border-[#BF9B53]">
-                      {veh.vehicleType || "Vehicle"}
-                    </div>
                   </div>
-                  <div className="p-4">
+                  <div>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-lg font-black text-systemText">
+                        <p className="text-[11px] font-semibold text-slate-500">
+                          Assigned Vehicle
+                        </p>
+                        <p className="mt-1 text-lg font-black text-systemText">
                           {veh.vehicleNumber || "N/A"}
                         </p>
-                        <p className="text-sm text-tabActive/80">
+                        <p className="text-xs text-slate-600">
                           {veh.transportType || "N/A"} ·{" "}
                           {veh.trailerType || "N/A"}
                         </p>
                       </div>
-                      <span className="rounded-md bg-header border border-[#BF9B53] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-tabActive">
+                      <span className="border border-[#d8bb75] px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-[#b98f38]">
                         Ready
                       </span>
                     </div>
-                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                      <div className="rounded-md bg-light border border-[#BF9B53] p-3">
-                        <p className="text-[9px] font-black text-tabActive/70 uppercase mb-1">
-                          Trailer
-                        </p>
-                        <p className="font-semibold text-systemText">
-                          {veh.trailerType || "N/A"}
-                        </p>
-                      </div>
-                      <div className="rounded-md bg-light border border-[#BF9B53] p-3">
-                        <p className="text-[9px] font-black text-tabActive/70 uppercase mb-1">
-                          Stalls
-                        </p>
-                        <p className="font-semibold text-systemText">
-                          {veh.numberOfStalls || 0}
-                        </p>
-                      </div>
-                      <div className="rounded-md bg-light border border-[#BF9B53] p-3">
-                        <p className="text-[9px] font-black text-tabActive/70 uppercase mb-1">
-                          Stall Size
-                        </p>
-                        <p className="font-semibold text-systemText">
-                          {veh.stallSize || "N/A"}
-                        </p>
-                      </div>
-                      <div className="rounded-md bg-light border border-[#BF9B53] p-3">
-                        <p className="text-[9px] font-black text-tabActive/70 uppercase mb-1">
-                          Transport
-                        </p>
-                        <p className="font-semibold text-systemText">
-                          {veh.transportType || "N/A"}
-                        </p>
-                      </div>
+                    <div className="mt-5 grid grid-cols-2 gap-4 border-b border-[#eee7d9] pb-4 text-xs sm:grid-cols-4">
+                      {[
+                        ["Trailer", veh.trailerType || "N/A"],
+                        ["Stalls", veh.numberOfStalls || 0],
+                        ["Stall Type", veh.stallSize || "N/A"],
+                        ["Transport", veh.transportType || "N/A"],
+                      ].map(([label, value]) => (
+                        <div key={label} className="border-r border-[#eee7d9] last:border-r-0">
+                          <p className="text-[10px] font-medium text-slate-500">
+                            {label}
+                          </p>
+                          <p className="mt-1 font-semibold text-slate-800">
+                            {value}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                    {veh.notes && (
-                      <div className="mt-4 rounded-md border border-[#BF9B53] bg-header p-3">
-                        <p className="text-[10px] font-black uppercase tracking-wider text-tabActive">
-                          Vehicle Notes
-                        </p>
-                        <p className="mt-1 text-sm leading-relaxed text-systemText">
-                          {veh.notes}
-                        </p>
-                      </div>
-                    )}
+                    <div className="mt-4 bg-[#f4f6fa] p-4">
+                      <p className="text-[10px] font-black uppercase text-[#7c5e24]">
+                        Vehicle Notes
+                      </p>
+                      <p className="mt-1 text-xs text-slate-700">
+                        {veh.notes || "No vehicle notes."}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
-          </div>
-        </SectionCard>
+        </div>
       )}
     </div>
   );
@@ -602,13 +551,13 @@ const ProfileTab = ({
     <div className="w-full px-4 sm:px-6 lg:px-8 pt-4 pb-28 space-y-4">
       {/* Hero */}
       <div className="bg-white rounded-md border border-[#BF9B53] p-5 flex flex-col items-center text-center shadow-sm">
-        <div className="w-20 h-20 rounded-md overflow-hidden border-2 border-[#BF9B53] flex items-center justify-center bg-header mb-3">
-          {driver.profileImage?.url ? (
-            <img
-              src={driver.profileImage.url}
-              alt={driver.name}
-              className="w-full h-full object-cover"
-            />
+	        <div className="w-20 h-20 rounded-md overflow-hidden border-2 border-[#BF9B53] flex items-center justify-center bg-header mb-3">
+	          {driver.profileImage?.url ? (
+	            <img
+	              src={driver.profileImage.url}
+	              alt={driver.name}
+	              className="w-full h-full object-contain"
+	            />
           ) : (
             <span className="text-[#BF9B53] font-black text-3xl">
               {driver.name?.[0]?.toUpperCase() || "D"}
@@ -736,100 +685,453 @@ const ProfileTab = ({
   );
 };
 
+const TripsTab = ({ allShipments, loading, formatDate, navigate }) => {
+  const [filter, setFilter] = useState("all");
+  const getItemStatus = (item) => {
+    const status = getShipmentTripStatus(item);
+    if (status === "completed") return "delivered";
+    if (status === "started") return "active";
+    return "pending";
+  };
+  const filters = [
+    { id: "all", label: "All" },
+    { id: "pending", label: "Pending" },
+    { id: "active", label: "Active" },
+    { id: "delivered", label: "Delivered" },
+  ];
+  const counts = filters.reduce((acc, item) => {
+    acc[item.id] =
+      item.id === "all"
+        ? allShipments.length
+        : allShipments.filter((shipment) => getItemStatus(shipment) === item.id)
+            .length;
+    return acc;
+  }, {});
+  const visibleShipments =
+    filter === "all"
+      ? allShipments
+      : allShipments.filter((shipment) => getItemStatus(shipment) === filter);
+
+  if (loading && allShipments.length === 0) {
+    return (
+      <div className="space-y-3 pb-28">
+        <Shimmer className="h-16 w-full" />
+        <Shimmer className="h-24 w-full" />
+        <Shimmer className="h-24 w-full" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full px-4 pt-4 pb-28 md:px-0 md:pb-8">
+      <div className="grid gap-3 md:grid-cols-4">
+        {filters.map((item) => {
+          const active = filter === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setFilter(item.id)}
+              className={`flex items-center justify-between border px-4 py-3 text-left transition ${
+                active
+                  ? "border-[#c09a4a] bg-[#c09a4a] text-white"
+                  : "border-[#e6d7bb] bg-white text-slate-700 hover:bg-[#fbf7ef]"
+              }`}
+            >
+              <span className="text-xs font-black uppercase tracking-wider">
+                {item.label}
+              </span>
+              <span className={`text-sm font-black ${active ? "text-white" : "text-[#8a6a2c]"}`}>
+                {counts[item.id] || 0}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-5 space-y-3">
+        {visibleShipments.length === 0 ? (
+          <div className="bg-white px-6 py-12 text-center text-sm font-semibold text-slate-500">
+            No trips found.
+          </div>
+        ) : (
+          visibleShipments.map((item) => {
+            const shipment = item?.shipment || item || {};
+            const status = getItemStatus(item);
+            const statusClass =
+              status === "delivered"
+                ? "bg-emerald-50 text-emerald-700"
+                : status === "active"
+                ? "bg-[#c09a4a] text-white"
+                : "bg-[#fbf7ef] text-[#8a6a2c]";
+            return (
+              <button
+                key={item?._id || shipment?._id}
+                onClick={() =>
+                  status === "active"
+                    ? navigate(`/driver/delivery/${item?._id || shipment?._id}`)
+                    : undefined
+                }
+                className="w-full border border-[#eadfca] bg-white p-4 text-left transition hover:border-[#c09a4a] hover:bg-[#fffdf8]"
+              >
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_170px_140px] lg:items-center">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      Route
+                    </p>
+                    <p className="mt-1 truncate text-sm font-semibold text-slate-900">
+                      <FiMapPin className="mr-1 inline text-[#BF9B53]" size={12} />
+                      {shipment.pickupLocation || "Pickup"}
+                      <span className="mx-2 text-[#c09a4a]">&gt;</span>
+                      {shipment.deliveryLocation || "Delivery"}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-xs text-slate-500 lg:block lg:space-y-2">
+                    <span className="inline-flex items-center gap-1">
+                      <FiCalendar size={12} />
+                      {formatDate(shipment.pickupDate || shipment.pickupDateRange?.start)}
+                    </span>
+                    <span className="inline-flex items-center gap-1 lg:ml-0">
+                      <FaHorse size={12} />
+                      {shipment.numberOfHorses || shipment.horses?.length || 0} horses
+                    </span>
+                  </div>
+                  <div className="flex lg:justify-end">
+                    <span className={`px-4 py-2 text-xs font-black ${statusClass}`}>
+                      {status === "active"
+                        ? "Complete Delivery"
+                        : status === "delivered"
+                        ? "Delivered"
+                        : "Pending"}
+                    </span>
+                  </div>
+                </div>
+              </button>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+};
+
+const DriverChatTab = ({ token, driver, loading }) => {
+  const [chats, setChats] = useState([]);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [roomId, setRoomId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [fetchingChats, setFetchingChats] = useState(false);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const chatEndRef = useRef(null);
+
+  const authHeaders = useMemo(
+    () => ({ headers: { Authorization: `Bearer ${token}` } }),
+    [token]
+  );
+
+  const fetchDriverChats = useCallback(async () => {
+    if (!token) return;
+    setFetchingChats(true);
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/driver/driver/chat/shipments`,
+        authHeaders
+      );
+      const nextChats = res.data?.chats || [];
+      setChats(nextChats);
+      setSelectedChat((prev) => prev || nextChats[0] || null);
+    } catch (error) {
+      Toast.error(error.response?.data?.message || "Failed to load chats");
+    } finally {
+      setFetchingChats(false);
+    }
+  }, [authHeaders, token]);
+
+  const fetchMessages = useCallback(
+    async (nextRoomId, { silent = false } = {}) => {
+      if (!nextRoomId || !token) return;
+      if (!silent) setMessagesLoading(true);
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/driver/driver/chat/rooms/${nextRoomId}/messages`,
+          authHeaders
+        );
+        setMessages(res.data?.messages || []);
+      } catch (error) {
+        if (!silent) {
+          Toast.error(
+            error.response?.data?.message || "Failed to load messages"
+          );
+        }
+      } finally {
+        if (!silent) setMessagesLoading(false);
+      }
+    },
+    [authHeaders, token]
+  );
+
+  useEffect(() => {
+    fetchDriverChats();
+  }, [fetchDriverChats]);
+
+  useEffect(() => {
+    if (!selectedChat || !token) return;
+    let cancelled = false;
+
+    const openRoom = async () => {
+      setMessages([]);
+      setMessagesLoading(true);
+      try {
+        const res = await axios.post(
+          `${API_BASE_URL}/driver/driver/chat/room`,
+          { shipmentId: selectedChat.shipmentId },
+          authHeaders
+        );
+        const nextRoomId = res.data?.roomId || res.data?.room?._id;
+        if (!nextRoomId || cancelled) return;
+        setRoomId(nextRoomId);
+        await fetchMessages(nextRoomId);
+      } catch (error) {
+        if (!cancelled) {
+          Toast.error(error.response?.data?.message || "Failed to open chat");
+        }
+      } finally {
+        if (!cancelled) setMessagesLoading(false);
+      }
+    };
+
+    openRoom();
+    return () => {
+      cancelled = true;
+    };
+  }, [authHeaders, fetchMessages, selectedChat, token]);
+
+  useEffect(() => {
+    if (!roomId || !token) return;
+    const interval = setInterval(() => {
+      fetchMessages(roomId, { silent: true });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [fetchMessages, roomId, token]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = async (event) => {
+    event.preventDefault();
+    const messageText = newMessage.trim();
+    if (!messageText || !roomId || sending) return;
+
+    setSending(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/driver/driver/chat/rooms/${roomId}/messages`,
+        { message: messageText },
+        authHeaders
+      );
+      const sentMessage = res.data?.data;
+      if (sentMessage) {
+        setMessages((prev) =>
+          prev.some((item) => item._id === sentMessage._id)
+            ? prev
+            : [...prev, sentMessage]
+        );
+      }
+      setNewMessage("");
+    } catch (error) {
+      Toast.error(error.response?.data?.message || "Failed to send message");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (loading || fetchingChats) return <HomeSkeleton />;
+
+  return (
+    <div className="w-full px-4 pt-4 pb-28 md:px-0 md:pb-8">
+      <div className="grid min-h-[620px] overflow-hidden bg-white md:grid-cols-[300px_minmax(0,1fr)]">
+        <aside className="border-b border-[#eee7d9] md:border-b-0 md:border-r">
+          <div className="border-b border-[#eee7d9] p-4">
+            <p className="text-sm font-black text-slate-900">Driver Chat</p>
+            <p className="mt-1 text-xs text-slate-500">
+              Message the shipper for assigned trips.
+            </p>
+          </div>
+          <div className="max-h-[520px] overflow-y-auto">
+            {chats.length === 0 ? (
+              <div className="p-6 text-center text-sm text-slate-500">
+                No active shipment chats found.
+              </div>
+            ) : (
+              chats.map((chat) => {
+                const active = selectedChat?.shipmentId === chat.shipmentId;
+                return (
+                  <button
+                    key={`${chat.shipmentId}-${chat._id}`}
+                    onClick={() => setSelectedChat(chat)}
+                    className={`w-full border-b border-[#f0eadf] p-4 text-left transition ${
+                      active ? "bg-[#fbf7ef]" : "bg-white hover:bg-[#fbf7ef]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#c09a4a] text-sm font-black text-white">
+                        {chat.name?.[0]?.toUpperCase() || "S"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black text-slate-900">
+                          {chat.name || "Shipper"}
+                        </p>
+                        <p className="truncate text-xs text-slate-500">
+                          {chat.shipmentCode || "Shipment"}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="mt-3 line-clamp-2 text-xs text-slate-500">
+                      {chat.pickupLocation || "Pickup"} →{" "}
+                      {chat.deliveryLocation || "Delivery"}
+                    </p>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </aside>
+
+        <section className="flex min-h-[620px] flex-col">
+          {selectedChat ? (
+            <>
+              <div className="border-b border-[#eee7d9] p-4">
+                <p className="text-sm font-black text-slate-900">
+                  {selectedChat.name || "Shipper"}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {selectedChat.chatTitle}
+                </p>
+              </div>
+
+              <div className="flex-1 space-y-3 overflow-y-auto bg-[#f8f6f1] p-4">
+                {messagesLoading && (
+                  <p className="text-center text-xs text-slate-500">
+                    Loading messages...
+                  </p>
+                )}
+                {!messagesLoading && messages.length === 0 && (
+                  <div className="flex h-full items-center justify-center text-sm text-slate-500">
+                    No messages yet.
+                  </div>
+                )}
+                {messages.map((message) => {
+                  const mine =
+                    message.senderRole === "driver" &&
+                    message.senderId?.toString() === driver?._id?.toString();
+                  return (
+                    <div
+                      key={message._id}
+                      className={`flex ${mine ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[78%] px-4 py-3 text-sm ${
+                          mine
+                            ? "bg-[#c09a4a] text-white"
+                            : "bg-white text-slate-800"
+                        }`}
+                      >
+                        <p>{message.message}</p>
+                        <p
+                          className={`mt-1 text-[10px] ${
+                            mine ? "text-white/75" : "text-slate-400"
+                          }`}
+                        >
+                          {new Date(message.createdAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={chatEndRef} />
+              </div>
+
+              <form
+                onSubmit={sendMessage}
+                className="flex items-center gap-3 border-t border-[#eee7d9] bg-white p-4"
+              >
+                <input
+                  value={newMessage}
+                  onChange={(event) => setNewMessage(event.target.value)}
+                  placeholder="Type a message..."
+                  className="min-w-0 flex-1 border border-[#e6e1d8] px-4 py-3 text-sm outline-none focus:border-[#c09a4a]"
+                />
+                <button
+                  type="submit"
+                  disabled={sending || !newMessage.trim()}
+                  className="inline-flex h-11 w-11 items-center justify-center bg-[#c09a4a] text-white transition hover:bg-[#aa8439] disabled:opacity-40"
+                  title="Send message"
+                >
+                  <FiSend size={18} />
+                </button>
+              </form>
+            </>
+          ) : (
+            <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-slate-500">
+              Select an assigned shipment chat.
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+};
+
 /* ─── BOTTOM TAB BAR ─── */
 const TABS = [
   { id: "home", label: "Home", Icon: FiHome },
+  { id: "trips", label: "Trips", Icon: FiList },
   { id: "location", label: "Location", Icon: MdMyLocation },
   { id: "profile", label: "Profile", Icon: FiUser },
 ];
 
-const SidebarTabNav = ({ activeTab, setActiveTab, driver, allShipments }) => (
-  <aside className="hidden lg:flex lg:w-[220px] xl:w-[240px] lg:flex-col lg:sticky lg:top-0 lg:h-screen lg:border-r lg:border-[#BF9B53] lg:bg-[#fffdf8]">
-    <div className="flex-1 px-3 py-4 xl:px-4 xl:py-5">
-      <div className="rounded-md border border-[#BF9B53] bg-white p-3 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="h-12 w-12 rounded-md overflow-hidden border-2 border-[#BF9B53] flex items-center justify-center bg-white shadow-sm">
-              {driver?.profileImage?.url ? (
-                <img
-                  src={driver.profileImage.url}
-                  alt={driver?.name || "Driver"}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-[#BF9B53] font-black text-base">
-                  {driver?.name?.[0]?.toUpperCase() || "D"}
-                </span>
-              )}
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-white" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-tabActive/70">
-              Driver Panel
-            </p>
-            <p className="mt-1 truncate text-sm font-black text-systemText">
-              {driver?.name || "Driver"}
-            </p>
-            <div className="mt-1">
-              <StatusBadge status={driver?.driverStatus} />
-            </div>
-          </div>
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <div className="rounded-md bg-white border border-[#BF9B53] p-2.5">
-            <p className="text-[9px] font-black uppercase tracking-wider text-tabActive/70">
-              Trips
-            </p>
-            <p className="mt-1 text-base font-black text-tabActive">
-              {allShipments?.length || 0}
-            </p>
-          </div>
-          <div className="rounded-md bg-white border border-[#BF9B53] p-2.5">
-            <p className="text-[9px] font-black uppercase tracking-wider text-tabActive/70">
-              Status
-            </p>
-            <p className="mt-1 text-xs font-black text-systemText capitalize">
-              {normalizeDriverStatus(driver?.driverStatus) || "n/a"}
-            </p>
-          </div>
-        </div>
+const SidebarTabNav = ({ activeTab, setActiveTab, navigate, onLogout }) => (
+  <aside className="hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-[220px] lg:shrink-0 lg:flex-col lg:overflow-hidden lg:border-r lg:border-[#e6e1d8] lg:bg-white">
+    <div className="flex h-[58px] items-center border-b border-[#e6e1d8] px-6">
+      <img src={logo} alt="HorseShip" className="h-8 w-auto object-contain" />
+    </div>
+    <div className="flex flex-1 flex-col px-3 py-5">
+      <div className="mb-5 flex items-center justify-between px-2">
+        <p className="text-xs font-semibold text-slate-800">Dashboard</p>
+        <span className="text-lg leading-none text-slate-500">‹|</span>
       </div>
-
-      <div className="mt-4 space-y-2">
-        {TABS.map(({ id, label, Icon }) => {
+      <div className="space-y-1">
+        {TABS.map(({ id, label, Icon, path }) => {
           const active = activeTab === id;
+          const subLabel =
+            id === "home"
+              ? "Shipment Overview"
+              : id === "trips"
+              ? "All Shipments"
+              : id === "location"
+              ? "Tracking"
+              : "Account";
           return (
             <button
               key={id}
-              onClick={() => setActiveTab(id)}
-              className={`w-full rounded-md border px-3 py-2.5 text-left transition-all ${
+              onClick={() => (path ? navigate(path) : setActiveTab(id))}
+              className={`w-full border-l-4 px-3 py-3 text-left transition-all ${
                 active
-                  ? "border-[#BF9B53] bg-header text-tabActive shadow-sm"
-                  : "border-[#BF9B53] bg-white text-systemText hover:bg-header"
+                  ? "border-[#c09a4a] bg-[#fbf7ef] text-[#c09a4a]"
+                  : "border-transparent bg-white text-slate-600 hover:bg-[#fbf7ef]"
               }`}
             >
-              <div className="flex items-center gap-2.5">
-                <div
-                  className={`flex h-9 w-9 items-center justify-center rounded-md ${
-                    active
-                      ? "bg-white shadow-sm border border-[#BF9B53]"
-                      : "bg-header border border-[#BF9B53]"
-                  }`}
-                >
-                  <Icon
-                    size={18}
-                    className={active ? "text-tabActive" : "text-tabActive/60"}
-                  />
-                </div>
+              <div className="flex items-center gap-3">
+                <Icon size={15} />
                 <div>
-                  <p className="text-sm font-black leading-none">{label}</p>
-                  <p className="text-[11px] text-tabActive/65">
-                    {id === "home"
-                      ? "Shipment overview"
-                      : id === "location"
-                      ? "Tracking and sync"
-                      : "Driver account"}
+                  <p className="text-xs font-semibold leading-none">{label}</p>
+                  <p className="mt-1 text-[10px] text-slate-400">
+                    {subLabel}
                   </p>
                 </div>
               </div>
@@ -837,18 +1139,71 @@ const SidebarTabNav = ({ activeTab, setActiveTab, driver, allShipments }) => (
           );
         })}
       </div>
+      <div className="mt-auto border-t border-[#eee7d9] pt-4">
+        <button
+          onClick={onLogout}
+          className="flex w-full items-center gap-3 border-l-4 border-transparent px-3 py-3 text-left text-slate-600 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600"
+        >
+          <FiLogOut size={15} />
+          <div>
+            <p className="text-xs font-semibold leading-none">Logout</p>
+            <p className="mt-1 text-[10px] text-slate-400">End Session</p>
+          </div>
+        </button>
+      </div>
     </div>
   </aside>
 );
 
-const InlineTabNav = ({ activeTab, setActiveTab }) => (
+const HeaderProfileMenu = ({ open, onToggle, driver, onProfile, onLogout }) => (
+  <div className="relative">
+    <button
+      type="button"
+      onClick={onToggle}
+      className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#c09a4a] text-xs font-black text-white"
+      title="Driver menu"
+    >
+      {driver?.profileImage?.url ? (
+        <img
+          src={driver.profileImage.url}
+          alt={driver?.name || "Driver"}
+          className="h-full w-full object-contain"
+        />
+      ) : (
+        driver?.name?.[0]?.toUpperCase() || "D"
+      )}
+    </button>
+    {open && (
+      <div className="absolute right-0 top-11 z-50 w-44 border border-[#e6e1d8] bg-white py-2 shadow-[0_16px_35px_rgba(17,24,39,0.12)]">
+        <button
+          type="button"
+          onClick={onProfile}
+          className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-[#fbf7ef]"
+        >
+          <FiUser size={14} />
+          Profile
+        </button>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50"
+        >
+          <FiLogOut size={14} />
+          Logout
+        </button>
+      </div>
+    )}
+  </div>
+);
+
+const InlineTabNav = ({ activeTab, setActiveTab, navigate }) => (
   <div className="hidden md:flex lg:hidden mt-5 gap-2 overflow-x-auto pb-1">
-    {TABS.map(({ id, label, Icon }) => {
+    {TABS.map(({ id, label, Icon, path }) => {
       const active = activeTab === id;
       return (
         <button
           key={id}
-          onClick={() => setActiveTab(id)}
+          onClick={() => (path ? navigate(path) : setActiveTab(id))}
           className={`inline-flex shrink-0 items-center gap-2 rounded-md border px-4 py-2.5 text-sm font-black transition-all ${
             active
               ? "border-[#BF9B53] bg-[#BF9B53] text-white"
@@ -863,19 +1218,19 @@ const InlineTabNav = ({ activeTab, setActiveTab }) => (
   </div>
 );
 
-const BottomTabBar = ({ activeTab, setActiveTab }) => (
+const BottomTabBar = ({ activeTab, setActiveTab, navigate }) => (
   <div className="fixed bottom-0 left-0 w-full bg-[#fffdf9] border-t border-[#BF9B53] z-40 shadow-[0_-8px_24px_rgba(17,24,39,0.08)] md:hidden">
     <div
       className="flex items-center justify-around max-w-3xl mx-auto px-2 py-2"
       style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))" }}
     >
-      {TABS.map(({ id, label, Icon }) => {
+      {TABS.map(({ id, label, Icon, path }) => {
         const active = activeTab === id;
         return (
           <button
             key={id}
-            onClick={() => setActiveTab(id)}
-            className={`flex flex-col items-center gap-0.5 px-6 sm:px-8 py-2 rounded-md transition-all ${
+            onClick={() => (path ? navigate(path) : setActiveTab(id))}
+            className={`flex flex-col items-center gap-0.5 px-3 sm:px-5 py-2 rounded-md transition-all ${
               active
                 ? "bg-header border border-[#BF9B53]"
                 : "hover:bg-light border border-transparent"
@@ -931,7 +1286,7 @@ const TripActionPanel = ({
     <div
       className={
         isDesktop
-          ? "hidden xl:block xl:sticky xl:top-6"
+          ? "hidden xl:block xl:sticky xl:top-[166px]"
           : isTabletInline
           ? "block"
           : "fixed bottom-[70px] left-0 w-full z-40  md:hidden"
@@ -943,14 +1298,14 @@ const TripActionPanel = ({
         }`}
       >
         {(isDesktop || isTabletInline) && (
-          <div className="mb-3 rounded-md bg-header border border-[#BF9B53] p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-tabActive/70">
+          <div className="mb-3 border border-[#eee7d9] bg-white p-8 text-center">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
               Trip Actions
             </p>
-            <p className="mt-1 text-sm font-black text-systemText">
+            <p className="mt-4 text-sm font-black text-slate-900">
               {shipmentTitle}
             </p>
-            <p className="mt-2 text-xs text-tabActive/75">
+            <p className="mx-auto mt-2 max-w-[220px] text-xs leading-relaxed text-slate-500">
               {showStartTripButton
                 ? "Start the assigned trip when your current location is ready."
                 : "Finish this shipment after you reach the delivery point."}
@@ -961,7 +1316,7 @@ const TripActionPanel = ({
           <button
             onClick={() => onStartTrip(currentShipment?._id)}
             disabled={isStartingTrip || locationPermission !== "granted"}
-            className={`w-full flex items-center justify-center gap-2 py-3.5 bg-[#BF9B53] border border-[#BF9B53] text-white font-black text-sm rounded-md shadow-sm shadow-[#BF9B53]/20 hover:brightness-105 active:scale-95 transition-all disabled:opacity-40 ${
+            className={`w-full flex items-center justify-center gap-2 py-3 bg-[#c09a4a] text-white font-black text-xs shadow-sm shadow-[#BF9B53]/20 hover:bg-[#aa8439] active:scale-95 transition-all disabled:opacity-40 ${
               showCompleteShipmentButton ? "mb-2.5" : ""
             }`}
           >
@@ -982,7 +1337,7 @@ const TripActionPanel = ({
         {showCompleteShipmentButton && (
           <button
             onClick={() => navigate(`/driver/delivery/${deliveryShipmentId}`)}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-[#BF9B53]  text-white font-black text-sm rounded- shadow-sm shadow-[#BF9B53]/20 hover:brightness-105 active:scale-95 transition-all"
+            className="w-full flex items-center justify-center gap-2 py-3 bg-[#c09a4a] text-white font-black text-xs shadow-sm shadow-[#BF9B53]/20 hover:bg-[#aa8439] active:scale-95 transition-all"
           >
             <FiCheckCircle size={16} />
             Complete Shipment
@@ -1006,6 +1361,7 @@ const DriverDashboard = () => {
     checkLocationPermission,
     locationPermission,
     startTrip,
+    token,
   } = useDriverAuth();
 
   const [activeTab, setActiveTab] = useState("home");
@@ -1014,7 +1370,16 @@ const DriverDashboard = () => {
   const [mapModalOpen, setMapModalOpen] = useState(false);
   const [driverLocation, setDriverLocation] = useState(null);
   const [isStartingTrip, setIsStartingTrip] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     fetchDriver();
@@ -1155,6 +1520,15 @@ const DriverDashboard = () => {
             />
           </div>
         );
+      case "trips":
+        return (
+          <TripsTab
+            allShipments={allShipments || []}
+            loading={contextLoading}
+            formatDate={formatDate}
+            navigate={navigate}
+          />
+        );
       case "profile":
         return (
           <ProfileTab
@@ -1162,6 +1536,14 @@ const DriverDashboard = () => {
             allShipments={allShipments || []}
             setConfirmLogout={setConfirmLogout}
             navigate={navigate}
+            loading={contextLoading}
+          />
+        );
+      case "chat":
+        return (
+          <DriverChatTab
+            token={token}
+            driver={driver}
             loading={contextLoading}
           />
         );
@@ -1173,7 +1555,7 @@ const DriverDashboard = () => {
   return (
     <>
       <style>{`@keyframes shimmer { to { transform: translateX(200%); } }`}</style>
-      <div className="w-full min-h-screen font-montserrat bg-system-background md:bg-gradient-to-br md:from-[#fbf7ef] md:via-[#fffdf8] md:to-[#f1f8f2]">
+      <div className="w-full min-h-screen font-montserrat bg-[#f6f3ee]">
         <header className="fixed top-0 left-0 w-full bg-header border-b border-[#BF9B53] z-50 shadow-sm md:hidden">
           <div
             className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3"
@@ -1184,13 +1566,13 @@ const DriverDashboard = () => {
           >
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-11 h-11 rounded-md overflow-hidden border-2 border-[#BF9B53] flex items-center justify-center bg-white">
-                  {driver?.profileImage?.url ? (
-                    <img
-                      src={driver.profileImage.url}
-                      alt={driver.name}
-                      className="w-full h-full object-cover"
-                    />
+	                <div className="w-11 h-11 rounded-md overflow-hidden border-2 border-[#BF9B53] flex items-center justify-center bg-white">
+	                  {driver?.profileImage?.url ? (
+	                    <img
+	                      src={driver.profileImage.url}
+	                      alt={driver.name}
+	                      className="w-full h-full object-contain"
+	                    />
                   ) : (
                     <span className="text-[#BF9B53] font-black text-base">
                       {driver?.name?.[0]?.toUpperCase() || "D"}
@@ -1219,57 +1601,92 @@ const DriverDashboard = () => {
         </header>
 
         <div className="h-16 md:hidden" />
-        <div className="mx-auto flex min-h-screen w-full max-w-[1600px] lg:gap-6 xl:gap-8">
+        <div className="flex min-h-screen w-full">
           <SidebarTabNav
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            driver={driver}
-            allShipments={allShipments}
+            navigate={navigate}
+            onLogout={() => setConfirmLogout(true)}
           />
 
-          <main className="min-w-0 flex-1 md:px-5 md:py-4 lg:px-6 xl:px-8">
+          <main className="min-w-0 flex-1">
             <div className="hidden md:block">
-              <div className="rounded-md border border-[#BF9B53] bg-white p-4 shadow-[0_12px_28px_rgba(17,24,39,0.05)]">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-[0.2em] text-tabActive/60">
-                      Driver Dashboard
-                    </p>
-                    <h1 className="mt-1 text-xl font-black text-systemText lg:text-2xl">
-                      {activeTab === "home"
-                        ? "Trip overview"
-                        : activeTab === "location"
-                        ? "Live location"
-                        : "Profile and history"}
-                    </h1>
-                    <p className="mt-1 text-sm text-tabActive/75">
-                      {activeTab === "home"
-                        ? "Current shipment and trip actions."
-                        : activeTab === "location"
-                        ? "Sync and manage live location."
-                        : "Driver account summary."}
-                    </p>
-                  </div>
-                  {(allShipments?.length || 0) > 0 && (
-                    <button
-                      onClick={() => navigate("/driver/shipments")}
-                      className="flex shrink-0 items-center gap-2 rounded-md border border-[#BF9B53] bg-[#BF9B53] px-4 py-2 text-sm font-black text-white shadow-sm transition-all hover:brightness-110 active:scale-95"
-                    >
-                      <FiList size={16} />
-                      View All Trips
-                    </button>
-                  )}
+              <div className="fixed left-0 right-0 top-0 z-40 flex h-[58px] items-center justify-between border-b border-[#e6e1d8] bg-white px-8 lg:left-[220px]">
+                <div className="lg:hidden">
+                  <img src={logo} alt="HorseShip" className="h-8 w-auto" />
                 </div>
-
-                <InlineTabNav
-                  activeTab={activeTab}
-                  setActiveTab={setActiveTab}
-                />
+                <div className="ml-auto flex items-center gap-5">
+                 
+                  <span className="rounded-full border border-emerald-400 bg-emerald-50 px-4 py-1.5 text-xs font-semibold text-emerald-700">
+                    Test Driver
+                  </span>
+                  <HeaderProfileMenu
+                    open={profileMenuOpen}
+                    onToggle={() => setProfileMenuOpen((open) => !open)}
+                    driver={driver}
+                    onProfile={() => {
+                      setActiveTab("profile");
+                      setProfileMenuOpen(false);
+                    }}
+                    onLogout={() => {
+                      setProfileMenuOpen(false);
+                      setConfirmLogout(true);
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="pt-4 md:pt-4 xl:grid xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-5 2xl:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="px-0 pt-4 md:px-8 md:pt-[106px] xl:grid xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-5 2xl:grid-cols-[minmax(0,1fr)_340px]">
               <div className="min-w-0">
+                <div className="hidden md:mb-8 md:block">
+                  <div className="flex items-center gap-8">
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-600">
+                        Driver Dashboard
+                      </p>
+                      <h1 className="mt-3 text-3xl font-black leading-none text-slate-900">
+	                        {activeTab === "home"
+	                          ? "Trip Overview"
+	                          : activeTab === "trips"
+	                          ? "All Trips"
+	                          : activeTab === "location"
+	                          ? "Live Location"
+	                          : activeTab === "chat"
+                          ? "Driver Chat"
+                          : "Profile"}
+                      </h1>
+                      <p className="mt-3 text-[11px] font-black uppercase tracking-[0.35em] text-[#b98f38]">
+	                        {activeTab === "home"
+	                          ? "Current shipment and trip actions."
+	                          : activeTab === "trips"
+	                          ? "Assigned shipments and delivery status."
+	                          : activeTab === "location"
+	                          ? "Tracking and location sync."
+	                          : activeTab === "chat"
+                          ? "Message shippers for assigned trips."
+                          : "Driver account and history."}
+                      </p>
+                    </div>
+                    <div className="hidden h-px flex-1 bg-[#c09a4a] lg:block">
+                      <span className="ml-[45%] -mt-1 block h-2 w-2 rounded-full bg-[#c09a4a]" />
+                    </div>
+                    {(allShipments?.length || 0) > 0 && activeTab === "home" && (
+                      <button
+                        onClick={() => setActiveTab("trips")}
+                        className="ml-auto inline-flex items-center gap-2 bg-[#c09a4a] px-5 py-3 text-xs font-black text-white transition hover:bg-[#aa8439]"
+                      >
+                        <FiList size={15} />
+                        View All Trips
+                      </button>
+                    )}
+                  </div>
+                  <InlineTabNav
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    navigate={navigate}
+                  />
+                </div>
                 {renderTab()}
                 {activeTab === "home" && (
                   <div className="hidden md:block xl:hidden px-4 pb-6 md:px-0">
@@ -1344,7 +1761,11 @@ const DriverDashboard = () => {
             navigate={navigate}
           />
         )}
-        <BottomTabBar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <BottomTabBar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          navigate={navigate}
+        />
 
         {mapModalOpen && currentShipment && (
           <RouteMapModal

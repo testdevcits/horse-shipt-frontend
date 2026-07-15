@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import { useDriverAuth } from "../../contexts/DriverAuthContext";
 import Button from "../../components/common/Button";
 import loginBg from "../../assets/images/authPage.jpg"; // background image
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 const DriverLoginPage = () => {
   const { login, loading } = useDriverAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
@@ -55,14 +57,25 @@ const DriverLoginPage = () => {
 
           <div>
             <label className="block text-sm font-medium mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
-              placeholder="Enter your password"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border rounded focus:outline-none focus:ring focus:border-blue-300"
+                placeholder="Enter your password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+              </button>
+            </div>
           </div>
 
           <Button
@@ -76,6 +89,12 @@ const DriverLoginPage = () => {
         </form>{" "}
         {/* Back to Home Link */}
         <div className="mt-4 w-full text-end">
+          <Link
+            to="/driver/forgot-password?role=driver"
+            className="text-blue-600 hover:underline text-sm font-medium mr-4"
+          >
+            Forgot Password?
+          </Link>
           <Link
             to="/"
             className="text-blue-600 hover:underline text-sm font-medium"

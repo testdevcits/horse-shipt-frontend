@@ -275,6 +275,12 @@ const LoginPage = () => {
 
                   <div className="mt-2 w-full text-end">
                     <Link
+                      to="/forgot-password"
+                      className="text-[#BF9B53] cursor-pointer hover:text-black mr-4"
+                    >
+                      Forgot Password?
+                    </Link>
+                    <Link
                       to="/"
                       className="text-[#BF9B53] cursor-pointer hover:text-black"
                     >
