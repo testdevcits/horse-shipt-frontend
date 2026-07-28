@@ -13,6 +13,27 @@ import { FiArrowLeft, FiEye, FiEyeOff, FiRefreshCw } from "react-icons/fi";
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
+const blockedEmailDomains = new Set([
+  "yopmail.com",
+  "yopmail.fr",
+  "yopmail.net",
+  "tempmail.com",
+  "temp-mail.org",
+  "10minutemail.com",
+  "mailinator.com",
+  "guerrillamail.com",
+  "throwawaymail.com",
+  "trashmail.com",
+  "dispostable.com",
+  "maildrop.cc",
+  "getnada.com",
+]);
+
+const isBlockedEmail = (email = "") => {
+  const domain = email.trim().toLowerCase().split("@").pop();
+  return blockedEmailDomains.has(domain);
+};
+
 const SignupPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,7 +61,14 @@ const SignupPage = () => {
 
   const validationSchema = Yup.object({
     name: Yup.string().required("Name is required"),
-    email: Yup.string().email("Invalid email").required("Email is required"),
+    email: Yup.string()
+      .email("Invalid email")
+      .required("Email is required")
+      .test(
+        "not-disposable-email",
+        "Temporary or disposable email addresses are not allowed",
+        (value) => !value || !isBlockedEmail(value)
+      ),
     password: Yup.string()
       .min(8, "Minimum 8 characters")
       .matches(/[A-Z]/, "Must contain an uppercase letter")
