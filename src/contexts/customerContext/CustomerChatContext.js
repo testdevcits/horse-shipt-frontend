@@ -10,7 +10,6 @@ export const CustomerChatProvider = ({ children }) => {
   const [shippers, setShippers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch ONLY when called manually
   const fetchShippers = useCallback(async () => {
     if (!token) return;
 
