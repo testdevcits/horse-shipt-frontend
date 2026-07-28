@@ -20,6 +20,7 @@ import logo from "../assets/images/HorseShipt 1.svg";
 import logo1 from "../assets/images/profileImage.png";
 import defaultProfileImage from "../assets/images/profileImage.png";
 import { useNotificationActivity } from "../contexts/NotificationActivityContext";
+import LegalFooter from "../components/common/LegalFooter";
 
 const ShipperLayout = () => {
   const navigate = useNavigate();
@@ -53,6 +54,7 @@ const ShipperLayout = () => {
     ["active", "trialing", "past_due"].includes(subscription?.status);
 
   const showStripeBanner = isSubscribed && needsOnboarding;
+  const sidebarOffset = isDesktop ? (sidebarOpen ? 256 : 64) : 0;
 
   const profileImage =
     profile?.profileImage ||
@@ -299,14 +301,15 @@ const ShipperLayout = () => {
 
         {/* MAIN CONTENT */}
         <main
-          className="flex-1 overflow-auto transition-all duration-300 bg-[#FBF9F4]"
+          className="flex flex-1 flex-col overflow-auto transition-all duration-300 bg-[#FBF9F4]"
           style={{
-            marginLeft: isDesktop ? (sidebarOpen ? "256px" : "64px") : "0",
+            marginLeft: sidebarOffset,
           }}
         >
-          <div className="p-4 sm:p-6 lg:p-8 ">
+          <div className="flex-1 p-4 pb-20 sm:p-6 sm:pb-20 lg:p-8 lg:pb-20 ">
             <Outlet />
           </div>
+          <LegalFooter leftOffset={sidebarOffset} />
         </main>
       </div>
 

@@ -12,6 +12,7 @@ import StatusBadge from "../components/common/StatusBadge";
 import { IoShareSocial } from "react-icons/io5";
 import { BiChevronDown, BiChevronRight } from "react-icons/bi";
 import { useNotificationActivity } from "../contexts/NotificationActivityContext";
+import LegalFooter from "../components/common/LegalFooter";
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const CustomerLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const sidebarOffset = isDesktop ? (sidebarOpen ? 256 : 80) : 0;
   const popupRef = useRef(null)
   const displayedProfileImage =
     (typeof profileImage === "string" ? profileImage : profileImage?.url) ||
@@ -222,10 +224,13 @@ const CustomerLayout = () => {
         />
 
         <main
-          className=" bg-[#F7F5F1] flex-1 p-4 sm:p-6 md:p-8 overflow-auto transition-all duration-300"
-          style={{ marginLeft: isDesktop ? (sidebarOpen ? 256 : 80) : 0 }}
+          className="flex flex-1 flex-col overflow-auto bg-[#F7F5F1] pb-16 transition-all duration-300"
+          style={{ marginLeft: sidebarOffset }}
         >
-          <Outlet />
+          <div className="flex-1 p-4 sm:p-6 md:p-8">
+            <Outlet />
+          </div>
+          <LegalFooter leftOffset={sidebarOffset} />
         </main>
       </div>
     </div>
