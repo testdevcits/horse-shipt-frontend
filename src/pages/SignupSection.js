@@ -1,5 +1,8 @@
 import React from "react";
 
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+
 // ── Responsive hook ────────────────────────────────────────────────────────────
 const useIsWide = (breakpoint = 860) => {
   const [wide, setWide] = React.useState(
@@ -16,12 +19,42 @@ const useIsWide = (breakpoint = 860) => {
 // ── Main Component ─────────────────────────────────────────────────────────────
 const SignupSection = () => {
   const isWide = useIsWide(860);
+  const [stats, setStats] = React.useState(null);
 
   const checklistItems = [
     "Access to all features",
     "30-day free trial",
     "Personalized onboarding",
   ];
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    const fetchPlatformStats = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/platform-stats`);
+        const data = await response.json();
+
+        if (mounted && data.success) {
+          setStats(data.data);
+        }
+      } catch (error) {
+        if (mounted) setStats(null);
+      }
+    };
+
+    fetchPlatformStats();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const totalUsers = Number(stats?.users) || 0;
+  const userCountLabel =
+    totalUsers > 0
+      ? `${totalUsers.toLocaleString()} users nationwide`
+      : "Growing user network nationwide";
 
   return (
     <>
@@ -94,7 +127,13 @@ const SignupSection = () => {
               <p className="text-[11px] uppercase tracking-widest text-white/60 mb-1">
                 Trusted by
               </p>
-              <p className="text-lg font-semibold">2,400+ users nationwide</p>
+              <p className="text-lg font-semibold">{userCountLabel}</p>
+              {stats && (
+                <p className="mt-1 text-xs text-white/70">
+                  {Number(stats.customers || 0).toLocaleString()} customers and{" "}
+                  {Number(stats.shippers || 0).toLocaleString()} shippers
+                </p>
+              )}
             </div>
           </div>
         </div>

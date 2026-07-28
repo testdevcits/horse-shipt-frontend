@@ -138,7 +138,9 @@ const AppRoutes = () => {
               </RedirectIfAuth>
             }
           />{" "}
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/privacy-policy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route path="/terms-conditions" element={<TermsPage />} />
           <Route path="/invite/:token" element={<InviteShipmentPage />} />
           <Route path="/verify" element={<NewsletterVerificationPage />} />

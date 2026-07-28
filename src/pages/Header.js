@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { CgMenu, CgClose } from "react-icons/cg";
 import logo from "../assets/images/logo.png";
 
 const Header = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -15,6 +17,27 @@ const Header = () => {
       setVisible(true);
       setTimeout(() => setMenuOpen(true), 10);
     }
+  };
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setTimeout(() => setVisible(false), 300);
+  };
+
+  const goToHomeSection = (sectionId) => {
+    closeMenu();
+
+    if (location.pathname === "/") {
+      window.requestAnimationFrame(() => {
+        document.getElementById(sectionId)?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+      return;
+    }
+
+    navigate(`/#${sectionId}`);
   };
 
   return (
@@ -33,11 +56,7 @@ const Header = () => {
           {/* Desktop Nav */}
           <nav className="hidden md:flex space-x-6">
             <button
-              onClick={() => {
-                document.getElementById("solutions")?.scrollIntoView({
-                  behavior: "smooth",
-                });
-              }}
+              onClick={() => goToHomeSection("solutions")}
               className="text-dark font-medium hover:text-gray-600"
             >
               Solutions
@@ -57,11 +76,7 @@ const Header = () => {
             </NavLink> */}
 
               <button
-              onClick={() => {
-                document.getElementById("features")?.scrollIntoView({
-                  behavior: "smooth",
-                });
-              }}
+              onClick={() => goToHomeSection("features")}
               className="text-dark font-medium hover:text-gray-600"
             >
             Features
@@ -125,21 +140,21 @@ const Header = () => {
           }`}
         >
           <nav className="flex flex-col px-4 py-3 space-y-3">
-            <NavLink
-              to="/solutions"
-              onClick={toggleMenu}
+            <button
+              type="button"
+              onClick={() => goToHomeSection("solutions")}
               className="py-2 text-dark"
             >
               Solutions
-            </NavLink>
+            </button>
 
-            <NavLink
-              to="/features"
-              onClick={toggleMenu}
+            <button
+              type="button"
+              onClick={() => goToHomeSection("features")}
               className="py-2 text-dark"
             >
               Features
-            </NavLink>
+            </button>
 
             <NavLink
               to="/privacy-policy"

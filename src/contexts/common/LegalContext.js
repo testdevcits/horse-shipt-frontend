@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 const API_BASE_URL = "https://horse-shipt.vercel.app";
 
@@ -10,7 +16,7 @@ export const LegalProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
  
-  const fetchPrivacyPolicies = async () => {
+  const fetchPrivacyPolicies = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -34,12 +40,12 @@ export const LegalProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // =========================
   // GET TERMS & CONDITIONS (ACTIVE)
   // =========================
-  const fetchTermsConditions = async () => {
+  const fetchTermsConditions = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -63,7 +69,7 @@ export const LegalProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // =========================
   // INITIAL LOAD
@@ -71,7 +77,7 @@ export const LegalProvider = ({ children }) => {
   useEffect(() => {
     fetchPrivacyPolicies();
     fetchTermsConditions();
-  }, []);
+  }, [fetchPrivacyPolicies, fetchTermsConditions]);
 
   return (
     <LegalContext.Provider
@@ -79,6 +85,8 @@ export const LegalProvider = ({ children }) => {
         privacyPolicies,
         termsConditions,
         loading,
+        refreshPrivacyPolicies: fetchPrivacyPolicies,
+        refreshTermsConditions: fetchTermsConditions,
         refreshLegal: () => {
           fetchPrivacyPolicies();
           fetchTermsConditions();

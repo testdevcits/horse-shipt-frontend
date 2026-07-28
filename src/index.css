@@ -20,6 +20,11 @@ body,
   scroll-behavior: smooth;
 }
 
+#solutions,
+#features {
+  scroll-margin-top: 84px;
+}
+
 body {
   @apply bg-gray-50 text-gray-900;
   font-family: 'Inter', sans-serif;
@@ -37,6 +42,77 @@ body::-webkit-scrollbar-thumb {
 
 body::-webkit-scrollbar-track {
   background-color: #f0f0f0; /* optional track color */
+}
+
+/* Legal policy and terms document rendering */
+.legal-document-content {
+  color: #334155;
+  font-size: 0.95rem;
+  line-height: 1.8;
+}
+
+.legal-document-content h1 {
+  color: #0f172a;
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.legal-document-content h2 {
+  border-top: 1px solid #e2e8f0;
+  color: #0f172a;
+  font-size: 1.15rem;
+  font-weight: 750;
+  line-height: 1.35;
+  margin-top: 2rem;
+  padding-top: 1.4rem;
+}
+
+.legal-document-content h2:first-child,
+.legal-document-content h1 + h2 {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.legal-document-content h3 {
+  color: #1e293b;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.45;
+  margin-top: 1.35rem;
+}
+
+.legal-document-content p {
+  margin-top: 0.8rem;
+}
+
+.legal-document-content strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.legal-document-content ul,
+.legal-document-content ol {
+  margin-top: 0.85rem;
+  padding-left: 1.25rem;
+}
+
+.legal-document-content li {
+  margin-top: 0.45rem;
+  padding-left: 0.25rem;
+}
+
+.legal-document-content li::marker {
+  color: #BF9B53;
+}
+
+.legal-document-content a {
+  color: #9d7d42;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* Example Tailwind classes */

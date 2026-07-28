@@ -304,39 +304,18 @@ const Footer = () => {
           </h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             <Link
-              to="/privacy"
+              to="/privacy-policy"
               onClick={scrollToTop}
               className="text-gray-400 hover:text-[#BF9B53] transition-colors text-sm"
             >
               Privacy Policy
             </Link>
             <Link
-              to="/terms"
+              to="/terms-conditions"
               onClick={scrollToTop}
               className="text-gray-400 hover:text-[#BF9B53] transition-colors text-sm"
             >
-              Terms of Service
-            </Link>
-            <Link
-              to="/cookies"
-              onClick={scrollToTop}
-              className="text-gray-400 hover:text-[#BF9B53] transition-colors text-sm"
-            >
-              Cookie Policy
-            </Link>
-            <Link
-              to="/disclaimer"
-              onClick={scrollToTop}
-              className="text-gray-400 hover:text-[#BF9B53] transition-colors text-sm"
-            >
-              Disclaimer
-            </Link>
-            <Link
-              to="/accessibility"
-              onClick={scrollToTop}
-              className="text-gray-400 hover:text-[#BF9B53] transition-colors text-sm"
-            >
-              Accessibility
+              Terms & Conditions
             </Link>
           </div>
         </div>
