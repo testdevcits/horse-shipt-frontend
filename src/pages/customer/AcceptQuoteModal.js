@@ -22,6 +22,7 @@ import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 
 // Stripe
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { API_BASE_URL } from "../../config/api";
 
 const AcceptQuoteModal = ({ quote, onClose }) => {
   const { acceptQuote, rejectQuote, cancelQuote } = useCustomerQuote();
@@ -88,7 +89,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         }
 
         const res = await fetch(
-          `https://horse-shipt.vercel.app/api/customer/quotes/${quote._id}/pay`,
+          `${API_BASE_URL}/customer/quotes/${quote._id}/pay`,
           {
             method: "POST",
             headers: {

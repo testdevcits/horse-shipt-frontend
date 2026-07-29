@@ -4,9 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import loginBg from "../../assets/images/authPage.jpg";
 import loginLogo from "../../assets/images/HorseShipt_White.svg";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+import { API_BASE_URL } from "../../config/api";
 
 const roleLabels = {
   shipper: "Shipper",

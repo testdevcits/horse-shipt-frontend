@@ -20,8 +20,7 @@ import { MdClose } from "react-icons/md";
 import { IoArrowBack } from "react-icons/io5";
 import PageLoader from "../../components/common/PageLoader";
 import Toast from "../../components/common/Toast";
-
-const API_BASE_URL = "https://horse-shipt.vercel.app/api";
+import { API_BASE_URL } from "../../config/api";
 
 const hasAssignedVehicle = (quote) => {
   if (!quote?.vehicle) return false;

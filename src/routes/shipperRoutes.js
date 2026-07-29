@@ -1,6 +1,5 @@
 import axios from "axios";
-
-const BASE_URL = "https://horse-shipt.vercel.app/api/shipper";
+import { SHIPPER_API_BASE_URL as BASE_URL } from "../config/api";
 
 export const getShipperDashboard = async (token) => {
   const res = await axios.get(`${BASE_URL}/dashboard`, {

@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
+import { API_BASE_URL } from "../config/api";
 
 const urlBase64ToUint8Array = (base64String) => {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -19,9 +20,6 @@ const urlBase64ToUint8Array = (base64String) => {
    Context Setup
 ================================ */
 const CustomerNotificationContext = createContext();
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_PUBLIC_KEY;
 

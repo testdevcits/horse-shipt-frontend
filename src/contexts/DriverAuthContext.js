@@ -8,11 +8,9 @@ import React, {
 } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
 const DriverAuthContext = createContext();
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 export const DriverAuthProvider = ({ children }) => {
   const navigate = useNavigate();

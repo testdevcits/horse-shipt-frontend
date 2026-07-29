@@ -10,9 +10,7 @@ import defaultProfileImage from "../../assets/images/profileImage.png";
 import axios from "axios";
 import Toast from "../../components/common/Toast";
 import { useSocketStatus } from "../../contexts/SocketStatusContext";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+import { API_BASE_URL } from "../../config/api";
 
 const CustomerChatOverview = () => {
   const { shippers, loading, fetchShippers } = useCustomerChat();

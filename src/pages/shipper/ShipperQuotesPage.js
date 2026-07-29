@@ -19,8 +19,7 @@ import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "react-toastify";
 import { LuBoxes } from "react-icons/lu";
-
-const API_BASE_URL = "https://horse-shipt.vercel.app/api";
+import { API_BASE_URL } from "../../config/api";
 
 const hasAssignedVehicle = (quote) => {
   if (!quote?.vehicle) return false;

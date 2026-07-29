@@ -5,8 +5,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-
-const API_BASE_URL = "https://horse-shipt.vercel.app";
+import { BACKEND_BASE_URL as API_BASE_URL } from "../../config/api";
 
 const LegalContext = createContext();
 

@@ -7,12 +7,10 @@ import React, {
 } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
+import { API_BASE_URL } from "../../config/api";
 
 // ---------------- Context Setup ----------------
 const CustomerShipmentContext = createContext();
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 // ---------------- Provider ----------------
 export const CustomerShipmentProvider = ({ children }) => {

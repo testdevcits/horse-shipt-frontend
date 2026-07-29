@@ -1,4 +1,5 @@
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 export const subscribeUser = async (token) => {
   if (!("serviceWorker" in navigator)) return;
@@ -13,7 +14,7 @@ export const subscribeUser = async (token) => {
 
   // Send subscription to backend
   await axios.post(
-    `${process.env.REACT_APP_API_BASE_URL}/customer/notifications/subscribe`,
+    `${API_BASE_URL}/customer/notifications/subscribe`,
     { subscription },
     { headers: { Authorization: `Bearer ${token}` } }
   );

@@ -28,9 +28,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "../../assets/images/logo.png";
 import fallbackHorseImage from "../../assets/images/horse1.jpg";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+import { API_BASE_URL } from "../../config/api";
 
 /* ─── SHIMMER ─── */
 const Shimmer = ({ className = "" }) => (

@@ -1,10 +1,9 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
+import { API_BASE_URL } from "../../config/api";
 
 const CustomerQuestionContext = createContext();
-const API_BASE_URL = "https://horse-shipt.vercel.app/api";
-
 export const CustomerQuestionProvider = ({ children }) => {
   const { token } = useAuth();
 

@@ -7,10 +7,9 @@ import {
 } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
+import { API_BASE_URL } from "../../config/api";
 
 const ProfileContext = createContext();
-const API_BASE_URL = "https://horse-shipt.vercel.app/api";
-
 export const ProfileProvider = ({ children }) => {
   const { token } = useAuth();
 

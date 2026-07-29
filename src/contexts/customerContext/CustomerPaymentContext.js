@@ -7,9 +7,7 @@ import React, {
 } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+import { API_BASE_URL } from "../../config/api";
 
 const CustomerPaymentContext = createContext();
 

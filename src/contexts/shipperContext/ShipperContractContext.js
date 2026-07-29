@@ -8,9 +8,9 @@ import React, {
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 import Toast from "../../components/common/Toast";
+import { API_BASE_URL } from "../../config/api";
 
 const ShipperContractContext = createContext();
-const API_BASE_URL = "https://horse-shipt.vercel.app/api";
 
 export const ShipperContractProvider = ({ children }) => {
   const { token } = useAuth();

@@ -8,10 +8,9 @@ import {
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 import { socket } from "../../services/socket";
+import { API_BASE_URL } from "../../config/api";
 
 const ShipperInvitationContext = createContext();
-const API_BASE_URL = "https://horse-shipt.vercel.app/api";
-
 export const ShipperInvitationProvider = ({ children }) => {
   const { token, user, isShipper } = useAuth();
 

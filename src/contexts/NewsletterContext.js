@@ -1,10 +1,9 @@
 // context/NewsletterContext.js
 import React, { createContext, useContext, useReducer } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 // ------------------- Base URL -------------------
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 
 // ------------------- Initial State -------------------
 const initialState = {

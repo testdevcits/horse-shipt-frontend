@@ -1,22 +1,12 @@
 import { io } from "socket.io-client";
+import { BACKEND_BASE_URL } from "../config/api";
 
 const getSocketUrl = () => {
   if (process.env.REACT_APP_SOCKET_URL) {
     return process.env.REACT_APP_SOCKET_URL.replace(/\/+$/, "");
   }
 
-  if (process.env.REACT_APP_API_BASE_URL) {
-    return process.env.REACT_APP_API_BASE_URL.replace(/\/api\/?$/, "");
-  }
-
-  if (typeof window !== "undefined") {
-    const { protocol, hostname } = window.location;
-    if (hostname === "52.14.251.189" || hostname === "localhost") {
-      return `${protocol}//${hostname}:5000`;
-    }
-  }
-
-  return "http://52.14.251.189:5000";
+  return BACKEND_BASE_URL;
 };
 
 const SOCKET_URL = getSocketUrl();

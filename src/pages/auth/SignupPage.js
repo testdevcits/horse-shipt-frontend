@@ -9,9 +9,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../../contexts/AuthContext";
 import loginLogo from "../../assets/images/HorseShipt_White.svg";
 import { FiArrowLeft, FiEye, FiEyeOff, FiRefreshCw } from "react-icons/fi";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+import { API_BASE_URL } from "../../config/api";
 
 const blockedEmailDomains = new Set([
   "yopmail.com",

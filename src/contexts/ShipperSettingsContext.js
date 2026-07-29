@@ -10,16 +10,13 @@ import React, {
 } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
+import { SHIPPER_API_BASE_URL as API_BASE_URL } from "../config/api";
 import Toast from "../components/common/Toast"; // ✅ correct usage
 
 // ---------------------------------------------
 // Context setup
 // ---------------------------------------------
 const ShipperSettingsContext = createContext();
-const API_BASE_URL = `${
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api"
-}/shipper`;
-
 // ---------------------------------------------
 // Provider Component
 // ---------------------------------------------

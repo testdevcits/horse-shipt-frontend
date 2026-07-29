@@ -4,6 +4,7 @@ import axios from "axios";
 import { useAuth } from "../../contexts/AuthContext";
 import Toast from "../../components/common/Toast";
 import PageLoader from "../../components/common/PageLoader";
+import { API_BASE_URL } from "../../config/api";
 
 const MyUpcomingShipments = () => {
   const { token } = useAuth();
@@ -16,7 +17,7 @@ const MyUpcomingShipments = () => {
     const fetchShipments = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}/customer/shipments`,
+          `${API_BASE_URL}/customer/shipments`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

@@ -4,6 +4,7 @@ import axios from "axios";
 import { GoogleMap, Marker, DirectionsRenderer } from "@react-google-maps/api";
 import CryptoJS from "crypto-js";
 import { LuMapPin, LuCalendar, LuChevronRight } from "react-icons/lu";
+import { API_BASE_URL } from "../config/api";
 
 /**
  * ============================================================
@@ -116,9 +117,7 @@ const InviteShipmentPage = () => {
       try {
         // Validate token on server
         const res = await axios.get(
-          `${
-            process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api"
-          }/customer/shipment/invite/${token}`,
+          `${API_BASE_URL}/customer/shipment/invite/${token}`,
           {
             timeout: 10000, // 10 second timeout
           }

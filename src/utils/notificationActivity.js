@@ -1,7 +1,6 @@
+import { API_BASE_URL } from "../config/api";
 const MAX_NOTIFICATIONS = 50;
 const DEFAULT_CACHE_MS = 12000;
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
 const activityCache = new Map();
 const pendingRequests = new Map();
 

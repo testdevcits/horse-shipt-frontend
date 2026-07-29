@@ -11,11 +11,8 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
+import { API_BASE_URL } from "../config/api";
 import { useNewsletter } from "../contexts/NewsletterContext"; // <-- NEW
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL ||
-  "https://horse-shipt.vercel.app/api";
 
 const SOCIAL_PLATFORMS = [
   { key: "facebook", label: "Facebook", icon: FaFacebook },

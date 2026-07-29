@@ -1,10 +1,9 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
+import { CUSTOMER_API_BASE_URL as API_BASE_URL } from "../../config/api";
 
 const ReviewContext = createContext();
-const API_BASE_URL = "https://horse-shipt.vercel.app/api/customer";
-
 export const ReviewProvider = ({ children }) => {
   const { token } = useAuth();
 

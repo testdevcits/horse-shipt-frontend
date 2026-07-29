@@ -9,10 +9,9 @@ import axios from "axios";
 import { useAuth } from "../AuthContext";
 import Toast from "../../components/common/Toast";
 import { socket } from "../../services/socket";
+import { API_BASE_URL } from "../../config/api";
 
 const ShipperQuoteContext = createContext();
-const API_BASE_URL = "https://horse-shipt.vercel.app/api";
-
 const mergeQuote = (current = {}, incoming = {}) => {
   if (!incoming?._id) return current;
 

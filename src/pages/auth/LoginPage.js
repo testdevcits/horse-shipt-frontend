@@ -9,9 +9,7 @@ import loginBg from "../../assets/images/authPage.jpg";
 import { FcGoogle } from "react-icons/fc";
 import loginLogo from "../../assets/images/HorseShipt_White.svg";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+import { API_BASE_URL } from "../../config/api";
 
 const LoginPage = () => {
   const { login, oauthLogin } = useAuth();

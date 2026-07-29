@@ -3,8 +3,7 @@ import axios from "axios";
 import { FaStar, FaUser } from "react-icons/fa";
 import { HiChevronUp, HiChevronDown } from "react-icons/hi";
 import { useAuth } from "../../contexts/AuthContext";
-
-const API_BASE_URL = "https://horse-shipt.vercel.app/api";
+import { API_BASE_URL } from "../../config/api";
 
 const getShipperImage = (shipper) =>
   shipper?.profileImage?.url || shipper?.profileImage || shipper?.profilePicture || "";

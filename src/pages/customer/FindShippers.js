@@ -7,8 +7,7 @@ import { useCustomerMatching } from "../../contexts/customerContext/CustomerMatc
 import { useAuth } from "../../contexts/AuthContext";
 import Toast from "../../components/common/Toast";
 import PageLoader from "../../components/common/PageLoader";
-
-const API_BASE_URL = "https://horse-shipt.vercel.app/api";
+import { API_BASE_URL } from "../../config/api";
 
 const getProfileData = (profile) => profile?.data || profile;
 
