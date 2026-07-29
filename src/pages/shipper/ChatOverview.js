@@ -8,15 +8,15 @@ import { useAuth } from "../../contexts/AuthContext";
 import { socket } from "../../services/socket";
 import axios from "axios";
 import Toast from "../../components/common/Toast";
+import { useSocketStatus } from "../../contexts/SocketStatusContext";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
-const ENABLE_SOCKET_POLLING_FALLBACK =
-  process.env.REACT_APP_ENABLE_SOCKET_POLLING_FALLBACK === "true";
 
 const ChatOverview = () => {
   const { customers, loading, fetchCustomers } = useShipperChat();
   const { user, token } = useAuth();
+  const { shouldUsePollingFallback } = useSocketStatus();
   const [searchParams] = useSearchParams();
 
   const customerIdFromQuery = searchParams.get("customerId"); // GET CUSTOMER ID FROM QUERY
@@ -163,14 +163,14 @@ const ChatOverview = () => {
   }, [roomId]);
 
   useEffect(() => {
-    if (!roomId || !token || !ENABLE_SOCKET_POLLING_FALLBACK) return;
+    if (!roomId || !token || !shouldUsePollingFallback) return;
 
     const interval = setInterval(() => {
       fetchRoomMessages(roomId, { silent: true });
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [roomId, token, fetchRoomMessages]);
+  }, [roomId, shouldUsePollingFallback, token, fetchRoomMessages]);
 
   /* ===============================
      AUTO SCROLL

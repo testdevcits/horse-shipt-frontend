@@ -16,15 +16,15 @@ import {
   markNotificationActivityReadRemote,
   saveNotificationActivity,
 } from "../utils/notificationActivity";
+import { useSocketStatus } from "./SocketStatusContext";
 
 const NotificationActivityContext = createContext(null);
 
 const POLLING_INTERVAL_MS = 15000;
-const ENABLE_SOCKET_POLLING_FALLBACK =
-  process.env.REACT_APP_ENABLE_SOCKET_POLLING_FALLBACK === "true";
 
 export const NotificationActivityProvider = ({ children }) => {
   const { token, user, role } = useAuth();
+  const { shouldUsePollingFallback } = useSocketStatus();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -187,7 +187,7 @@ export const NotificationActivityProvider = ({ children }) => {
   }, [loadLocal, refresh]);
 
   useEffect(() => {
-    if (!role || !userId || !token || !ENABLE_SOCKET_POLLING_FALLBACK) {
+    if (!role || !userId || !token || !shouldUsePollingFallback) {
       return undefined;
     }
 
@@ -208,7 +208,7 @@ export const NotificationActivityProvider = ({ children }) => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("focus", handleFocus);
     };
-  }, [refresh, role, token, userId]);
+  }, [refresh, role, shouldUsePollingFallback, token, userId]);
 
   const value = useMemo(
     () => ({

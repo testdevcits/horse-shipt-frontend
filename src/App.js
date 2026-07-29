@@ -53,6 +53,7 @@ import { ShipperInvitationProvider } from "./contexts/shipperContext/ShipperInvi
 import RealtimeNotifications from "./components/RealtimeNotifications";
 import { NotificationActivityProvider } from "./contexts/NotificationActivityContext";
 import ScrollToTop from "./components/common/ScrollToTop";
+import { SocketStatusProvider } from "./contexts/SocketStatusContext";
 
 // ------------------- Stripe Setup -------------------
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
@@ -68,8 +69,9 @@ function App() {
       >
         <LegalProvider>
           <AuthProvider>
-            <SubscriptionProvider>
-              <CustomerPaymentProvider>
+            <SocketStatusProvider>
+              <SubscriptionProvider>
+                <CustomerPaymentProvider>
                 {/* Wrap ShipperPaymentProvider with Elements for Stripe */}
                 <ShipperPaymentProvider>
                   <Elements stripe={stripePromise}>
@@ -133,8 +135,9 @@ function App() {
                     </CustomerNotificationProvider>
                   </Elements>
                 </ShipperPaymentProvider>
-              </CustomerPaymentProvider>
-            </SubscriptionProvider>
+                </CustomerPaymentProvider>
+              </SubscriptionProvider>
+            </SocketStatusProvider>
           </AuthProvider>
         </LegalProvider>
       </LoadScript>
