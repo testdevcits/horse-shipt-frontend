@@ -9,7 +9,10 @@ import { socket } from "../../services/socket";
 import axios from "axios";
 import Toast from "../../components/common/Toast";
 
-const API_BASE_URL = "https://horse-shipt.vercel.app/api";
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "https://horse-shipt.vercel.app/api";
+const ENABLE_SOCKET_POLLING_FALLBACK =
+  process.env.REACT_APP_ENABLE_SOCKET_POLLING_FALLBACK === "true";
 
 const ChatOverview = () => {
   const { customers, loading, fetchCustomers } = useShipperChat();
@@ -86,6 +89,7 @@ const ChatOverview = () => {
 
     setMessages([]); // reset messages when new user selected
     let cancelled = false;
+    let cleanupSocketJoin = () => {};
 
     const openRoom = async () => {
       setMessagesLoading(true);
@@ -103,12 +107,20 @@ const ChatOverview = () => {
 
         if (!cancelled) await fetchRoomMessages(nextRoomId);
 
-        if (socket.connected) {
+        const joinRoom = () => {
           socket.emit("joinRoom", {
             customerId: selectedUser._id,
             shipperId: user._id,
             shipmentId: selectedUser.shipmentId,
           });
+        };
+
+        if (socket.connected) {
+          joinRoom();
+        } else {
+          socket.once("connect", joinRoom);
+          cleanupSocketJoin = () => socket.off("connect", joinRoom);
+          socket.connect();
         }
       } catch (err) {
         if (!cancelled) {
@@ -125,6 +137,7 @@ const ChatOverview = () => {
 
     return () => {
       cancelled = true;
+      cleanupSocketJoin();
     };
   }, [selectedUser, user, token, fetchRoomMessages]);
 
@@ -150,7 +163,7 @@ const ChatOverview = () => {
   }, [roomId]);
 
   useEffect(() => {
-    if (!roomId || !token) return;
+    if (!roomId || !token || !ENABLE_SOCKET_POLLING_FALLBACK) return;
 
     const interval = setInterval(() => {
       fetchRoomMessages(roomId, { silent: true });

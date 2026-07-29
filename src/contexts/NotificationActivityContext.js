@@ -20,6 +20,8 @@ import {
 const NotificationActivityContext = createContext(null);
 
 const POLLING_INTERVAL_MS = 15000;
+const ENABLE_SOCKET_POLLING_FALLBACK =
+  process.env.REACT_APP_ENABLE_SOCKET_POLLING_FALLBACK === "true";
 
 export const NotificationActivityProvider = ({ children }) => {
   const { token, user, role } = useAuth();
@@ -185,7 +187,9 @@ export const NotificationActivityProvider = ({ children }) => {
   }, [loadLocal, refresh]);
 
   useEffect(() => {
-    if (!role || !userId || !token) return undefined;
+    if (!role || !userId || !token || !ENABLE_SOCKET_POLLING_FALLBACK) {
+      return undefined;
+    }
 
     const poll = () => refresh({ silent: true });
     const handleVisibilityChange = () => {
