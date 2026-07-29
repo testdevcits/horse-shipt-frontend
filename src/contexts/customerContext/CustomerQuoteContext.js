@@ -223,6 +223,10 @@ export const CustomerQuoteProvider = ({ children }) => {
 
       setQuotes((prev) => {
         if (deleted || quote?.isDeleted || quote?.status === "rejected") {
+          const hadQuote = prev.some((item) => item._id === targetQuoteId);
+          if (hadQuote) {
+            setTotalQuotes((count) => Math.max(0, count - 1));
+          }
           return prev.filter((item) => item._id !== targetQuoteId);
         }
 
