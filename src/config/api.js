@@ -15,7 +15,8 @@ const developmentBackendUrl =
   process.env.REACT_APP_DEVELOPMENT_BACKEND_URL ||
   "https://horse-shipt.vercel.app";
 
-const manualApiBaseUrl = process.env.REACT_APP_API_BASE_URL || "";
+const manualApiBaseUrl =
+  process.env.REACT_APP_API_BASE_URL || process.env.REACT_APP_API_URL || "";
 
 const isHttpsPage =
   typeof window !== "undefined" && window.location?.protocol === "https:";
@@ -32,12 +33,24 @@ const selectedBackendUrl =
     ? developmentBackendUrl
     : selectedProductionBackendUrl;
 
+const getHttpsSafeUrl = (url = "") => {
+  if (!isHttpsPage || !url.startsWith("http://")) return url;
+  return productionHttpsBackendUrl || url.replace(/^http:\/\//, "https://");
+};
+
+const selectedApiUrl = getHttpsSafeUrl(manualApiBaseUrl || selectedBackendUrl);
+
 export const BACKEND_BASE_URL = trimTrailingSlash(
-  trimApiSuffix(manualApiBaseUrl || selectedBackendUrl)
+  trimApiSuffix(selectedApiUrl)
 );
 
 export const API_BASE_URL = manualApiBaseUrl
-  ? trimTrailingSlash(manualApiBaseUrl)
+  ? trimTrailingSlash(getHttpsSafeUrl(manualApiBaseUrl))
   : `${BACKEND_BASE_URL}/api`;
+
+export const SOCKET_BASE_URL = getHttpsSafeUrl(
+  process.env.REACT_APP_SOCKET_URL || BACKEND_BASE_URL
+);
+
 export const SHIPPER_API_BASE_URL = `${API_BASE_URL}/shipper`;
 export const CUSTOMER_API_BASE_URL = `${API_BASE_URL}/customer`;
