@@ -27,6 +27,11 @@ const hasAssignedVehicle = (quote) => {
   return Object.keys(quote.vehicle).length > 0;
 };
 
+const isCompletedQuote = (quote) =>
+  quote?.tripStatus === "completed" ||
+  quote?.shipment?.status === "delivered" ||
+  quote?.shipment?.status === "completed";
+
 const isPdfFile = (url = "") =>
   /\.pdf($|\?)/i.test(url) || url.toLowerCase().includes("/raw/upload/");
 
@@ -255,7 +260,7 @@ const ShipperQuotesPage = () => {
 
   const isInTransitQuote = (quote) => {
     if (!quote || quote.isCancelled || quote.status === "cancelled") return false;
-    if (quote.shipment?.status === "delivered") return false;
+    if (isCompletedQuote(quote)) return false;
 
     return hasAssignedVehicle(quote);
   };
@@ -449,6 +454,7 @@ const ShipperQuotesPage = () => {
               quote.cancellationLastDate &&
               new Date() > new Date(quote.cancellationLastDate);
             const canDelete = !quote.contractAccepted;
+            const isCompleted = isCompletedQuote(quote);
             const shipment = quote.shipment || {};
             const vehicle = quote.vehicle || {};
             const tripStatus = formatTitleCase(quote.tripStatus || "notStarted");
@@ -529,7 +535,8 @@ const ShipperQuotesPage = () => {
 
                     {!quote.vehicle &&
                       quote.status === "accepted" &&
-                      !quote.isCancelled && (
+                      !quote.isCancelled &&
+                      !isCompleted && (
                         <button
                           onClick={() => {
                             setSelectedQuote(quote);
@@ -626,7 +633,8 @@ const ShipperQuotesPage = () => {
                       {activeTab !== "pending" &&
                         quote.status !== "pending" &&
                         !isExpired &&
-                        !quote.isCancelled && (
+                        !quote.isCancelled &&
+                        !isCompleted && (
                           <button
                             onClick={() => openModal(quote, "cancel")}
                             className="flex h-[38px] w-full items-center justify-center gap-1 border border-red-500 px-4 text-[12px] font-bold uppercase text-red-600 transition hover:bg-red-50 sm:h-[34px] sm:w-auto lg:ml-auto"

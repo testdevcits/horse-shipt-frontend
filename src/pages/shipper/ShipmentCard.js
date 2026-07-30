@@ -48,6 +48,7 @@ const ShipmentCard = ({ shipment, invitation, isHighlighted = false }) => {
   if (!shipment) return null;
 
   const horse = shipment.horses?.[0] || {};
+  const horseImageSrc = horse?.photo?.url || horseIcon;
   const st = statusConfig[shipment.status] || statusConfig.open_for_offers;
   const isInvitedShipment = Boolean(invitation || shipment.__isInvitedShipment);
   const distanceMiles = shipment.estimatedDistance?.miles;
@@ -65,6 +66,11 @@ const ShipmentCard = ({ shipment, invitation, isHighlighted = false }) => {
       ref: token,
     });
     navigate(`/shipper/shipments/details?${params.toString()}`);
+  };
+
+  const handleHorseImageError = (event) => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src = horseIcon;
   };
 
   return (
@@ -136,16 +142,10 @@ const ShipmentCard = ({ shipment, invitation, isHighlighted = false }) => {
       {/* Image */}
        <div className="overflow-hidden rounded-[12px] bg-white relative w-full h-full object-cover">
         <img
-          src={
-            horse?.photo?.url ||
-            "https://via.placeholder.com/400?text=Horse"
-          }
+          src={horseImageSrc}
           alt={horse?.registeredName || "Horse"}
           className="aspect-[1.02/1] w-full object-cover"
-          onError={(e) => {
-            e.currentTarget.src =
-              "https://via.placeholder.com/400?text=Horse";
-          }}
+          onError={handleHorseImageError}
         />
       </div>
     </div>
@@ -155,16 +155,10 @@ const ShipmentCard = ({ shipment, invitation, isHighlighted = false }) => {
     /* Normal Card */
     <div className="overflow-hidden rounded-[16px] border border-gray-200 bg-white">
       <img
-        src={
-          horse?.photo?.url ||
-          "https://via.placeholder.com/400?text=Horse"
-        }
+        src={horseImageSrc}
         alt={horse?.registeredName || "Horse"}
         className="aspect-[1.02/1] w-full object-cover"
-        onError={(e) => {
-          e.currentTarget.src =
-            "https://via.placeholder.com/400?text=Horse";
-        }}
+        onError={handleHorseImageError}
       />
     </div>
 

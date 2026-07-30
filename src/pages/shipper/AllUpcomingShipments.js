@@ -22,6 +22,11 @@ const hasAssignedVehicle = (quote) => {
   return Object.keys(quote.vehicle).length > 0;
 };
 
+const isCompletedQuote = (quote) =>
+  quote?.tripStatus === "completed" ||
+  quote?.shipment?.status === "delivered" ||
+  quote?.shipment?.status === "completed";
+
 /* ─────────────────────────────────────────
    EMPTY STATE
 ───────────────────────────────────────────*/
@@ -43,7 +48,7 @@ const QuoteShipmentCard = ({
 }) => {
   const isCancelled =
     quote.isCancelled === true || quote.status === "cancelled";
-  const isCompleted = tabKey === "completed";
+  const isCompleted = tabKey === "completed" || isCompletedQuote(quote);
 
   const shipment = quote.shipment || {};
   const paymentLabel = quote.paymentStatus
@@ -207,7 +212,7 @@ const AllUpcomingShipments = () => {
 
   const isInTransitQuote = (quote) => {
     if (quote.isCancelled === true || quote.status === "cancelled") return false;
-    if (quote.shipment?.status === "delivered") return false;
+    if (isCompletedQuote(quote)) return false;
 
     return hasAssignedVehicle(quote);
   };
@@ -226,14 +231,14 @@ const AllUpcomingShipments = () => {
 
   const upcomingShipments = quotes.filter((q) => {
     if (q.isCancelled === true || q.status === "cancelled") return false;
-    if (q.shipment?.status === "delivered") return false;
+    if (isCompletedQuote(q)) return false;
     if (isInTransitQuote(q)) return false;
     return q.status === "accepted";
   });
 
   const completedShipments = quotes.filter((q) => {
     if (q.isCancelled === true || q.status === "cancelled") return false;
-    return q.shipment?.status === "delivered";
+    return isCompletedQuote(q);
   });
 
   const cancelledShipments = quotes.filter((q) => {
@@ -343,7 +348,7 @@ const AllUpcomingShipments = () => {
   };
 
   const handleTrack = (quote) => {
-    if (quote.shipment?.status === "delivered") return;
+    if (isCompletedQuote(quote)) return;
     navigate(`/shipper/track/${quote._id}`);
   };
 
