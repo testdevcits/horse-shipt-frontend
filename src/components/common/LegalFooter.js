@@ -8,7 +8,7 @@ const LegalFooter = ({ leftOffset = 0 }) => {
       style={{ left: leftOffset }}
     >
       <nav
-        className="mx-auto flex min-h-[32px] max-w-7xl flex-row flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center text-[11px] leading-tight text-[#735D32] xs:text-xs sm:gap-6 sm:text-sm"
+        className="mx-auto flex min-h-[28px] max-w-7xl flex-row flex-nowrap items-center justify-center gap-3 text-center text-[11px] leading-tight text-[#735D32] sm:min-h-[32px] sm:gap-6 sm:text-sm"
         aria-label="Legal"
       >
         <Link
