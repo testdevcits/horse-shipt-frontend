@@ -208,7 +208,7 @@ const SubscriptionPopup = () => {
       }
       setProcessing(true);
       await createCustomer();
-      await createSubscription(showTrialOffer);
+      await createSubscription(showTrialOffer, planData?.planType || "daily");
       Toast.success(
         showTrialOffer ? "Free trial started!" : "Subscription activated!"
       );

@@ -85,7 +85,7 @@ export const SubscriptionProvider = ({ children }) => {
   }, []);
 
   /* ===============================
-       NORMALIZE PLAN (MONTHLY ONLY)
+       NORMALIZE PLAN
   =================================*/
   const normalizePlanData = useCallback((data) => {
     if (!data) return null;
@@ -99,6 +99,7 @@ export const SubscriptionProvider = ({ children }) => {
       remainingTrialDays: data.remainingTrialDays || 0,
       trialEndDate: data.trialEndDate || null,
 
+      daily: data.daily || null,
       monthly: data.monthly || null,
 
       subscriptionStatus: data.subscriptionStatus || null,
@@ -217,13 +218,13 @@ export const SubscriptionProvider = ({ children }) => {
   /* ===============================
        CREATE SUBSCRIPTION
   =================================*/
-  const createSubscription = async (withTrial = true) => {
+  const createSubscription = async (withTrial = true, planType = "daily") => {
     if (!token || !isShipper) return;
 
     try {
       const res = await axios.post(
         `${API_BASE_URL}/shipper/stripe/subscription/create`,
-        { withTrial },
+        { withTrial, planType },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
