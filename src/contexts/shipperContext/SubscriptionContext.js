@@ -101,6 +101,8 @@ export const SubscriptionProvider = ({ children }) => {
 
       daily: data.daily || null,
       monthly: data.monthly || null,
+      yearly: data.yearly || null,
+      plans: data.plans || [data.daily, data.monthly, data.yearly].filter(Boolean),
 
       subscriptionStatus: data.subscriptionStatus || null,
       nextBillingDate: data.nextBillingDate || null,
@@ -218,13 +220,17 @@ export const SubscriptionProvider = ({ children }) => {
   /* ===============================
        CREATE SUBSCRIPTION
   =================================*/
-  const createSubscription = async (withTrial = true, planType = "daily") => {
+  const createSubscription = async (
+    withTrial = true,
+    planType = "daily",
+    priceId = null
+  ) => {
     if (!token || !isShipper) return;
 
     try {
       const res = await axios.post(
         `${API_BASE_URL}/shipper/stripe/subscription/create`,
-        { withTrial, planType },
+        { withTrial, planType, priceId },
         {
           headers: { Authorization: `Bearer ${token}` },
         }

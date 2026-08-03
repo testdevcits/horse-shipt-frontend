@@ -42,6 +42,7 @@ const SubscriptionPopup = () => {
     subscription,
     loading: subLoading,
     subscriptionReady,
+    planLoading,
     hasAccess,
     createSubscription,
     plan, // raw API response: { data: { daily: {...}, trialDays, currency } }
@@ -63,6 +64,7 @@ const SubscriptionPopup = () => {
   const [showCardForm, setShowCardForm] = useState(false);
   const [cardError, setCardError] = useState(null);
   const [dismissed, setDismissed] = useState(false);
+  const [selectedPlanType, setSelectedPlanType] = useState("monthly");
 
   // ── Fetch payment status when popup opens ──
   useEffect(() => {
@@ -75,7 +77,7 @@ const SubscriptionPopup = () => {
         hasAccess === true ||
         ["active", "trialing", "past_due"].includes(subscription?.status);
 
-      if (!subscriptionReady || subLoading || hasSubscriptionAccess) {
+      if (!subscriptionReady || subLoading || planLoading || hasSubscriptionAccess) {
         setIsOpen(false);
         return;
       }
@@ -86,11 +88,11 @@ const SubscriptionPopup = () => {
 
     window.addEventListener("openSubscriptionPopup", openPopup);
     return () => window.removeEventListener("openSubscriptionPopup", openPopup);
-  }, [hasAccess, subscription?.status, subscriptionReady, subLoading]);
+  }, [hasAccess, subscription?.status, subscriptionReady, subLoading, planLoading]);
 
   // ── Auto-open for unsubscribed users ──
   useEffect(() => {
-    if (!subscriptionReady || subLoading) return;
+    if (!subscriptionReady || subLoading || planLoading) return;
 
     const hasSubscriptionAccess =
       hasAccess === true ||
@@ -111,19 +113,37 @@ const SubscriptionPopup = () => {
     hasAccess,
     needsOnboarding,
     dismissed,
+    planLoading,
   ]);
 
   // =====================================================
   // DERIVE PLAN DETAILS from API response
   // API shape: plan.data.daily | plan.data.monthly | plan.data.weekly
   // =====================================================
+  const planRoot = plan?.data || plan;
+  const availablePlans =
+    planRoot?.plans?.length
+      ? planRoot.plans
+      : [planRoot?.daily, planRoot?.monthly, planRoot?.yearly].filter(Boolean);
+
+  useEffect(() => {
+    if (!availablePlans.length) return;
+    if (availablePlans.some((item) => item.planType === selectedPlanType)) return;
+
+    const preferred =
+      availablePlans.find((item) => item.planType === "monthly") ||
+      availablePlans[0];
+    setSelectedPlanType(preferred.planType);
+  }, [availablePlans, selectedPlanType]);
+
   const planData = (() => {
     if (!plan) return null;
-    // Support both { data: { daily } } and flat { daily }
-    const root = plan?.data || plan;
-    // Pick the first available plan key (daily, weekly, monthly)
-    const planKey = ["daily", "weekly", "monthly"].find((k) => root?.[k]);
-    return planKey ? root[planKey] : null;
+    return (
+      availablePlans.find((item) => item.planType === selectedPlanType) ||
+      availablePlans.find((item) => item.planType === "monthly") ||
+      availablePlans[0] ||
+      null
+    );
   })();
 
   const trialDays = plan?.data?.trialDays ?? plan?.trialDays ?? 0;
@@ -208,7 +228,11 @@ const SubscriptionPopup = () => {
       }
       setProcessing(true);
       await createCustomer();
-      await createSubscription(showTrialOffer, planData?.planType || "daily");
+      await createSubscription(
+        showTrialOffer,
+        planData?.planType || "daily",
+        planData?.priceId || null
+      );
       Toast.success(
         showTrialOffer ? "Free trial started!" : "Subscription activated!"
       );
@@ -338,6 +362,43 @@ const SubscriptionPopup = () => {
               </div>
 
               {/* Payment method status */}
+              {availablePlans.length > 1 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {availablePlans.map((item) => {
+                    const selected = item.planType === planData?.planType;
+                    const label =
+                      item.planType === "yearly"
+                        ? "Yearly"
+                        : item.planType === "monthly"
+                        ? "Monthly"
+                        : "One Day";
+                    const symbol = item.currency === "inr" ? "₹" : "$";
+
+                    return (
+                      <button
+                        key={item.priceId}
+                        type="button"
+                        onClick={() => setSelectedPlanType(item.planType)}
+                        className={`rounded-xl border p-2 text-left transition ${
+                          selected
+                            ? "border-[#BF9B53] bg-[#BF9B53]/10 text-slate-900"
+                            : "border-slate-200 bg-white text-slate-600"
+                        }`}
+                      >
+                        <p className="text-[11px] font-bold uppercase">
+                          {label}
+                        </p>
+                        <p className="mt-1 text-sm font-black">
+                          {symbol}
+                          {item.amount}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Payment method status */}
               <div
                 className={`p-3 rounded-md border-2 flex items-center gap-3 transition-colors ${
                   hasCard
@@ -459,13 +520,18 @@ const SubscriptionPopup = () => {
                     handleSubscribe();
                   }
                 }}
-                disabled={processing || subLoading}
+                disabled={processing || subLoading || !planData}
                 className="w-full py-3.5 bg-gradient-to-r from-[#BF9B53] to-[#a8863e] text-white font-bold rounded-xl disabled:opacity-50 hover:shadow-lg hover:from-[#c9a55e] hover:to-[#BF9B53] transition-all text-sm flex items-center justify-center gap-2"
               >
                 {processing || subLoading ? (
                   <>
                     <Loader size={15} className="animate-spin" />
                     Processing...
+                  </>
+                ) : !planData ? (
+                  <>
+                    <Loader size={15} className="animate-spin" />
+                    Loading plan...
                   </>
                 ) : hasCard ? (
                   <>

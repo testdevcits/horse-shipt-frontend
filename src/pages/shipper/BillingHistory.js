@@ -408,6 +408,13 @@ const BillingHistory = () => {
         "usd"
       ).toUpperCase()}`;
     }
+    if (plan.yearly && (!planType || planType === "yearly")) {
+      return `$${plan.yearly.amount}/${plan.yearly.interval || "year"} ${(
+        plan.yearly.currency ||
+        plan.currency ||
+        "usd"
+      ).toUpperCase()}`;
+    }
     if (plan.daily && (!planType || planType === "daily")) {
       const amt = plan.daily.amount;
       const cur = (plan.daily.currency || plan.currency || "usd").toUpperCase();
