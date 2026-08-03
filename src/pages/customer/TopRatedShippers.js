@@ -38,10 +38,23 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
 
   // ===================== FILTER & SORT LOGIC =====================
   const filteredShippers = topRatedShippers.filter((s) => {
-    // Search filter
-    const matchesSearch = (s.name || "")
-      .toLowerCase()
-      .includes(search.toLowerCase());
+    const searchText = search.trim().toLowerCase();
+    const areaText = (s.preferredAreas || [])
+      .map((area) => `${area.locationName || ""} ${area.radiusKm || ""}`)
+      .join(" ");
+    const matchesSearch =
+      !searchText ||
+      [
+        s.name,
+        s.companyName,
+        s.region,
+        s.locale?.address,
+        areaText,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(searchText);
 
     // Rating filter
     const matchesRating = s.rating >= minRating;
@@ -178,7 +191,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
             />
             <input
               type="text"
-              placeholder="Search shipper by name..."
+              placeholder="Search by shipper name, city, state, or coverage area..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="h-12 w-full border-0 bg-[#F0F1F4] pl-11 pr-4 text-[13px] font-medium text-[#111827] outline-none transition focus:ring-2 focus:ring-[#BF9B53]/30"
@@ -389,6 +402,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
                   reviewCount: shipper.reviewCount || 0,
                   reviewText: shipper.reviewText,
                   region: shipper.region,
+                  preferredAreas: shipper.preferredAreas,
                   transportType: shipper.transportType,
                   experienceLevel: shipper.experienceLevel,
                   responseTime: shipper.responseTime,

@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import Toast from "../../components/common/Toast";
+import PageLoader from "../../components/common/PageLoader";
 
 const OAuthSuccessPage = () => {
   const navigate = useNavigate();
@@ -70,12 +71,7 @@ const OAuthSuccessPage = () => {
     }, 1500);
   }, [location.search, oauthLogin, navigate]);
 
-  return (
-    <div className="flex flex-col justify-center items-center min-h-screen text-gray-600">
-      <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
-      <p className="mt-3 text-sm">Logging you in...</p>
-    </div>
-  );
+  return <PageLoader text="Logging you in..." fullScreen />;
 };
 
 export default OAuthSuccessPage;

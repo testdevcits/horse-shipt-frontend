@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { GoArrowSwitch } from "react-icons/go";
 import { LuCircleChevronRight, LuMap, LuList } from "react-icons/lu";
 import { FiMapPin, FiNavigation } from "react-icons/fi";
-import { createShipmentQueryToken } from "../../utils/createQueryToken";
+import { createShipperShipmentDetailsPath } from "../../utils/createQueryToken";
+import { DEFAULT_US_MAP_CENTER } from "../../constants/mapDefaults";
 
 import {
   GoogleMap,
@@ -19,10 +20,7 @@ import {
  */
 
 /* ================= DEFAULT CENTER ================= */
-const defaultCenter = {
-  lat: 22.7,
-  lng: 75.9,
-};
+const defaultCenter = DEFAULT_US_MAP_CENTER;
 
 const toMapPoint = (coords) => {
   if (!coords) return null;
@@ -55,14 +53,7 @@ const ShipmentMap = ({ shipments = [], pagination = {}, onPageChange }) => {
    */
   const handleNavigateWithQuery = (shipment) => {
     if (!shipment?._id) return;
-
-    const token = createShipmentQueryToken(shipment._id);
-    const params = new URLSearchParams({
-      shipmentId: shipment._id,
-      ref: token,
-    });
-
-    navigate(`/shipper/shipments/details?${params.toString()}`);
+    navigate(createShipperShipmentDetailsPath(shipment._id));
   };
 
   /**

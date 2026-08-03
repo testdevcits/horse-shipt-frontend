@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { createShipmentQueryToken } from "../../utils/createQueryToken";
+import { createShipperShipmentDetailsPath } from "../../utils/createQueryToken";
 import { FiArrowUpRight, FiMapPin, FiTruck } from "react-icons/fi";
 import { LuBoxes } from "react-icons/lu";
 import horseIcon from "../../assets/images/Horse.png";
@@ -54,18 +54,16 @@ const ShipmentCard = ({ shipment, invitation, isHighlighted = false }) => {
   const distanceMiles = shipment.estimatedDistance?.miles;
   const hasDistance =
     distanceMiles !== null && distanceMiles !== undefined && distanceMiles !== "";
+  const matchedPreferredAreas = Array.isArray(shipment.matchedPreferredAreas)
+    ? shipment.matchedPreferredAreas
+    : [];
   const answeredQuestionCount =
     shipment.questionSummary?.unreadForShipper ??
     shipment.questionSummary?.answered ??
     0;
 
   const handleNavigateWithQuery = () => {
-    const token = createShipmentQueryToken(shipment._id);
-    const params = new URLSearchParams({
-      shipmentId: shipment._id,
-      ref: token,
-    });
-    navigate(`/shipper/shipments/details?${params.toString()}`);
+    navigate(createShipperShipmentDetailsPath(shipment._id));
   };
 
   const handleHorseImageError = (event) => {
@@ -201,6 +199,28 @@ const ShipmentCard = ({ shipment, invitation, isHighlighted = false }) => {
               <span className="mt-2 inline-block font-montserrat text-[12px] font-semibold leading-[20px] tracking-normal text-[#735D32] sm:mt-4">
                 {shipment.shipmentCode}
               </span>
+              {matchedPreferredAreas.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {matchedPreferredAreas.slice(0, 3).map((area) => (
+                    <span
+                      key={area.id || area.locationName}
+                      className="inline-flex bg-[#F5EFE2] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[#735D32]"
+                    >
+                      {area.locationName}
+                      {area.pickupMatched && area.deliveryMatched
+                        ? " • pickup & delivery"
+                        : area.pickupMatched
+                        ? " • pickup"
+                        : " • delivery"}
+                    </span>
+                  ))}
+                  {matchedPreferredAreas.length > 3 && (
+                    <span className="inline-flex bg-gray-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-gray-600">
+                      +{matchedPreferredAreas.length - 3} more
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Status badge */}

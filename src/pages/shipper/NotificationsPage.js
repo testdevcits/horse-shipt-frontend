@@ -12,7 +12,10 @@ import {
 import ConfirmModal from "../../components/common/ConfirmModal";
 import PageLoader from "../../components/common/PageLoader";
 import { useAuth } from "../../contexts/AuthContext";
-import { createShipmentQueryToken } from "../../utils/createQueryToken";
+import {
+  createShipmentQueryToken,
+  createShipperShipmentDetailsPath,
+} from "../../utils/createQueryToken";
 import { useNotificationActivity } from "../../contexts/NotificationActivityContext";
 
 const PAGE_SIZE = 10;
@@ -229,8 +232,11 @@ const NotificationsPage = () => {
 
       if (isQuestionNotification(item)) {
         const questionId = getNotificationQuestionId(item);
-        if (questionId) params.set("questionId", questionId);
-        navigate(`/shipper/shipments/${shipmentId}?${params.toString()}`);
+        navigate(
+          createShipperShipmentDetailsPath(shipmentId, {
+            ...(questionId ? { questionId } : {}),
+          })
+        );
         return;
       }
 
@@ -239,7 +245,7 @@ const NotificationsPage = () => {
         return;
       }
 
-      navigate(`/shipper/shipments/${shipmentId}?ref=${encodeURIComponent(ref)}`);
+      navigate(createShipperShipmentDetailsPath(shipmentId));
     }
   };
 

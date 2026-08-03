@@ -22,6 +22,7 @@ import ProtectedDriverRoute from "./ProtectedDriverRoute";
 import CustomerChatOverview from "../pages/customer/ChatOverview";
 import ShipperQuotesPage from "../pages/shipper/ShipperQuotesPage";
 import MyHorses from "../pages/customer/MyHorses";
+import PageLoader from "../components/common/PageLoader";
 import GoogleReview from "../pages/shipper/GoogleReview";
 import CustomerShipperReviewPage from "../pages/customer/CustomerShipperReviewPage";
 import InviteShipmentPage from "../pages/InviteShipmentPage";
@@ -120,12 +121,7 @@ const AppRoutes = () => {
 
   return (
     <Suspense
-      fallback={
-        <div className="flex flex-col justify-center items-center min-h-screen text-gray-600">
-          <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
-          <p className="mt-3 text-sm">Loading, please wait...</p>
-        </div>
-      }
+      fallback={<PageLoader text="Loading, please wait..." fullScreen />}
     >
       <Routes>
         {/* ---------- Public Pages (Main Layout) ---------- */}

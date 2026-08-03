@@ -6,6 +6,7 @@ import {
   DirectionsRenderer,
 } from "@react-google-maps/api";
 import { FiX, FiNavigation, FiAlertCircle, FiCrosshair } from "react-icons/fi";
+import { DEFAULT_US_MAP_CENTER } from "../../constants/mapDefaults";
 
 const containerStyle = { width: "100%", height: "100%" };
 
@@ -333,7 +334,7 @@ const RouteMapModal = ({
     ? driverLocation
     : hasValidCoords(pickupLocation)
     ? pickupLocation
-    : { lat: 20.5937, lng: 78.9629 };
+    : DEFAULT_US_MAP_CENTER;
 
   if (!isOpen) return null;
 

@@ -17,6 +17,7 @@ import {
   FiMap,
 } from "react-icons/fi";
 import { MdRadar } from "react-icons/md";
+import { DEFAULT_US_MAP_CENTER } from "../../constants/mapDefaults";
 
 const mapContainerStyle = {
   width: "100%",
@@ -30,8 +31,7 @@ const allAreasMapContainerStyle = {
 };
 
 const defaultCenter = {
-  lat: 39.8283,
-  lng: -98.5795,
+  ...DEFAULT_US_MAP_CENTER,
 };
 
 const defaultForm = {

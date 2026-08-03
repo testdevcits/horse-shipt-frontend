@@ -73,35 +73,67 @@ const emptyHorse = {
   sex: "",
   stallType: "",
   notes: "",
+  photo: null,
+  coggins: null,
+  healthCertificate: null,
 };
 
-// =====================================================
-// SPINNER OVERLAY
-// =====================================================
-const Spinner = ({ text }) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-    <div className="bg-white rounded-md shadow-xl px-10 py-8 flex flex-col items-center gap-4">
-      <svg
-        className="animate-spin h-10 w-10 text-[#BF9B53]"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          className="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          strokeWidth="4"
-        />
-        <path
-          className="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-        />
-      </svg>
-      <p className="text-gray-700 font-semibold text-base">{text}</p>
+const FileUploadControl = ({
+  id,
+  label,
+  accept,
+  value,
+  onChange,
+  helper,
+  previewUrl,
+}) => (
+  <div>
+    <label className="block font-semibold text-sm text-gray-600 mb-2">
+      {label}
+    </label>
+    <div className="rounded-lg border-2 border-dashed border-gray-300 bg-slate-50/70 p-4 transition hover:border-[#BF9B53]/60 hover:bg-[#BF9B53]/5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        {accept?.startsWith("image/") && (
+          <div className="flex h-28 w-full items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-white sm:w-40">
+            {previewUrl ? (
+              <img
+                src={previewUrl}
+                alt={label}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="text-center">
+                <p className="text-xs font-semibold text-gray-400">
+                  Image Preview
+                </p>
+                <p className="mt-1 text-[11px] text-gray-400">No photo</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              id={id}
+              type="file"
+              accept={accept}
+              onChange={(e) => onChange(e.target.files?.[0] || null)}
+              className="sr-only"
+            />
+            <label
+              htmlFor={id}
+              className="inline-flex cursor-pointer items-center justify-center rounded-md bg-[#BF9B53] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#a8863f]"
+            >
+              Choose File
+            </label>
+            <span className="min-w-0 truncate text-sm font-medium text-gray-700">
+              {value || "No file chosen"}
+            </span>
+          </div>
+          {helper && <p className="mt-2 text-xs text-gray-500">{helper}</p>}
+        </div>
+      </div>
     </div>
   </div>
 );
@@ -160,6 +192,19 @@ const MyHorses = () => {
         return next;
       });
     }
+  };
+
+  const getAssetUrl = (asset) => {
+    if (!asset) return null;
+    if (typeof asset === "string") return asset;
+    if (asset instanceof File) return URL.createObjectURL(asset);
+    return asset.url || null;
+  };
+
+  const getFileLabel = (value, fallback = "No file selected") => {
+    if (!value) return fallback;
+    if (value instanceof File) return value.name;
+    return value.originalName || value.url?.split("/").pop() || "Uploaded";
   };
 
   // =====================================================
@@ -263,6 +308,8 @@ const MyHorses = () => {
     setEditingHorse({
       ...horse,
       stallType: horse.stallType || horse.defaultStallSize || "",
+      coggins: horse.documents?.coggins || null,
+      healthCertificate: horse.documents?.healthCertificate || null,
     });
     setIsNewHorse(false);
     setShowForm(true);
@@ -287,12 +334,18 @@ const MyHorses = () => {
   // RENDER
   // =====================================================
   return (
-    <div className="w-full flex flex-col gap-6 font-montserrat">
+    <div className="relative w-full flex flex-col gap-6 font-montserrat">
       {/* ── Loading Overlays ── */}
       {isSaving && (
-        <Spinner text={isNewHorse ? "Adding horse..." : "Updating horse..."} />
+        <PageLoader
+          text={isNewHorse ? "Adding horse..." : "Updating horse..."}
+          overlay
+          variant="spinner"
+        />
       )}
-      {isDeleting && <Spinner text="Deleting horse..." />}
+      {isDeleting && (
+        <PageLoader text="Deleting horse..." overlay variant="spinner" />
+      )}
 
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -537,6 +590,36 @@ const MyHorses = () => {
                 </p>
               )}
             </div>
+
+            {/* Horse Photo */}
+            <div className="col-span-1 md:col-span-2">
+              <FileUploadControl
+                id="horse-photo-upload"
+                label="Horse Photo"
+                accept="image/*"
+                value={getFileLabel(editingHorse.photo)}
+                previewUrl={getAssetUrl(editingHorse.photo)}
+                onChange={(file) => handleFieldChange("photo", file)}
+                helper="Large photos are optimized by the backend to fit within 1024x768."
+              />
+            </div>
+
+            {/* Documents */}
+            <FileUploadControl
+              id="horse-coggins-upload"
+              label="Coggins Test PDF"
+              accept="application/pdf"
+              value={getFileLabel(editingHorse.coggins)}
+              onChange={(file) => handleFieldChange("coggins", file)}
+            />
+
+            <FileUploadControl
+              id="horse-health-certificate-upload"
+              label="Health Certificate PDF"
+              accept="application/pdf"
+              value={getFileLabel(editingHorse.healthCertificate)}
+              onChange={(file) => handleFieldChange("healthCertificate", file)}
+            />
           </div>
 
           {/* Form Action Buttons */}
@@ -587,9 +670,18 @@ const MyHorses = () => {
                 >
                   {/* Card Header */}
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
-                      {horse.registeredName || "Untitled Horse"}
-                    </h3>
+                    <div className="flex items-center gap-3 min-w-0">
+                      {horse.photo?.url && (
+                        <img
+                          src={horse.photo.url}
+                          alt={horse.registeredName || "Horse"}
+                          className="h-16 w-20 rounded-md object-cover border"
+                        />
+                      )}
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
+                        {horse.registeredName || "Untitled Horse"}
+                      </h3>
+                    </div>
                     <div className="flex gap-2 flex-shrink-0">
                       <button
                         onClick={() => startEditHorse(horse)}
@@ -665,6 +757,32 @@ const MyHorses = () => {
                         </span>{" "}
                         {horse.notes}
                       </p>
+                    </div>
+                  )}
+
+                  {(horse.documents?.coggins?.url ||
+                    horse.documents?.healthCertificate?.url) && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {horse.documents?.coggins?.url && (
+                        <a
+                          href={horse.documents.coggins.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-md border border-[#BF9B53]/30 px-3 py-1.5 text-xs font-semibold text-[#BF9B53] hover:bg-[#BF9B53]/10"
+                        >
+                          Coggins PDF
+                        </a>
+                      )}
+                      {horse.documents?.healthCertificate?.url && (
+                        <a
+                          href={horse.documents.healthCertificate.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-md border border-[#BF9B53]/30 px-3 py-1.5 text-xs font-semibold text-[#BF9B53] hover:bg-[#BF9B53]/10"
+                        >
+                          Health Certificate PDF
+                        </a>
+                      )}
                     </div>
                   )}
                 </div>

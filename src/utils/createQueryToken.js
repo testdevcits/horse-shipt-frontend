@@ -36,6 +36,28 @@ export const createShipmentQueryToken = (shipmentId) => {
   }
 };
 
+export const createShipperShipmentDetailsPath = (
+  shipmentId,
+  extraParams = {}
+) => {
+  if (!shipmentId) return "/shipper/shipments";
+
+  const id = String(shipmentId);
+  const params = new URLSearchParams();
+  params.set("shipmentId", id);
+
+  const ref = createShipmentQueryToken(id);
+  if (ref) params.set("ref", ref);
+
+  Object.entries(extraParams || {}).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== "") {
+      params.set(key, String(value));
+    }
+  });
+
+  return `/shipper/shipments/${encodeURIComponent(id)}?${params.toString()}`;
+};
+
 export const validateShipmentQueryToken = (token, shipmentId) => {
   if (!token) return false;
 

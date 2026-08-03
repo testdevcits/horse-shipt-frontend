@@ -6,6 +6,10 @@ import { useShipperProfile } from "../../contexts/ShipperProfileContext";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
+import {
+  DEFAULT_US_MAP_CENTER,
+  DEFAULT_US_MAP_ZOOM,
+} from "../../constants/mapDefaults";
 
 const countryCodes = [
   { code: "+1", country: "USA", flag: "🇺🇸" },
@@ -48,20 +52,26 @@ const Profile = () => {
   });
 
   const [mapCenter, setMapCenter] = useState({
-    lat: 22.9734,
-    lng: 78.6569,
+    ...DEFAULT_US_MAP_CENTER,
   });
 
   useEffect(() => {
     if (profile) {
-      const lat = profile?.locale?.latitude || 22.9734;
-      const lng = profile?.locale?.longitude || 78.6569;
+      const hasSavedLocation =
+        Number.isFinite(Number(profile?.locale?.latitude)) &&
+        Number.isFinite(Number(profile?.locale?.longitude));
+      const lat = hasSavedLocation
+        ? Number(profile.locale.latitude)
+        : DEFAULT_US_MAP_CENTER.lat;
+      const lng = hasSavedLocation
+        ? Number(profile.locale.longitude)
+        : DEFAULT_US_MAP_CENTER.lng;
 
       setMapCenter({ lat, lng });
       setSelectedLocation({
         address: profile?.locale?.address || "",
-        latitude: lat,
-        longitude: lng,
+        latitude: hasSavedLocation ? lat : null,
+        longitude: hasSavedLocation ? lng : null,
       });
 
       if (profile.mobile) {
@@ -96,6 +106,9 @@ const Profile = () => {
           reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
         ).toFixed(1)
       : 0;
+  const hasSelectedMapLocation =
+    Number.isFinite(Number(selectedLocation.latitude)) &&
+    Number.isFinite(Number(selectedLocation.longitude));
 
   if (!profile) return null;
 
@@ -290,9 +303,11 @@ const Profile = () => {
                               height: "250px",
                             }}
                             center={mapCenter}
-                            zoom={12}
+                            zoom={hasSelectedMapLocation ? 12 : DEFAULT_US_MAP_ZOOM}
                           >
-                            <Marker position={mapCenter} draggable />
+                            {hasSelectedMapLocation && (
+                              <Marker position={mapCenter} draggable />
+                            )}
                           </GoogleMap>
                         </div>
                       </div>

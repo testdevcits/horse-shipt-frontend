@@ -519,6 +519,26 @@ const Step3HorseInfo = ({
               </p>
             )}
           </div>
+
+          {!isEditMode && horse?.selectedHorseId === "new" && (
+            <div className="flex justify-end border-t border-gray-100 pt-4">
+              <button
+                type="button"
+                onClick={() => handleSaveHorse(idx)}
+                disabled={savingHorseIdx !== null}
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-[#BF9B53] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#a7863e] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {savingHorseIdx === idx ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    Saving Horse...
+                  </>
+                ) : (
+                  "Save Horse"
+                )}
+              </button>
+            </div>
+          )}
             </>
           )}
         </div>

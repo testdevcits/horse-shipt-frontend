@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import Toast from "../components/common/Toast";
+import PageLoader from "../components/common/PageLoader";
 
 const ProtectedRoute = ({ children, role, redirectPath = "/login" }) => {
   const { user, token, logout } = useAuth();
@@ -38,12 +39,7 @@ const ProtectedRoute = ({ children, role, redirectPath = "/login" }) => {
 
   // Loading indicator while checking auth
   if (checking) {
-    return (
-      <div className="flex justify-center items-center min-h-screen text-gray-600">
-        <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
-        <p className="mt-3 text-sm">Checking access...</p>
-      </div>
-    );
+    return <PageLoader text="Checking access..." fullScreen />;
   }
 
   // Redirect to login if not authenticated

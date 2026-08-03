@@ -13,6 +13,9 @@ const ShipperReviewCard = ({ shipper }) => {
   const ratingValue = Number(shipper.rating || 0);
   const hasCustomerReviews = Number(shipper.reviewCount || 0) > 0;
   const hasGoogleReviewLink = Boolean(shipper.googleReviewLink);
+  const preferredAreas = Array.isArray(shipper.preferredAreas)
+    ? shipper.preferredAreas.filter((area) => area?.locationName)
+    : [];
 
   const handleClick = () => {
     navigate(`/customer/shipper-profile/${shipper.id}`);
@@ -170,6 +173,24 @@ const ShipperReviewCard = ({ shipper }) => {
             {shipper.region || "Available"}
           </span>
         </div>
+        {preferredAreas.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {preferredAreas.slice(0, 3).map((area) => (
+              <span
+                key={area.id || area._id || area.locationName}
+                className="inline-flex items-center bg-[#F5EFE2] px-2 py-1 text-[10px] font-semibold text-[#735D32]"
+              >
+                {area.locationName}
+                {area.radiusKm ? ` (${area.radiusKm} km)` : ""}
+              </span>
+            ))}
+            {preferredAreas.length > 3 && (
+              <span className="inline-flex items-center bg-gray-100 px-2 py-1 text-[10px] font-semibold text-gray-600">
+                +{preferredAreas.length - 3} more
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

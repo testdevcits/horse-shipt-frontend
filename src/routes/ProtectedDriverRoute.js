@@ -1,17 +1,14 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useDriverAuth } from "../contexts/DriverAuthContext";
+import PageLoader from "../components/common/PageLoader";
 
 const ProtectedDriverRoute = ({ children, redirectPath = "/driver/login" }) => {
   const { driver, token, loading } = useDriverAuth();
 
   // While auth state is loading, show a loader
   if (loading) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-screen text-gray-600">
-        <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-700 rounded-full animate-spin"></div>
-      </div>
-    );
+    return <PageLoader text="Checking access..." fullScreen />;
   }
 
   // Not authenticated → redirect to login

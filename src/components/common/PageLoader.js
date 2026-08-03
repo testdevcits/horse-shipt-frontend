@@ -16,9 +16,11 @@ const PageLoader = ({
   text = "Loading...",
   fullScreen = false,
   color = "#BF9B53",
+  size = 18,
+  overlay = false,
   variant = "skeleton",
 }) => {
-  if (!fullScreen && variant === "skeleton") {
+  if (!fullScreen && !overlay && variant === "skeleton") {
     const lowerText = String(text || "").toLowerCase();
 
     if (lowerText.includes("detail") || lowerText.includes("profile")) {
@@ -78,37 +80,40 @@ const PageLoader = ({
   }
 
   const cubes = Array.from({ length: 9 });
-  const loaderSize = 18;
+  const loaderSize = size;
+  const wrapperClass = overlay
+    ? "absolute inset-0 z-40 min-h-full bg-white/80"
+    : fullScreen
+    ? "fixed inset-0 z-50 min-h-screen bg-white/90"
+    : "w-full min-h-[70vh]";
+  const contentClass = overlay ? "min-h-[240px] -translate-y-4" : "";
+  const textClass = overlay ? "text-systemText" : "text-systemText";
 
   return (
     <div
-      className={`flex flex-col items-center justify-center font-montserrat text-center ${
-        fullScreen
-          ? "fixed inset-0 z-50 min-h-screen bg-white/90"
-          : "w-full min-h-[70vh]"
-      }`}
+      className={`flex flex-col items-center justify-center font-montserrat text-center ${wrapperClass}`}
     >
-      {/* Cube Grid Loader */}
-      <div
-        className={fullScreen ? "cube-loader-fullscreen" : "cube-loader-root"}
-        style={{ "--cube-size": `${loaderSize}px`, "--cube-color": color }}
-      >
-        <span className="sr-only">Loading…</span>
-        <div className="cube-grid">
-          {cubes.map((_, i) => (
-            <div
-              key={i}
-              className="cube"
-              style={{ animationDelay: `${i * 0.12}s` }}
-            />
-          ))}
+      <div className={`flex flex-col items-center ${contentClass}`}>
+        <div
+          className={fullScreen ? "cube-loader-fullscreen" : "cube-loader-root"}
+          style={{ "--cube-size": `${loaderSize}px`, "--cube-color": color }}
+        >
+          <span className="sr-only">Loading…</span>
+          <div className="cube-grid">
+            {cubes.map((_, i) => (
+              <div
+                key={i}
+                className="cube"
+                style={{ animationDelay: `${i * 0.12}s` }}
+              />
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Loader Text */}
-      {text && (
-        <p className="mt-4 text-systemText text-sm sm:text-base">{text}</p>
-      )}
+        {text && (
+          <p className={`mt-4 text-sm sm:text-base ${textClass}`}>{text}</p>
+        )}
+      </div>
     </div>
   );
 };

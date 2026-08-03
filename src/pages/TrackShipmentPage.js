@@ -17,6 +17,7 @@ import {
   FiMapPin,
 } from "react-icons/fi";
 import { FaTruck } from "react-icons/fa";
+import { DEFAULT_US_MAP_CENTER } from "../constants/mapDefaults";
 
 /* ─────────────────────────────────────────
    HELPERS
@@ -503,9 +504,7 @@ const TrackShipmentPage = () => {
     ? { lat: delivery.lat, lng: delivery.lng }
     : null;
 
-  const mapCenter = driverPos ||
-    pickupPos ||
-    deliveryPos || { lat: 22.9734, lng: 78.6569 };
+  const mapCenter = driverPos || pickupPos || deliveryPos || DEFAULT_US_MAP_CENTER;
 
   const statusMap = {
     inTransit: {

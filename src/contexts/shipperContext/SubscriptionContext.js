@@ -236,6 +236,20 @@ export const SubscriptionProvider = ({ children }) => {
         }
       );
 
+      if (res.data?.success) {
+        setSubscription(
+          normalizeSubscriptionData({
+            data: {
+              ...res.data.data,
+              status: res.data.data?.status,
+              hasAccess: ["active", "trialing", "past_due"].includes(
+                res.data.data?.status
+              ),
+            },
+          })
+        );
+      }
+
       // refresh
       await getMySubscription();
       await getSubscriptionPlan();

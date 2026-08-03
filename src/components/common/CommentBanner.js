@@ -4,6 +4,16 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useShipperProfile } from "../../contexts/ShipperProfileContext";
 import logo from "../../assets/images/profileImage.png"; // default fallback
 
+const IMAGE_ACCEPT = "image/jpeg,image/jpg,image/png,image/webp,image/svg+xml";
+const SUPPORTED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/svg+xml",
+]);
+const SUPPORTED_FORMAT_LABEL = "JPG, PNG, WebP, or SVG";
+
 const CommentBanner = () => {
   const { user } = useAuth();
   const { profile, updateProfileImage, updateBannerImage, loading } =
@@ -18,13 +28,25 @@ const CommentBanner = () => {
   const handleBannerChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!SUPPORTED_IMAGE_TYPES.has(file.type)) {
+      await updateBannerImage(null, SUPPORTED_FORMAT_LABEL);
+      e.target.value = "";
+      return;
+    }
     await updateBannerImage(file);
+    e.target.value = "";
   };
 
   const handleProfileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!SUPPORTED_IMAGE_TYPES.has(file.type)) {
+      await updateProfileImage(null, SUPPORTED_FORMAT_LABEL);
+      e.target.value = "";
+      return;
+    }
     await updateProfileImage(file);
+    e.target.value = "";
   };
 
   return (
@@ -54,11 +76,14 @@ const CommentBanner = () => {
         </button>
         <input
           type="file"
-          accept="image/*"
+          accept={IMAGE_ACCEPT}
           ref={bannerInputRef}
           onChange={handleBannerChange}
           className="hidden"
         />
+        <p className="mt-1 text-right text-[10px] font-semibold text-white drop-shadow">
+          {SUPPORTED_FORMAT_LABEL}
+        </p>
       </div>
 
       {/* Profile Card */}
@@ -85,7 +110,7 @@ const CommentBanner = () => {
             </button>
             <input
               type="file"
-              accept="image/*"
+              accept={IMAGE_ACCEPT}
               ref={profileInputRef}
               onChange={handleProfileChange}
               className="hidden"

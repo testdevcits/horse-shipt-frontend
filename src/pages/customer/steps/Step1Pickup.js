@@ -1,16 +1,14 @@
 import React, { useRef, useEffect, useCallback } from "react";
 import { GoogleMap, Autocomplete, Marker } from "@react-google-maps/api";
 import DateInput from "../../../components/common/DateInput";
+import { DEFAULT_US_MAP_CENTER } from "../../../constants/mapDefaults";
 
 const containerStyle = {
   width: "100%",
   height: "350px",
 };
 
-const defaultCenter = {
-  lat: 39.8283,
-  lng: -98.5795,
-};
+const defaultCenter = DEFAULT_US_MAP_CENTER;
 
 const Step1Pickup = ({
   pickupLocation,

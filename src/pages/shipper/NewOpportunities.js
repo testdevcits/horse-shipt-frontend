@@ -6,6 +6,7 @@ import { MdFilterList } from "react-icons/md";
 
 import { useShipperShipment } from "../../contexts/shipperContext/ShipperShipmentContext";
 import { useShipperInvitations } from "../../contexts/shipperContext/ShipperInvitationContext";
+import { useShipperPreferredArea } from "../../contexts/shipperContext/ShipperPreferredAreaContext";
 import ShipmentCard from "./ShipmentCard";
 import ShipmentMap from "./ShipmentMap";
 import PageLoader from "../../components/common/PageLoader";
@@ -17,6 +18,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
   const [location, setLocation] = useState(undefined);
 
   const [filters, setFilters] = useState({
+    matchMode: "preferred",
     pickupDistance: "",
     dropoffDistance: "",
     stallSize: "",
@@ -35,6 +37,12 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
     fetchInvitations,
     loading: invitationLoading,
   } = useShipperInvitations();
+  const {
+    preferredAreas,
+    fetchPreferredAreas,
+    hasFetchedPreferredAreas,
+    loading: preferredAreaLoading,
+  } = useShipperPreferredArea();
 
   const fetchedOnce = useRef(false);
   const lastFiltersRef = useRef("");
@@ -57,14 +65,44 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
 
   useEffect(() => {
     fetchInvitations();
-  }, [fetchInvitations]);
+    fetchPreferredAreas();
+  }, [fetchInvitations, fetchPreferredAreas]);
 
   useEffect(() => {
-    if (location === undefined || fetchedOnce.current) return;
-    getAvailableShipments({ lat: location?.lat, lng: location?.lng });
+    if (!hasFetchedPreferredAreas) return;
+    setFilters((current) => {
+      if (preferredAreas.length > 0 || current.matchMode !== "preferred") {
+        return current;
+      }
+      return { ...current, matchMode: "all" };
+    });
+  }, [hasFetchedPreferredAreas, preferredAreas.length]);
+
+  useEffect(() => {
+    if (
+      location === undefined ||
+      !hasFetchedPreferredAreas ||
+      fetchedOnce.current
+    ) {
+      return;
+    }
+
+    const usePreferredAreas = preferredAreas.length > 0;
+    getAvailableShipments({
+      ...(usePreferredAreas ? { preferredAreaOnly: true } : {}),
+      ...(!usePreferredAreas && location
+        ? { lat: location.lat, lng: location.lng }
+        : {}),
+    });
     getAvailableShipmentsForMap(1, 5);
     fetchedOnce.current = true;
-  }, [location, getAvailableShipments, getAvailableShipmentsForMap]);
+  }, [
+    location,
+    hasFetchedPreferredAreas,
+    preferredAreas.length,
+    getAvailableShipments,
+    getAvailableShipmentsForMap,
+  ]);
 
   const invitedShipments = useMemo(
     () =>
@@ -109,7 +147,9 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
   const filteredShipments = combinedShipments.filter((s) =>
     `${s.pickupLocation || ""} ${s.deliveryLocation || ""} ${
       s.shipmentCode || ""
-    }`
+    } ${(s.matchedPreferredAreas || [])
+      .map((area) => area.locationName)
+      .join(" ")}`
       .toLowerCase()
       .includes(search.toLowerCase())
   );
@@ -121,30 +161,49 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
     const cleanFilters = Object.fromEntries(
       Object.entries(filters).filter(([, v]) => v !== "")
     );
-    const key = JSON.stringify(cleanFilters);
+    const matchMode = cleanFilters.matchMode || "all";
+    delete cleanFilters.matchMode;
+    const key = JSON.stringify({ ...cleanFilters, matchMode });
     if (lastFiltersRef.current === key) return;
     lastFiltersRef.current = key;
     getAvailableShipments({
       ...cleanFilters,
-      lat: location?.lat,
-      lng: location?.lng,
+      ...(matchMode === "preferred" ? { preferredAreaOnly: true } : {}),
+      ...(matchMode === "nearby" && location
+        ? { lat: location.lat, lng: location.lng }
+        : {}),
     });
     setShowMobileFilters(false);
   };
 
   const resetFilters = () => {
     setFilters({
+      matchMode: preferredAreas.length > 0 ? "preferred" : "all",
       pickupDistance: "",
       dropoffDistance: "",
       stallSize: "",
       minHorses: "",
     });
     lastFiltersRef.current = "";
-    getAvailableShipments({ lat: location?.lat, lng: location?.lng });
+    getAvailableShipments({
+      ...(preferredAreas.length > 0 ? { preferredAreaOnly: true } : {}),
+      ...(preferredAreas.length === 0 && location
+        ? { lat: location.lat, lng: location.lng }
+        : {}),
+    });
   };
 
-  const hasActiveFilters = Object.values(filters).some((v) => v !== "");
-  const isLoading = loading || invitationLoading || location === undefined;
+  const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
+    const defaultMatchMode = preferredAreas.length > 0 ? "preferred" : "all";
+    if (key === "matchMode") return value !== defaultMatchMode;
+    return value !== "";
+  });
+  const isLoading =
+    loading ||
+    invitationLoading ||
+    preferredAreaLoading ||
+    location === undefined ||
+    !hasFetchedPreferredAreas;
   const noData = !isLoading && filteredShipments.length === 0;
 
   /* ── shared input class ─────────────────────────────────────── */
@@ -229,6 +288,17 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             Filter By:
           </span>
 
+          <select
+            name="matchMode"
+            value={filters.matchMode}
+            onChange={handleFilterChange}
+            className={`${inputCls} h-[40px] w-[175px]`}
+          >
+            <option value="preferred">Preferred Areas</option>
+            <option value="nearby">Near My Location</option>
+            <option value="all">All Open Shipments</option>
+          </select>
+
           <input
             type="number"
             name="pickupDistance"
@@ -278,6 +348,16 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
       {/* ── MOBILE FILTERS PANEL ── */}
       {showMobileFilters && (
         <div className="md:hidden bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+          <select
+            name="matchMode"
+            value={filters.matchMode}
+            onChange={handleFilterChange}
+            className={`${inputCls} w-full`}
+          >
+            <option value="preferred">Preferred Areas</option>
+            <option value="nearby">Near My Location</option>
+            <option value="all">All Open Shipments</option>
+          </select>
           <input
             type="number"
             name="pickupDistance"
@@ -355,6 +435,12 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             <>
               {" "}
               matching "<span className="text-system-primary">{search}</span>"
+            </>
+          )}
+          {filters.matchMode === "preferred" && preferredAreas.length > 0 && (
+            <>
+              {" "}
+              in your preferred areas
             </>
           )}
         </p>

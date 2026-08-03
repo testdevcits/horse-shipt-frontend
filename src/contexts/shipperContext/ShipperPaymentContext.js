@@ -41,8 +41,8 @@ export const ShipperPaymentProvider = ({ children }) => {
 
   // ================= ENABLE PAYMENTS =================
   const enablePayments = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
+    if (!token) throw new Error("Authentication token is missing");
+    setError(null);
     try {
       await axios.post(
         `${API_BASE_URL}/shipper/stripe/create-account`,
@@ -54,13 +54,19 @@ export const ShipperPaymentProvider = ({ children }) => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      if (res.data?.onboardingUrl)
-        window.location.href = res.data.onboardingUrl;
+      if (!res.data?.onboardingUrl) {
+        throw new Error("Stripe onboarding link was not returned");
+      }
+      return res.data.onboardingUrl;
     } catch (err) {
       console.error("Enable payments error:", err);
-      setError(err?.response?.data?.message);
-    } finally {
-      setLoading(false);
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to start Stripe onboarding";
+      setError(message);
+      throw new Error(message);
     }
   }, [token]);
 

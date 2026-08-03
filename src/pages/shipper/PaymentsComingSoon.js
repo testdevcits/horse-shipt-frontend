@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useShipperPayments } from "../../contexts/shipperContext/ShipperPaymentContext";
 import PageLoader from "../../components/common/PageLoader";
 import comingSoonImg from "../../assets/images/defultlogo.png";
+import Toast from "../../components/common/Toast";
 
 const CheckIcon = () => (
   <svg
@@ -221,11 +222,13 @@ const PaymentsSettings = () => {
 
   // Show overlay then call enablePayments (which triggers redirect)
   const handleCta = async () => {
-    setRedirecting(true);
     try {
-      await enablePayments();
-    } catch {
-      setRedirecting(false); // hide overlay if API call fails
+      const onboardingUrl = await enablePayments();
+      setRedirecting(true);
+      window.location.assign(onboardingUrl);
+    } catch (err) {
+      setRedirecting(false);
+      Toast.error(err?.message || "Failed to start payout setup");
     }
   };
 

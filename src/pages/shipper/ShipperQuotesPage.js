@@ -129,50 +129,6 @@ const tabIcons = {
 
 const ContractPreview = ({ quote }) => {
   const contractUrl = quote?.contract?.url;
-  const [previewUrl, setPreviewUrl] = useState("");
-  const [previewError, setPreviewError] = useState("");
-  const [previewLoading, setPreviewLoading] = useState(false);
-
-  useEffect(() => {
-    if (!contractUrl || !isPdfFile(contractUrl)) {
-      setPreviewUrl("");
-      setPreviewError("");
-      return undefined;
-    }
-
-    let objectUrl = "";
-    let cancelled = false;
-
-    const loadPreview = async () => {
-      setPreviewLoading(true);
-      setPreviewError("");
-
-      try {
-        const res = await fetch(contractUrl);
-        if (!res.ok) throw new Error("Failed to load contract");
-
-        const blob = await res.blob();
-        objectUrl = URL.createObjectURL(
-          new Blob([blob], { type: "application/pdf" })
-        );
-
-        if (!cancelled) setPreviewUrl(objectUrl);
-      } catch (error) {
-        if (!cancelled) {
-          setPreviewError("Preview could not be loaded. Open the contract in a new tab.");
-        }
-      } finally {
-        if (!cancelled) setPreviewLoading(false);
-      }
-    };
-
-    loadPreview();
-
-    return () => {
-      cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [contractUrl]);
 
   if (!contractUrl) return null;
 
@@ -192,29 +148,9 @@ const ContractPreview = ({ quote }) => {
         </a>
       </div>
 
-      {previewLoading && (
-        <div className="h-[420px] flex items-center justify-center text-sm text-gray-500 bg-white">
-          Loading contract preview...
-        </div>
-      )}
-
-      {!previewLoading && previewError && (
-        <div className="h-[240px] flex flex-col items-center justify-center gap-3 text-center bg-white px-4">
-          <p className="text-sm text-gray-600">{previewError}</p>
-          <a
-            href={contractUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2 bg-[#BF9B53] text-white text-sm font-semibold"
-          >
-            Open Contract
-          </a>
-        </div>
-      )}
-
-      {!previewLoading && !previewError && isPdfFile(contractUrl) && previewUrl && (
+      {isPdfFile(contractUrl) && (
         <iframe
-          src={previewUrl}
+          src={contractUrl}
           title={`Contract ${quote._id}`}
           className="w-full h-[520px] bg-white"
         />

@@ -38,7 +38,7 @@ const defaultHorse = {
   otherDocuments: null,
   generalInfo: "",
   images: [],
-  selectedHorseId: "",
+  selectedHorseId: "new",
   notes: "",
   notesLog: [],
 };

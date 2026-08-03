@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { FiMapPin, FiRefreshCw, FiStar, FiCheck } from "react-icons/fi";
 import { MdEmail, MdSend } from "react-icons/md";
+import { HiSearch } from "react-icons/hi";
 import { useCustomerMatching } from "../../contexts/customerContext/CustomerMatchingContext";
 import { useAuth } from "../../contexts/AuthContext";
 import Toast from "../../components/common/Toast";
@@ -10,6 +11,10 @@ import PageLoader from "../../components/common/PageLoader";
 import { API_BASE_URL } from "../../config/api";
 
 const getProfileData = (profile) => profile?.data || profile;
+const getPreferredAreas = (profile) =>
+  Array.isArray(profile?.preferredAreas)
+    ? profile.preferredAreas.filter((area) => area?.locationName)
+    : [];
 
 // ─── Main Component ───────────────────────────────────────────────────────
 const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
@@ -30,6 +35,7 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
 
   const [profiles, setProfiles] = useState([]);
   const [profilesLoading, setProfilesLoading] = useState(false);
+  const [search, setSearch] = useState("");
 
   // Fetch matching shippers on mount
   useEffect(() => {
@@ -127,6 +133,27 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
     return invitedShippers.includes(id?.toString());
   };
 
+  const filteredProfiles = profiles.filter((profile) => {
+    const searchText = search.trim().toLowerCase();
+    if (!searchText) return true;
+
+    const areaText = getPreferredAreas(profile)
+      .map((area) => `${area.locationName || ""} ${area.radiusKm || ""}`)
+      .join(" ");
+
+    return [
+      profile.name,
+      profile.companyName,
+      profile.region,
+      profile.locale?.address,
+      areaText,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(searchText);
+  });
+
   if (!shipmentId) {
     return (
       <div className="bg-white border border-gray-200 rounded p-4 text-center text-gray-500">
@@ -204,6 +231,20 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
             </div>
           </div>
         )}
+
+        <div className="relative mt-4">
+          <HiSearch
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+            size={18}
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search matching shippers by name, city, state, or coverage area..."
+            className="h-11 w-full rounded border border-gray-200 bg-gray-50 pl-10 pr-3 text-sm font-medium text-gray-800 outline-none transition focus:border-system-primary focus:bg-white focus:ring-2 focus:ring-system-primary/20"
+          />
+        </div>
       </div>
 
       {/* ── Loading ── */}
@@ -216,7 +257,7 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
       {/* ── Empty ── */}
       {!matchingLoading &&
         !profilesLoading &&
-        profiles.length === 0 &&
+        filteredProfiles.length === 0 &&
         matchingShippers.length === 0 && (
           <div className="bg-white border border-dashed border-gray-300 rounded p-8 text-center">
             <div className="w-12 h-12 mx-auto rounded-full bg-system-primary/10 text-system-primary flex items-center justify-center">
@@ -236,15 +277,26 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
         <>
           <p className="text-sm text-gray-600">
             <span className="font-semibold text-gray-800">
-              {profiles.length}
+              {filteredProfiles.length}
             </span>{" "}
-            shipper{profiles.length !== 1 ? "s" : ""} matched
+            shipper{filteredProfiles.length !== 1 ? "s" : ""} matched
           </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {profiles.map((profile) => {
+          {filteredProfiles.length === 0 ? (
+            <div className="bg-white border border-dashed border-gray-300 rounded p-8 text-center">
+              <h3 className="text-lg font-semibold text-gray-900">
+                No shippers match this search
+              </h3>
+              <p className="mt-2 text-sm text-gray-600">
+                Try another city, state, or coverage area.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {filteredProfiles.map((profile) => {
               const profileId = profile._id || profile.id;
               const alreadyInvited = isInvited(profileId);
+              const preferredAreas = getPreferredAreas(profile);
 
               return (
                 <div
@@ -287,6 +339,24 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
                           />
                           <span>{profile.region || "Region not added"}</span>
                         </p>
+                        {preferredAreas.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pl-6">
+                            {preferredAreas.slice(0, 4).map((area) => (
+                              <span
+                                key={area.id || area._id || area.locationName}
+                                className="inline-flex rounded bg-[#F5EFE2] px-2 py-1 text-[11px] font-semibold text-[#735D32]"
+                              >
+                                {area.locationName}
+                                {area.radiusKm ? ` (${area.radiusKm} km)` : ""}
+                              </span>
+                            ))}
+                            {preferredAreas.length > 4 && (
+                              <span className="inline-flex rounded bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-600">
+                                +{preferredAreas.length - 4} more
+                              </span>
+                            )}
+                          </div>
+                        )}
                         <p className="flex items-center gap-2 break-all">
                           <MdEmail
                             className="text-system-primary shrink-0"
@@ -372,8 +442,9 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
                   </div>
                 </div>
               );
-            })}
-          </div>
+              })}
+            </div>
+          )}
         </>
       )}
     </div>

@@ -99,8 +99,17 @@ export const ShipperProfileProvider = ({ children }) => {
   // -------------------------
   // Update Profile Image
   // -------------------------
-  const updateProfileImage = async (file) => {
-    if (!token || !file) return { success: false };
+  const updateProfileImage = async (file, supportedFormats = "") => {
+    if (!token) return { success: false };
+    if (!file) {
+      showToast(
+        supportedFormats
+          ? `Unsupported image format. Please upload ${supportedFormats}.`
+          : "Please choose an image to upload.",
+        "error"
+      );
+      return { success: false };
+    }
 
     const formData = new FormData();
     formData.append("image", file);
@@ -128,7 +137,10 @@ export const ShipperProfileProvider = ({ children }) => {
       return { success: true, imageUrl: finalUrl };
     } catch (err) {
       console.error("Profile Image Update Error:", err);
-      showToast("Failed to update profile image", "error");
+      showToast(
+        err.response?.data?.message || "Failed to update profile image",
+        "error"
+      );
       return { success: false };
     } finally {
       setLoading(false);
@@ -138,8 +150,17 @@ export const ShipperProfileProvider = ({ children }) => {
   // -------------------------
   // Update Banner Image
   // -------------------------
-  const updateBannerImage = async (file) => {
-    if (!token || !file) return { success: false };
+  const updateBannerImage = async (file, supportedFormats = "") => {
+    if (!token) return { success: false };
+    if (!file) {
+      showToast(
+        supportedFormats
+          ? `Unsupported image format. Please upload ${supportedFormats}.`
+          : "Please choose a banner image to upload.",
+        "error"
+      );
+      return { success: false };
+    }
 
     const formData = new FormData();
     formData.append("image", file);
@@ -167,7 +188,10 @@ export const ShipperProfileProvider = ({ children }) => {
       return { success: true, imageUrl: finalUrl };
     } catch (err) {
       console.error("Banner Image Update Error:", err);
-      showToast("Failed to update banner image", "error");
+      showToast(
+        err.response?.data?.message || "Failed to update banner image",
+        "error"
+      );
       return { success: false };
     } finally {
       setLoading(false);

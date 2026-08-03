@@ -416,6 +416,21 @@ export const CustomerShipmentProvider = ({ children }) => {
       return { success: false, message: errorMsg };
     } catch (err) {
       console.error("Create horse error:", err);
+      const existingHorse = err.response?.data?.horse;
+      if (err.response?.status === 409 && existingHorse?._id) {
+        setMyHorses((prev) => {
+          const exists = prev.some((horse) => horse._id === existingHorse._id);
+          return exists ? prev : [existingHorse, ...prev];
+        });
+        setHorseError(null);
+        return {
+          success: true,
+          horse: existingHorse,
+          message:
+            err.response?.data?.message ||
+            "Horse already exists and has been selected",
+        };
+      }
       const errorMsg =
         err.response?.data?.message || err.message || "Failed to create horse";
       setHorseError(errorMsg);

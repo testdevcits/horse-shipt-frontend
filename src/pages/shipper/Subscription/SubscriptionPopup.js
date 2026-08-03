@@ -24,6 +24,8 @@ const FEATURES = [
   "Unlimited shipments & quotes",
 ];
 
+const DISMISS_KEY = "horseShipt.subscriptionPopupDismissed";
+
 // =====================================================
 // HELPER — format interval label
 // e.g. "day" → "day", "month" → "month", "week" → "week"
@@ -66,6 +68,10 @@ const SubscriptionPopup = () => {
   const [dismissed, setDismissed] = useState(false);
   const [selectedPlanType, setSelectedPlanType] = useState("monthly");
 
+  useEffect(() => {
+    setDismissed(sessionStorage.getItem(DISMISS_KEY) === "true");
+  }, []);
+
   // ── Fetch payment status when popup opens ──
   useEffect(() => {
     if (isOpen) fetchPaymentStatus();
@@ -82,6 +88,7 @@ const SubscriptionPopup = () => {
         return;
       }
 
+      sessionStorage.removeItem(DISMISS_KEY);
       setDismissed(false);
       setIsOpen(true);
     };
@@ -145,6 +152,7 @@ const SubscriptionPopup = () => {
       null
     );
   })();
+  const plansUnavailable = !planLoading && availablePlans.length === 0;
 
   const trialDays = plan?.data?.trialDays ?? plan?.trialDays ?? 0;
   const trialActive =
@@ -258,6 +266,7 @@ const SubscriptionPopup = () => {
 
   const closePopup = () => {
     if (processing) return;
+    sessionStorage.setItem(DISMISS_KEY, "true");
     setDismissed(true);
     setIsOpen(false);
     setShowCardForm(false);
@@ -323,6 +332,12 @@ const SubscriptionPopup = () => {
                 )}
               </div>
             </div>
+
+            {plansUnavailable && (
+              <div className="mt-3 rounded-lg bg-white/20 px-3 py-2 text-xs font-semibold">
+                Subscription plan is not available right now.
+              </div>
+            )}
 
             {/* Trial badge */}
             <div className="flex items-center gap-2 flex-wrap">
@@ -520,13 +535,18 @@ const SubscriptionPopup = () => {
                     handleSubscribe();
                   }
                 }}
-                disabled={processing || subLoading || !planData}
+                disabled={processing || subLoading || !planData || plansUnavailable}
                 className="w-full py-3.5 bg-gradient-to-r from-[#BF9B53] to-[#a8863e] text-white font-bold rounded-xl disabled:opacity-50 hover:shadow-lg hover:from-[#c9a55e] hover:to-[#BF9B53] transition-all text-sm flex items-center justify-center gap-2"
               >
                 {processing || subLoading ? (
                   <>
                     <Loader size={15} className="animate-spin" />
                     Processing...
+                  </>
+                ) : plansUnavailable ? (
+                  <>
+                    <AlertCircle size={15} />
+                    Plan unavailable
                   </>
                 ) : !planData ? (
                   <>

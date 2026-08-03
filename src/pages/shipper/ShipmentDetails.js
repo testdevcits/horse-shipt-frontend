@@ -26,6 +26,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import ImageSwiper from "../../components/common/ImageSwiper";
+import PageLoader from "../../components/common/PageLoader";
 
 /**
  * ============================================================
@@ -382,21 +383,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading || invitationLoading || !detailLookupComplete) {
-    return (
-      <div className="flex items-center font-montserrat justify-center h-screen">
-        <div className="text-center">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-sm bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] flex items-center justify-center">
-            <div className="text-4xl animate-bounce">🏇</div>
-          </div>
-          <p className="text-gray-700 font-semibold text-lg">
-            Loading shipment details...
-          </p>
-          <p className="text-gray-500 text-sm mt-2">
-            Please wait while we prepare the information
-          </p>
-        </div>
-      </div>
-    );
+    return <PageLoader text="Loading shipment details..." />;
   }
 
   // ── Not found ─────────────────────────────────────────────────────────────
