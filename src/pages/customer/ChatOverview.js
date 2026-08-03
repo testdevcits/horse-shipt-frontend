@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
-import { FiCheck, FiEdit2, FiImage, FiLock, FiX } from "react-icons/fi";
+import { FiCheck, FiEdit2, FiImage, FiLock, FiTrash2, FiX } from "react-icons/fi";
 import PageLoader from "../../components/common/PageLoader";
 import { useCustomerChat } from "../../contexts/customerContext/CustomerChatContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -162,12 +162,24 @@ const CustomerChatOverview = () => {
       );
     };
 
+    const handleMessageDeleted = (msg) => {
+      const msgRoomId =
+        typeof msg.chatRoom === "object" ? msg.chatRoom?._id : msg.chatRoom;
+      if (msgRoomId?.toString() !== roomId.toString()) return;
+
+      setMessages((prev) =>
+        prev.map((item) => (item._id === msg._id ? { ...item, ...msg } : item))
+      );
+    };
+
     socket.on("receiveMessage", handleReceiveMessage);
     socket.on("messageEdited", handleMessageEdited);
+    socket.on("messageDeleted", handleMessageDeleted);
 
     return () => {
       socket.off("receiveMessage", handleReceiveMessage);
       socket.off("messageEdited", handleMessageEdited);
+      socket.off("messageDeleted", handleMessageDeleted);
     };
   }, [roomId]);
 
@@ -244,8 +256,15 @@ const CustomerChatOverview = () => {
   };
 
   const canEditMessage = (msg) => {
-    if (isChatLocked || !msg?._id || msg.senderRole !== "customer") return false;
+    if (isChatLocked || msg?.isDeleted || !msg?._id || msg.senderRole !== "customer") return false;
     if (!(msg.message || msg.text) || msg.media?.length) return false;
+    const createdAt = new Date(msg.createdAt || msg.time).getTime();
+    if (!createdAt || Number.isNaN(createdAt)) return false;
+    return now - createdAt <= 60 * 1000;
+  };
+
+  const canDeleteMessage = (msg) => {
+    if (isChatLocked || msg?.isDeleted || !msg?._id || msg.senderRole !== "customer") return false;
     const createdAt = new Date(msg.createdAt || msg.time).getTime();
     if (!createdAt || Number.isNaN(createdAt)) return false;
     return now - createdAt <= 60 * 1000;
@@ -282,6 +301,29 @@ const CustomerChatOverview = () => {
       cancelEditMessage();
     } catch (err) {
       Toast.error(err.response?.data?.message || "Failed to edit message");
+    }
+  };
+
+  const deleteMessage = async (msg) => {
+    if (!msg?._id || !roomId) return;
+    if (!window.confirm("Delete this message?")) return;
+
+    try {
+      const res = await axios.delete(
+        `${API_BASE_URL}/customer/chat/rooms/${roomId}/messages/${msg._id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const deletedMessage = res.data?.data;
+      if (deletedMessage) {
+        setMessages((prev) =>
+          prev.map((item) =>
+            item._id === deletedMessage._id ? { ...item, ...deletedMessage } : item
+          )
+        );
+      }
+      if (editingMessageId === msg._id) cancelEditMessage();
+    } catch (err) {
+      Toast.error(err.response?.data?.message || "Failed to delete message");
     }
   };
 
@@ -493,7 +535,9 @@ const CustomerChatOverview = () => {
                         : "bg-gray-200"
                     }`}
                   >
-                    {msg.media?.length > 0 && (
+                    {msg.isDeleted ? (
+                      <p className="italic opacity-80">This message was deleted</p>
+                    ) : msg.media?.length > 0 && (
                       <div className="space-y-2 mb-2">
                         {msg.media.map((item, idx) => (
                           <a
@@ -511,7 +555,7 @@ const CustomerChatOverview = () => {
                         ))}
                       </div>
                     )}
-                    {editingMessageId === msg._id ? (
+                    {!msg.isDeleted && editingMessageId === msg._id ? (
                       <div className="flex min-w-[260px] items-center gap-2">
                         <input
                           value={editMessageText}
@@ -541,7 +585,8 @@ const CustomerChatOverview = () => {
                         </button>
                       </div>
                     ) : (
-                      (msg.message || msg.text) && <p>{msg.message || msg.text}</p>
+                      !msg.isDeleted &&
+                        (msg.message || msg.text) && <p>{msg.message || msg.text}</p>
                     )}
                     <div className="mt-1 flex items-center justify-between gap-3 text-xs opacity-70">
                       <span>
@@ -552,17 +597,33 @@ const CustomerChatOverview = () => {
                             minute: "2-digit",
                           }
                         )}
-                        {msg.isEdited && " · edited"}
+                        {msg.isEdited && !msg.isDeleted && " · edited"}
+                        {msg.isDeleted && " · deleted"}
                       </span>
-                      {canEditMessage(msg) && editingMessageId !== msg._id && (
-                        <button
-                          type="button"
-                          onClick={() => startEditMessage(msg)}
-                          className="rounded p-1 hover:bg-white/20"
-                          title="Edit message"
-                        >
-                          <FiEdit2 size={13} />
-                        </button>
+                      {(canEditMessage(msg) || canDeleteMessage(msg)) &&
+                        editingMessageId !== msg._id && (
+                          <div className="flex items-center gap-1">
+                            {canEditMessage(msg) && (
+                              <button
+                                type="button"
+                                onClick={() => startEditMessage(msg)}
+                                className="rounded p-1 hover:bg-white/20"
+                                title="Edit message"
+                              >
+                                <FiEdit2 size={13} />
+                              </button>
+                            )}
+                            {canDeleteMessage(msg) && (
+                              <button
+                                type="button"
+                                onClick={() => deleteMessage(msg)}
+                                className="rounded p-1 hover:bg-white/20"
+                                title="Delete message"
+                              >
+                                <FiTrash2 size={13} />
+                              </button>
+                            )}
+                          </div>
                       )}
                     </div>
                   </div>
