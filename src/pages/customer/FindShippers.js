@@ -9,12 +9,19 @@ import { useAuth } from "../../contexts/AuthContext";
 import Toast from "../../components/common/Toast";
 import PageLoader from "../../components/common/PageLoader";
 import { API_BASE_URL } from "../../config/api";
+import defaultAvatar from "../../assets/images/default-avatar.jpg";
 
 const getProfileData = (profile) => profile?.data || profile;
 const getPreferredAreas = (profile) =>
   Array.isArray(profile?.preferredAreas)
     ? profile.preferredAreas.filter((area) => area?.locationName)
     : [];
+const getProfileImage = (profile) =>
+  profile?.profileImage?.url ||
+  profile?.profileImage ||
+  profile?.profilePicture?.url ||
+  profile?.profilePicture ||
+  defaultAvatar;
 
 // ─── Main Component ───────────────────────────────────────────────────────
 const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
@@ -306,9 +313,13 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
                   <div className="flex items-start gap-3">
                     {/* Avatar */}
                     <img
-                      src={profile.profileImage || "/default-avatar.png"}
+                      src={getProfileImage(profile)}
                       alt={profile.name || "Shipper"}
                       className="w-14 h-14 rounded-full object-cover border border-gray-200 shrink-0"
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = defaultAvatar;
+                      }}
                     />
 
                     {/* Content */}
