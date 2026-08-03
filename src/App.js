@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router } from "react-router-dom";
-import { LoadScript } from "@react-google-maps/api";
+import { useJsApiLoader } from "@react-google-maps/api";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
@@ -59,14 +59,20 @@ import { SocketStatusProvider } from "./contexts/SocketStatusContext";
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 const GOOGLE_LIBRARIES = ["places"];
 
+const GoogleMapsPreloader = () => {
+  useJsApiLoader({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "",
+    libraries: GOOGLE_LIBRARIES,
+  });
+
+  return null;
+};
+
 function App() {
   return (
     <Router>
       <ScrollToTop />
-      <LoadScript
-        googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
-        libraries={GOOGLE_LIBRARIES}
-      >
+      <GoogleMapsPreloader />
         <LegalProvider>
           <AuthProvider>
             <SocketStatusProvider>
@@ -140,7 +146,6 @@ function App() {
             </SocketStatusProvider>
           </AuthProvider>
         </LegalProvider>
-      </LoadScript>
     </Router>
   );
 }

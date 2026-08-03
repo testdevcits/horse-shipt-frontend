@@ -348,21 +348,7 @@ const ShipmentCard = ({
       {/* ── ACTIONS ── */}
       <div className="mt-5 flex flex-wrap gap-3">
         {/* Track only active/upcoming shipments. Completed shipments keep details only. */}
-        {quote.shipperContract?.url && (
-          <button
-            onClick={() =>
-              openQuoteDocument({
-                quote,
-                quoteId: quote._id,
-                documentType: "shipper",
-                token,
-              }).catch((error) => Toast.error(error.message))
-            }
-            className="h-[34px] min-w-[130px] rounded-[4px] bg-[#BF9B53] px-4 font-montserrat text-[12px] font-bold uppercase text-white transition hover:bg-tabActive"
-          >
-            View Contract
-          </button>
-        )}
+       
 
         {!isCancelled && !isCompleted && (
           <button

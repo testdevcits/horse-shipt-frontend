@@ -10,41 +10,45 @@ import ProtectedRoute from "./ProtectedRoute";
 import RedirectIfAuth from "../pages/auth/RedirectIfAuth";
 import { useAuth } from "../contexts/AuthContext";
 import MainLayout from "../layouts/MainLayout";
-import NotificationsPage from "../pages/shipper/NotificationsPage";
-import TruckDriverPage from "../pages/shipper/TruckDriverPage";
-
-import NewsletterSuccess from "../pages/NewsletterSuccess";
-import NewsletterError from "../pages/NewsletterError";
 
 // ---------------- Driver Auth ----------------
 import { DriverAuthProvider } from "../contexts/DriverAuthContext";
 import ProtectedDriverRoute from "./ProtectedDriverRoute";
-import CustomerChatOverview from "../pages/customer/ChatOverview";
-import ShipperQuotesPage from "../pages/shipper/ShipperQuotesPage";
-import MyHorses from "../pages/customer/MyHorses";
 import PageLoader from "../components/common/PageLoader";
-import GoogleReview from "../pages/shipper/GoogleReview";
-import CustomerShipperReviewPage from "../pages/customer/CustomerShipperReviewPage";
-import InviteShipmentPage from "../pages/InviteShipmentPage";
-import NewsletterVerificationPage from "../pages/NewsletterVerificationPage";
-import OAuthErrorPage from "../pages/auth/OAuthErrorPage";
-import TrackShipmentPage from "../pages/TrackShipmentPage";
-import AllShipments from "../pages/shipper/AllShipments";
-import InvitedShipments from "../pages/shipper/InvitedShipments";
 
 // ---------------- Auth Pages ----------------
 const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
 const SignupPage = lazy(() => import("../pages/auth/SignupPage"));
 const ForgotPasswordPage = lazy(() => import("../pages/auth/ForgotPasswordPage"));
 const OAuthSuccessPage = lazy(() => import("../pages/auth/OAuthSuccessPage"));
+const OAuthErrorPage = lazy(() => import("../pages/auth/OAuthErrorPage"));
 const PrivacyPage = lazy(() => import("../pages/PrivacyPage"));
 const TermsPage = lazy(() => import("../pages/TermsPage"));
+const InviteShipmentPage = lazy(() => import("../pages/InviteShipmentPage"));
+const NewsletterVerificationPage = lazy(() =>
+  import("../pages/NewsletterVerificationPage")
+);
+const NewsletterSuccess = lazy(() => import("../pages/NewsletterSuccess"));
+const NewsletterError = lazy(() => import("../pages/NewsletterError"));
+const TrackShipmentPage = lazy(() => import("../pages/TrackShipmentPage"));
 
 // ---------------- Shipper Pages ----------------
 const ShipperLayout = lazy(() => import("../layouts/ShipperLayout"));
 const ShipperDashboard = lazy(() => import("../pages/shipper/Dashboard"));
 const ShipperContract = lazy(() => import("../pages/shipper/Contract"));
 const ShipperProfile = lazy(() => import("../pages/shipper/Profile"));
+const NotificationsPage = lazy(() =>
+  import("../pages/shipper/NotificationsPage")
+);
+const TruckDriverPage = lazy(() => import("../pages/shipper/TruckDriverPage"));
+const ShipperQuotesPage = lazy(() =>
+  import("../pages/shipper/ShipperQuotesPage")
+);
+const GoogleReview = lazy(() => import("../pages/shipper/GoogleReview"));
+const AllShipments = lazy(() => import("../pages/shipper/AllShipments"));
+const InvitedShipments = lazy(() =>
+  import("../pages/shipper/InvitedShipments")
+);
 const ShipperReviewsPage = lazy(() =>
   import("../pages/shipper/ShipperReviewsPage")
 );
@@ -70,6 +74,13 @@ const CustomerProfile = lazy(() => import("../pages/customer/Profile"));
 const CustomerSettings = lazy(() => import("../pages/customer/Settings"));
 const NewShipment = lazy(() => import("../pages/customer/NewShipment"));
 const EditProfile = lazy(() => import("../pages/customer/EditProfile"));
+const CustomerChatOverview = lazy(() =>
+  import("../pages/customer/ChatOverview")
+);
+const MyHorses = lazy(() => import("../pages/customer/MyHorses"));
+const CustomerShipperReviewPage = lazy(() =>
+  import("../pages/customer/CustomerShipperReviewPage")
+);
 const MyShipmentDetails = lazy(() =>
   import("../pages/customer/MyShipmentDetails")
 );
