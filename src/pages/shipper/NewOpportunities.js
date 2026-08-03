@@ -18,7 +18,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
   const [location, setLocation] = useState(undefined);
 
   const [filters, setFilters] = useState({
-    matchMode: "preferred",
+    matchMode: "all",
     pickupDistance: "",
     dropoffDistance: "",
     stallSize: "",
@@ -87,12 +87,8 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
       return;
     }
 
-    const usePreferredAreas = preferredAreas.length > 0;
     getAvailableShipments({
-      ...(usePreferredAreas ? { preferredAreaOnly: true } : {}),
-      ...(!usePreferredAreas && location
-        ? { lat: location.lat, lng: location.lng }
-        : {}),
+      ...(location ? { lat: location.lat, lng: location.lng } : {}),
     });
     getAvailableShipmentsForMap(1, 5);
     fetchedOnce.current = true;
@@ -178,7 +174,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
 
   const resetFilters = () => {
     setFilters({
-      matchMode: preferredAreas.length > 0 ? "preferred" : "all",
+      matchMode: "all",
       pickupDistance: "",
       dropoffDistance: "",
       stallSize: "",
@@ -186,15 +182,12 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
     });
     lastFiltersRef.current = "";
     getAvailableShipments({
-      ...(preferredAreas.length > 0 ? { preferredAreaOnly: true } : {}),
-      ...(preferredAreas.length === 0 && location
-        ? { lat: location.lat, lng: location.lng }
-        : {}),
+      ...(location ? { lat: location.lat, lng: location.lng } : {}),
     });
   };
 
   const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
-    const defaultMatchMode = preferredAreas.length > 0 ? "preferred" : "all";
+    const defaultMatchMode = "all";
     if (key === "matchMode") return value !== defaultMatchMode;
     return value !== "";
   });
