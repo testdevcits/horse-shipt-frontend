@@ -4,6 +4,7 @@ import * as Yup from "yup";
 import Button from "../../components/common/Button";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
 import { useShipperPayments } from "../../contexts/shipperContext/ShipperPaymentContext";
+import { useSubscription } from "../../contexts/shipperContext/SubscriptionContext";
 import SignatureCanvas from "react-signature-canvas";
 import Toast from "../../components/common/Toast";
 import { FiX } from "react-icons/fi";
@@ -23,6 +24,11 @@ const OFFER_FORM_ID = "shipper-offer-submit-form";
 const OfferSubmitModal = ({ shipment, onClose, onSuccess }) => {
   const { addQuote, loading } = useShipperQuote();
   const { needsOnboarding } = useShipperPayments();
+  const {
+    hasAccess: hasSubscriptionAccess,
+    subscriptionReady,
+    loading: subscriptionLoading,
+  } = useSubscription();
   const [toast, setToast] = useState({ message: "", type: "", visible: false });
   const [sigPad, setSigPad] = useState(null);
   const [isSignatureDirty, setIsSignatureDirty] = useState(false);
@@ -68,6 +74,18 @@ const OfferSubmitModal = ({ shipment, onClose, onSuccess }) => {
   });
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    if (subscriptionLoading || !subscriptionReady) {
+      showToast("Please wait while we verify your subscription.", "error");
+      setSubmitting(false);
+      return;
+    }
+
+    if (!hasSubscriptionAccess) {
+      showToast("Please subscribe before submitting an offer.", "error");
+      setSubmitting(false);
+      return;
+    }
+
     if (needsOnboarding) {
       showToast(
         "Please complete Stripe onboarding before submitting offer",
