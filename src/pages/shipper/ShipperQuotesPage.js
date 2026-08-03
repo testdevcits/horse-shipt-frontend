@@ -32,8 +32,24 @@ const isCompletedQuote = (quote) =>
   quote?.shipment?.status === "delivered" ||
   quote?.shipment?.status === "completed";
 
-const isPdfFile = (url = "") =>
-  /\.pdf($|\?)/i.test(url) || url.toLowerCase().includes("/raw/upload/");
+const getQuoteDocumentUrl = (quoteId, documentType) =>
+  `${API_BASE_URL}/shipper/quotes/${quoteId}/documents/${documentType}`;
+
+const fetchQuoteDocumentUrl = async ({ quoteId, documentType, token }) => {
+  const response = await fetch(getQuoteDocumentUrl(quoteId, documentType), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) throw new Error("Unable to load contract");
+
+  const blob = await response.blob();
+  const contentType = response.headers.get("content-type") || blob.type || "";
+  if (!contentType.toLowerCase().includes("pdf")) {
+    throw new Error("Contract is not available as a valid PDF");
+  }
+
+  return URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+};
 
 const getHorseImages = (quote) =>
   (quote?.shipment?.horses || [])
@@ -127,8 +143,37 @@ const tabIcons = {
   pending: <RiRefreshLine size={14} />,
 };
 
-const ContractPreview = ({ quote }) => {
+const ContractPreview = ({ quote, token }) => {
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [error, setError] = useState("");
   const contractUrl = quote?.contract?.url;
+
+  useEffect(() => {
+    let objectUrl = "";
+    let active = true;
+
+    const loadContract = async () => {
+      try {
+        setError("");
+        const nextUrl = await fetchQuoteDocumentUrl({
+          quoteId: quote._id,
+          documentType: "generated",
+          token,
+        });
+        objectUrl = nextUrl;
+        if (active) setPreviewUrl(nextUrl);
+      } catch (err) {
+        if (active) setError(err.message || "Unable to load contract");
+      }
+    };
+
+    if (contractUrl && token) loadContract();
+
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [contractUrl, quote._id, token]);
 
   if (!contractUrl) return null;
 
@@ -138,29 +183,42 @@ const ContractPreview = ({ quote }) => {
         <span className="text-sm font-semibold text-gray-700">
           Contract Preview
         </span>
-        <a
-          href={contractUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              const nextUrl = await fetchQuoteDocumentUrl({
+                quoteId: quote._id,
+                documentType: "generated",
+                token,
+              });
+              window.open(nextUrl, "_blank", "noopener,noreferrer");
+              setTimeout(() => URL.revokeObjectURL(nextUrl), 60000);
+            } catch (err) {
+              toast.error(err.message || "Unable to open contract");
+            }
+          }}
           className="text-sm font-semibold text-[#BF9B53] hover:underline"
         >
           Open full contract
-        </a>
+        </button>
       </div>
 
-      {isPdfFile(contractUrl) && (
-        <iframe
-          src={contractUrl}
-          title={`Contract ${quote._id}`}
-          className="w-full h-[520px] bg-white"
-        />
+      {error && (
+        <div className="p-4 text-sm font-semibold text-red-600">{error}</div>
       )}
 
-      {!isPdfFile(contractUrl) && (
-        <img
-          src={contractUrl}
-          alt="Contract"
-          className="w-full max-h-[520px] object-contain bg-white"
+      {!error && !previewUrl && (
+        <div className="flex h-[220px] items-center justify-center text-sm font-semibold text-slate-600">
+          Loading contract...
+        </div>
+      )}
+
+      {previewUrl && (
+        <iframe
+          src={previewUrl}
+          title={`Contract ${quote._id}`}
+          className="w-full h-[520px] bg-white"
         />
       )}
     </div>
@@ -544,13 +602,23 @@ const ShipperQuotesPage = () => {
 
                       {quote.shipperContract?.url && (
                         <button
-                          onClick={() =>
-                            window.open(
-                              quote.shipperContract.url,
-                              "_blank",
-                              "noopener,noreferrer"
-                            )
-                          }
+                          onClick={async () => {
+                            try {
+                              const nextUrl = await fetchQuoteDocumentUrl({
+                                quoteId: quote._id,
+                                documentType: "shipper",
+                                token,
+                              });
+                              window.open(
+                                nextUrl,
+                                "_blank",
+                                "noopener,noreferrer"
+                              );
+                              setTimeout(() => URL.revokeObjectURL(nextUrl), 60000);
+                            } catch (err) {
+                              toast.error(err.message || "Unable to open contract");
+                            }
+                          }}
                           className="h-[38px] w-full border border-[#BF9B53] px-4 text-[12px] font-bold uppercase text-[#735D32] transition hover:bg-[#BF9B53]/10 sm:h-[34px] sm:w-auto"
                         >
                           View Shipper Contract
@@ -581,7 +649,7 @@ const ShipperQuotesPage = () => {
                     </footer>
 
                     {visibleContractId === quote._id && (
-                      <ContractPreview quote={quote} />
+                      <ContractPreview quote={quote} token={token} />
                     )}
                   </div>
                 </div>

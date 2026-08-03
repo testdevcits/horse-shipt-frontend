@@ -300,7 +300,7 @@ const Sidebar = ({
         {/* ===================== HELP BUTTON ===================== */}
         <div
           ref={helpRef}
-          className="relative flex-shrink-0 border-t border-gray-100 p-3"
+          className="relative flex-shrink-0 border-t border-gray-100  p-2"
         >
           <SidebarSupportPopup
             isOpen={helpOpen}

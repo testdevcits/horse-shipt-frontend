@@ -136,7 +136,7 @@ const OfferSubmitModal = ({ shipment, onClose, onSuccess }) => {
       )}
 
       <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
-        <div className="relative bg-white w-full max-w-5xl max-h-[95vh] rounded-md flex flex-col overflow-hidden shadow-2xl border border-slate-200">
+        <div className="relative bg-white w-full max-w-5xl max-h-[95vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200">
           {isSubmittingOffer && (
             <div className="absolute inset-0 z-20 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
               <LoaderCircle className="w-9 h-9 animate-spin text-[#BF9B53]" />

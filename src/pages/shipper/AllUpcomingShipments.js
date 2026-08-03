@@ -15,6 +15,26 @@ import {
 } from "react-icons/fi";
 import { MdClose } from "react-icons/md";
 import PageLoader from "../../components/common/PageLoader";
+import { useAuth } from "../../contexts/AuthContext";
+import { API_BASE_URL } from "../../config/api";
+
+const openQuoteDocument = async ({ quoteId, documentType, token }) => {
+  const response = await fetch(
+    `${API_BASE_URL}/shipper/quotes/${quoteId}/documents/${documentType}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  if (!response.ok) throw new Error("Unable to open contract");
+  const blob = await response.blob();
+  const contentType = response.headers.get("content-type") || blob.type || "";
+  if (!contentType.toLowerCase().includes("pdf")) {
+    throw new Error("Contract is not available as a valid PDF");
+  }
+
+  const url = URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+  window.open(url, "_blank", "noopener,noreferrer");
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+};
 
 const hasAssignedVehicle = (quote) => {
   if (!quote?.vehicle) return false;
@@ -45,6 +65,7 @@ const QuoteShipmentCard = ({
   quote,
   tabKey,
   onTrack,
+  token,
 }) => {
   const isCancelled =
     quote.isCancelled === true || quote.status === "cancelled";
@@ -146,11 +167,11 @@ const QuoteShipmentCard = ({
           {quote.shipperContract?.url && (
             <button
               onClick={() =>
-                window.open(
-                  quote.shipperContract.url,
-                  "_blank",
-                  "noopener,noreferrer"
-                )
+                openQuoteDocument({
+                  quoteId: quote._id,
+                  documentType: "shipper",
+                  token,
+                }).catch((error) => alert(error.message))
               }
               className="h-[34px] min-w-[130px] rounded-[4px] bg-[#BF9B53] px-4 font-montserrat text-[12px] font-bold uppercase text-white transition hover:bg-tabActive"
             >
@@ -193,6 +214,7 @@ const QuoteShipmentCard = ({
 ───────────────────────────────────────────*/
 const AllUpcomingShipments = () => {
   const { quotes, loading, getMyQuotes } = useShipperQuote();
+  const { token } = useAuth();
   const {
     markDelivered,
     verifyOtp,
@@ -454,6 +476,7 @@ const AllUpcomingShipments = () => {
               key={quote._id}
               quote={quote}
               tabKey={activeTab}
+              token={token}
               onMarkDelivered={handleMarkDelivered}
               onTrack={handleTrack}
               deliveryLoading={deliveryLoading}

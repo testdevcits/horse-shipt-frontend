@@ -15,11 +15,6 @@ import { MdCheckCircle } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { LoaderCircle } from "lucide-react";
 
-import { Worker, Viewer } from "@react-pdf-viewer/core";
-import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
-import "@react-pdf-viewer/core/lib/styles/index.css";
-import "@react-pdf-viewer/default-layout/lib/styles/index.css";
-
 // Stripe
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { API_BASE_URL } from "../../config/api";
@@ -34,13 +29,21 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [cancelActionLoading, setCancelActionLoading] = useState(false);
-  const [showPDF, setShowPDF] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [openingDocumentType, setOpeningDocumentType] = useState(null);
+  const [documentPreview, setDocumentPreview] = useState({
+    open: false,
+    title: "",
+    url: "",
+    loading: false,
+    error: "",
+  });
 
   // RESPONSIVE SIGNATURE
   const sigWrapperRef = useRef(null);
+  const documentUrlRef = useRef("");
   const [canvasWidth, setCanvasWidth] = useState(0);
 
   const isAccepted = quote.status === "accepted";
@@ -68,6 +71,14 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
     updateWidth();
     window.addEventListener("resize", updateWidth);
     return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (documentUrlRef.current) {
+        URL.revokeObjectURL(documentUrlRef.current);
+      }
+    };
   }, []);
 
   const handleSubmit = async () => {
@@ -202,10 +213,111 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
     }
   };
 
-  const defaultLayoutPluginInstance = defaultLayoutPlugin();
   const shipperContractUrl = quote.shipperContract?.url;
   const shipperContractName =
     quote.shipperContract?.originalName || "Shipper Contract";
+  const getDocumentUrl = (documentType) =>
+    `${API_BASE_URL}/customer/quotes/${quote._id}/documents/${documentType}`;
+  const getAuthHeaders = () => ({
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  });
+
+  const closeDocumentPreview = () => {
+    if (documentUrlRef.current) {
+      URL.revokeObjectURL(documentUrlRef.current);
+      documentUrlRef.current = "";
+    }
+
+    setDocumentPreview({
+      open: false,
+      title: "",
+      url: "",
+      loading: false,
+      error: "",
+    });
+  };
+
+  const openDocumentPreview = async (documentType, title) => {
+    if (openingDocumentType) return;
+
+    if (documentUrlRef.current) {
+      URL.revokeObjectURL(documentUrlRef.current);
+      documentUrlRef.current = "";
+    }
+
+    setDocumentPreview({
+      open: true,
+      title,
+      url: "",
+      loading: true,
+      error: "",
+    });
+
+    try {
+      setOpeningDocumentType(documentType);
+      const response = await fetch(getDocumentUrl(documentType), {
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        let message = "Unable to open this document";
+        try {
+          const contentType = response.headers.get("content-type") || "";
+          if (contentType.includes("application/json")) {
+            const data = await response.json();
+            message = data.message || message;
+          } else {
+            const text = await response.text();
+            message =
+              text
+                .replace(/<style[\s\S]*?<\/style>/gi, "")
+                .replace(/<[^>]+>/g, " ")
+                .replace(/\s+/g, " ")
+                .trim() || message;
+          }
+        } catch (error) {
+          // Keep the generic message when response is not JSON.
+        }
+        throw new Error(message);
+      }
+
+      const blob = await response.blob();
+      const contentType =
+        response.headers.get("content-type") || blob.type || "";
+
+      if (!contentType.toLowerCase().includes("pdf")) {
+        throw new Error("This document is not available as a valid PDF.");
+      }
+
+      const file = new Blob([blob], {
+        type: "application/pdf",
+      });
+      const objectUrl = URL.createObjectURL(file);
+      documentUrlRef.current = objectUrl;
+
+      setDocumentPreview({
+        open: true,
+        title,
+        url: objectUrl,
+        loading: false,
+        error: "",
+      });
+    } catch (error) {
+      const message =
+        error?.message || "Unable to open this document. Please try again.";
+      Toast.error(message);
+      setDocumentPreview({
+        open: true,
+        title,
+        url: "",
+        loading: false,
+        error: message,
+      });
+    } finally {
+      setOpeningDocumentType(null);
+    }
+  };
+
   const handleModalClose = () => {
     if (submitting || showSuccessPopup) return;
     onClose();
@@ -505,11 +617,21 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                     {quote.contract?.url && (
                       <button
                         type="button"
-                        onClick={() => setShowPDF(true)}
+                        onClick={() =>
+                          openDocumentPreview(
+                            "generated",
+                            "Generated Quote Contract"
+                          )
+                        }
+                        disabled={openingDocumentType === "generated"}
                         className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border border-[#BF9B53] text-[#9d7d42] hover:bg-[#BF9B53]/10 font-semibold transition-colors text-sm"
                       >
                         <span>Generated Quote Contract</span>
-                        <span className="text-xs">View</span>
+                        <span className="text-xs">
+                          {openingDocumentType === "generated"
+                            ? "Loading..."
+                            : "View"}
+                        </span>
                       </button>
                     )}
 
@@ -517,16 +639,20 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                       <button
                         type="button"
                         onClick={() =>
-                          window.open(
-                            shipperContractUrl,
-                            "_blank",
-                            "noopener,noreferrer"
+                          openDocumentPreview(
+                            "shipper",
+                            shipperContractName || "Shipper Document"
                           )
                         }
+                        disabled={openingDocumentType === "shipper"}
                         className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-slate-50 border border-slate-300 text-slate-800 hover:bg-slate-100 font-semibold transition-colors text-sm"
                       >
                         <span className="truncate">{shipperContractName}</span>
-                        <span className="text-xs">Open</span>
+                        <span className="text-xs">
+                          {openingDocumentType === "shipper"
+                            ? "Opening..."
+                            : "Open"}
+                        </span>
                       </button>
                     )}
 
@@ -637,25 +763,6 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                   </div>
                 )}
 
-                {showPDF && quote.contract?.url && (
-                  <>
-                    <div className="border overflow-hidden h-64 sm:h-96">
-                      <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                        <Viewer
-                          fileUrl={quote.contract.url}
-                          plugins={[defaultLayoutPluginInstance]}
-                        />
-                      </Worker>
-                    </div>
-                    <button
-                      onClick={() => setShowPDF(false)}
-                      className="w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold transition-colors"
-                    >
-                      Hide Contract
-                    </button>
-                  </>
-                )}
-
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-2 mt-auto pt-4">
                   {(isCancelable || canRejectQuote) && (
@@ -693,6 +800,67 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {documentPreview.open && (
+        <div className="fixed inset-0 z-[65] flex items-center justify-center bg-black/70 px-2 py-3 sm:px-4 sm:py-6">
+          <div className="flex h-[92vh] w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl sm:h-[88vh]">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-5">
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-[#735D32]">
+                  Document Preview
+                </p>
+                <h3 className="truncate text-base font-bold text-slate-900 sm:text-lg">
+                  {documentPreview.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={closeDocumentPreview}
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-slate-300 text-slate-600 hover:border-slate-500 hover:text-slate-950"
+                aria-label="Close document preview"
+              >
+                <FiX size={18} />
+              </button>
+            </div>
+
+            <div className="flex min-h-0 flex-1 bg-slate-100">
+              {documentPreview.loading && (
+                <div className="flex flex-1 flex-col items-center justify-center gap-3 text-slate-700">
+                  <LoaderCircle className="h-8 w-8 animate-spin text-[#BF9B53]" />
+                  <p className="text-sm font-semibold">Loading document...</p>
+                </div>
+              )}
+
+              {!documentPreview.loading && documentPreview.error && (
+                <div className="flex flex-1 items-center justify-center p-4">
+                  <div className="w-full max-w-md border border-red-200 bg-red-50 p-4 text-center">
+                    <p className="text-sm font-semibold text-red-700">
+                      {documentPreview.error}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={closeDocumentPreview}
+                      className="mt-4 bg-[#BF9B53] px-4 py-2 text-sm font-semibold text-white"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!documentPreview.loading &&
+                !documentPreview.error &&
+                documentPreview.url && (
+                  <iframe
+                    title={documentPreview.title}
+                    src={documentPreview.url}
+                    className="h-full w-full border-0 bg-white"
+                  />
+                )}
             </div>
           </div>
         </div>

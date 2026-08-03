@@ -22,6 +22,24 @@ import PageLoader from "../../components/common/PageLoader";
 import Toast from "../../components/common/Toast";
 import { API_BASE_URL } from "../../config/api";
 
+const openQuoteDocument = async ({ quoteId, documentType, token }) => {
+  const response = await fetch(
+    `${API_BASE_URL}/shipper/quotes/${quoteId}/documents/${documentType}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  if (!response.ok) throw new Error("Unable to open contract");
+  const blob = await response.blob();
+  const contentType = response.headers.get("content-type") || blob.type || "";
+  if (!contentType.toLowerCase().includes("pdf")) {
+    throw new Error("Contract is not available as a valid PDF");
+  }
+
+  const url = URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+  window.open(url, "_blank", "noopener,noreferrer");
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+};
+
 const hasAssignedVehicle = (quote) => {
   if (!quote?.vehicle) return false;
   if (typeof quote.vehicle === "string") return true;
@@ -200,6 +218,7 @@ const ShipmentCard = ({
   alreadyReviewedCustomer,
   deliveryLoading,
   selectedQuote,
+  token,
 }) => {
   const isCancelled =
     quote.isCancelled === true || quote.status === "cancelled";
@@ -306,11 +325,11 @@ const ShipmentCard = ({
         {quote.shipperContract?.url && (
           <button
             onClick={() =>
-              window.open(
-                quote.shipperContract.url,
-                "_blank",
-                "noopener,noreferrer"
-              )
+              openQuoteDocument({
+                quoteId: quote._id,
+                documentType: "shipper",
+                token,
+              }).catch((error) => Toast.error(error.message))
             }
             className="h-[34px] min-w-[130px] rounded-[4px] bg-[#BF9B53] px-4 font-montserrat text-[12px] font-bold uppercase text-white transition hover:bg-tabActive"
           >
@@ -719,6 +738,7 @@ const AllUpcomingShipments = () => {
               alreadyReviewedCustomer={hasReviewedCustomer(quote)}
               deliveryLoading={deliveryLoading}
               selectedQuote={selectedQuote}
+              token={token}
             />
           ))}
         </div>
