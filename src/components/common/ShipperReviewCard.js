@@ -167,6 +167,9 @@ const ShipperReviewCard = ({ shipper }) => {
       )}
 
       <div className="mt-auto border-t border-[#E5E7EB] pt-4">
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-[#9A7635]">
+          Location
+        </p>
         <div className="flex items-center gap-2 text-[12px] font-medium text-[#4B5563]">
           <IoLocationOutline size={17} className="shrink-0 text-[#9A7635]" />
           <span className="truncate font-montserrat text-[12px] font-semibold leading-[20px] text-[#4B5563]">
@@ -174,22 +177,27 @@ const ShipperReviewCard = ({ shipper }) => {
           </span>
         </div>
         {preferredAreas.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {preferredAreas.slice(0, 3).map((area) => (
-              <span
-                key={area.id || area._id || area.locationName}
-                className="inline-flex items-center bg-[#F5EFE2] px-2 py-1 text-[10px] font-semibold text-[#735D32]"
-              >
-                {area.locationName}
-                {area.radiusKm ? ` (${area.radiusKm} km)` : ""}
-              </span>
-            ))}
-            {preferredAreas.length > 3 && (
-              <span className="inline-flex items-center bg-gray-100 px-2 py-1 text-[10px] font-semibold text-gray-600">
-                +{preferredAreas.length - 3} more
-              </span>
-            )}
-          </div>
+          <>
+            <p className="mt-3 text-[10px] font-bold uppercase tracking-wide text-[#9A7635]">
+              Coverage Areas
+            </p>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {preferredAreas.slice(0, 3).map((area) => (
+                <span
+                  key={area.id || area._id || area.locationName}
+                  className="inline-flex items-center bg-[#F5EFE2] px-2 py-1 text-[10px] font-semibold text-[#735D32]"
+                >
+                  {area.locationName}
+                  {area.radiusKm ? ` (${area.radiusKm} km)` : ""}
+                </span>
+              ))}
+              {preferredAreas.length > 3 && (
+                <span className="inline-flex items-center bg-gray-100 px-2 py-1 text-[10px] font-semibold text-gray-600">
+                  +{preferredAreas.length - 3} more
+                </span>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>

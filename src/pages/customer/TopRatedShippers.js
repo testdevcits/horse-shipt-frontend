@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdNavigateNext, MdClose } from "react-icons/md";
 import { HiSearch } from "react-icons/hi";
-import { FiFilter } from "react-icons/fi";
+import { FiFilter, FiMapPin } from "react-icons/fi";
 import { LuTrendingUp } from "react-icons/lu";
 
 import ShipperReviewCard from "../../components/common/ShipperReviewCard";
@@ -184,18 +184,35 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
             </p>
           </div>
 
-          <div className="relative">
-            <HiSearch
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#475569]"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search by shipper name, city, state, or coverage area..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-12 w-full border-0 bg-[#F0F1F4] pl-11 pr-4 text-[13px] font-medium text-[#111827] outline-none transition focus:ring-2 focus:ring-[#BF9B53]/30"
-            />
+          <div>
+            <div className="relative">
+              <HiSearch
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#475569]"
+                size={18}
+              />
+              <input
+                type="text"
+                aria-label="Search shippers by name, city, state, address, or coverage area"
+                placeholder="Search by name, city, state, address, or coverage area..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-12 w-full border-0 bg-[#F0F1F4] pl-11 pr-4 text-[13px] font-medium text-[#111827] outline-none transition focus:ring-2 focus:ring-[#BF9B53]/30"
+              />
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[#667085]">
+              <span className="inline-flex items-center gap-1 text-[#735D32]">
+                <FiMapPin size={13} />
+                Location search enabled
+              </span>
+              {["City", "State", "Address", "Coverage area"].map((label) => (
+                <span
+                  key={label}
+                  className="bg-[#F7F5F1] px-2 py-1 text-[10px] uppercase tracking-wide text-[#4B5563]"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
