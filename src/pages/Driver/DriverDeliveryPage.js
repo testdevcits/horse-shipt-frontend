@@ -137,13 +137,27 @@ const OtpInput = ({ value, onChange }) => {
 /* ─── Error Alert ─── */
 const ErrorAlert = ({ message }) =>
   message ? (
-    <div className="w-full flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-3 py-3 mb-4">
-      <FiAlertCircle size={15} className="text-red-500 shrink-0 mt-0.5" />
-      <p className="text-red-600 text-xs font-semibold leading-relaxed">
+    <div className="w-full flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4">
+      <FiAlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+      <p className="text-red-700 text-sm font-semibold leading-relaxed">
         {message}
       </p>
     </div>
   ) : null;
+
+const formatDeliveryError = (message) => {
+  if (!message) return "Something went wrong. Please try again.";
+
+  if (
+    message.includes("CustomerShipment validation failed") ||
+    message.includes("currentLocation.longitude") ||
+    message.includes("currentLocation.latitude")
+  ) {
+    return "Unable to send OTP because the shipment location data is incomplete. Please refresh and try again.";
+  }
+
+  return message;
+};
 
 const ShipmentInfoCard = ({ shipmentDetails, compact = false }) => {
   if (!shipmentDetails) return null;
@@ -374,7 +388,9 @@ const DriverDeliveryPage = () => {
       startCooldown();
       Toast.success("OTP sent to customer!");
     } else {
-      const msg = res?.message || "Failed to send OTP. Please try again.";
+      const msg = formatDeliveryError(
+        res?.message || "Failed to send OTP. Please try again."
+      );
       setError(msg);
       Toast.error(msg);
     }
@@ -389,7 +405,7 @@ const DriverDeliveryPage = () => {
       startCooldown();
       Toast.success("OTP resent!");
     } else {
-      const msg = res?.message || "Failed to resend.";
+      const msg = formatDeliveryError(res?.message || "Failed to resend.");
       setError(msg);
       Toast.error(msg);
     }
@@ -407,7 +423,9 @@ const DriverDeliveryPage = () => {
       Toast.success("Shipment verified and delivered!");
       setTimeout(() => navigate("/driver/dashboard"), 2500);
     } else {
-      const msg = res?.message || "Invalid OTP. Please try again.";
+      const msg = formatDeliveryError(
+        res?.message || "Invalid OTP. Please try again."
+      );
       setError(msg);
       setOtp("");
       Toast.error(msg);
@@ -424,7 +442,9 @@ const DriverDeliveryPage = () => {
         Toast.success("Shipment marked as delivered!");
         setTimeout(() => navigate("/driver/dashboard"), 2500);
       } else {
-        const msg = res?.message || "Failed to mark as delivered";
+        const msg = formatDeliveryError(
+          res?.message || "Failed to mark as delivered"
+        );
         setError(msg);
         Toast.error(msg);
       }
