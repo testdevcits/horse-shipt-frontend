@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
-import { FiImage, FiX } from "react-icons/fi";
+import { FiCheck, FiEdit2, FiImage, FiLock, FiX } from "react-icons/fi";
 import PageLoader from "../../components/common/PageLoader";
 import { useShipperChat } from "../../contexts/shipperContext/ShipperChatContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -29,6 +29,9 @@ const ChatOverview = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [sending, setSending] = useState(false);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editMessageText, setEditMessageText] = useState("");
+  const [now, setNow] = useState(Date.now());
 
   const chatEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -153,12 +156,29 @@ const ChatOverview = () => {
       });
     };
 
+    const handleMessageEdited = (msg) => {
+      const msgRoomId =
+        typeof msg.chatRoom === "object" ? msg.chatRoom?._id : msg.chatRoom;
+      if (msgRoomId?.toString() !== roomId.toString()) return;
+
+      setMessages((prev) =>
+        prev.map((item) => (item._id === msg._id ? { ...item, ...msg } : item))
+      );
+    };
+
     socket.on("receiveMessage", handleReceiveMessage);
+    socket.on("messageEdited", handleMessageEdited);
 
     return () => {
       socket.off("receiveMessage", handleReceiveMessage);
+      socket.off("messageEdited", handleMessageEdited);
     };
   }, [roomId]);
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!roomId || !token || !shouldUsePollingFallback) return;
@@ -227,8 +247,56 @@ const ChatOverview = () => {
     setSelectedImage(null);
   };
 
+  const canEditMessage = (msg) => {
+    if (isChatLocked || !msg?._id || msg.senderRole !== "shipper") return false;
+    if (!(msg.message || msg.text) || msg.media?.length) return false;
+    const createdAt = new Date(msg.createdAt || msg.time).getTime();
+    if (!createdAt || Number.isNaN(createdAt)) return false;
+    return now - createdAt <= 60 * 1000;
+  };
+
+  const startEditMessage = (msg) => {
+    setEditingMessageId(msg._id);
+    setEditMessageText(msg.message || msg.text || "");
+  };
+
+  const cancelEditMessage = () => {
+    setEditingMessageId(null);
+    setEditMessageText("");
+  };
+
+  const saveEditedMessage = async () => {
+    const text = editMessageText.trim();
+    if (!editingMessageId || !roomId || !text) return;
+
+    try {
+      const res = await axios.patch(
+        `${API_BASE_URL}/shipper/chat/rooms/${roomId}/messages/${editingMessageId}`,
+        { message: text },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const updatedMessage = res.data?.data;
+      if (updatedMessage) {
+        setMessages((prev) =>
+          prev.map((item) =>
+            item._id === updatedMessage._id ? { ...item, ...updatedMessage } : item
+          )
+        );
+      }
+      cancelEditMessage();
+    } catch (err) {
+      Toast.error(err.response?.data?.message || "Failed to edit message");
+    }
+  };
+
   const handleSendMessage = () => {
-    if ((!newMessage.trim() && !selectedImage) || !roomId || sending) return;
+    if (
+      selectedUser?.isChatLocked ||
+      (!newMessage.trim() && !selectedImage) ||
+      !roomId ||
+      sending
+    )
+      return;
 
     const formData = new FormData();
     formData.append("message", newMessage);
@@ -273,6 +341,8 @@ const ChatOverview = () => {
       <PageLoader text="Loading chats..." fullScreen={false} color="#BF9B53" />
     );
   }
+
+  const isChatLocked = Boolean(selectedUser?.isChatLocked);
 
   return (
     <div className="flex h-[calc(99vh-120px)] bg-white border shadow font-montserrat overflow-hidden">
@@ -411,7 +481,7 @@ const ChatOverview = () => {
 
               {messages.map((msg, i) => (
                 <div
-                  key={i}
+                  key={msg._id || i}
                   className={`flex ${
                     msg.senderRole === "shipper"
                       ? "justify-end"
@@ -443,18 +513,60 @@ const ChatOverview = () => {
                         ))}
                       </div>
                     )}
-                    {(msg.message || msg.text) && (
-                      <p>{msg.message || msg.text}</p>
+                    {editingMessageId === msg._id ? (
+                      <div className="flex min-w-[260px] items-center gap-2">
+                        <input
+                          value={editMessageText}
+                          onChange={(e) => setEditMessageText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") saveEditedMessage();
+                            if (e.key === "Escape") cancelEditMessage();
+                          }}
+                          className="min-w-0 flex-1 rounded border border-white/40 px-2 py-1 text-sm text-gray-900"
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={saveEditedMessage}
+                          className="rounded bg-white/20 p-1"
+                          title="Save edit"
+                        >
+                          <FiCheck size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelEditMessage}
+                          className="rounded bg-white/20 p-1"
+                          title="Cancel edit"
+                        >
+                          <FiX size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      (msg.message || msg.text) && <p>{msg.message || msg.text}</p>
                     )}
-                    <span className="text-xs block mt-1 opacity-70">
-                      {new Date(msg.createdAt || msg.time).toLocaleTimeString(
-                        [],
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }
+                    <div className="mt-1 flex items-center justify-between gap-3 text-xs opacity-70">
+                      <span>
+                        {new Date(msg.createdAt || msg.time).toLocaleTimeString(
+                          [],
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
+                        {msg.isEdited && " · edited"}
+                      </span>
+                      {canEditMessage(msg) && editingMessageId !== msg._id && (
+                        <button
+                          type="button"
+                          onClick={() => startEditMessage(msg)}
+                          className="rounded p-1 hover:bg-white/20"
+                          title="Edit message"
+                        >
+                          <FiEdit2 size={13} />
+                        </button>
                       )}
-                    </span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -462,6 +574,11 @@ const ChatOverview = () => {
             </div>
 
             <div className="p-3 border-t space-y-2">
+              {isChatLocked && (
+                <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">
+                  Chat is locked because this shipment is completed.
+                </div>
+              )}
               {selectedImage && (
                 <div className="relative w-24">
                   <img
@@ -489,7 +606,8 @@ const ChatOverview = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => !isChatLocked && fileInputRef.current?.click()}
+                  disabled={isChatLocked}
                   className="border rounded px-3 text-gray-600 hover:bg-gray-50"
                   title="Attach image"
                 >
@@ -499,15 +617,21 @@ const ChatOverview = () => {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                  className="flex-1 border rounded px-3 py-2"
-                  placeholder="Type a message..."
+                  disabled={isChatLocked}
+                  className="flex-1 border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500"
+                  placeholder={
+                    isChatLocked
+                      ? "Chat locked after shipment completion"
+                      : "Type a message..."
+                  }
                 />
                 <button
-                  onClick={handleSendMessage}
-                  disabled={sending}
-                  className="bg-system-primary text-white px-4 rounded disabled:opacity-60"
+                  onClick={isChatLocked ? undefined : handleSendMessage}
+                  disabled={sending || isChatLocked}
+                  className="inline-flex min-w-[72px] items-center justify-center gap-2 rounded bg-system-primary px-4 text-white disabled:opacity-60"
+                  title={isChatLocked ? "Chat locked" : "Send message"}
                 >
-                  {sending ? "Sending..." : "Send"}
+                  {isChatLocked ? <FiLock size={18} /> : sending ? "Sending..." : "Send"}
                 </button>
               </div>
             </div>

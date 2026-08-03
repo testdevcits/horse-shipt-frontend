@@ -12,6 +12,7 @@ import {
   FiHash,
   FiDollarSign,
   FiInfo,
+  FiFileText,
 } from "react-icons/fi";
 import { MdClose } from "react-icons/md";
 import PageLoader from "../../components/common/PageLoader";
@@ -23,6 +24,9 @@ const getDocumentFileName = (quote, documentType) => {
   if (documentType === "shipper") {
     return quote?.shipperContract?.originalName || `${shipmentCode}-shipper.pdf`;
   }
+  if (documentType === "shipper-invoice") {
+    return `${shipmentCode}-shipper-invoice.pdf`;
+  }
   return `${shipmentCode}.pdf`;
 };
 
@@ -32,12 +36,12 @@ const openQuoteDocument = async ({ quote, quoteId, documentType, token }) => {
     { headers: { Authorization: `Bearer ${token}` } }
   );
 
-  if (!response.ok) throw new Error("Unable to open contract");
+  if (!response.ok) throw new Error("Unable to open document");
   const blob = await response.blob();
   const contentType = response.headers.get("content-type") || blob.type || "";
   const header = await blob.slice(0, 4).text();
   if (!contentType.toLowerCase().includes("pdf") && header !== "%PDF") {
-    throw new Error("Contract is not available as a valid PDF");
+    throw new Error("Document is not available as a valid PDF");
   }
 
   const url = URL.createObjectURL(
@@ -57,6 +61,10 @@ const hasAssignedVehicle = (quote) => {
 
 const isCompletedQuote = (quote) =>
   quote?.tripStatus === "completed" ||
+  quote?.deliveredAt ||
+  quote?.taxInvoices?.shipper?.url ||
+  quote?.taxInvoices?.customer?.url ||
+  quote?.payoutStatus === "transferred" ||
   quote?.shipment?.status === "delivered" ||
   quote?.shipment?.status === "completed";
 
@@ -199,6 +207,23 @@ const QuoteShipmentCard = ({
               className="h-[34px] min-w-[130px] rounded-[4px] border border-[#BF9B53] px-4 font-montserrat text-[12px] font-bold uppercase text-[#BF9B53] transition hover:bg-[#BF9B53]/5"
             >
               Track Shipment
+            </button>
+          )}
+
+          {isCompleted && quote._id && (
+            <button
+              onClick={() =>
+                openQuoteDocument({
+                  quote,
+                  quoteId: quote._id,
+                  documentType: "shipper-invoice",
+                  token,
+                }).catch((error) => alert(error.message))
+              }
+              className="inline-flex h-[34px] min-w-[130px] items-center justify-center gap-2 rounded-[4px] border border-[#BF9B53] px-4 font-montserrat text-[12px] font-bold uppercase text-[#BF9B53] transition hover:bg-[#BF9B53]/5"
+            >
+              <FiFileText size={14} />
+              View Invoice
             </button>
           )}
         </div>

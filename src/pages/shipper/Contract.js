@@ -15,6 +15,7 @@ import {
   FiAlertCircle,
   FiNavigation,
   FiStar,
+  FiFileText,
 } from "react-icons/fi";
 import { MdClose } from "react-icons/md";
 import { IoArrowBack } from "react-icons/io5";
@@ -27,6 +28,9 @@ const getDocumentFileName = (quote, documentType) => {
   if (documentType === "shipper") {
     return quote?.shipperContract?.originalName || `${shipmentCode}-shipper.pdf`;
   }
+  if (documentType === "shipper-invoice") {
+    return `${shipmentCode}-shipper-invoice.pdf`;
+  }
   return `${shipmentCode}.pdf`;
 };
 
@@ -36,12 +40,12 @@ const openQuoteDocument = async ({ quote, quoteId, documentType, token }) => {
     { headers: { Authorization: `Bearer ${token}` } }
   );
 
-  if (!response.ok) throw new Error("Unable to open contract");
+  if (!response.ok) throw new Error("Unable to open document");
   const blob = await response.blob();
   const contentType = response.headers.get("content-type") || blob.type || "";
   const header = await blob.slice(0, 4).text();
   if (!contentType.toLowerCase().includes("pdf") && header !== "%PDF") {
-    throw new Error("Contract is not available as a valid PDF");
+    throw new Error("Document is not available as a valid PDF");
   }
 
   const url = URL.createObjectURL(
@@ -58,6 +62,15 @@ const hasAssignedVehicle = (quote) => {
   if (typeof quote.vehicle === "string") return true;
   return Object.keys(quote.vehicle).length > 0;
 };
+
+const isCompletedQuote = (quote) =>
+  quote?.tripStatus === "completed" ||
+  quote?.deliveredAt ||
+  quote?.taxInvoices?.shipper?.url ||
+  quote?.taxInvoices?.customer?.url ||
+  quote?.payoutStatus === "transferred" ||
+  quote?.shipment?.status === "delivered" ||
+  quote?.shipment?.status === "completed";
 
 /* ─────────────────────────────────────────
    STATUS BADGE
@@ -235,7 +248,7 @@ const ShipmentCard = ({
 }) => {
   const isCancelled =
     quote.isCancelled === true || quote.status === "cancelled";
-  const isCompleted = tabKey === "completed";
+  const isCompleted = tabKey === "completed" || isCompletedQuote(quote);
   const isInTransit = tabKey === "in_transit";
   // const isUpcoming = tabKey === "upcoming";
   // const isProcessingThis =
@@ -381,6 +394,23 @@ const ShipmentCard = ({
               <FiCheckCircle size={14} />
               Delivery Verified
             </div>
+            {quote._id && (
+              <button
+                onClick={() =>
+                  openQuoteDocument({
+                    quote,
+                    quoteId: quote._id,
+                    documentType: "shipper-invoice",
+                    token,
+                  }).catch((error) => Toast.error(error.message))
+                }
+                className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53]
+                  px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#BF9B53]/5 transition"
+              >
+                <FiFileText size={14} />
+                View Invoice
+              </button>
+            )}
             {alreadyReviewedCustomer ? (
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-semibold">
                 <FiStar size={14} />
@@ -461,7 +491,7 @@ const AllUpcomingShipments = () => {
 
   const isInTransitQuote = (quote) => {
     if (quote.isCancelled === true || quote.status === "cancelled") return false;
-    if (quote.shipment?.status === "delivered") return false;
+    if (isCompletedQuote(quote)) return false;
 
     return hasAssignedVehicle(quote);
   };
@@ -480,14 +510,14 @@ const AllUpcomingShipments = () => {
 
   const upcomingShipments = quotes.filter((q) => {
     if (q.isCancelled === true || q.status === "cancelled") return false;
-    if (q.shipment?.status === "delivered") return false;
+    if (isCompletedQuote(q)) return false;
     if (isInTransitQuote(q)) return false;
     return q.status === "accepted";
   });
 
   const completedShipments = quotes.filter((q) => {
     if (q.isCancelled === true || q.status === "cancelled") return false;
-    return q.shipment?.status === "delivered";
+    return isCompletedQuote(q);
   });
 
   const cancelledShipments = quotes.filter((q) => {
