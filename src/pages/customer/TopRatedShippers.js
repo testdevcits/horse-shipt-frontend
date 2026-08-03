@@ -174,7 +174,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
     <section className="w-full min-w-0 overflow-hidden bg-[#F7F5F1] font-montserrat">
       {/* ===================== HEADER + FILTERS ===================== */}
       <div className="mb-5 bg-white px-4 py-5 shadow-sm sm:px-5 sm:py-6 md:px-6">
-        <div className="grid items-center gap-5 lg:grid-cols-[320px_1fr_auto]">
+        <div className="grid items-start gap-5 lg:grid-cols-[320px_1fr_auto]">
           <div>
             <h1 className="text-[24px] font-semibold leading-[35px] text-[#111827] font-montserrat">
               Top Rated Shippers
@@ -215,7 +215,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start lg:justify-end lg:pt-[18px]">
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`flex h-10 items-center justify-center gap-2 px-4 text-[11px] font-bold uppercase tracking-wide transition sm:hidden ${showFilters || hasActiveFilters
