@@ -32,8 +32,6 @@ const ShipperLayout = () => {
   const { fetchStripeStatus, needsOnboarding } = useShipperPayments();
   const {
     subscription,
-    loading: subLoading,
-    subscriptionReady,
     hasAccess: hasSubscriptionAccess,
   } = useSubscription();
 
@@ -321,7 +319,7 @@ const ShipperLayout = () => {
         />
       )}
 
-      {subscriptionReady && !subLoading && !isSubscribed && <SubscriptionPopup />}
+      <SubscriptionPopup />
     </div>
   );
 };

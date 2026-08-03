@@ -54,6 +54,10 @@ export const AuthProvider = ({ children }) => {
     setToken(userData.token);
     setRole(userData.role);
 
+    if (userData.role === "shipper") {
+      sessionStorage.removeItem("horseShipt.subscriptionPopupDismissed");
+    }
+
     localStorage.setItem("horseShiptUser", JSON.stringify(userData));
     localStorage.setItem("token", userData.token);
     localStorage.setItem("role", userData.role);

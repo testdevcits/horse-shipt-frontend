@@ -51,7 +51,6 @@ const SubscriptionPopup = () => {
   } = useSubscription();
 
   const {
-    needsOnboarding,
     hasCard,
     paymentCard,
     fetchPaymentStatus,
@@ -110,15 +109,12 @@ const SubscriptionPopup = () => {
       return;
     }
 
-    if (!needsOnboarding && !dismissed) {
-        setIsOpen(true);
-    }
+    if (!dismissed) setIsOpen(true);
   }, [
     subscription?.status,
     subLoading,
     subscriptionReady,
     hasAccess,
-    needsOnboarding,
     dismissed,
     planLoading,
   ]);
