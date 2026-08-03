@@ -74,8 +74,6 @@ export const AuthProvider = ({ children }) => {
   ================================ */
   const login = async ({ email, password, role, deviceId, location }) => {
     try {
-      setLoading(true);
-
       const res = await axios.post(
         `${API_BASE_URL}/auth/login`,
         { email, password, role, deviceId, location },
@@ -101,8 +99,6 @@ export const AuthProvider = ({ children }) => {
         success: false,
         errors: err.response?.data?.errors || ["Server Error"],
       };
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -111,8 +107,6 @@ export const AuthProvider = ({ children }) => {
   ================================ */
   const signup = async ({ name, email, password, role }) => {
     try {
-      setLoading(true);
-
       const res = await axios.post(
         `${API_BASE_URL}/auth/signup`,
         { name, email, password, role },
@@ -137,15 +131,11 @@ export const AuthProvider = ({ children }) => {
         success: false,
         errors: err.response?.data?.errors || ["Server Error"],
       };
-    } finally {
-      setLoading(false);
     }
   };
 
   const verifySignupOtp = async ({ email, role, otp }) => {
     try {
-      setLoading(true);
-
       const res = await axios.post(
         `${API_BASE_URL}/auth/signup/verify-otp`,
         { email, role, otp },
@@ -161,15 +151,11 @@ export const AuthProvider = ({ children }) => {
         success: false,
         errors: err.response?.data?.errors || ["Server Error"],
       };
-    } finally {
-      setLoading(false);
     }
   };
 
   const resendSignupOtp = async ({ email, role }) => {
     try {
-      setLoading(true);
-
       const res = await axios.post(
         `${API_BASE_URL}/auth/signup/resend-otp`,
         { email, role },
@@ -187,8 +173,6 @@ export const AuthProvider = ({ children }) => {
         success: false,
         errors: err.response?.data?.errors || ["Server Error"],
       };
-    } finally {
-      setLoading(false);
     }
   };
 
