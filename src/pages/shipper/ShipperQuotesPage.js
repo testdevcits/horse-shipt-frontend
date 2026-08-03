@@ -44,7 +44,8 @@ const fetchQuoteDocumentUrl = async ({ quoteId, documentType, token }) => {
 
   const blob = await response.blob();
   const contentType = response.headers.get("content-type") || blob.type || "";
-  if (!contentType.toLowerCase().includes("pdf")) {
+  const header = await blob.slice(0, 4).text();
+  if (!contentType.toLowerCase().includes("pdf") && header !== "%PDF") {
     throw new Error("Contract is not available as a valid PDF");
   }
 

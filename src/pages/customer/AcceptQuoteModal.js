@@ -284,8 +284,9 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
       const blob = await response.blob();
       const contentType =
         response.headers.get("content-type") || blob.type || "";
+      const header = await blob.slice(0, 4).text();
 
-      if (!contentType.toLowerCase().includes("pdf")) {
+      if (!contentType.toLowerCase().includes("pdf") && header !== "%PDF") {
         throw new Error("This document is not available as a valid PDF.");
       }
 
