@@ -316,38 +316,58 @@ const VehiclePage = () => {
                       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}
                   </p>
 
-                  <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="w-full sm:max-w-[380px]">
-                      <select
-                        value={selectedDriver[vehicle._id] || ""}
-                        onChange={(e) =>
-                          setSelectedDriver((prev) => ({
-                            ...prev,
-                            [vehicle._id]: e.target.value,
-                          }))
-                        }
-                        className="h-[40px] w-full rounded-[5px] border border-gray-200 bg-white px-3 font-montserrat text-[12px] leading-[20px] sm:text-[14px] sm:leading-[24px] font-normal tracking-[0%] text-[#4B5563] outline-none"
-                        disabled={activeDrivers.length === 0}
-                      >
-                        <option
-                          value=""
-                          className="font-montserrat text-[14px] font-normal leading-[24px] tracking-[0%] text-[#4B5563]"
+                  <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="w-full lg:max-w-[560px]">
+                      <label className="mb-2 block font-montserrat text-[11px] font-semibold uppercase tracking-wide text-[#4B5563]">
+                        Assign Driver
+                      </label>
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <select
+                          value={selectedDriver[vehicle._id] || ""}
+                          onChange={(e) =>
+                            setSelectedDriver((prev) => ({
+                              ...prev,
+                              [vehicle._id]: e.target.value,
+                            }))
+                          }
+                          className="h-[42px] w-full rounded-[5px] border border-gray-200 bg-white px-3 font-montserrat text-[12px] leading-[20px] sm:text-[14px] sm:leading-[24px] font-normal tracking-[0%] text-[#4B5563] outline-none"
+                          disabled={activeDrivers.length === 0}
                         >
-                          {activeDrivers.length === 0
-                            ? "Driver not available"
-                            : "Select Driver"}
-                        </option>
-
-                        {activeDrivers.map((driver) => (
                           <option
-                            key={driver._id}
-                            value={driver._id}
+                            value=""
                             className="font-montserrat text-[14px] font-normal leading-[24px] tracking-[0%] text-[#4B5563]"
                           >
-                            {driver.name}
+                            {activeDrivers.length === 0
+                              ? "Driver not available"
+                              : "Select Driver"}
                           </option>
-                        ))}
-                      </select>
+
+                          {activeDrivers.map((driver) => (
+                            <option
+                              key={driver._id}
+                              value={driver._id}
+                              className="font-montserrat text-[14px] font-normal leading-[24px] tracking-[0%] text-[#4B5563]"
+                            >
+                              {driver.name}
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          type="button"
+                          onClick={() => handleAssignDriver(vehicle._id)}
+                          disabled={
+                            activeDrivers.length === 0 ||
+                            !selectedDriver[vehicle._id] ||
+                            loading
+                          }
+                          className="inline-flex h-[42px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#BF9B53] px-4 font-montserrat text-[12px] font-bold text-white transition hover:bg-[#A88A47] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 sm:w-auto sm:min-w-[140px]"
+                          title="Save selected driver"
+                        >
+                          <FiUserCheck size={17} />
+                          Save Driver
+                        </button>
+                      </div>
 
                       {activeDrivers.length === 0 && (
                         <p className="mt-2 text-xs font-medium text-red-500">
@@ -356,15 +376,7 @@ const VehiclePage = () => {
                       )}
                     </div>
 
-                    <div className="flex w-full items-center justify-between gap-4 sm:w-auto sm:justify-end">
-                      <button
-                        onClick={() => handleAssignDriver(vehicle._id)}
-                        disabled={activeDrivers.length === 0}
-                        className="flex h-10 w-10 items-center justify-center text-[#CE9F2D] transition hover:text-[#bd9027] disabled:cursor-not-allowed disabled:opacity-50 sm:h-auto sm:w-auto"
-                        title="Assign driver"
-                      >
-                        <FiUserCheck size={20} />
-                      </button>
+                    <div className="flex w-full items-center justify-end gap-4 lg:w-auto">
                       <button
                         onClick={() => openModal(vehicle)}
                         className="flex h-10 w-10 items-center justify-center text-[#CE9F2D] transition hover:text-[#bd9027] sm:h-auto sm:w-auto"
