@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { useShipperPayments } from "../../contexts/shipperContext/ShipperPaymentContext";
 import { useShipperDelivery } from "../../contexts/shipperContext/ShipperDeliveryContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { API_BASE_URL } from "../../config/api";
 import PageLoader from "../../components/common/PageLoader";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import Toast from "../../components/common/Toast";
@@ -13,11 +16,13 @@ import {
   ArrowUpRight,
   Plus,
   Lock,
+  FileText,
 } from "lucide-react";
 
 const PayoutAndCardPage = () => {
   const stripe = useStripe();
   const elements = useElements();
+  const { token } = useAuth();
 
   const {
     createCustomer,
@@ -63,6 +68,43 @@ const PayoutAndCardPage = () => {
     setVisibleIds((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const maskId = (id) => (id ? id.slice(0, 4) + "••••••••" + id.slice(-4) : "");
+
+  const openShipperInvoice = async (payout) => {
+    if (!payout?.quoteId) {
+      Toast.error("Invoice is not available for this payout yet");
+      return;
+    }
+
+    const invoiceWindow = window.open("", "_blank");
+    if (invoiceWindow) invoiceWindow.opener = null;
+
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/shipper/quotes/${payout.quoteId}/documents/shipper-invoice`,
+        {
+          responseType: "blob",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const type = res.headers?.["content-type"] || "application/pdf";
+      const blob = new Blob([res.data], { type });
+      const url = URL.createObjectURL(blob);
+
+      if (invoiceWindow) {
+        invoiceWindow.location.href = url;
+      } else {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      invoiceWindow?.close();
+      Toast.error(
+        err?.response?.data?.message || "Unable to open invoice. Please try again."
+      );
+    }
+  };
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
@@ -381,6 +423,15 @@ const PayoutAndCardPage = () => {
                           </p>
                         </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => openShipperInvoice(payout)}
+                        disabled={!payout.quoteId}
+                        className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-[#BF9B53] bg-white px-3 py-2 text-xs font-bold text-[#9B7A35] hover:bg-[#BF9B53] hover:text-white disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-white transition-colors"
+                      >
+                        <FileText className="w-4 h-4" />
+                        View Invoice
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -401,6 +452,9 @@ const PayoutAndCardPage = () => {
                         </th>
                         <th className="px-3 py-2 text-left text-xs font-bold text-slate-900">
                           Status
+                        </th>
+                        <th className="px-3 py-2 text-left text-xs font-bold text-slate-900">
+                          Invoice
                         </th>
                       </tr>
                     </thead>
@@ -462,6 +516,17 @@ const PayoutAndCardPage = () => {
                               {payout.status?.charAt(0).toUpperCase() +
                                 payout.status?.slice(1)}
                             </span>
+                          </td>
+                          <td className="px-3 py-2">
+                            <button
+                              type="button"
+                              onClick={() => openShipperInvoice(payout)}
+                              disabled={!payout.quoteId}
+                              className="inline-flex items-center gap-1.5 rounded-md border border-[#BF9B53] bg-white px-2.5 py-1.5 text-xs font-bold text-[#9B7A35] hover:bg-[#BF9B53] hover:text-white disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-white transition-colors"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              View
+                            </button>
                           </td>
                         </tr>
                       ))}

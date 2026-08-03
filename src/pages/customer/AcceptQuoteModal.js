@@ -221,6 +221,14 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   const getAuthHeaders = () => ({
     Authorization: `Bearer ${localStorage.getItem("token")}`,
   });
+  const getDocumentFileName = (documentType) => {
+    const shipmentCode =
+      quote?.shipment?.shipmentCode || quote?.shipmentCode || quote?._id || "contract";
+    if (documentType === "shipper") {
+      return quote?.shipperContract?.originalName || `${shipmentCode}-shipper.pdf`;
+    }
+    return `${shipmentCode}.pdf`;
+  };
 
   const closeDocumentPreview = () => {
     if (documentUrlRef.current) {
@@ -290,7 +298,7 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
         throw new Error("This document is not available as a valid PDF.");
       }
 
-      const file = new Blob([blob], {
+      const file = new File([blob], getDocumentFileName(documentType), {
         type: "application/pdf",
       });
       const objectUrl = URL.createObjectURL(file);

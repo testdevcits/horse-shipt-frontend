@@ -1,13 +1,16 @@
 import React from "react";
+import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDeliveredShipments } from "../../contexts/customerContext/DeliveredShipmentContext";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import PageLoader from "../../components/common/PageLoader";
 import ReviewModal from "./common/ReviewModal";
 import { useReview } from "../../contexts/customerContext/ReviewContext";
+import { useAuth } from "../../contexts/AuthContext";
 import Toast from "../../components/common/Toast";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import { createShipmentQueryToken } from "../../utils/createQueryToken";
+import { API_BASE_URL } from "../../config/api";
 import { LiaHorseHeadSolid } from "react-icons/lia";
 import {
   FiTrash2,
@@ -15,6 +18,7 @@ import {
   FiEye,
   FiEdit2,
   FiNavigation,
+  FiFileText,
 } from "react-icons/fi";
 
 /* ─────────────────────────────────────────
@@ -178,6 +182,7 @@ const ShipmentDrawer = ({
   onEdit,
   onMetadataEdit,
   onTrack,
+  onCustomerInvoice,
 }) => {
   const [visible, setVisible] = React.useState(false);
 
@@ -389,6 +394,30 @@ const ShipmentDrawer = ({
               </p>
             </div>
           </div>
+
+          {isDelivered && (
+            <div className="border border-[#BF9B53]/30 bg-[#BF9B53]/5 p-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    Tax Invoice
+                  </p>
+                  <p className="text-sm font-bold text-gray-900">
+                    {shipment.taxInvoices?.customer?.invoiceNumber ||
+                      `${shipment.shipmentCode || "Shipment"} customer invoice`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onCustomerInvoice?.(shipment)}
+                  className="inline-flex items-center justify-center gap-2 border border-[#BF9B53] bg-white px-3 py-2 text-xs font-bold text-[#9B7A35] hover:bg-[#BF9B53] hover:text-white transition-colors"
+                >
+                  <FiFileText className="w-4 h-4" />
+                  View Invoice
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Shipper */}
           {shipment.shipper ? (
@@ -754,6 +783,7 @@ const VALID_TABS = [
 const AllShipments = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { token } = useAuth();
 
   const { shipments, loading, fetchCompletedShipments } =
     useDeliveredShipments();
@@ -936,6 +966,45 @@ const AllShipments = () => {
     setSelected(null);
   };
 
+  const openCustomerInvoice = async (shipment) => {
+    if (!shipment?.quoteId) {
+      Toast.error("Invoice is not available for this shipment yet");
+      return;
+    }
+
+    const invoiceWindow = window.open("", "_blank");
+    if (invoiceWindow) invoiceWindow.opener = null;
+
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/customer/quotes/${shipment.quoteId}/documents/customer-invoice`,
+        {
+          responseType: "blob",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const type = res.headers?.["content-type"] || "application/pdf";
+      const blob = new Blob([res.data], { type });
+      const url = URL.createObjectURL(blob);
+      const fileName = `${shipment.shipmentCode || "shipment"}-customer-invoice.pdf`;
+
+      if (invoiceWindow) {
+        invoiceWindow.location.href = url;
+        invoiceWindow.document.title = fileName;
+      } else {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      invoiceWindow?.close();
+      Toast.error(
+        err?.response?.data?.message || "Unable to open invoice. Please try again."
+      );
+    }
+  };
+
   const normalizeId = (value) => {
     if (!value) return "";
     if (typeof value === "string") return value;
@@ -1066,6 +1135,7 @@ const AllShipments = () => {
           onEdit={handleEditShipment}
           onMetadataEdit={handleEditMetadata}
           onTrack={() => handleTrackShipment(selected)}
+          onCustomerInvoice={openCustomerInvoice}
         />
       )}
 

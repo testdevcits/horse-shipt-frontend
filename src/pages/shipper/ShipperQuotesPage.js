@@ -35,7 +35,15 @@ const isCompletedQuote = (quote) =>
 const getQuoteDocumentUrl = (quoteId, documentType) =>
   `${API_BASE_URL}/shipper/quotes/${quoteId}/documents/${documentType}`;
 
-const fetchQuoteDocumentUrl = async ({ quoteId, documentType, token }) => {
+const getDocumentFileName = (quote, documentType) => {
+  const shipmentCode = quote?.shipment?.shipmentCode || quote?._id || "contract";
+  if (documentType === "shipper") {
+    return quote?.shipperContract?.originalName || `${shipmentCode}-shipper.pdf`;
+  }
+  return `${shipmentCode}.pdf`;
+};
+
+const fetchQuoteDocumentUrl = async ({ quote, quoteId, documentType, token }) => {
   const response = await fetch(getQuoteDocumentUrl(quoteId, documentType), {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -49,7 +57,11 @@ const fetchQuoteDocumentUrl = async ({ quoteId, documentType, token }) => {
     throw new Error("Contract is not available as a valid PDF");
   }
 
-  return URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+  return URL.createObjectURL(
+    new File([blob], getDocumentFileName(quote, documentType), {
+      type: "application/pdf",
+    })
+  );
 };
 
 const getHorseImages = (quote) =>
@@ -148,6 +160,9 @@ const ContractPreview = ({ quote, token }) => {
   const [previewUrl, setPreviewUrl] = useState("");
   const [error, setError] = useState("");
   const contractUrl = quote?.contract?.url;
+  const quoteId = quote?._id;
+  const shipmentCode = quote?.shipment?.shipmentCode;
+  const shipperContractName = quote?.shipperContract?.originalName;
 
   useEffect(() => {
     let objectUrl = "";
@@ -157,7 +172,12 @@ const ContractPreview = ({ quote, token }) => {
       try {
         setError("");
         const nextUrl = await fetchQuoteDocumentUrl({
-          quoteId: quote._id,
+          quote: {
+            _id: quoteId,
+            shipment: { shipmentCode },
+            shipperContract: { originalName: shipperContractName },
+          },
+          quoteId,
           documentType: "generated",
           token,
         });
@@ -168,13 +188,13 @@ const ContractPreview = ({ quote, token }) => {
       }
     };
 
-    if (contractUrl && token) loadContract();
+    if (contractUrl && token && quoteId) loadContract();
 
     return () => {
       active = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [contractUrl, quote._id, token]);
+  }, [contractUrl, quoteId, shipmentCode, shipperContractName, token]);
 
   if (!contractUrl) return null;
 
@@ -189,6 +209,7 @@ const ContractPreview = ({ quote, token }) => {
           onClick={async () => {
             try {
               const nextUrl = await fetchQuoteDocumentUrl({
+                quote,
                 quoteId: quote._id,
                 documentType: "generated",
                 token,
@@ -606,6 +627,7 @@ const ShipperQuotesPage = () => {
                           onClick={async () => {
                             try {
                               const nextUrl = await fetchQuoteDocumentUrl({
+                                quote,
                                 quoteId: quote._id,
                                 documentType: "shipper",
                                 token,

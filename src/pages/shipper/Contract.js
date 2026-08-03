@@ -22,7 +22,15 @@ import PageLoader from "../../components/common/PageLoader";
 import Toast from "../../components/common/Toast";
 import { API_BASE_URL } from "../../config/api";
 
-const openQuoteDocument = async ({ quoteId, documentType, token }) => {
+const getDocumentFileName = (quote, documentType) => {
+  const shipmentCode = quote?.shipment?.shipmentCode || quote?._id || "contract";
+  if (documentType === "shipper") {
+    return quote?.shipperContract?.originalName || `${shipmentCode}-shipper.pdf`;
+  }
+  return `${shipmentCode}.pdf`;
+};
+
+const openQuoteDocument = async ({ quote, quoteId, documentType, token }) => {
   const response = await fetch(
     `${API_BASE_URL}/shipper/quotes/${quoteId}/documents/${documentType}`,
     { headers: { Authorization: `Bearer ${token}` } }
@@ -36,7 +44,11 @@ const openQuoteDocument = async ({ quoteId, documentType, token }) => {
     throw new Error("Contract is not available as a valid PDF");
   }
 
-  const url = URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
+  const url = URL.createObjectURL(
+    new File([blob], getDocumentFileName(quote, documentType), {
+      type: "application/pdf",
+    })
+  );
   window.open(url, "_blank", "noopener,noreferrer");
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 };
@@ -327,6 +339,7 @@ const ShipmentCard = ({
           <button
             onClick={() =>
               openQuoteDocument({
+                quote,
                 quoteId: quote._id,
                 documentType: "shipper",
                 token,
