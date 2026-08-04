@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkhorse_shipt_frontend=self.webpackChunkhorse_shipt_frontend||[]).push([[9386],{67:(e,s,t)=>{t.d(s,{A:()=>f});t(5043);const f=t.p+"static/media/HorseShipt_White.bee90b6fc07e84f6c12378b06fd2d1d6.svg"},1832:(e,s,t)=>{e.exports=t.p+"static/media/authPage.e4bde5e6878fbff67b6e.jpg"}}]);
+//# sourceMappingURL=9386.9c97f193.chunk.js.map

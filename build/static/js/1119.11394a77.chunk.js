@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkhorse_shipt_frontend=self.webpackChunkhorse_shipt_frontend||[]).push([[1119],{1119:(e,s,t)=>{t.r(s),t.d(s,{default:()=>p});t(5043);var h=t(236),n=t(579);const p=()=>(0,n.jsx)(h.A,{showMapView:!0,title:"All Shipments"})}}]);
+//# sourceMappingURL=1119.11394a77.chunk.js.map
