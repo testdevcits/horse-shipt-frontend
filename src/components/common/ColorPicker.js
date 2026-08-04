@@ -1,56 +1,19 @@
 import React, { useState, useEffect } from "react";
+import { DEFAULT_HORSE_COLORS } from "../../hooks/useHorseAttributeOptions";
 
-const HORSE_COLORS = [
-  "Bay",
-  "Dark Bay",
-  "Blood Bay",
-  "Black",
-  "Faded Black",
-  "Chestnut",
-  "Liver Chestnut",
-  "Light Chestnut",
-  "Sorrel",
-  "Grey",
-  "Dapple Grey",
-  "Flea-bitten Grey",
-  "White",
-  "Palomino",
-  "Golden Palomino",
-  "Buckskin",
-  "Dun",
-  "Red Dun",
-  "Grullo",
-  "Roan",
-  "Red Roan",
-  "Blue Roan",
-  "Strawberry Roan",
-  "Pinto",
-  "Tobiano",
-  "Overo",
-  "Tovero",
-  "Appaloosa",
-  "Leopard Appaloosa",
-  "Snowflake Appaloosa",
-  "Blanket Appaloosa",
-  "Cremello",
-  "Perlino",
-  "Smoky Black",
-  "Champagne",
-  "Gold Champagne",
-  "Amber Champagne",
-  "Silver Dapple",
-  "Brindle",
-  "Sabino",
-  "Splash White",
-  "Rabicano",
-  "Other",
-];
-const ColorPicker = ({ value = "", onChange, label = "Colour", error }) => {
+const ColorPicker = ({
+  value = "",
+  onChange,
+  label = "Colour",
+  error,
+  options = DEFAULT_HORSE_COLORS,
+}) => {
+  const horseColors = options?.length ? options : DEFAULT_HORSE_COLORS;
   const [color, setColor] = useState("");
   const [customColor, setCustomColor] = useState("");
 
   useEffect(() => {
-    if (HORSE_COLORS.includes(value)) {
+    if (horseColors.includes(value)) {
       setColor(value);
       setCustomColor("");
     } else if (value) {
@@ -60,7 +23,7 @@ const ColorPicker = ({ value = "", onChange, label = "Colour", error }) => {
       setColor("");
       setCustomColor("");
     }
-  }, [value]);
+  }, [value, horseColors]);
 
   const handleSelectChange = (e) => {
     const selected = e.target.value;
@@ -70,7 +33,7 @@ const ColorPicker = ({ value = "", onChange, label = "Colour", error }) => {
       setCustomColor("");
       onChange?.(selected);
     } else {
-      onChange?.(""); // wait for custom input
+      onChange?.("");
     }
   };
 
@@ -86,21 +49,19 @@ const ColorPicker = ({ value = "", onChange, label = "Colour", error }) => {
         {label} <span className="text-red-500">*</span>
       </label>
 
-      {/* Dropdown */}
       <select
         value={color}
         onChange={handleSelectChange}
         className="w-full h-11 px-3 rounded-md border border-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]"
       >
         <option value="">Select colour</option>
-        {HORSE_COLORS.map((c) => (
-          <option key={c} value={c}>
-            {c}
+        {horseColors.map((item) => (
+          <option key={item} value={item}>
+            {item}
           </option>
         ))}
       </select>
 
-      {/* Custom Input */}
       {color === "Other" && (
         <input
           type="text"

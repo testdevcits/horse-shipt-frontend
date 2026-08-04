@@ -7,6 +7,7 @@ import ConfirmModal from "../../components/common/ConfirmModal";
 import PageLoader from "../../components/common/PageLoader";
 import NoData from "../../components/common/NoData";
 import ColorPicker from "../../components/common/ColorPicker";
+import { useHorseAttributeOptions } from "../../hooks/useHorseAttributeOptions";
 
 // =====================================================
 // CONSTANTS
@@ -60,7 +61,6 @@ const breedsList = [
   "Other Breed",
 ];
 
-const sexes = ["Stallion", "Gelding", "Mare", "Colt", "Filly"];
 const stallTypes = ["Box", "1/2 Box", "Single Stall"];
 
 const emptyHorse = {
@@ -142,6 +142,7 @@ const FileUploadControl = ({
 // MAIN COMPONENT
 // =====================================================
 const MyHorses = () => {
+  const { colors: colorOptions, sexes: sexOptions } = useHorseAttributeOptions();
   const {
     myHorses,
     horseLoading,
@@ -421,6 +422,7 @@ const MyHorses = () => {
               onChange={(value) => handleFieldChange("colour", value)}
               error={errors.colour}
               label="Colour"
+              options={colorOptions}
             />
 
             {/* Age */}
@@ -522,7 +524,7 @@ const MyHorses = () => {
                 }`}
               >
                 <option value="">Select sex</option>
-                {sexes.map((s) => (
+                {sexOptions.map((s) => (
                   <option key={s} value={s}>
                     {s}
                   </option>

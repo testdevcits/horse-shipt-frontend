@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Select from "../../../components/common/Select";
 import Toast from "../../../components/common/Toast";
 import ColorPicker from "../../../components/common/ColorPicker";
+import { useHorseAttributeOptions } from "../../../hooks/useHorseAttributeOptions";
 
 const breedsList = [
   "American Sport Pony",
@@ -52,7 +53,6 @@ const breedsList = [
   "Other Breed",
 ];
 
-const sexes = ["Stallion", "Gelding", "Mare", "Colt", "Filly"];
 const stallTypes = ["Box", "1/2 Box", "Single Stall"];
 
 const defaultHorse = {
@@ -84,6 +84,7 @@ const Step3HorseInfo = ({
   isEditMode,
   metadataOnly = false,
 }) => {
+  const { colors: colorOptions, sexes: sexOptions } = useHorseAttributeOptions();
   const [savingHorseIdx, setSavingHorseIdx] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [unsavedHorseIdxs, setUnsavedHorseIdxs] = useState([]);
@@ -437,6 +438,7 @@ const Step3HorseInfo = ({
               onChange={(val) => handleHorseChange(idx, "colour", val)}
               label="Colour"
               error={errors?.[`colour${idx}`]}
+              options={colorOptions}
             />
 
             <div className="flex-1">
@@ -471,7 +473,7 @@ const Step3HorseInfo = ({
               <Select
                 value={horse?.sex || ""}
                 onChange={(e) => handleHorseChange(idx, "sex", e.target.value)}
-                options={sexes.map((s) => ({ value: s, label: s }))}
+                options={sexOptions.map((s) => ({ value: s, label: s }))}
               />
               {errors?.[`sex${idx}`] && (
                 <p className="text-red-500 text-xs mt-1">
