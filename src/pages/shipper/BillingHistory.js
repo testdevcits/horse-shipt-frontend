@@ -970,7 +970,7 @@ const BillingHistory = () => {
           <div className="px-6 py-8">
             <div className="mb-5 border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
               Free trial invoices are shown as <b>Free</b> / <b>No charge</b>.
-              Paid monthly invoices are listed once in All; card receipts stay
+              Paid subscription invoices are listed once in All; card receipts stay
               available under the Payments filter.
             </div>
 
