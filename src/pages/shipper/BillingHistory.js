@@ -396,10 +396,30 @@ const BillingHistory = () => {
     );
   };
 
+  const normalizePlanType = (planType) => {
+    const value = String(planType || "").toLowerCase();
+    if (["day", "daily"].includes(value)) return "daily";
+    if (["month", "monthly"].includes(value)) return "monthly";
+    if (["year", "yearly", "annual"].includes(value)) return "yearly";
+    return value || null;
+  };
+
+  const getPlanLabel = (planType) => {
+    const normalized = normalizePlanType(planType);
+    if (normalized === "daily") return "Daily";
+    if (normalized === "monthly") return "Monthly";
+    if (normalized === "yearly") return "Yearly";
+    return planType
+      ? planType.charAt(0).toUpperCase() + planType.slice(1)
+      : null;
+  };
+
   // ─── Plan price label ──────────────────────────────────────────────────────
   const getPlanPriceLabel = () => {
     if (!plan) return null;
-    const planType = subscription?.planType || plan?.subscriptionStatus;
+    const planType = normalizePlanType(
+      subscription?.planType || plan?.planType || plan?.subscriptionStatus
+    );
 
     if (plan.monthly && (!planType || planType === "monthly")) {
       return `$${plan.monthly.amount}/${plan.monthly.interval || "month"} ${(
@@ -490,7 +510,9 @@ const BillingHistory = () => {
 
   const getHistoryTitle = (item) => {
     if (item.title) return item.title;
-    if (item.type === "subscription") return "Monthly subscription invoice";
+    if (item.type === "subscription") {
+      return `${getPlanLabel(item.planType) || "Subscription"} invoice`;
+    }
     if (item.type === "payment") return "Card payment receipt";
     return "Payout";
   };
@@ -555,10 +577,11 @@ const BillingHistory = () => {
 
   const statusStyle = getStatusStyle(subStatus);
 
-  const planName = subscription?.planType
-    ? subscription.planType.charAt(0).toUpperCase() +
-      subscription.planType.slice(1)
-    : plan?.monthly?.label || plan?.daily?.label || "Premium";
+  const planName =
+    getPlanLabel(subscription?.planType || plan?.planType) ||
+    plan?.daily?.label ||
+    plan?.monthly?.label ||
+    "Premium";
 
   if (billingLoading || subscriptionLoading || planLoading) {
     return (

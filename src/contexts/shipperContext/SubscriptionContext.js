@@ -12,6 +12,14 @@ import { API_BASE_URL } from "../../config/api";
 
 const SubscriptionContext = createContext();
 
+const normalizePlanType = (planType) => {
+  const value = String(planType || "").toLowerCase();
+  if (["day", "daily"].includes(value)) return "daily";
+  if (["month", "monthly"].includes(value)) return "monthly";
+  if (["year", "yearly", "annual"].includes(value)) return "yearly";
+  return value || null;
+};
+
 export const SubscriptionProvider = ({ children }) => {
   const { token, isShipper } = useAuth();
 
@@ -43,6 +51,7 @@ export const SubscriptionProvider = ({ children }) => {
     const status = data.status || data.subscriptionStatus || null;
 
     data.status = status;
+    data.planType = normalizePlanType(data.planType || data.plan);
 
     if (
       status === "trialing" &&
@@ -105,6 +114,7 @@ export const SubscriptionProvider = ({ children }) => {
       plans: data.plans || [data.daily, data.monthly, data.yearly].filter(Boolean),
 
       subscriptionStatus: data.subscriptionStatus || null,
+      planType: normalizePlanType(data.planType),
       nextBillingDate: data.nextBillingDate || null,
       cancelAtPeriodEnd: data.cancelAtPeriodEnd ?? false,
       subscriptionEndDate: data.subscriptionEndDate || null,

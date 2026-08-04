@@ -1,6 +1,6 @@
 {
-  "short_name": "Horse Shipt",
-  "name": "Horse Shipt App",
+  "short_name": "HorseShipt",
+  "name": "HorseShipt",
   "icons": [
     {
       "src": "HorseShipt192.png",
@@ -17,7 +17,7 @@
   "scope": "/",
   "display": "standalone",
   "theme_color": "#BF9B53",
-  "background_color": "#BF9B53",
-  "description": "Track and manage your horse shipments securely and easily.",
+  "background_color": "#ffffff",
+  "description": "Horse transport quote, tracking, delivery, and invoice management.",
   "orientation": "portrait-primary"
 }
