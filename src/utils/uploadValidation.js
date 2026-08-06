@@ -1,5 +1,5 @@
-export const MAX_IMAGE_UPLOAD_SIZE = 5 * 1024 * 1024;
-export const MAX_IMAGE_UPLOAD_SIZE_LABEL = "5 MB";
+export const MAX_IMAGE_UPLOAD_SIZE = 2 * 1024 * 1024;
+export const MAX_IMAGE_UPLOAD_SIZE_LABEL = "2 MB";
 
 export const IMAGE_SIZE_ERROR = `Image size must be ${MAX_IMAGE_UPLOAD_SIZE_LABEL} or less.`;
 
