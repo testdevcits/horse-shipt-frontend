@@ -11,7 +11,6 @@ const ImageInput = ({ file, onChange, label, required, error }) => {
       return;
     }
 
-    // If it's a string (URL from API)
     if (typeof file === "string") {
       setPreviewUrl(file);
       return;
