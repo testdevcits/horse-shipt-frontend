@@ -8,6 +8,7 @@ import {
 import axios from "axios";
 import { useAuth } from "../AuthContext";
 import { API_BASE_URL } from "../../config/api";
+import { validateImageUpload } from "../../utils/uploadValidation";
 
 const ProfileContext = createContext();
 export const ProfileProvider = ({ children }) => {
@@ -107,6 +108,12 @@ export const ProfileProvider = ({ children }) => {
       setError(null);
 
       try {
+        const validationError = validateImageUpload(file);
+        if (validationError) {
+          setError(validationError);
+          throw new Error(validationError);
+        }
+
         const formData = new FormData();
         formData.append("image", file);
 

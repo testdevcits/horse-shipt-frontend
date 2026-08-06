@@ -11,6 +11,7 @@ import axios from "axios";
 import Toast from "../../components/common/Toast";
 import { useSocketStatus } from "../../contexts/SocketStatusContext";
 import { API_BASE_URL } from "../../config/api";
+import { validateImageUpload } from "../../utils/uploadValidation";
 
 const CustomerChatOverview = () => {
   const { shippers, loading, fetchShippers } = useCustomerChat();
@@ -232,8 +233,12 @@ const CustomerChatOverview = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) return;
-    if (file.size > 10 * 1024 * 1024) return;
+    const validationError = validateImageUpload(file);
+    if (validationError) {
+      Toast.error(validationError);
+      e.target.value = "";
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = () => {

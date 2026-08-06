@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { useCustomerReview } from "../../contexts/customerContext/CustomerReviewContext";
 import PageLoader from "../../components/common/PageLoader";
 import ShipperReviewCard from "../../components/common/ShipperReviewCard";
+import defaultAvatar from "../../assets/images/default-avatar.jpg";
 
 const CustomerShipperReviewPage = () => {
   const { shipperId } = useParams();
@@ -75,7 +76,7 @@ const CustomerShipperReviewPage = () => {
                   id: review._id,
                   name: customer?.name || "Anonymous",
                   profileImage:
-                    customer?.profileImage?.url || "/default-avatar.png",
+                    customer?.profileImage?.url || defaultAvatar,
                   rating: review.rating || 0,
                   reviewText: review.reviewText || "No review provided",
                   region: shipperInfo?.locale?.address || "Customer Review",
@@ -91,7 +92,7 @@ const CustomerShipperReviewPage = () => {
               profileImage:
                 shipperInfo.profileImage?.url ||
                 shipperInfo.profilePicture ||
-                "/default-avatar.png",
+                defaultAvatar,
               rating: shipperInfo.averageRating || 0,
               reviewCount: 0,
               region: shipperInfo.locale?.address || "Available",

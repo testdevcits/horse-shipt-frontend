@@ -3,6 +3,8 @@ import { HiPencil } from "react-icons/hi";
 import { useAuth } from "../../contexts/AuthContext";
 import { useShipperProfile } from "../../contexts/ShipperProfileContext";
 import logo from "../../assets/images/profileImage.png"; // default fallback
+import { validateImageUpload } from "../../utils/uploadValidation";
+import Toast from "./Toast";
 
 const IMAGE_ACCEPT = "image/jpeg,image/jpg,image/png,image/webp,image/svg+xml";
 const SUPPORTED_IMAGE_TYPES = new Set([
@@ -33,6 +35,12 @@ const CommentBanner = () => {
       e.target.value = "";
       return;
     }
+    const validationError = validateImageUpload(file);
+    if (validationError) {
+      Toast.error(validationError);
+      e.target.value = "";
+      return;
+    }
     await updateBannerImage(file);
     e.target.value = "";
   };
@@ -42,6 +50,12 @@ const CommentBanner = () => {
     if (!file) return;
     if (!SUPPORTED_IMAGE_TYPES.has(file.type)) {
       await updateProfileImage(null, SUPPORTED_FORMAT_LABEL);
+      e.target.value = "";
+      return;
+    }
+    const validationError = validateImageUpload(file);
+    if (validationError) {
+      Toast.error(validationError);
       e.target.value = "";
       return;
     }

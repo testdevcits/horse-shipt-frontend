@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   LoaderCircle,
 } from "lucide-react";
+import { getFileSizeError } from "../../utils/uploadValidation";
 
 const OFFER_FORM_ID = "shipper-offer-submit-form";
 
@@ -344,6 +345,13 @@ const OfferSubmitModal = ({ shipment, onClose, onSuccess }) => {
 
                           if (file.size > 10 * 1024 * 1024) {
                             showToast("Contract file must be under 10MB", "error");
+                            event.target.value = "";
+                            return;
+                          }
+
+                          const imageValidationError = getFileSizeError(file);
+                          if (imageValidationError) {
+                            showToast(imageValidationError, "error");
                             event.target.value = "";
                             return;
                           }

@@ -325,7 +325,7 @@ const NotificationsPage = () => {
         <button
           type="button"
           onClick={() => navigate(settingsPath)}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:border-[#BF9B53] hover:text-[#735D32]"
+          className="inline-flex items-center justify-center gap-2 rounded-sm border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:border-[#BF9B53] hover:text-[#735D32]"
         >
           <FiSettings size={16} />
           Settings
@@ -340,7 +340,7 @@ const NotificationsPage = () => {
                 key={option.key}
                 type="button"
                 onClick={() => setFilter(option.key)}
-                className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
+                className={`rounded-sm px-4 py-2 text-sm font-bold transition ${
                   filter === option.key
                     ? "bg-[#BF9B53] text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-[#FFF9EC] hover:text-[#735D32]"
@@ -356,7 +356,7 @@ const NotificationsPage = () => {
               type="button"
               onClick={toggleSelectAllVisible}
               disabled={visibleNotifications.length === 0 || actionLoading}
-              className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold uppercase text-slate-600 transition hover:border-[#BF9B53] hover:text-[#735D32] disabled:opacity-50"
+              className="rounded-sm border border-slate-200 px-3 py-2 text-xs font-bold uppercase text-slate-600 transition hover:border-[#BF9B53] hover:text-[#735D32] disabled:opacity-50"
             >
               {allVisibleSelected ? "Unselect All" : "Select All"}
             </button>
@@ -364,7 +364,7 @@ const NotificationsPage = () => {
               type="button"
               onClick={handleMarkSelectedRead}
               disabled={selectedIds.length === 0 || actionLoading}
-              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold uppercase text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-sm border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold uppercase text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
             >
               <FiCheck size={14} />
               Mark Selected Read
@@ -373,7 +373,7 @@ const NotificationsPage = () => {
               type="button"
               onClick={handleMarkAllRead}
               disabled={notifications.length === 0 || actionLoading}
-              className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold uppercase text-slate-600 transition hover:border-[#BF9B53] hover:text-[#735D32] disabled:opacity-50"
+              className="rounded-sm border border-slate-200 px-3 py-2 text-xs font-bold uppercase text-slate-600 transition hover:border-[#BF9B53] hover:text-[#735D32] disabled:opacity-50"
             >
               Mark All Read
             </button>
@@ -381,7 +381,7 @@ const NotificationsPage = () => {
               type="button"
               onClick={() => setConfirmAction("delete-selected")}
               disabled={selectedIds.length === 0 || actionLoading}
-              className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold uppercase text-red-600 transition hover:bg-red-100 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-sm border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold uppercase text-red-600 transition hover:bg-red-100 disabled:opacity-50"
             >
               <FiTrash2 size={14} />
               Delete Selected
@@ -390,7 +390,7 @@ const NotificationsPage = () => {
               type="button"
               onClick={() => setConfirmAction("clear-all")}
               disabled={notifications.length === 0 || actionLoading}
-              className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold uppercase text-white transition hover:bg-slate-800 disabled:opacity-50"
+              className="rounded-sm bg-slate-900 px-3 py-2 text-xs font-bold uppercase text-white transition hover:bg-slate-800 disabled:opacity-50"
             >
               Clear All
             </button>
@@ -407,7 +407,7 @@ const NotificationsPage = () => {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-md bg-[#FFF9EC] text-[#BF9B53]">
             <FiInbox size={26} />
           </div>
-          <h2 className="mt-4 text-lg font-bold text-slate-900">
+          <h2 className="mt-4 text-sm font-bold text-slate-900">
             No notifications available.
           </h2>
           <p className="mt-2 text-sm font-medium text-slate-500">
@@ -426,7 +426,7 @@ const NotificationsPage = () => {
               <div
                 key={item.id}
                 onClick={() => handleNotificationClick(item)}
-                className={`group flex gap-4 rounded-md border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#BF9B53]/60 hover:shadow-md ${
+                className={`group flex gap-4 rounded-sm border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#BF9B53]/60 hover:shadow-md ${
                   item.read ? "border-slate-100" : "border-[#BF9B53]/40"
                 } ${canOpenShipment ? "cursor-pointer" : ""}`}
                 role={canOpenShipment ? "button" : undefined}
@@ -450,10 +450,7 @@ const NotificationsPage = () => {
                   aria-label="Select notification"
                 />
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[#FFF9EC] text-[#735D32]">
-                  <FiBell size={20} />
-                </div>
-
+             
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">

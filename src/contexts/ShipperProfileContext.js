@@ -9,6 +9,7 @@ import axios from "axios";
 import { useAuth } from "./AuthContext";
 import Toast from "../components/common/Toast";
 import { SHIPPER_API_BASE_URL as API_BASE_URL } from "../config/api";
+import { validateImageUpload } from "../utils/uploadValidation";
 
 const ShipperProfileContext = createContext();
 export const ShipperProfileProvider = ({ children }) => {
@@ -111,6 +112,12 @@ export const ShipperProfileProvider = ({ children }) => {
       return { success: false };
     }
 
+    const validationError = validateImageUpload(file);
+    if (validationError) {
+      showToast(validationError, "error");
+      return { success: false };
+    }
+
     const formData = new FormData();
     formData.append("image", file);
 
@@ -159,6 +166,12 @@ export const ShipperProfileProvider = ({ children }) => {
           : "Please choose a banner image to upload.",
         "error"
       );
+      return { success: false };
+    }
+
+    const validationError = validateImageUpload(file);
+    if (validationError) {
+      showToast(validationError, "error");
       return { success: false };
     }
 

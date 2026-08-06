@@ -13,6 +13,7 @@ import Toast from "../../components/common/Toast";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import PageLoader from "../../components/common/PageLoader";
 import ConfirmModal from "../../components/common/ConfirmModal";
+import { getFileSizeError } from "../../utils/uploadValidation";
 
 const steps = [
   { id: 1, title: "Pickup Date" },
@@ -279,6 +280,15 @@ const NewShipment = () => {
   };
 
   const handleHorseFileChange = (index, field, file) => {
+    if (file instanceof File) {
+      const validationError = getFileSizeError(file);
+      if (validationError) {
+        setErrors((prev) => ({ ...prev, [`${field}${index}`]: validationError }));
+        Toast.error(validationError);
+        return;
+      }
+    }
+
     setHorses((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: file };

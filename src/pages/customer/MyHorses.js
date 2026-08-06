@@ -8,6 +8,7 @@ import PageLoader from "../../components/common/PageLoader";
 import NoData from "../../components/common/NoData";
 import ColorPicker from "../../components/common/ColorPicker";
 import { useHorseAttributeOptions } from "../../hooks/useHorseAttributeOptions";
+import { getFileSizeError } from "../../utils/uploadValidation";
 
 // =====================================================
 // CONSTANTS
@@ -185,6 +186,15 @@ const MyHorses = () => {
   // FIELD CHANGE
   // =====================================================
   const handleFieldChange = (field, value) => {
+    if (value instanceof File) {
+      const validationError = getFileSizeError(value);
+      if (validationError) {
+        setErrors((prev) => ({ ...prev, [field]: validationError }));
+        Toast.error(validationError);
+        return;
+      }
+    }
+
     setEditingHorse((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => {

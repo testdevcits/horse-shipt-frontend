@@ -2,6 +2,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import Button from "./Button";
 import { FiUpload } from "react-icons/fi";
+import { getFileSizeError } from "../../utils/uploadValidation";
 
 const FileInput = ({
   label,
@@ -14,6 +15,7 @@ const FileInput = ({
 }) => {
   const inputRef = useRef(null);
   const [fileName, setFileName] = useState("");
+  const [localError, setLocalError] = useState("");
 
   useEffect(() => {
     if (file) {
@@ -26,6 +28,14 @@ const FileInput = ({
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
+      const validationError = getFileSizeError(selectedFile);
+      if (validationError) {
+        setLocalError(validationError);
+        e.target.value = "";
+        return;
+      }
+
+      setLocalError("");
       setFileName(selectedFile.name);
       onChange(selectedFile);
     }
@@ -81,7 +91,9 @@ const FileInput = ({
         />
       </div>
 
-      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      {(localError || error) && (
+        <p className="text-red-500 text-sm mt-1">{localError || error}</p>
+      )}
     </div>
   );
 };

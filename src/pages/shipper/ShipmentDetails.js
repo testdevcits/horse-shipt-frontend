@@ -119,14 +119,7 @@ const DOC_COLORS = {
 
 const isPdfDocument = (doc = {}) => {
   const url = String(doc.url || "").toLowerCase();
-  const label = String(doc.label || "").toLowerCase();
-  return (
-    url.includes(".pdf") ||
-    url.includes("/raw/upload/") ||
-    label.includes("pdf") ||
-    label.includes("coggins") ||
-    label.includes("health")
-  );
+  return /\.pdf($|[?#])/.test(url) || url.includes("format=pdf");
 };
 
 const ShipmentDetails = ({ shipmentId: defaultId }) => {

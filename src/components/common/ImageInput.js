@@ -1,9 +1,11 @@
 import React, { useRef, useState, useEffect } from "react";
 import { ImagePlus } from "lucide-react";
+import { MAX_IMAGE_UPLOAD_SIZE_LABEL, validateImageUpload } from "../../utils/uploadValidation";
 
 const ImageInput = ({ file, onChange, label, required, error }) => {
   const inputRef = useRef();
   const [previewUrl, setPreviewUrl] = useState("");
+  const [localError, setLocalError] = useState("");
 
   useEffect(() => {
     if (!file) {
@@ -38,19 +40,39 @@ const ImageInput = ({ file, onChange, label, required, error }) => {
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile) onChange(selectedFile);
+    if (!selectedFile) return;
+
+    const validationError = validateImageUpload(selectedFile);
+    if (validationError) {
+      setLocalError(validationError);
+      e.target.value = "";
+      return;
+    }
+
+    setLocalError("");
+    onChange(selectedFile);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) onChange(droppedFile);
+    if (!droppedFile) return;
+
+    const validationError = validateImageUpload(droppedFile);
+    if (validationError) {
+      setLocalError(validationError);
+      return;
+    }
+
+    setLocalError("");
+    onChange(droppedFile);
   };
 
   const handleRemove = (e) => {
     e.stopPropagation();
     onChange(null);
     setPreviewUrl("");
+    setLocalError("");
     if (inputRef.current) {
       inputRef.current.value = "";
     }
@@ -102,7 +124,9 @@ const ImageInput = ({ file, onChange, label, required, error }) => {
               <p className="font-semibold text-slate-700">
                 Click or drag image
               </p>
-              <p className="text-xs text-slate-600">PNG, JPG, GIF up to 10MB</p>
+              <p className="text-xs text-slate-600">
+                PNG, JPG, GIF up to {MAX_IMAGE_UPLOAD_SIZE_LABEL}
+              </p>
             </div>
           </div>
         )}
@@ -116,7 +140,11 @@ const ImageInput = ({ file, onChange, label, required, error }) => {
         />
       </div>
 
-      {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+      {(localError || error) && (
+        <p className="text-red-500 text-sm font-medium">
+          {localError || error}
+        </p>
+      )}
     </div>
   );
 };

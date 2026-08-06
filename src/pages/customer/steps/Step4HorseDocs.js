@@ -70,8 +70,8 @@ const Step4HorseDocuments = ({
                 className="bg-[#BF9B53]/10 p-2 text-xs font-medium text-[#BF9B53]"
               >
                 <strong className="font-bold">Image Requirement:</strong> Upload images up to
-                1024 × 768 px. Larger images are not recommended. Keep the original aspect
-                ratio to avoid distortion.
+                1024 × 768 px and 5 MB. Larger images are not recommended.
+                Keep the original aspect ratio to avoid distortion.
               </p>
               <ImageInput
                 file={horse?.photo}

@@ -17,6 +17,7 @@ import { useDriver } from "../../contexts/shipperContext/DriverContext";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import PageLoader from "../../components/common/PageLoader";
 import ImageSwiper from "../../components/common/ImageSwiper";
+import { MAX_IMAGE_UPLOAD_SIZE_LABEL, validateImageUpload } from "../../utils/uploadValidation";
 
 const VehiclePage = () => {
   // --------- Vehicle Context ---------
@@ -146,7 +147,14 @@ const VehiclePage = () => {
   };
 
   // --------- Form submit handler ---------
-  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+  const handleSubmit = async (values, { setSubmitting, resetForm, setFieldError }) => {
+    const oversizedImage = values.images.find((img) => img instanceof File && validateImageUpload(img));
+    if (oversizedImage) {
+      setFieldError("images", validateImageUpload(oversizedImage));
+      setSubmitting(false);
+      return;
+    }
+
     const formData = new FormData();
 
     Object.keys(values).forEach((key) => {
@@ -430,6 +438,7 @@ const VehiclePage = () => {
                 touched,
                 submitCount,
                 setFieldValue,
+                setFieldError,
                 isSubmitting,
               }) => (
                 <Form
@@ -619,6 +628,9 @@ const VehiclePage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Upload Vehicle Images
                     </label>
+                    <p className="mb-2 text-xs font-medium text-gray-500">
+                      Images must be {MAX_IMAGE_UPLOAD_SIZE_LABEL} or less.
+                    </p>
                     <div className="flex flex-wrap gap-3 p-3 border border-gray-200 rounded-xl">
                       {[...Array(5)].map((_, i) => (
                         <div
@@ -631,11 +643,18 @@ const VehiclePage = () => {
                             className="absolute inset-0 opacity-0 cursor-pointer"
                             onChange={(e) => {
                               const file = e.target.files[0];
-                              if (file) {
-                                const updated = [...values.images];
-                                updated[i] = file;
-                                setFieldValue("images", updated);
+                              if (!file) return;
+                              const validationError = validateImageUpload(file);
+                              if (validationError) {
+                                setFieldError("images", validationError);
+                                e.target.value = "";
+                                return;
                               }
+                              const updated = [...values.images];
+                              updated[i] = file;
+                              setFieldValue("images", updated);
+                              setFieldError("images", "");
+                              e.target.value = "";
                             }}
                           />
                           {values.images[i] ? (
@@ -653,6 +672,11 @@ const VehiclePage = () => {
                         </div>
                       ))}
                     </div>
+                    <ErrorMessage
+                      name="images"
+                      component="p"
+                      className="text-red-500 text-sm mt-1"
+                    />
                   </div>
 
                   {/* Notes */}

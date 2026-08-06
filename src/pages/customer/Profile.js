@@ -6,6 +6,7 @@ import { useProfile } from "../../contexts/customerContext/ProfileContext";
 import CustomerReviews from "./CustomerReviews";
 import Toast from "../../components/common/Toast";
 import defaultProfileImage from "../../assets/images/profileImage.png";
+import { validateImageUpload } from "../../utils/uploadValidation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
@@ -103,6 +104,13 @@ const CustomerProfile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    const validationError = validateImageUpload(file);
+    if (validationError) {
+      Toast.error(validationError);
+      e.target.value = "";
+      return;
+    }
+
     // Preview
     const reader = new FileReader();
     reader.onload = () => {
@@ -121,6 +129,8 @@ const CustomerProfile = () => {
         err.response?.data?.message || "Failed to update profile image"
       );
       setImagePreview(null);
+    } finally {
+      e.target.value = "";
     }
   };
 
@@ -153,6 +163,9 @@ const CustomerProfile = () => {
                     className={`h-full object-cover transition-all duration-300 ${
                       loading ? "opacity-50 blur-sm" : "opacity-100"
                     }`}
+                    onError={(e) => {
+                      e.currentTarget.src = defaultProfileImage;
+                    }}
                   />
 
                   {/* Loading Overlay */}

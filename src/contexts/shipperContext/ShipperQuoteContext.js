@@ -70,7 +70,11 @@ export const ShipperQuoteProvider = ({ children }) => {
       Toast.error(
         err.response?.data?.message || err.message || "Failed to send quote"
       );
-      return { success: false };
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message || "Failed to send quote",
+        needsStripeAccount: Boolean(err.response?.data?.needsStripeAccount),
+      };
     } finally {
       setLoading(false);
     }

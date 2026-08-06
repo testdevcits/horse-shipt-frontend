@@ -7,6 +7,7 @@ import { GoStar } from "react-icons/go";
 import { IoArrowBack, IoLocationOutline } from "react-icons/io5";
 import { MdEmail } from "react-icons/md";
 import { FaCheckCircle } from "react-icons/fa";
+import defaultAvatar from "../../assets/images/default-avatar.jpg";
 
 const ShipperProfile = () => {
   const { id } = useParams();
@@ -77,9 +78,12 @@ const ShipperProfile = () => {
       <div className="bg-white shadow-md rounded-xl p-5 flex flex-col sm:flex-row gap-4 items-center sm:items-start">
         <div className="w-[90px] h-[90px] rounded-full overflow-hidden border">
           <img
-            src={profile.profileImage || "/default-avatar.png"}
+            src={profile.profileImage || defaultAvatar}
             alt={profile.name}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = defaultAvatar;
+            }}
           />
         </div>
 
