@@ -5,6 +5,7 @@ import axios from "axios";
 import { LuArrowLeftFromLine, LuArrowRightFromLine } from "react-icons/lu";
 import { CiCircleQuestion } from "react-icons/ci";
 import { LiaHorseHeadSolid } from "react-icons/lia";
+import { MdFavoriteBorder } from "react-icons/md";
 
 import { useAuth } from "../../contexts/AuthContext";
 import SidebarSupportPopup from "../../components/common/SidebarSupportPopup";
@@ -50,6 +51,11 @@ const navItems = [
     name: "My Horses",
     path: "/customer/my-horses",
     icon: <LiaHorseHeadSolid />,
+  },
+  {
+    name: "Wishlist",
+    path: "/customer/wishlist",
+    icon: <MdFavoriteBorder />,
   },
   {
     name: "Chat",

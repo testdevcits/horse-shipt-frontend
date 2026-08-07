@@ -88,6 +88,7 @@ const FindShippers = lazy(() => import("../pages/customer/FindShippers"));
 const TopRatedShippers = lazy(() =>
   import("../pages/customer/TopRatedShippers")
 );
+const CustomerWishlist = lazy(() => import("../pages/customer/Wishlist"));
 
 const ShipperProfilePage = lazy(() =>
   import("../pages/customer/ShipperProfile")
@@ -282,6 +283,7 @@ const AppRoutes = () => {
           />
           <Route path="chats" element={<CustomerChatOverview />} />
           <Route path="my-horses" element={<MyHorses />} />
+          <Route path="wishlist" element={<CustomerWishlist />} />
           <Route path="all-shippers" element={<TopRatedShippers />} />
           <Route path="shipper-profile/:id" element={<ShipperProfilePage />} />
           <Route

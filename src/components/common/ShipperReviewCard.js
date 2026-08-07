@@ -1,16 +1,19 @@
-import React, { useState } from "react";
+import React from "react";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
 import { MdFavoriteBorder, MdFavorite } from "react-icons/md";
 import { IoLocationOutline } from "react-icons/io5";
 import { FaGoogle, FaExternalLinkAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import defaultAvatar from "../../assets/images/default-avatar.jpg";
+import { useReview } from "../../contexts/customerContext/ReviewContext";
 
 const ShipperReviewCard = ({ shipper }) => {
   const navigate = useNavigate();
-  const [isFavorited, setIsFavorited] = useState(false);
+  const { wishlistedShipperIds, toggleWishlist } = useReview();
 
   const ratingValue = Number(shipper.rating || 0);
+  const shipperId = String(shipper.id || shipper._id || "");
+  const isFavorited = wishlistedShipperIds.includes(shipperId);
   const hasCustomerReviews = Number(shipper.reviewCount || 0) > 0;
   const hasGoogleReviewLink = Boolean(shipper.googleReviewLink);
   const preferredAreas = Array.isArray(shipper.preferredAreas)
@@ -23,7 +26,9 @@ const ShipperReviewCard = ({ shipper }) => {
 
   const handleFavorite = (e) => {
     e.stopPropagation();
-    setIsFavorited((current) => !current);
+    toggleWishlist(shipper).catch((error) => {
+      console.error("Wishlist update error", error);
+    });
   };
 
   const handleGoogleReviewClick = (e) => {
