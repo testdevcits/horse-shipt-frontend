@@ -100,7 +100,15 @@ const fetchQuoteDocumentUrl = async (args) => {
 };
 
 const openQuoteDocument = async (args) => {
-  const openedWindow = window.open("", "_blank", "noopener,noreferrer");
+  const openedWindow = window.open("", "_blank");
+
+  if (openedWindow) {
+    openedWindow.opener = null;
+    openedWindow.document.write(
+      "<!doctype html><title>Loading document</title><body style=\"margin:0;font-family:Arial,sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center;color:#4b5563\">Loading document...</body>"
+    );
+    openedWindow.document.close();
+  }
 
   try {
     const document = await fetchQuoteDocument(args);
