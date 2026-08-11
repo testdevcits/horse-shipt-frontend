@@ -7,6 +7,7 @@ import {
 } from "@react-google-maps/api";
 import { FiX, FiNavigation, FiAlertCircle, FiCrosshair } from "react-icons/fi";
 import { DEFAULT_US_MAP_CENTER } from "../../constants/mapDefaults";
+import { getGoogleMapsLoaderOptions } from "../../constants/googleMapsLoader";
 
 const containerStyle = { width: "100%", height: "100%" };
 
@@ -174,9 +175,7 @@ const RouteMapModal = ({
   pickupAddress,
   deliveryAddress,
 }) => {
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-  });
+  const { isLoaded, loadError } = useJsApiLoader(getGoogleMapsLoaderOptions());
 
   const [directions, setDirections] = useState(null);
   const [routeError, setRouteError] = useState(false);

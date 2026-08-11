@@ -18,6 +18,7 @@ import {
 } from "react-icons/fi";
 import { FaTruck } from "react-icons/fa";
 import { DEFAULT_US_MAP_CENTER } from "../constants/mapDefaults";
+import { getGoogleMapsLoaderOptions } from "../constants/googleMapsLoader";
 
 /* ─────────────────────────────────────────
    HELPERS
@@ -291,9 +292,7 @@ const TrackShipmentPage = () => {
   const { trackingData, loading, error, trackShipment, clearTracking } =
     useTracking();
 
-  const { isLoaded: mapsLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-  });
+  const { isLoaded: mapsLoaded } = useJsApiLoader(getGoogleMapsLoaderOptions());
 
   const mapRef = useRef(null);
   const ignoreNextIdleRef = useRef(false);

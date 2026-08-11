@@ -54,16 +54,13 @@ import RealtimeNotifications from "./components/RealtimeNotifications";
 import { NotificationActivityProvider } from "./contexts/NotificationActivityContext";
 import ScrollToTop from "./components/common/ScrollToTop";
 import { SocketStatusProvider } from "./contexts/SocketStatusContext";
+import { getGoogleMapsLoaderOptions } from "./constants/googleMapsLoader";
 
 // ------------------- Stripe Setup -------------------
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
-const GOOGLE_LIBRARIES = ["places"];
 
 const GoogleMapsPreloader = () => {
-  useJsApiLoader({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "",
-    libraries: GOOGLE_LIBRARIES,
-  });
+  useJsApiLoader(getGoogleMapsLoaderOptions());
 
   return null;
 };
