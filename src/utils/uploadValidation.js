@@ -1,10 +1,14 @@
 export const MAX_IMAGE_UPLOAD_SIZE = 1 * 1024 * 1024;
 export const MAX_IMAGE_UPLOAD_SIZE_LABEL = "1 MB";
+export const MAX_CHAT_PDF_UPLOAD_SIZE = 10 * 1024 * 1024;
+export const MAX_CHAT_PDF_UPLOAD_SIZE_LABEL = "10 MB";
 
 export const IMAGE_SIZE_ERROR = `Image size must be ${MAX_IMAGE_UPLOAD_SIZE_LABEL} or less.`;
 
 export const isImageFile = (file) =>
   Boolean(file?.type && file.type.startsWith("image/"));
+
+export const isPdfFile = (file) => file?.type === "application/pdf";
 
 export const isImageTooLarge = (file) =>
   isImageFile(file) && Number(file.size || 0) > MAX_IMAGE_UPLOAD_SIZE;
@@ -18,6 +22,24 @@ export const validateImageUpload = (file, { requireImage = true } = {}) => {
 
   if (isImageTooLarge(file)) {
     return IMAGE_SIZE_ERROR;
+  }
+
+  return "";
+};
+
+export const validateChatAttachmentUpload = (file) => {
+  if (!file) return "";
+
+  if (!isImageFile(file) && !isPdfFile(file)) {
+    return "Please upload a valid image or PDF file.";
+  }
+
+  if (isImageTooLarge(file)) {
+    return IMAGE_SIZE_ERROR;
+  }
+
+  if (isPdfFile(file) && Number(file.size || 0) > MAX_CHAT_PDF_UPLOAD_SIZE) {
+    return `PDF size must be ${MAX_CHAT_PDF_UPLOAD_SIZE_LABEL} or less.`;
   }
 
   return "";

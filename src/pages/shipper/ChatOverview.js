@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
-import { FiCheck, FiEdit2, FiImage, FiLock, FiTrash2, FiX } from "react-icons/fi";
+import { FiCheck, FiEdit2, FiFileText, FiImage, FiLock, FiTrash2, FiX } from "react-icons/fi";
 import PageLoader from "../../components/common/PageLoader";
 import { useShipperChat } from "../../contexts/shipperContext/ShipperChatContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -10,7 +10,53 @@ import axios from "axios";
 import Toast from "../../components/common/Toast";
 import { useSocketStatus } from "../../contexts/SocketStatusContext";
 import { API_BASE_URL } from "../../config/api";
-import { validateImageUpload } from "../../utils/uploadValidation";
+import { validateChatAttachmentUpload } from "../../utils/uploadValidation";
+
+const isPdfAttachment = (item) =>
+  item?.type === "pdf" ||
+  item?.mimeType === "application/pdf" ||
+  /\.pdf($|[?#])/i.test(item?.url || item?.originalName || "");
+
+const ChatAttachment = ({ item }) =>
+  isPdfAttachment(item) ? (
+    <a
+      href={item.url}
+      target="_blank"
+      rel="noreferrer"
+      className="flex max-w-[260px] items-center gap-2 rounded-md border border-white/30 bg-white/15 px-3 py-2 text-sm font-semibold hover:bg-white/25"
+    >
+      <FiFileText className="shrink-0" size={18} />
+      <span className="truncate">{item.originalName || "Open PDF"}</span>
+    </a>
+  ) : (
+    <a href={item.url} target="_blank" rel="noreferrer">
+      <img
+        src={item.url}
+        alt={item.originalName || "Chat attachment"}
+        className="max-h-64 rounded-md object-cover"
+      />
+    </a>
+  );
+
+const renderMessageText = (text = "") => {
+  const parts = String(text).split(/(https?:\/\/[^\s]+)/g);
+
+  return parts.map((part, index) =>
+    /^https?:\/\//i.test(part) ? (
+      <a
+        key={`${part}-${index}`}
+        href={part}
+        target="_blank"
+        rel="noreferrer"
+        className="break-all font-semibold underline"
+      >
+        {part}
+      </a>
+    ) : (
+      <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>
+    )
+  );
+};
 
 const ChatOverview = () => {
   const { customers, loading, fetchCustomers } = useShipperChat();
@@ -237,7 +283,7 @@ const ChatOverview = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const validationError = validateImageUpload(file);
+    const validationError = validateChatAttachmentUpload(file);
     if (validationError) {
       Toast.error(validationError);
       e.target.value = "";
@@ -546,21 +592,10 @@ const ChatOverview = () => {
                   >
                     {msg.isDeleted ? (
                       <p className="italic opacity-80">This message was deleted</p>
-                    ) : msg.media?.length > 0 && (
+                  ) : msg.media?.length > 0 && (
                       <div className="space-y-2 mb-2">
                         {msg.media.map((item, idx) => (
-                          <a
-                            key={item.public_id || idx}
-                            href={item.url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            <img
-                              src={item.url}
-                              alt={item.originalName || "Chat attachment"}
-                              className="max-h-64 rounded-md object-cover"
-                            />
-                          </a>
+                          <ChatAttachment key={item.public_id || idx} item={item} />
                         ))}
                       </div>
                     )}
@@ -595,7 +630,11 @@ const ChatOverview = () => {
                       </div>
                     ) : (
                       !msg.isDeleted &&
-                        (msg.message || msg.text) && <p>{msg.message || msg.text}</p>
+                        (msg.message || msg.text) && (
+                          <p className="break-words">
+                            {renderMessageText(msg.message || msg.text)}
+                          </p>
+                        )
                     )}
                     <div className="mt-1 flex items-center justify-between gap-3 text-xs opacity-70">
                       <span>
@@ -649,11 +688,17 @@ const ChatOverview = () => {
               )}
               {selectedImage && (
                 <div className="relative w-24">
-                  <img
-                    src={selectedImage.preview}
-                    alt="Selected"
-                    className="w-24 h-20 object-cover rounded border"
-                  />
+                  {selectedImage.type === "application/pdf" ? (
+                    <div className="flex h-20 w-24 items-center justify-center rounded border bg-gray-50 text-[#BF9B53]">
+                      <FiFileText size={24} />
+                    </div>
+                  ) : (
+                    <img
+                      src={selectedImage.preview}
+                      alt="Selected"
+                      className="w-24 h-20 object-cover rounded border"
+                    />
+                  )}
                   <button
                     type="button"
                     onClick={clearSelectedImage}
@@ -668,7 +713,7 @@ const ChatOverview = () => {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf"
                   onChange={handleImageSelect}
                   className="hidden"
                 />
