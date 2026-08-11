@@ -391,7 +391,7 @@ const CustomerChatOverview = () => {
     <div className="flex h-[calc(100vh-120px)] bg-white border shadow font-montserrat overflow-hidden">
       {/* ================= SHIPPERS LIST ================= */}
       <div
-        className={`w-full lg:w-1/3 border-r overflow-y-auto bg-white
+        className={`w-full lg:w-[380px] xl:w-[420px] shrink-0 border-r overflow-y-auto bg-white
         ${selectedShipper ? "hidden lg:block" : "block"}`}
       >
         <div className="p-4 border-b font-semibold">Shipment Chats</div>
@@ -444,13 +444,13 @@ const CustomerChatOverview = () => {
               setRoomId(null);
               setMessages([]); // reset messages
             }}
-            className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100"
+            className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-gray-100"
           >
-            <div className="relative">
+            <div className="relative h-11 w-11 shrink-0">
               <img
                 src={s.avatar || defaultProfileImage}
                 alt={s.name}
-                className="w-10 h-10 rounded-full object-cover border border-system-primary"
+                className="h-11 w-11 rounded-full object-cover border border-system-primary"
               />
               <span
                 className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
@@ -459,9 +459,11 @@ const CustomerChatOverview = () => {
               />
             </div>
 
-            <div className="flex flex-col min-w-0">
-              <span className="font-medium">{s.name}</span>
-              <span className="text-xs text-gray-500">{s.email}</span>
+            <div className="flex min-w-0 flex-1 flex-col leading-tight">
+              <span className="truncate text-sm font-semibold text-gray-900">
+                {s.name}
+              </span>
+              <span className="truncate text-xs text-gray-500">{s.email}</span>
               <span className="text-xs text-[#BF9B53] font-semibold truncate">
                 {s.shipmentCode}
               </span>
