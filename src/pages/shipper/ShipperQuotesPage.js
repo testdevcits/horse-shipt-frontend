@@ -43,25 +43,85 @@ const getDocumentFileName = (quote, documentType) => {
   return `${shipmentCode}.pdf`;
 };
 
-const fetchQuoteDocumentUrl = async ({ quote, quoteId, documentType, token }) => {
+const extractDocumentError = async (response) => {
+  let message = "Unable to load contract";
+
+  try {
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const data = await response.json();
+      return data.message || message;
+    }
+
+    const text = await response.text();
+    return (
+      text
+        .replace(/<style[\s\S]*?<\/style>/gi, "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim() || message
+    );
+  } catch (error) {
+    return message;
+  }
+};
+
+const fetchQuoteDocument = async ({ quote, quoteId, documentType, token }) => {
   const response = await fetch(getQuoteDocumentUrl(quoteId, documentType), {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  if (!response.ok) throw new Error("Unable to load contract");
+  if (!response.ok) throw new Error(await extractDocumentError(response));
 
   const blob = await response.blob();
   const contentType = response.headers.get("content-type") || blob.type || "";
   const header = await blob.slice(0, 4).text();
-  if (!contentType.toLowerCase().includes("pdf") && header !== "%PDF") {
-    throw new Error("Contract is not available as a valid PDF");
+  const isPdf = contentType.toLowerCase().includes("pdf") || header === "%PDF";
+  const isImage = contentType.toLowerCase().startsWith("image/");
+
+  if (!isPdf && !isImage) {
+    throw new Error("Contract is not available as a supported document");
   }
 
-  return URL.createObjectURL(
-    new File([blob], getDocumentFileName(quote, documentType), {
-      type: "application/pdf",
-    })
-  );
+  const type = isPdf ? "application/pdf" : contentType;
+  return {
+    url: URL.createObjectURL(
+      new File([blob], getDocumentFileName(quote, documentType), {
+        type,
+      })
+    ),
+    type,
+  };
+};
+
+const fetchQuoteDocumentUrl = async (args) => {
+  const document = await fetchQuoteDocument(args);
+  return document.url;
+};
+
+const openQuoteDocument = async (args) => {
+  const openedWindow = window.open("", "_blank", "noopener,noreferrer");
+
+  try {
+    const document = await fetchQuoteDocument(args);
+
+    if (openedWindow) {
+      openedWindow.location.href = document.url;
+    } else {
+      window.open(document.url, "_blank", "noopener,noreferrer");
+    }
+
+    setTimeout(() => URL.revokeObjectURL(document.url), 60000);
+  } catch (error) {
+    if (openedWindow) {
+      openedWindow.close();
+    }
+    throw error;
+  }
+};
+
+const showDocumentToastError = (error) => {
+  toast.error(error.message || "Unable to open contract");
 };
 
 const getHorseImages = (quote) =>
@@ -208,16 +268,14 @@ const ContractPreview = ({ quote, token }) => {
           type="button"
           onClick={async () => {
             try {
-              const nextUrl = await fetchQuoteDocumentUrl({
+              await openQuoteDocument({
                 quote,
                 quoteId: quote._id,
                 documentType: "generated",
                 token,
               });
-              window.open(nextUrl, "_blank", "noopener,noreferrer");
-              setTimeout(() => URL.revokeObjectURL(nextUrl), 60000);
             } catch (err) {
-              toast.error(err.message || "Unable to open contract");
+              showDocumentToastError(err);
             }
           }}
           className="text-sm font-semibold text-[#BF9B53] hover:underline"
@@ -626,20 +684,14 @@ const ShipperQuotesPage = () => {
                         <button
                           onClick={async () => {
                             try {
-                              const nextUrl = await fetchQuoteDocumentUrl({
+                              await openQuoteDocument({
                                 quote,
                                 quoteId: quote._id,
                                 documentType: "shipper",
                                 token,
                               });
-                              window.open(
-                                nextUrl,
-                                "_blank",
-                                "noopener,noreferrer"
-                              );
-                              setTimeout(() => URL.revokeObjectURL(nextUrl), 60000);
                             } catch (err) {
-                              toast.error(err.message || "Unable to open contract");
+                              showDocumentToastError(err);
                             }
                           }}
                           className="h-[38px] w-full border border-[#BF9B53] px-4 text-[12px] font-bold uppercase text-[#735D32] transition hover:bg-[#BF9B53]/10 sm:h-[34px] sm:w-auto"
@@ -709,7 +761,7 @@ const ShipperQuotesPage = () => {
 
             {modalType === "cancel" &&
               selectedQuote?.paymentStatus === "paid" && (
-                <div className="bg-red-50 border border-red-200 p-4 mb-5 space-y-3">
+                <div className=" border border-red-200 p-4 mb-5 space-y-3">
                   <p className="text-sm font-semibold text-red-600 flex items-center gap-2">
                     Cancellation Charges Will Apply
                   </p>
