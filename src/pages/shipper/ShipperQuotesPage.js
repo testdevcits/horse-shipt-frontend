@@ -488,8 +488,9 @@ const ShipperQuotesPage = () => {
         </div>{" "}
         <button
           onClick={() => navigate(-1)}
-          className="fixed bottom-6 right-6 z-30 bg-gray-600 p-3 text-white shadow-lg transition hover:bg-[#BF9B53]"
+          className="fixed bottom-16 right-4 z-40 bg-gray-600 p-3 text-white shadow-lg transition hover:bg-[#BF9B53] sm:bottom-20 sm:right-6"
           title="Back"
+          aria-label="Back"
         >
           <IoArrowBack className="w-5 h-5" />
         </button>

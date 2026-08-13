@@ -1210,7 +1210,9 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       {/* ── BACK BUTTON ─────────────────────────────────────────────────────── */}
       <button
         onClick={() => navigate(-1)}
-        className="fixed bottom-4 right-4 bg-gray-600 text-white p-3 rounded-sm shadow-lg hover:bg-[#BF9B53] transition"
+        className="fixed bottom-16 right-4 z-40 bg-gray-600 text-white p-3 rounded-sm shadow-lg hover:bg-[#BF9B53] transition sm:bottom-20 sm:right-6"
+        title="Back"
+        aria-label="Back"
       >
         <IoArrowBack className="w-5 h-5" />
       </button>

@@ -73,6 +73,12 @@ const MyShipmentDetails = () => {
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    if (!shipmentId) return;
+    getQuotesByShipment(shipmentId, true, 1, 5);
+    fetchQuestions(shipmentId);
+  }, [fetchQuestions, getQuotesByShipment, shipmentId]);
+
   const loading = shipmentLoading;
   const shipment = currentShipment;
 
@@ -529,6 +535,7 @@ const MyShipmentDetails = () => {
         <Elements stripe={stripePromise}>
           <AcceptQuoteModal
             quote={latestSelectedQuote}
+            shipment={shipment}
             onClose={() => setSelectedQuote(null)}
           />
         </Elements>

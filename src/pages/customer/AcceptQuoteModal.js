@@ -19,7 +19,7 @@ import { LoaderCircle } from "lucide-react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { API_BASE_URL } from "../../config/api";
 
-const AcceptQuoteModal = ({ quote, onClose }) => {
+const AcceptQuoteModal = ({ quote, shipment, onClose }) => {
   const { acceptQuote, rejectQuote, cancelQuote } = useCustomerQuote();
   const stripe = useStripe();
   const elements = useElements();
@@ -47,13 +47,27 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
   const [canvasWidth, setCanvasWidth] = useState(0);
 
   const isAccepted = quote.status === "accepted";
-  const canRejectQuote = quote.status === "pending" && !quote.contractAccepted;
+  const isCompletedShipment =
+    shipment?.isCompleted === true ||
+    shipment?.status === "delivered" ||
+    shipment?.quoteTripStatus === "completed" ||
+    Boolean(shipment?.deliveredAt) ||
+    shipment?.deliveryOtpVerified === true ||
+    Boolean(shipment?.taxInvoices?.customer?.url) ||
+    shipment?.payoutStatus === "transferred" ||
+    quote?.tripStatus === "completed" ||
+    Boolean(quote?.deliveredAt) ||
+    Boolean(quote?.taxInvoices?.customer?.url) ||
+    quote?.payoutStatus === "transferred";
+  const canRejectQuote =
+    !isCompletedShipment && quote.status === "pending" && !quote.contractAccepted;
 
   const isCancellationExpired =
     quote.cancellationLastDate &&
     new Date(quote.cancellationLastDate) < new Date();
 
   const isCancelable =
+    !isCompletedShipment &&
     quote?.cancellationLastDate &&
     new Date() < new Date(quote.cancellationLastDate) &&
     !quote.isCancelled;
@@ -80,6 +94,12 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (isCompletedShipment && showCancelModal) {
+      setShowCancelModal(false);
+    }
+  }, [isCompletedShipment, showCancelModal]);
 
   const handleSubmit = async () => {
     if (submitting || showSuccessPopup) return;
@@ -521,6 +541,8 @@ const AcceptQuoteModal = ({ quote, onClose }) => {
             >
               {quote.isCancelled ? (
                 "This shipment has already been cancelled."
+              ) : isCompletedShipment ? (
+                "This shipment has already been delivered."
               ) : isCancellationExpired ? (
                 "Cancellation period has expired."
               ) : (
