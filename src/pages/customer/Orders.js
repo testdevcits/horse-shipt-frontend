@@ -1024,7 +1024,10 @@ const AllShipments = () => {
   const isCompletedShipment = (shipment) =>
     shipment?.isCompleted === true ||
     shipment?.status === "delivered" ||
-    Boolean(shipment?.deliveredAt);
+    shipment?.quoteTripStatus === "completed" ||
+    Boolean(shipment?.deliveredAt) ||
+    Boolean(shipment?.taxInvoices?.customer?.url) ||
+    shipment?.payoutStatus === "transferred";
 
   const isDraftShipment = (shipment) =>
     !isCancelledShipment(shipment) &&
@@ -1050,6 +1053,10 @@ const AllShipments = () => {
   const published = shipments.filter((s) => isUpcomingShipment(s));
   const completed = shipments.filter((s) => isCompletedShipment(s));
   const cancelled = shipments.filter((s) => isCancelledShipment(s));
+  const getDisplayShipment = (shipment) =>
+    isCompletedShipment(shipment)
+      ? { ...shipment, status: "delivered", isCompleted: true }
+      : shipment;
 
   const tabMap = { draft, inProgress, published, completed, cancelled };
   const shown = tabMap[tab] || [];
@@ -1206,7 +1213,11 @@ const AllShipments = () => {
         ) : (
           <div className="flex flex-col gap-2">
             {shown.map((s) => (
-              <ShipmentRow key={s._id} s={s} onView={setSelected} />
+              <ShipmentRow
+                key={s._id}
+                s={getDisplayShipment(s)}
+                onView={(shipment) => setSelected(getDisplayShipment(shipment))}
+              />
             ))}
           </div>
         )}

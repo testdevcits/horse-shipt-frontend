@@ -385,7 +385,8 @@ const ShipperQuotesPage = () => {
           return (
             quote.status === "accepted" &&
             !quote.isCancelled &&
-            !isInTransitQuote(quote)
+            !isInTransitQuote(quote) &&
+            !isCompletedQuote(quote)
           );
         case "cancelled":
           return quote.isCancelled;
@@ -442,7 +443,11 @@ const ShipperQuotesPage = () => {
       key: "upcoming",
       label: "Upcoming",
       count: quotes.filter(
-        (q) => q.status === "accepted" && !q.isCancelled && !isInTransitQuote(q)
+        (q) =>
+          q.status === "accepted" &&
+          !q.isCancelled &&
+          !isInTransitQuote(q) &&
+          !isCompletedQuote(q)
       ).length,
     },
     {
