@@ -162,6 +162,23 @@ const MyShipmentDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryTab, shipmentId]);
 
+  useEffect(() => {
+    if (!currentShipment || activeTab !== "find-shippers") return;
+
+    const delivered =
+      currentShipment.isCompleted === true ||
+      currentShipment.status === "delivered" ||
+      currentShipment.quoteTripStatus === "completed" ||
+      Boolean(currentShipment.deliveredAt) ||
+      currentShipment.deliveryOtpVerified === true ||
+      Boolean(currentShipment.taxInvoices?.customer?.url) ||
+      currentShipment.payoutStatus === "transferred";
+
+    if (delivered || currentShipment.status === "cancelled") {
+      setActiveTab("overview");
+    }
+  }, [activeTab, currentShipment]);
+
   const TabButton = ({ id, label, count }) => (
     <button
       onClick={() => handleTabClick(id)}
@@ -193,9 +210,22 @@ const MyShipmentDetails = () => {
 
   const pickupDates = getPickupDates();
   const deliveryDates = getDeliveryDates();
+  const isDeliveredShipment =
+    shipment.isCompleted === true ||
+    shipment.status === "delivered" ||
+    shipment.quoteTripStatus === "completed" ||
+    Boolean(shipment.deliveredAt) ||
+    shipment.deliveryOtpVerified === true ||
+    Boolean(shipment.taxInvoices?.customer?.url) ||
+    shipment.payoutStatus === "transferred";
+  const displayStatus = isDeliveredShipment ? "delivered" : shipment.status;
+  const isCancelledShipment = displayStatus === "cancelled";
   const chatAllowedStatuses = ["assigned", "picked", "in_transit"];
   const canOpenShipmentChat =
-    shipment.shipper && chatAllowedStatuses.includes(shipment.status);
+    !isDeliveredShipment &&
+    shipment.shipper &&
+    chatAllowedStatuses.includes(displayStatus);
+  const canFindShipper = !isDeliveredShipment && !isCancelledShipment;
   const shipperId =
     typeof shipment.shipper === "object" ? shipment.shipper?._id : shipment.shipper;
 
@@ -217,7 +247,7 @@ const MyShipmentDetails = () => {
           label="Questions"
           count={questions.answered.length + questions.pending.length}
         />
-        <TabButton id="find-shippers" label="Find Shipper" />
+        {canFindShipper && <TabButton id="find-shippers" label="Find Shipper" />}
       </div>
 
       {/* ================= OVERVIEW TAB ================= */}
@@ -262,11 +292,11 @@ const MyShipmentDetails = () => {
                 <div className="flex flex-col gap-1">
                   <h4 className="text-gray-500 font-medium">Shipment Status</h4>
                   <p className="font-semibold capitalize text-system-primary">
-                    {shipment.status.replaceAll("_", " ")}
+                    {displayStatus.replaceAll("_", " ")}
                   </p>
                 </div>
 
-                {!shipment.publish && shipment.status === "pending" && (
+                {!shipment.publish && displayStatus === "pending" && (
                   <div className="flex gap-3 mt-4">
                     <button
                       onClick={() => setShowPublishModal(true)}
@@ -284,7 +314,7 @@ const MyShipmentDetails = () => {
                 )}
 
                 {shipment.publish &&
-                  !["delivered", "cancelled"].includes(shipment.status) && (
+                  !["delivered", "cancelled"].includes(displayStatus) && (
                     <div className="flex gap-3 mt-4">
                       <button
                         onClick={handleEditMetadata}
@@ -488,7 +518,7 @@ const MyShipmentDetails = () => {
         </div>
       )}
 
-      {activeTab === "find-shippers" && (
+      {activeTab === "find-shippers" && canFindShipper && (
         <div className="mt-6">
           <FindShippers shipmentId={shipmentId} shipment={shipment} />
         </div>
