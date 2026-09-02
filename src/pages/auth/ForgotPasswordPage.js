@@ -259,7 +259,7 @@ const ForgotPasswordPage = () => {
                       key={value}
                       type="button"
                       onClick={() => setRole(value)}
-                      className={`flex-1 py-1 text-xs font-medium rounded ${
+                      className={`flex-1 py-1 text-xs font-medium  ${
                         role === value
                           ? "bg-[#BF9B53] text-white"
                           : "bg-gray-200 text-gray-700 border border-gray-300"
@@ -280,7 +280,7 @@ const ForgotPasswordPage = () => {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="Enter registered email"
-                  className="w-full border rounded p-2 text-xs mt-1"
+                  className="w-full border  p-2 text-xs mt-1"
                   required
                 />
               </div>
@@ -288,7 +288,7 @@ const ForgotPasswordPage = () => {
               <button
                 type="submit"
                 disabled={loading || !email}
-                className="w-full px-4 py-2 text-sm rounded-lg bg-[#BF9B53] text-white hover:bg-[#a6813f] disabled:bg-gray-300 disabled:text-gray-500"
+                className="w-full px-4 py-2 text-sm  bg-[#BF9B53] text-white hover:bg-[#a6813f] disabled:bg-gray-300 disabled:text-gray-500"
               >
                 {loading ? "Sending..." : "Send OTP"}
               </button>
