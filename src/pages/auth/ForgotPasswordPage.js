@@ -101,7 +101,7 @@ const OtpInput = ({ value, onChange }) => {
           onKeyDown={(event) => handleKeyDown(index, event)}
           onFocus={(event) => event.target.select()}
           aria-label={`OTP digit ${index + 1}`}
-          className="h-10 min-w-0 rounded-md border border-gray-300 bg-white text-center text-base font-semibold text-gray-900 outline-none transition focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/20"
+          className="h-10 min-w-0  border border-gray-300 bg-white text-center text-base font-semibold text-gray-900 outline-none transition focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/20"
         />
       ))}
     </div>
@@ -227,7 +227,7 @@ const ForgotPasswordPage = () => {
         </div>
 
         <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 md:p-8 shadow-md flex flex-col justify-center w-full max-w-sm gap-4">
-          <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-800 justify-center text-center mb-4">
             {step === "email"
               ? "Forgot Password"
               : step === "otp"
@@ -237,9 +237,9 @@ const ForgotPasswordPage = () => {
 
           {message && (
             <div
-              className={`text-xs rounded p-2 ${
+              className={`text-xs  p-2 ${
                 message.type === "success"
-                  ? "bg-green-100 text-green-700"
+                  ? "bg-green-100 text-black"
                   : "bg-red-100 text-red-700"
               }`}
             >
@@ -250,7 +250,7 @@ const ForgotPasswordPage = () => {
           {step === "email" && (
             <form onSubmit={sendOtp} className="flex flex-col gap-3">
               <div>
-                <label className="text-xs font-medium text-gray-700">
+                <label className="text-xs font-medium text-gray-700 mb-1">
                   Account Type
                 </label>
                 <div className="flex gap-2 mt-1">
@@ -298,16 +298,14 @@ const ForgotPasswordPage = () => {
           {step === "otp" && (
             <form onSubmit={verifyOtp} className="flex flex-col gap-3">
               <p className="text-xs text-gray-600">
-                Enter the 6-digit code sent to {email}.
+                Enter the 6-digit code sent to email.
               </p>
               <OtpInput value={otp} onChange={setOtp} />
-              <p className="text-[11px] font-medium text-gray-500">
-                {otp.length}/6 digits entered
-              </p>
+
               <button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="w-full px-4 py-2 text-sm rounded-lg bg-[#BF9B53] text-white hover:bg-[#a6813f] disabled:bg-gray-300 disabled:text-gray-500"
+                className="w-full px-4 py-2 text-sm  bg-[#BF9B53] text-white hover:bg-[#a6813f] disabled:bg-gray-300 disabled:text-gray-500"
               >
                 {loading ? "Verifying..." : "Verify OTP"}
               </button>
@@ -351,7 +349,7 @@ const ForgotPasswordPage = () => {
           <div className="text-right">
             <Link
               to={role === "driver" ? "/driver/login" : "/login"}
-              className="text-sm text-[#BF9B53] hover:text-black"
+              className="text-sm text-black hover:text-[#BF9B53]"
             >
               Back to Login
             </Link>

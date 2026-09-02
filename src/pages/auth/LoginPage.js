@@ -141,7 +141,7 @@ const LoginPage = () => {
           <p className="text-xs text-gray-600">
             Don't have an account?{" "}
             <span
-              className="text-[#BF9B53] font-medium cursor-pointer px-2 py-1 rounded hover:bg-[#bf9b5360] hover:text-black"
+              className="text-[#BF9B53] font-medium cursor-pointer hover:underline"
               onClick={() => navigate("/signup")}
             >
               Create an account

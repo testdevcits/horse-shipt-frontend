@@ -65,6 +65,7 @@ const ShipmentSettings = lazy(() =>
 const VehiclesAndCapacity = lazy(() =>
   import("../pages/shipper/VehiclesAndCapacity")
 );
+const SupportPage = lazy(() => import("../pages/common/SupportPage"));
 
 // ---------------- Customer Pages ----------------
 const CustomerLayout = lazy(() => import("../layouts/CustomerLayout"));
@@ -256,6 +257,7 @@ const AppRoutes = () => {
 
           <Route path="truck-driver" element={<TruckDriverPage />} />
           <Route path="chat" element={<ChatOverview />} />
+          <Route path="support" element={<SupportPage role="shipper" />} />
         </Route>
 
         {/* ---------- Customer Routes ---------- */}
@@ -286,6 +288,7 @@ const AppRoutes = () => {
           <Route path="wishlist" element={<CustomerWishlist />} />
           <Route path="all-shippers" element={<TopRatedShippers />} />
           <Route path="shipper-profile/:id" element={<ShipperProfilePage />} />
+          <Route path="support" element={<SupportPage role="customer" />} />
           <Route
             path="reviews/:shipperId"
             element={<CustomerShipperReviewPage />}

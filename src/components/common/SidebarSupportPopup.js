@@ -1,6 +1,7 @@
 import React from "react";
 import { CiCircleQuestion } from "react-icons/ci";
-import { MdClose, MdOutlineEmail } from "react-icons/md";
+import { MdClose, MdOutlineSupportAgent } from "react-icons/md";
+import { Link } from "react-router-dom";
 
 const DEFAULT_SUPPORT_EMAIL = "noreply.horseshipt2026@gmail.com";
 
@@ -15,6 +16,7 @@ const SidebarSupportPopup = ({
   if (!isOpen) return null;
 
   const roleLabel = role === "shipper" ? "Shipper" : "Customer";
+  const supportPath = role === "shipper" ? "/shipper/support" : "/customer/support";
 
   return (
     <div
@@ -48,26 +50,28 @@ const SidebarSupportPopup = ({
 
       <div className="px-4 py-4">
         <p className="text-[12px] leading-5 text-[#4B5563]">
-          Need help with your {roleLabel.toLowerCase()} dashboard? Send us an
-          email and we will get back to you.
+          Need help with your {roleLabel.toLowerCase()} dashboard? Send a
+          support message and admin will reply here.
         </p>
 
-        <a
-          href={`mailto:${supportEmail}`}
+        <Link
+          to={supportPath}
+          onClick={onClose}
           className="mt-4 flex min-w-0 items-center gap-3 border border-[#BF9B53]/40 bg-[#FBFAF7] px-3 py-3 text-[#111827] transition hover:border-[#BF9B53]"
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-white text-[#BF9B53] shadow-sm">
-            <MdOutlineEmail size={18} />
+            <MdOutlineSupportAgent size={18} />
           </span>
           <span className="min-w-0">
             <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-[#BF9B53]">
-              Help Email
+              Support Inbox
             </span>
             <span className="block truncate text-xs font-bold">
-              {supportEmail}
+              Message Support
             </span>
           </span>
-        </a>
+        </Link>
+        <p className="mt-3 truncate text-[11px] text-[#6B7280]">{supportEmail}</p>
       </div>
     </div>
   );
