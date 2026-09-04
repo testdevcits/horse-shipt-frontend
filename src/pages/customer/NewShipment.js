@@ -773,14 +773,15 @@ const NewShipment = () => {
       {/* Step Content */}
       <div className="w-full max-w-5xl">{renderStepContent()}</div>
 
-      {isMetadataOnlyMode && currentStep === 3 && (
-        <p className="w-full max-w-5xl px-4 mt-6 text-sm font-semibold text-gray-600">
-          Click Next to add, edit or view Documents and photos
-        </p>
-      )}
-
       {/* Navigation Buttons */}
-      <div className="flex w-full max-w-5xl justify-between md:justify-end gap-4 mt-4 px-4">
+      <div className="flex w-full max-w-5xl flex-col items-stretch gap-3 mt-4 px-4 sm:flex-row sm:items-center sm:justify-end">
+        {isMetadataOnlyMode && currentStep === 3 && (
+          <div className="bg-gradient-to-r from-[#BF9B53]/10 to-transparent border-l-4 border-[#BF9B53] p-3 rounded-lg sm:mr-auto sm:max-w-md">
+            <p className="block font-semibold text-gray-700 text-sm">
+              Click Next to add, edit or view Documents and photos
+            </p>
+          </div>
+        )}
         <button
           onClick={handlePrevious}
           disabled={currentStep === (isMetadataOnlyMode ? 3 : 1)}
