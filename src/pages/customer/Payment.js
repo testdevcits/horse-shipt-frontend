@@ -170,11 +170,11 @@ const StatCard = ({ label, value }) => (
 
 // ─── Detail Row ───────────────────────────────────────────────────────────────
 const DetailRow = ({ label, value }) => (
-  <div className="flex justify-between items-start py-2.5 border-b border-gray-50 last:border-0">
-    <span className="text-xs text-gray-400 font-montserrat flex-shrink-0">
+  <div className="flex items-start justify-between gap-4 border-b border-slate-100 py-3 last:border-0">
+    <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-slate-500">
       {label}
     </span>
-    <span className="text-xs font-semibold text-dark font-montserrat text-right max-w-[58%] break-all ml-2">
+    <span className="max-w-[62%] break-all text-right text-xs font-bold text-slate-900">
       {value || "N/A"}
     </span>
   </div>
@@ -188,139 +188,142 @@ const DetailPanel = ({ payment, onClose, mode }) => {
   const isMobile = mode === "mobile";
 
   return (
-    <div className="flex flex-col h-full font-montserrat">
+    <div className="flex h-full flex-col bg-[#FAF8F3] font-montserrat">
       {/* Sticky top bar */}
-      <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-gray-100 sticky top-0 z-10 flex-shrink-0">
+      <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
         <button
           onClick={onClose}
-          className="flex items-center gap-2 text-system-primary font-semibold text-sm hover:opacity-70 transition-opacity"
+          className="flex items-center gap-2 text-sm font-bold text-system-primary transition-opacity hover:opacity-70"
         >
           {isMobile ? <BackArrow /> : <CloseIcon />}
           {isMobile ? "Back" : "Close"}
         </button>
-        <p className="text-sm font-bold text-dark">Payment Details</p>
+        <p className="text-sm font-bold text-slate-950">Payment Details</p>
         <div className="w-14" />
       </div>
 
       {/* Scrollable body */}
-      <div className="flex-1 overflow-y-auto hide-scrollbar   px-1 py-5 space-y-3">
-        {/* Shipper Hero */}
-        <div className="bg-white rounded-md px-5 py-6 text-center shadow-sm">
-          <div className="flex justify-center mb-3">
-            <ShipperAvatar
-              src={shipper.profileImage}
-              name={shipper.name || ""}
-              className={`rounded-full ${
-                isMobile ? "w-20 h-20 text-xl" : "w-16 h-16 text-base"
-              }`}
-            />
-          </div>
-          <p className="font-bold text-dark text-base">
-            {shipper.name || payment.shipperName}
-          </p>
-          <div className="flex items-center justify-center gap-2 mt-1">
-            <MailIcon />
-            <span className="text-xs text-gray-400">
-              {shipper.email || payment.customerEmail}
-            </span>
-          </div>
-          {shipper.mobile && (
-            <div className="flex items-center justify-center gap-1.5 mt-0.5">
-              <PhoneIcon />
-              <span className="text-xs text-gray-400">{shipper.mobile}</span>
-            </div>
-          )}
-          <p
-            className={`font-bold text-dark mt-5 ${
-              isMobile ? "text-4xl" : "text-3xl"
-            }`}
-          >
-            {payment.currency?.toUpperCase()} {payment.amount?.toFixed(2)}
-          </p>
-          <div
-            className={`inline-flex items-center gap-2 mt-2 px-4 py-1 rounded-full font-semibold ${
-              s.classes
-            } ${isMobile ? "text-sm" : "text-xs"}`}
-          >
-            {payment.status === "succeeded" && <CheckIcon />}
-            {s.label === "Paid" ? "Payment Successful" : s.label}
-          </div>
-          {payment.cardBrand && (
-            <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-full px-2 py-1 mt-3">
-              <div
-                className="w-2.5 h-2.5 rounded-full"
-                style={{
-                  background:
-                    payment.cardBrand === "visa"
-                      ? "#BF9B53"
-                      : payment.cardBrand === "mastercard"
-                      ? "#EB001B"
-                      : "#007BC1",
-                }}
-              />
-              <span className="text-xs font-semibold text-gray-500 capitalize">
-                {payment.cardBrand} ···· {payment.last4}
-              </span>
-            </div>
-          )}
-        </div>
+      <div className="hide-scrollbar flex-1 overflow-y-auto p-3 sm:p-5">
+        <div className="space-y-4">
+          <div className="grid gap-4 xl:grid-cols-[minmax(260px,0.9fr)_minmax(320px,1.1fr)]">
+            {/* Shipper + Amount */}
+            <div className="border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-start gap-4">
+                <ShipperAvatar
+                  src={shipper.profileImage}
+                  name={shipper.name || ""}
+                  className={`shrink-0 rounded-full ${
+                    isMobile ? "h-16 w-16 text-lg" : "h-14 w-14 text-base"
+                  }`}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#BF9B53]">
+                    Paid To
+                  </p>
+                  <p className="mt-1 truncate text-base font-bold text-slate-950">
+                    {shipper.name || payment.shipperName}
+                  </p>
+                  <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                    <MailIcon />
+                    <span className="truncate">
+                      {shipper.email || payment.customerEmail}
+                    </span>
+                  </div>
+                  {shipper.mobile && (
+                    <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                      <PhoneIcon />
+                      <span>{shipper.mobile}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-        {/* Route */}
-        <div className="bg-white rounded-md px-4 py-4 shadow-sm">
-          <p className="text-[10px] text-[#BF9B53] uppercase tracking-widest font-semibold mb-3">
-            Route
-          </p>
-          <div className="flex items-center gap-3">
-            <div className="flex-1 bg-light rounded-xl px-3 py-2 text-center">
-              <p className="text-[10px] text-gray-400 mb-0.5">Pickup</p>
-              <p className="text-xs font-bold text-dark">
-                {payment.pickupLocation}
+              <div className="mt-6 border-t border-slate-100 pt-5">
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                  Amount
+                </p>
+                <p className="mt-1 text-3xl font-black tracking-tight text-slate-950">
+                  {payment.currency?.toUpperCase()} {payment.amount?.toFixed(2)}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span
+                    className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-bold ${s.classes}`}
+                  >
+                    {payment.status === "succeeded" && <CheckIcon />}
+                    {s.label === "Paid" ? "Payment Successful" : s.label}
+                  </span>
+                  {payment.cardBrand && (
+                    <span className="inline-flex items-center gap-2 border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold capitalize text-slate-600">
+                      <span
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{
+                          background:
+                            payment.cardBrand === "visa"
+                              ? "#BF9B53"
+                              : payment.cardBrand === "mastercard"
+                              ? "#EB001B"
+                              : "#007BC1",
+                        }}
+                      />
+                      {payment.cardBrand} •••• {payment.last4}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Transaction info */}
+            <div className="border border-slate-200 bg-white p-5 shadow-sm">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#BF9B53]">
+                Transaction
               </p>
-            </div>
-            <span className="text-gray-300">
-              <ArrowRight size={14} />
-            </span>
-            <div className="flex-1 bg-light rounded-xl px-3 py-2 text-center">
-              <p className="text-[10px] text-gray-400 mb-0.5">Delivery</p>
-              <p className="text-xs font-bold text-dark">
-                {payment.deliveryLocation}
-              </p>
+              <div className="mt-3">
+                <DetailRow label="Date" value={payment.paymentDate} />
+                <DetailRow label="Time" value={payment.paymentTime} />
+                <DetailRow label="Payment Method" value={payment.paymentMethod} />
+                <DetailRow label="Customer Email" value={payment.customerEmail} />
+                <DetailRow label="Transaction ID" value={payment.transactionId} />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Transaction info */}
-        <div className="bg-white rounded-md px-4 py-1 shadow-sm">
-          <p className="text-[10px] text-[#BF9B53] uppercase tracking-widest font-semibold pt-3 mb-1">
-            Transaction
-          </p>
-          <DetailRow label="Date" value={payment.paymentDate} />
-          <DetailRow label="Time" value={payment.paymentTime} />
-          <DetailRow label="Payment Method" value={payment.paymentMethod} />
-          <DetailRow label="Customer Email" value={payment.customerEmail} />
-          <DetailRow
-            label="Transaction ID"
-            value={
-              payment.transactionId?.length > 26
-                ? payment.transactionId.slice(0, 26) + "…"
-                : payment.transactionId
-            }
-          />
-        </div>
+          {/* Route */}
+          <div className="border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#BF9B53]">
+              Route
+            </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-stretch">
+              <div className="bg-slate-50 px-4 py-3">
+                <p className="text-xs font-semibold text-slate-500">Pickup</p>
+                <p className="mt-1 text-sm font-bold leading-5 text-slate-950">
+                  {payment.pickupLocation || "N/A"}
+                </p>
+              </div>
+              <div className="hidden items-center justify-center text-slate-300 md:flex">
+                <ArrowRight size={18} />
+              </div>
+              <div className="bg-slate-50 px-4 py-3">
+                <p className="text-xs font-semibold text-slate-500">Delivery</p>
+                <p className="mt-1 text-sm font-bold leading-5 text-slate-950">
+                  {payment.deliveryLocation || "N/A"}
+                </p>
+              </div>
+            </div>
+          </div>
 
-        {/* Receipt */}
-        {payment.receiptUrl && (
-          <a
-            href={payment.receiptUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl border border-system-primary text-system-primary text-sm font-bold hover:bg-header transition-colors"
-          >
-            <ReceiptIcon />
-            View Stripe Receipt
-          </a>
-        )}
-        <div className="pb-4" />
+          {/* Receipt */}
+          {payment.receiptUrl && (
+            <a
+              href={payment.receiptUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex w-full items-center justify-center gap-2 border border-system-primary bg-white py-3 text-sm font-bold text-system-primary transition-colors hover:bg-header"
+            >
+              <ReceiptIcon />
+              View Stripe Receipt
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -502,7 +505,7 @@ const Payment = () => {
   );
 
   return (
-    <div className="min-h-screen  font-montserrat w-full">
+    <div className="min-h-[calc(100vh-160px)] w-full font-montserrat">
       {/* ════════════ MOBILE (< md) ════════════ */}
       <div className="md:hidden">
         {/* Mobile — Detail full screen (slide in from right) */}
@@ -527,20 +530,17 @@ const Payment = () => {
       </div>
 
       {/* ════════════ DESKTOP (≥ md) ════════════ */}
-      <div
-        className="hidden md:block relative overflow-hidden"
-        style={{ minHeight: "100vh" }}
-      >
+      <div className="relative hidden min-h-[calc(100vh-170px)] overflow-hidden md:block">
         {/* List — shrinks when drawer opens */}
         <div
           className="transition-all duration-300 ease-in-out absolute inset-y-0 left-0 overflow-y-auto hide-scrollbar"
           style={{
-            width: drawerOpen ? "45%" : "100%",
+            width: drawerOpen ? "44%" : "100%",
             paddingRight: drawerOpen ? "0" : "0",
           }}
         >
           <div
-            className="px-6 py-8"
+            className="px-4 py-5 lg:px-6"
             style={{
               maxWidth: drawerOpen ? "none" : "full",
               margin: drawerOpen ? "0" : "0 auto",
@@ -555,7 +555,7 @@ const Payment = () => {
         <div
           className="absolute inset-y-0 right-0 bg-white border-l border-gray-100 overflow-hidden transition-all duration-300 ease-in-out"
           style={{
-            width: drawerOpen ? "55%" : "0%",
+            width: drawerOpen ? "56%" : "0%",
             opacity: drawerOpen ? 1 : 0,
           }}
         >

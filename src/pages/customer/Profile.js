@@ -271,7 +271,7 @@ const CustomerProfile = () => {
                   />
                   {formik.touched.firstName && formik.errors.firstName && (
                     <p className="text-red-600 text-xs mt-1 font-semibold">
-                      ⚠️ {formik.errors.firstName}
+                      {formik.errors.firstName}
                     </p>
                   )}
                 </div>
@@ -296,7 +296,7 @@ const CustomerProfile = () => {
                   />
                   {formik.touched.lastName && formik.errors.lastName && (
                     <p className="text-red-600 text-xs mt-1 font-semibold">
-                      ⚠️ {formik.errors.lastName}
+                      {formik.errors.lastName}
                     </p>
                   )}
                 </div>
@@ -342,7 +342,7 @@ const CustomerProfile = () => {
                 </div>
                 {formik.touched.phone && formik.errors.phone && (
                   <p className="text-red-600 text-xs mt-1 font-semibold">
-                    ⚠️ {formik.errors.phone}
+                  {formik.errors.phone}
                   </p>
                 )}
               </div>
