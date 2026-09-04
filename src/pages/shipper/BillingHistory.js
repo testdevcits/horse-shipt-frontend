@@ -13,6 +13,8 @@ import {
   Zap,
   XCircle,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import PageLoader from "../../components/common/PageLoader";
 import Toast from "../../components/common/Toast";
@@ -31,6 +33,7 @@ const CANCELLATION_REASONS = [
   { value: "customer_service", label: "Poor customer service", icon: "" },
   { value: "other", label: "Other reason", icon: "" },
 ];
+const HISTORY_PAGE_SIZE = 5;
 
 // Cancellation Reason Modal Component
 const CancellationModal = ({
@@ -241,6 +244,7 @@ const BillingHistory = () => {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [timezoneFormat] = useState("usa");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // ─── Normalize a date value ───────────────────────────────────────────────
   const normalizeDateStr = (value) => {
@@ -507,6 +511,23 @@ const BillingHistory = () => {
     filter === "all"
       ? mergedData
       : historyData.filter((item) => item.type === filter);
+
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / HISTORY_PAGE_SIZE));
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * HISTORY_PAGE_SIZE,
+    currentPage * HISTORY_PAGE_SIZE
+  );
+  const pageStart =
+    filteredData.length === 0 ? 0 : (currentPage - 1) * HISTORY_PAGE_SIZE + 1;
+  const pageEnd = Math.min(currentPage * HISTORY_PAGE_SIZE, filteredData.length);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
 
   const getHistoryTitle = (item) => {
     if (item.title) return item.title;
@@ -1002,6 +1023,7 @@ const BillingHistory = () => {
                         key={option.value}
                         onClick={() => {
                           setFilter(option.value);
+                          setCurrentPage(1);
                           setMobileFilterOpen(false);
                         }}
                         className={`w-full text-left px-4 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center justify-between ${
@@ -1025,7 +1047,10 @@ const BillingHistory = () => {
                 {filterOptions.map((option) => (
                   <button
                     key={option.value}
-                    onClick={() => setFilter(option.value)}
+                    onClick={() => {
+                      setFilter(option.value);
+                      setCurrentPage(1);
+                    }}
                     className={`px-4 py-2 font-semibold text-sm border-2 transition-all duration-200 flex items-center gap-2 ${
                       filter === option.value
                         ? "bg-[#BF9B53] text-white border-[#BF9B53]"
@@ -1063,7 +1088,7 @@ const BillingHistory = () => {
               <>
                 {/* Mobile List */}
                 <div className="space-y-3 md:hidden">
-                  {filteredData.map((item) => (
+                  {paginatedData.map((item) => (
                     <div
                       key={item.id}
                       className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border border-slate-200 hover:border-[#BF9B53] transition-colors duration-200"
@@ -1173,11 +1198,13 @@ const BillingHistory = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredData.map((item, idx) => (
+                      {paginatedData.map((item, idx) => (
                         <tr
                           key={item.id}
                           className={`border-b border-slate-200 transition-colors duration-150 ${
-                            idx % 2 === 0 ? "bg-white" : "bg-slate-50"
+                            ((currentPage - 1) * HISTORY_PAGE_SIZE + idx) % 2 === 0
+                              ? "bg-white"
+                              : "bg-slate-50"
                           } hover:bg-amber-50`}
                         >
                           <td className="px-6 py-4">
@@ -1272,6 +1299,37 @@ const BillingHistory = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+
+                <div className="mt-5 flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm font-semibold text-slate-600">
+                    Showing {pageStart}-{pageEnd} of {filteredData.length}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                      disabled={currentPage === 1}
+                      className="inline-flex h-9 w-9 items-center justify-center border border-slate-300 text-slate-700 transition hover:border-[#BF9B53] hover:text-[#BF9B53] disabled:cursor-not-allowed disabled:opacity-40"
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <span className="min-w-[88px] text-center text-sm font-bold text-slate-700">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCurrentPage((page) => Math.min(totalPages, page + 1))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="inline-flex h-9 w-9 items-center justify-center border border-slate-300 text-slate-700 transition hover:border-[#BF9B53] hover:text-[#BF9B53] disabled:cursor-not-allowed disabled:opacity-40"
+                      aria-label="Next page"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </>
             )}

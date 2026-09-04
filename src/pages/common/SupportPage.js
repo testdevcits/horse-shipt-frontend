@@ -10,6 +10,7 @@ import {
 } from "react-icons/fi";
 import { API_BASE_URL } from "../../config/api";
 import { useAuth } from "../../contexts/AuthContext";
+import Select from "../../components/common/Select";
 
 const statusLabels = {
   open: "Open",
@@ -24,6 +25,15 @@ const statusStyles = {
 };
 
 const categoryOptions = ["General", "Shipment", "Quote", "Payment", "Account"];
+const categorySelectOptions = categoryOptions.map((item) => ({
+  value: item,
+  label: item,
+}));
+const prioritySelectOptions = [
+  { value: "normal", label: "Normal" },
+  { value: "high", label: "High" },
+  { value: "low", label: "Low" },
+];
 
 const formatDate = (value) =>
   value
@@ -67,6 +77,7 @@ const SupportPage = ({ role = "customer" }) => {
 
   const selectedTicket =
     tickets.find((ticket) => ticket._id === selectedId) || tickets[0] || null;
+  const isResolvedTicket = selectedTicket?.status === "resolved";
 
   const fetchTickets = useCallback(async () => {
     if (!token) return;
@@ -129,6 +140,13 @@ const SupportPage = ({ role = "customer" }) => {
   const handleFollowUp = async (event) => {
     event.preventDefault();
     if (!selectedTicket || !followUp.trim()) return;
+    if (isResolvedTicket) {
+      setNotice({
+        type: "error",
+        message: "Resolved tickets are closed and cannot receive new messages.",
+      });
+      return;
+    }
 
     setSaving(true);
     setNotice(null);
@@ -157,14 +175,14 @@ const SupportPage = ({ role = "customer" }) => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-160px)] bg-[#FAF8F3] px-4 py-6 font-montserrat sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-5">
+    <div className="min-h-[calc(100vh-160px)] bg-[#FAF8F3] px-3 py-5 font-montserrat sm:px-5 lg:px-6">
+      <div className="w-full space-y-5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#BF9B53]">
               Ticket Support
             </p>
-            <h1 className="text-2xl font-bold text-[#111827]">
+            <h1 className="text-2xl font-bold text-[#111827] mt-2">
               {role === "shipper" ? "Shipper" : "Customer"} Support Tickets
             </h1>
           </div>
@@ -188,8 +206,8 @@ const SupportPage = ({ role = "customer" }) => {
           <div className="border-b border-gray-100 px-5 py-4">
             <h2 className="text-base font-bold text-[#111827]">Create New Ticket</h2>
           </div>
-          <form onSubmit={handleCreateTicket} className="grid gap-4 p-5 lg:grid-cols-12">
-            <div className="lg:col-span-5">
+          <form onSubmit={handleCreateTicket} className="grid gap-4 p-4 sm:p-5 lg:grid-cols-12">
+            <div className="lg:col-span-5 xl:col-span-5">
               <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-[#6B7280]">
                 Subject
               </label>
@@ -203,39 +221,27 @@ const SupportPage = ({ role = "customer" }) => {
                 maxLength={140}
               />
             </div>
-            <div className="lg:col-span-3">
-              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-[#6B7280]">
-                Category
-              </label>
-              <select
+            <div className="lg:col-span-3 xl:col-span-3">
+              <Select
+                label="Category"
+                options={categorySelectOptions}
                 value={form.category}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, category: event.target.value }))
                 }
-                className="w-full border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#BF9B53]"
-              >
-                {categoryOptions.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
+                className="w-full text-sm [&>label]:text-xs [&>label]:font-bold [&>label]:uppercase [&>label]:tracking-wide [&>label]:text-[#6B7280] [&>div:first-of-type]:rounded-none [&>div:first-of-type]:border-gray-200 [&>div:first-of-type]:py-2 [&>div:first-of-type]:focus-within:border-[#BF9B53] [&>div:first-of-type]:min-h-[38px]"
+              />
             </div>
-            <div className="lg:col-span-2">
-              <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-[#6B7280]">
-                Priority
-              </label>
-              <select
+            <div className="lg:col-span-2 xl:col-span-2">
+              <Select
+                label="Priority"
+                options={prioritySelectOptions}
                 value={form.priority}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, priority: event.target.value }))
                 }
-                className="w-full border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#BF9B53]"
-              >
-                <option value="normal">Normal</option>
-                <option value="high">High</option>
-                <option value="low">Low</option>
-              </select>
+                className="w-full text-sm [&>label]:text-xs [&>label]:font-bold [&>label]:uppercase [&>label]:tracking-wide [&>label]:text-[#6B7280] [&>div:first-of-type]:rounded-none [&>div:first-of-type]:border-gray-200 [&>div:first-of-type]:py-2 [&>div:first-of-type]:focus-within:border-[#BF9B53] [&>div:first-of-type]:min-h-[38px]"
+              />
             </div>
             <div className="flex items-end lg:col-span-2">
               <button
@@ -265,7 +271,7 @@ const SupportPage = ({ role = "customer" }) => {
           </form>
         </section>
 
-        <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(360px,0.7fr)]">
           <section className="border border-gray-200 bg-white">
             <div className="border-b border-gray-100 px-5 py-4">
               <h2 className="text-base font-bold text-[#111827]">My Tickets</h2>
@@ -409,26 +415,30 @@ const SupportPage = ({ role = "customer" }) => {
                   <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-[#6B7280]">
                     Add Update
                   </label>
-                  <textarea
-                    value={followUp}
-                    onChange={(event) => setFollowUp(event.target.value)}
-                    rows={3}
-                    placeholder={
-                      selectedTicket.status === "resolved"
-                        ? "Add update to reopen ticket"
-                        : "Add more information to this ticket"
-                    }
-                    className="w-full resize-none border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#BF9B53]"
-                    maxLength={3000}
-                  />
-                  <button
-                    type="submit"
-                    disabled={saving || !followUp.trim()}
-                    className="mt-3 inline-flex items-center gap-2 bg-[#111827] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#374151] disabled:opacity-60"
-                  >
-                    <FiSend />
-                    Submit Update
-                  </button>
+                  {isResolvedTicket ? (
+                    <div className="border border-green-100 bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">
+                      This ticket is resolved. No new messages can be sent.
+                    </div>
+                  ) : (
+                    <>
+                      <textarea
+                        value={followUp}
+                        onChange={(event) => setFollowUp(event.target.value)}
+                        rows={3}
+                        placeholder="Add more information to this ticket"
+                        className="w-full resize-none border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#BF9B53]"
+                        maxLength={3000}
+                      />
+                      <button
+                        type="submit"
+                        disabled={saving || !followUp.trim()}
+                        className="mt-3 inline-flex items-center gap-2 bg-[#111827] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#374151] disabled:opacity-60"
+                      >
+                        <FiSend />
+                        Submit Update
+                      </button>
+                    </>
+                  )}
                 </form>
               </div>
             ) : (

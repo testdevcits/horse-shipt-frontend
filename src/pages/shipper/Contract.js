@@ -151,7 +151,7 @@ const CustomerReviewModal = ({ quote, open, onClose, onSubmit, submitting }) => 
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-      <div className="bg-white  rounded-2xl shadow-xl w-full max-w-md p-6 relative">
+      <div className="bg-white  shadow-xl w-full max-w-md p-6 relative">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
@@ -160,7 +160,7 @@ const CustomerReviewModal = ({ quote, open, onClose, onSubmit, submitting }) => 
         </button>
 
         <div className="flex justify-center mb-4">
-          <div className="p-3 bg-[#BF9B53]/10 rounded-full">
+          <div className="p-3 bg-[#BF9B53]/10 ">
             <FiStar size={28} className="text-[#BF9B53]" />
           </div>
         </div>
@@ -175,7 +175,7 @@ const CustomerReviewModal = ({ quote, open, onClose, onSubmit, submitting }) => 
           This review is saved only for this completed shipment.
         </p>
 
-        <div className="mt-4 rounded-xl bg-gray-50 border border-gray-100 p-3 text-center">
+        <div className="mt-4 bg-gray-50 border border-gray-100 p-3 text-center">
           <p className="font-semibold text-gray-800">
             {customer?.name || "Customer"}
           </p>
@@ -192,7 +192,7 @@ const CustomerReviewModal = ({ quote, open, onClose, onSubmit, submitting }) => 
                 key={star}
                 type="button"
                 onClick={() => setRating(star)}
-                className={`text-3xl leading-none ${star <= rating ? "text-yellow-500" : "text-gray-300"
+                className={`text-3xl leading-none ${star <= rating ? "#bf9b53" : "text-gray-300"
                   }`}
                 aria-label={`${star} star rating`}
               >
@@ -206,14 +206,14 @@ const CustomerReviewModal = ({ quote, open, onClose, onSubmit, submitting }) => 
           value={reviewText}
           onChange={(e) => setReviewText(e.target.value)}
           placeholder="Write your experience with this customer..."
-          className="w-full border rounded-lg p-2 text-sm mt-4 focus:outline-none focus:ring-2 focus:ring-system-primary"
+          className="w-full border  p-2 text-sm mt-4 focus:outline-none focus:ring-2 focus:ring-system-primary"
           rows={3}
         />
 
         <div className="flex justify-end gap-2 mt-5">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm border rounded-lg"
+            className="px-4 py-2 text-sm border"
             disabled={submitting}
           >
             Cancel
@@ -222,7 +222,7 @@ const CustomerReviewModal = ({ quote, open, onClose, onSubmit, submitting }) => 
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="px-4 py-2 text-sm bg-system-primary text-white rounded-lg disabled:opacity-60"
+            className="px-4 py-2 text-sm bg-system-primary text-white disabled:opacity-60"
           >
             {submitting ? "Submitting..." : "Submit Review"}
           </button>
