@@ -60,7 +60,7 @@ const renderMessageText = (text = "") => {
 
 const ChatOverview = () => {
   const { customers, loading, fetchCustomers } = useShipperChat();
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const { shouldUsePollingFallback } = useSocketStatus();
   const [searchParams] = useSearchParams();
 
@@ -156,11 +156,7 @@ const ChatOverview = () => {
         if (!cancelled) await fetchRoomMessages(nextRoomId);
 
         const joinRoom = () => {
-          socket.emit("joinRoom", {
-            customerId: selectedUser._id,
-            shipperId: user._id,
-            shipmentId: selectedUser.shipmentId,
-          });
+          socket.emit("horse_shipt:join_chat_room", { roomId: nextRoomId });
         };
 
         if (socket.connected) {
@@ -187,7 +183,7 @@ const ChatOverview = () => {
       cancelled = true;
       cleanupSocketJoin();
     };
-  }, [selectedUser, user, token, fetchRoomMessages]);
+  }, [selectedUser, token, fetchRoomMessages]);
 
   useEffect(() => {
     if (!roomId) return;

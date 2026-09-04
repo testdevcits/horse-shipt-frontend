@@ -376,7 +376,7 @@ const ShipmentCard = ({
         {/* Completed pill */}
         {isCompleted && (
           <>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 text-sm font-semibold">
+            <div className="flex items-center gap-2 px-4 py-2  bg-blue-50 border border-blue-200 text-blue-600 text-sm font-semibold">
               <FiCheckCircle size={14} />
               Delivery Verified
             </div>
@@ -391,14 +391,14 @@ const ShipmentCard = ({
                   }).catch((error) => Toast.error(error.message))
                 }
                 className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53]
-                  px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#BF9B53]/5 transition"
+                  px-4 py-2 text-sm font-semibold hover:bg-[#BF9B53]/5 transition"
               >
                 <FiFileText size={14} />
                 View Invoice
               </button>
             )}
             {alreadyReviewedCustomer ? (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-semibold">
+              <div className="flex items-center gap-2 px-4 py-2  bg-green-50 border border-green-200 text-green-700 text-sm font-semibold">
                 <FiStar size={14} />
                 Customer Reviewed
               </div>
@@ -406,7 +406,7 @@ const ShipmentCard = ({
               <button
                 onClick={() => onReviewCustomer(quote)}
                 className="flex items-center gap-2 border border-[#BF9B53] text-[#BF9B53]
-                  px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#BF9B53]/5 transition"
+                  px-4 py-2  text-sm font-semibold hover:bg-[#BF9B53]/5 transition"
               >
                 <FiStar size={14} />
                 Review Customer

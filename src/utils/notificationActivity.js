@@ -21,6 +21,28 @@ const normalizeServerNotification = (item) => ({
   read: Boolean(item.read),
 });
 
+const getNotificationEntityId = (notification = {}) =>
+  notification.data?.quote?._id ||
+  notification.data?.quoteId ||
+  notification.data?.question?._id ||
+  notification.data?.questionId ||
+  notification.data?.shipmentId ||
+  notification.data?._id;
+
+const getNotificationDedupeKey = (notification = {}) => {
+  const entityId = getNotificationEntityId(notification);
+  const type = notification.type || notification.event || "notification";
+  if (entityId) return `${type}:${entityId}`;
+
+  return [
+    type,
+    notification.event || "",
+    notification.title || "",
+    notification.message || "",
+    notification.createdAt || "",
+  ].join(":");
+};
+
 const getCacheKey = ({ role, userId }) =>
   role && userId ? `${role}:${userId}` : null;
 
@@ -76,10 +98,7 @@ export const saveNotificationActivity = ({ role, userId, notification }) => {
 
   const existing = loadNotificationActivity({ role, userId });
   const createdAt = notification.createdAt || new Date().toISOString();
-  const entityId =
-    notification.data?.quote?._id ||
-    notification.data?.shipmentId ||
-    notification.data?._id;
+  const entityId = getNotificationEntityId(notification);
   const id =
     notification.id ||
     (entityId && `${notification.type || notification.event}:${entityId}`) ||
@@ -172,8 +191,9 @@ export const fetchNotificationActivity = async ({
     const seen = new Set();
     const notifications = [...serverNotifications, ...localNotifications]
       .filter((item) => {
-        if (!item?.id || seen.has(item.id)) return false;
-        seen.add(item.id);
+        const dedupeKey = getNotificationDedupeKey(item);
+        if (!item?.id || seen.has(dedupeKey)) return false;
+        seen.add(dedupeKey);
         return true;
       })
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -184,10 +204,7 @@ export const fetchNotificationActivity = async ({
 
     const value = {
       notifications,
-      unreadCount:
-        typeof json.unreadCount === "number"
-          ? json.unreadCount
-          : notifications.filter((item) => !item.read).length,
+      unreadCount: notifications.filter((item) => !item.read).length,
     };
 
     setActivityCache({ role, userId, value });

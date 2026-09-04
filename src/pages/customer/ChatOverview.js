@@ -61,7 +61,7 @@ const renderMessageText = (text = "") => {
 
 const CustomerChatOverview = () => {
   const { shippers, loading, fetchShippers } = useCustomerChat();
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const { shouldUsePollingFallback } = useSocketStatus();
   const [searchParams] = useSearchParams();
   const shipmentIdFromQuery = searchParams.get("shipmentId");
@@ -119,6 +119,12 @@ const CustomerChatOverview = () => {
     if (!shippers.length) return;
 
     const chatFromQuery = shippers.find((shipper) => {
+      if (shipmentIdFromQuery && shipperIdFromQuery) {
+        return (
+          shipper.shipmentId === shipmentIdFromQuery &&
+          shipper._id === shipperIdFromQuery
+        );
+      }
       if (shipmentIdFromQuery) return shipper.shipmentId === shipmentIdFromQuery;
       return shipperIdFromQuery && shipper._id === shipperIdFromQuery;
     });
@@ -140,7 +146,10 @@ const CustomerChatOverview = () => {
       try {
         const roomRes = await axios.post(
           `${API_BASE_URL}/customer/chat/room`,
-          { shipmentId: selectedShipper.shipmentId },
+          {
+            shipmentId: selectedShipper.shipmentId,
+            shipperId: selectedShipper._id,
+          },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -152,11 +161,7 @@ const CustomerChatOverview = () => {
         if (!cancelled) await fetchRoomMessages(nextRoomId);
 
         const joinRoom = () => {
-          socket.emit("joinRoom", {
-            customerId: user._id,
-            shipperId: selectedShipper._id,
-            shipmentId: selectedShipper.shipmentId,
-          });
+          socket.emit("horse_shipt:join_chat_room", { roomId: nextRoomId });
         };
 
         if (socket.connected) {
@@ -183,7 +188,7 @@ const CustomerChatOverview = () => {
       cancelled = true;
       cleanupSocketJoin();
     };
-  }, [selectedShipper, user, token, fetchRoomMessages]);
+  }, [selectedShipper, token, fetchRoomMessages]);
 
   useEffect(() => {
     if (!roomId) return;

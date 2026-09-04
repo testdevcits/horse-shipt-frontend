@@ -8,6 +8,7 @@ import {
   MdChevronLeft,
   MdChevronRight,
 } from "react-icons/md";
+import { FiMessageSquare } from "react-icons/fi";
 import { BsChatLeftQuote } from "react-icons/bs";
 import { useCustomerQuote } from "../../contexts/customerContext/CustomerQuoteContext";
 import PageLoader from "../../components/common/PageLoader";
@@ -64,6 +65,20 @@ const ShipmentQuotes = ({
       return;
     }
     navigate(`/customer/reviews/${shipperId}`);
+  };
+
+  const handleMessageShipper = (quote) => {
+    const quoteShipperId = quote?.shipper?._id || quote?.shipper;
+    const nextShipmentId = shipmentId || quote?.shipment?._id || shipment?._id;
+
+    if (!quoteShipperId || !nextShipmentId) {
+      alert("Unable to open chat for this quote");
+      return;
+    }
+
+    navigate(
+      `/customer/chats?shipmentId=${nextShipmentId}&shipperId=${quoteShipperId}`
+    );
   };
 
   // ---- Pagination handler ----
@@ -170,6 +185,13 @@ const ShipmentQuotes = ({
                     </div>
 
                     <div className="flex flex-col gap-2 sm:flex-row">
+                      <button
+                        onClick={() => handleMessageShipper(quote)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 border border-[#BF9B53] text-[#BF9B53] font-semibold text-sm hover:bg-[#BF9B53] hover:text-white transition-all duration-200"
+                      >
+                        <FiMessageSquare size={16} />
+                        Message Shipper
+                      </button>
                       <button
                         onClick={() => onSelectQuote(quote)}
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] border border-[#BF9B53] text-white font-semibold text-sm hover:shadow-lg transition-all duration-200"
