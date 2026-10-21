@@ -19,7 +19,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
 const stripePromise = loadStripe(
-  "pk_test_51T6oVICVoPk11ijL51FMIuNhin8FIjyoJSOITwlK6AqEutL9Jl4bwdOrhziWtZdaBesLZSJheByHGV5RNHbMrYfH00yf77nS4r"
+  process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
 );
 
 const MyShipmentDetails = () => {
