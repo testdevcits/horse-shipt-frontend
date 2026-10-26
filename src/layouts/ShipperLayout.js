@@ -21,6 +21,7 @@ import logo1 from "../assets/images/profileImage.png";
 import defaultProfileImage from "../assets/images/profileImage.png";
 import { useNotificationActivity } from "../contexts/NotificationActivityContext";
 import LegalFooter from "../components/common/LegalFooter";
+import ConfirmModal from "../components/common/ConfirmModal";
 
 const ShipperLayout = () => {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ const ShipperLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
   const { unreadCount: notificationCount } = useNotificationActivity();
@@ -125,8 +127,8 @@ const ShipperLayout = () => {
   };
 
   const handleLogout = () => {
-    logout();
     setProfilePopup(false);
+    setConfirmLogout(true);
   };
 
   const handleProfileSettings = () => {
@@ -320,6 +322,17 @@ const ShipperLayout = () => {
       )}
 
       <SubscriptionPopup />
+      <ConfirmModal
+        show={confirmLogout}
+        title="Logout"
+        message="Are you sure you want to log out?"
+        onConfirm={() => {
+          setConfirmLogout(false);
+          logout();
+        }}
+        onCancel={() => setConfirmLogout(false)}
+        confirmText="Logout"
+      />
     </div>
   );
 };

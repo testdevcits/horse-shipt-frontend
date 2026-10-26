@@ -74,7 +74,7 @@ const CustomDropdown = ({
       className={`relative flex cursor-pointer items-center pr-8 ${className} ${
         disabled ? "cursor-not-allowed opacity-60" : ""
       }`}
-      style={{ font: "inherit", paddingRight: 32, ...buttonProps.style }}
+      style={{ fontFamily: "inherit", paddingRight: 32, ...buttonProps.style }}
     >
       <span className="block truncate">
         {selectedOption?.props.children ?? ""}
