@@ -350,7 +350,10 @@ const HomeTab = ({
                           Pickup Date
                         </p>
                         <p className="text-[11px] font-bold text-slate-700">
-                          {formatDate(currentShipment.shipment?.pickupDate)}
+                          {formatDateRange(
+                            currentShipment.shipment?.pickupDateRange,
+                            currentShipment.shipment?.pickupDate
+                          )}
                         </p>
                       </div>
                     </div>
@@ -372,7 +375,10 @@ const HomeTab = ({
                           Delivery Date
                         </p>
                         <p className="text-[11px] font-bold text-slate-700">
-                          {formatDate(currentShipment.shipment?.deliveryDate)}
+                          {formatDateRange(
+                            currentShipment.shipment?.deliveryDateRange,
+                            currentShipment.shipment?.deliveryDate
+                          )}
                         </p>
                       </div>
                     </div>
@@ -1471,11 +1477,25 @@ const DriverDashboard = () => {
 
   const formatDate = useCallback((ds) => {
     if (!ds) return "N/A";
-    return new Date(ds).toLocaleDateString("en-US", {
+    const date = new Date(ds);
+    if (Number.isNaN(date.getTime())) return "N/A";
+    return date.toLocaleDateString("en-US", {
       day: "numeric",
       month: "short",
     });
   }, []);
+
+  const formatDateRange = useCallback((range, legacyDate) => {
+    const start = range?.start || legacyDate;
+    const end = range?.end;
+    const formattedStart = formatDate(start);
+    if (formattedStart === "N/A") return "N/A";
+
+    const formattedEnd = formatDate(end);
+    return formattedEnd !== "N/A" && formattedEnd !== formattedStart
+      ? `${formattedStart} – ${formattedEnd}`
+      : formattedStart;
+  }, [formatDate]);
 
   const formatTime = useCallback((ts) => {
     if (!ts) return "N/A";
