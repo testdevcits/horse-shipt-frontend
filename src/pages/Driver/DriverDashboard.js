@@ -82,6 +82,23 @@ const ProfileSkeleton = () => (
   </div>
 );
 
+const formatDateRange = (range, legacyDate) => {
+  const formatDate = (value) => {
+    if (!value) return "N/A";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "N/A";
+    return date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+  };
+
+  const formattedStart = formatDate(range?.start || legacyDate);
+  if (formattedStart === "N/A") return "N/A";
+
+  const formattedEnd = formatDate(range?.end);
+  return formattedEnd !== "N/A" && formattedEnd !== formattedStart
+    ? `${formattedStart} – ${formattedEnd}`
+    : formattedStart;
+};
+
 const normalizeDriverStatus = (status) => {
   if (!status) return "";
   const value = String(status).trim();
@@ -254,6 +271,7 @@ const HomeTab = ({
   driverLocation,
   assignedVehicles,
   formatDate,
+  formatDateRange,
   formatTime,
   setSelectedImage,
   setMapModalOpen,
@@ -1485,18 +1503,6 @@ const DriverDashboard = () => {
     });
   }, []);
 
-  const formatDateRange = useCallback((range, legacyDate) => {
-    const start = range?.start || legacyDate;
-    const end = range?.end;
-    const formattedStart = formatDate(start);
-    if (formattedStart === "N/A") return "N/A";
-
-    const formattedEnd = formatDate(end);
-    return formattedEnd !== "N/A" && formattedEnd !== formattedStart
-      ? `${formattedStart} – ${formattedEnd}`
-      : formattedStart;
-  }, [formatDate]);
-
   const formatTime = useCallback((ts) => {
     if (!ts) return "N/A";
     try {
@@ -1535,6 +1541,7 @@ const DriverDashboard = () => {
             driverLocation={driverLocation}
             assignedVehicles={assignedVehicles}
             formatDate={formatDate}
+            formatDateRange={formatDateRange}
             formatTime={formatTime}
             setSelectedImage={setSelectedImage}
             setMapModalOpen={setMapModalOpen}
