@@ -2,7 +2,6 @@ import React, {
   createContext,
   useContext,
   useState,
-  useEffect,
   useCallback,
   useRef,
 } from "react";
@@ -20,17 +19,19 @@ export const ShipperShipmentProvider = ({ children }) => {
 
   const [shipment, setShipment] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  const fetchedOnce = useRef(false);
+  const [availablePagination, setAvailablePagination] = useState(null);
+  const [availableLoaded, setAvailableLoaded] = useState(false);
+  const availableRequestRef = useRef(0);
 
   /* ===============================
      LIST VIEW API
   =================================*/
 
   const getAvailableShipments = useCallback(
-    async (filters = {}) => {
+    async (filters = {}, pagination = null) => {
       if (!token || !isShipper) return;
 
+      const requestId = ++availableRequestRef.current;
       setLoading(true);
 
       try {
@@ -40,6 +41,11 @@ export const ShipperShipmentProvider = ({ children }) => {
               value !== "" && value !== null && value !== undefined
           )
         );
+
+        if (pagination) {
+          cleanFilters.page = pagination.page || 1;
+          cleanFilters.limit = pagination.limit || 10;
+        }
 
         const query = new URLSearchParams(cleanFilters).toString();
 
@@ -52,11 +58,16 @@ export const ShipperShipmentProvider = ({ children }) => {
           }
         );
 
-        setShipments(res.data.shipments || []);
+        if (requestId === availableRequestRef.current) {
+          setShipments(res.data.shipments || []);
+          setAvailablePagination(res.data.pagination || null);
+          setAvailableLoaded(true);
+        }
       } catch (err) {
         console.error("Get Available Shipments Error:", err);
+        if (requestId === availableRequestRef.current) setAvailableLoaded(true);
       } finally {
-        setLoading(false);
+        if (requestId === availableRequestRef.current) setLoading(false);
       }
     },
     [token, isShipper]
@@ -122,23 +133,12 @@ export const ShipperShipmentProvider = ({ children }) => {
     [token]
   );
 
-  /* ===============================
-     AUTO INITIAL LOAD LIST API
-  =================================*/
-
-  useEffect(() => {
-    if (!token || !isShipper) return;
-
-    if (!fetchedOnce.current) {
-      fetchedOnce.current = true;
-      getAvailableShipments();
-    }
-  }, [token, isShipper, getAvailableShipments]);
-
   return (
     <ShipperShipmentContext.Provider
       value={{
         shipments,
+        availablePagination,
+        availableLoaded,
         mapShipments,
         shipment,
         loading,

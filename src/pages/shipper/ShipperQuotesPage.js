@@ -38,9 +38,9 @@ const getQuoteDocumentUrl = (quoteId, documentType) =>
 const getDocumentFileName = (quote, documentType) => {
   const shipmentCode = quote?.shipment?.shipmentCode || quote?._id || "contract";
   if (documentType === "shipper") {
-    return quote?.shipperContract?.originalName || `${shipmentCode}-shipper.pdf`;
+    return `Shipper-Contract-${shipmentCode}.pdf`;
   }
-  return `${shipmentCode}.pdf`;
+  return `Shipment-Contract-${shipmentCode}.pdf`;
 };
 
 const extractDocumentError = async (response) => {
@@ -224,10 +224,13 @@ const tabIcons = {
   pending: <RiRefreshLine size={14} />,
 };
 
-const ContractPreview = ({ quote, token }) => {
+const ContractPreview = ({ quote, token, documentType = "generated" }) => {
   const [previewUrl, setPreviewUrl] = useState("");
   const [error, setError] = useState("");
-  const contractUrl = quote?.contract?.url;
+  const contractUrl =
+    documentType === "shipper"
+      ? quote?.shipperContract?.url
+      : quote?.contract?.url;
   const quoteId = quote?._id;
   const shipmentCode = quote?.shipment?.shipmentCode;
   const shipperContractName = quote?.shipperContract?.originalName;
@@ -246,7 +249,7 @@ const ContractPreview = ({ quote, token }) => {
             shipperContract: { originalName: shipperContractName },
           },
           quoteId,
-          documentType: "generated",
+          documentType,
           token,
         });
         objectUrl = nextUrl;
@@ -262,7 +265,7 @@ const ContractPreview = ({ quote, token }) => {
       active = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [contractUrl, quoteId, shipmentCode, shipperContractName, token]);
+  }, [contractUrl, documentType, quoteId, shipmentCode, shipperContractName, token]);
 
   if (!contractUrl) return null;
 
@@ -270,7 +273,7 @@ const ContractPreview = ({ quote, token }) => {
     <div className="mt-4 border overflow-hidden bg-gray-50">
       <div className="flex items-center justify-between gap-3 px-4 py-3 border-b bg-white">
         <span className="text-sm font-semibold text-gray-700">
-          Contract Preview
+          {documentType === "shipper" ? "Shipper Contract Preview" : "Contract Preview"}
         </span>
         <button
           type="button"
@@ -279,7 +282,7 @@ const ContractPreview = ({ quote, token }) => {
               await openQuoteDocument({
                 quote,
                 quoteId: quote._id,
-                documentType: "generated",
+                documentType,
                 token,
               });
             } catch (err) {
@@ -288,7 +291,7 @@ const ContractPreview = ({ quote, token }) => {
           }}
           className="text-sm font-semibold text-[#BF9B53] hover:underline"
         >
-          Open full contract
+          Open full {documentType === "shipper" ? "shipper contract" : "contract"}
         </button>
       </div>
 
@@ -305,7 +308,7 @@ const ContractPreview = ({ quote, token }) => {
       {previewUrl && (
         <iframe
           src={previewUrl}
-          title={`Contract ${quote._id}`}
+          title={`${documentType === "shipper" ? "Shipper Contract" : "Contract"} ${shipmentCode || quote._id}`}
           className="w-full h-[520px] bg-white"
         />
       )}
@@ -327,6 +330,7 @@ const ShipperQuotesPage = () => {
   const navigate = useNavigate();
 
   const [visibleContractId, setVisibleContractId] = useState(null);
+  const [visibleContractType, setVisibleContractType] = useState("generated");
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
@@ -681,14 +685,17 @@ const ShipperQuotesPage = () => {
                     <footer className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                       {quote.contract?.url && (
                         <button
-                          onClick={() =>
-                            setVisibleContractId(
-                              visibleContractId === quote._id ? null : quote._id
-                            )
-                          }
+                          onClick={() => {
+                            const isOpen =
+                              visibleContractId === quote._id &&
+                              visibleContractType === "generated";
+                            setVisibleContractId(isOpen ? null : quote._id);
+                            setVisibleContractType("generated");
+                          }}
                           className="h-[38px] w-full bg-[#BF9B53] px-5 text-[12px] font-bold uppercase text-white transition hover:bg-[#a6813f] sm:h-[34px] sm:w-auto"
                         >
-                          {visibleContractId === quote._id
+                          {visibleContractId === quote._id &&
+                          visibleContractType === "generated"
                             ? "Hide Contract"
                             : "View Contract"}
                         </button>
@@ -696,17 +703,12 @@ const ShipperQuotesPage = () => {
 
                       {quote.shipperContract?.url && (
                         <button
-                          onClick={async () => {
-                            try {
-                              await openQuoteDocument({
-                                quote,
-                                quoteId: quote._id,
-                                documentType: "shipper",
-                                token,
-                              });
-                            } catch (err) {
-                              showDocumentToastError(err);
-                            }
+                          onClick={() => {
+                            const isOpen =
+                              visibleContractId === quote._id &&
+                              visibleContractType === "shipper";
+                            setVisibleContractId(isOpen ? null : quote._id);
+                            setVisibleContractType("shipper");
                           }}
                           className="h-[38px] w-full border border-[#BF9B53] px-4 text-[12px] font-bold uppercase text-[#735D32] transition hover:bg-[#BF9B53]/10 sm:h-[34px] sm:w-auto"
                         >
@@ -738,7 +740,11 @@ const ShipperQuotesPage = () => {
                     </footer>
 
                     {visibleContractId === quote._id && (
-                      <ContractPreview quote={quote} token={token} />
+                      <ContractPreview
+                        quote={quote}
+                        token={token}
+                        documentType={visibleContractType}
+                      />
                     )}
                   </div>
                 </div>

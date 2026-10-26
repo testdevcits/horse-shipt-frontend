@@ -3,6 +3,7 @@ import { HiSearch } from "react-icons/hi";
 import { CiMap } from "react-icons/ci";
 import { IoList } from "react-icons/io5";
 import { MdFilterList } from "react-icons/md";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 import { useShipperShipment } from "../../contexts/shipperContext/ShipperShipmentContext";
 import { useShipperInvitations } from "../../contexts/shipperContext/ShipperInvitationContext";
@@ -10,6 +11,8 @@ import { useShipperPreferredArea } from "../../contexts/shipperContext/ShipperPr
 import ShipmentCard from "./ShipmentCard";
 import ShipmentMap from "./ShipmentMap";
 import PageLoader from "../../components/common/PageLoader";
+
+const PAGE_SIZE = 10;
 
 const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) => {
   const [search, setSearch] = useState("");
@@ -24,28 +27,44 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
     stallSize: "",
     minHorses: "",
   });
+  const [appliedFilters, setAppliedFilters] = useState({});
 
   const {
     shipments,
-    mapShipments,
+    availablePagination,
+    availableLoaded,
     getAvailableShipments,
-    getAvailableShipmentsForMap,
     loading,
   } = useShipperShipment();
   const {
     invitations,
     fetchInvitations,
-    loading: invitationLoading,
   } = useShipperInvitations();
   const {
     preferredAreas,
     fetchPreferredAreas,
     hasFetchedPreferredAreas,
-    loading: preferredAreaLoading,
   } = useShipperPreferredArea();
 
-  const fetchedOnce = useRef(false);
   const lastFiltersRef = useRef("");
+  const lastSearchRef = useRef("");
+
+  useEffect(() => {
+    getAvailableShipments({}, { page: 1, limit: PAGE_SIZE });
+  }, [getAvailableShipments]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const term = search.trim();
+      if (term === lastSearchRef.current) return;
+      lastSearchRef.current = term;
+      getAvailableShipments(
+        { ...appliedFilters, ...(term ? { search: term } : {}) },
+        { page: 1, limit: PAGE_SIZE }
+      );
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search, appliedFilters, getAvailableShipments]);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -77,28 +96,6 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
       return { ...current, matchMode: "all" };
     });
   }, [hasFetchedPreferredAreas, preferredAreas.length]);
-
-  useEffect(() => {
-    if (
-      location === undefined ||
-      !hasFetchedPreferredAreas ||
-      fetchedOnce.current
-    ) {
-      return;
-    }
-
-    getAvailableShipments({
-      ...(location ? { lat: location.lat, lng: location.lng } : {}),
-    });
-    getAvailableShipmentsForMap(1, 5);
-    fetchedOnce.current = true;
-  }, [
-    location,
-    hasFetchedPreferredAreas,
-    preferredAreas.length,
-    getAvailableShipments,
-    getAvailableShipmentsForMap,
-  ]);
 
   const invitedShipments = useMemo(
     () =>
@@ -162,13 +159,19 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
     const key = JSON.stringify({ ...cleanFilters, matchMode });
     if (lastFiltersRef.current === key) return;
     lastFiltersRef.current = key;
-    getAvailableShipments({
+    lastSearchRef.current = search.trim();
+    const nextFilters = {
       ...cleanFilters,
       ...(matchMode === "preferred" ? { preferredAreaOnly: true } : {}),
       ...(matchMode === "nearby" && location
         ? { lat: location.lat, lng: location.lng }
         : {}),
-    });
+    };
+    setAppliedFilters(nextFilters);
+    getAvailableShipments(
+      { ...nextFilters, ...(search.trim() ? { search: search.trim() } : {}) },
+      { page: 1, limit: PAGE_SIZE }
+    );
     setShowMobileFilters(false);
   };
 
@@ -181,9 +184,26 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
       minHorses: "",
     });
     lastFiltersRef.current = "";
-    getAvailableShipments({
-      ...(location ? { lat: location.lat, lng: location.lng } : {}),
-    });
+    lastSearchRef.current = search.trim();
+    setAppliedFilters({});
+    getAvailableShipments(
+      { ...(search.trim() ? { search: search.trim() } : {}) },
+      { page: 1, limit: PAGE_SIZE }
+    );
+  };
+
+  const changePage = (nextPage) => {
+    if (!availablePagination || loading) return;
+    const totalPages = availablePagination.totalPages || 1;
+    const page = Math.max(1, Math.min(nextPage, totalPages));
+    if (page === availablePagination.page) return;
+    getAvailableShipments(
+      {
+        ...appliedFilters,
+        ...(search.trim() ? { search: search.trim() } : {}),
+      },
+      { page, limit: PAGE_SIZE }
+    );
   };
 
   const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
@@ -191,12 +211,9 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
     if (key === "matchMode") return value !== defaultMatchMode;
     return value !== "";
   });
-  const isLoading =
-    loading ||
-    invitationLoading ||
-    preferredAreaLoading ||
-    location === undefined ||
-    !hasFetchedPreferredAreas;
+  // Only the paginated shipment request blocks the list. Invitations,
+  // preferred areas, and browser location can finish in the background.
+  const isLoading = loading || !availableLoaded;
   const noData = !isLoading && filteredShipments.length === 0;
 
   /* ── shared input class ─────────────────────────────────────── */
@@ -414,6 +431,9 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             {filteredShipments.length}
           </span>{" "}
           shipment{filteredShipments.length !== 1 ? "s" : ""}
+          {availablePagination && !search.trim() && (
+            <> · {availablePagination.total} available total</>
+          )}
           {invitedShipments.length > 0 && (
             <>
               {" "}
@@ -493,6 +513,29 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
                 invitation={shipment.__invitation}
               />
             ))}
+            {availablePagination?.totalPages > 1 && (
+              <div className="flex items-center justify-center gap-4 border border-gray-100 bg-white px-4 py-3">
+                <button
+                  type="button"
+                  onClick={() => changePage((availablePagination.page || 1) - 1)}
+                  disabled={loading || availablePagination.page <= 1}
+                  className="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <FiChevronLeft /> Previous
+                </button>
+                <span className="text-sm font-semibold text-gray-600">
+                  Page {availablePagination.page} of {availablePagination.totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => changePage((availablePagination.page || 1) + 1)}
+                  disabled={loading || availablePagination.page >= availablePagination.totalPages}
+                  className="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Next <FiChevronRight />
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -500,11 +543,9 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
         {!isLoading && !noData && activeTab === "map" && (
           <div className="rounded overflow-hidden">
             <ShipmentMap
-              shipments={
-                filteredShipments.length > 0
-                  ? filteredShipments
-                  : mapShipments.slice(0, 5)
-              }
+              shipments={filteredShipments}
+              pagination={availablePagination || {}}
+              onPageChange={changePage}
             />
           </div>
         )}

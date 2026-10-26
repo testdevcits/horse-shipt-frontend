@@ -133,14 +133,11 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
   const {
     shipments,
-    getAvailableShipments,
     getShipmentById,
-    loading,
   } = useShipperShipment();
   const {
     invitations,
     fetchInvitations,
-    loading: invitationLoading,
   } = useShipperInvitations();
   const [isQuestionOpen, setIsQuestionOpen] = useState(false);
 
@@ -226,11 +223,6 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
     }
   }, [tokenFromQuery, idToUse, navigate]);
 
-  // ── Fetch shipments ───────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!shipments.length) getAvailableShipments();
-  }, [shipments.length, getAvailableShipments]);
-
   useEffect(() => {
     if (!invitations.length) fetchInvitations();
   }, [invitations.length, fetchInvitations]);
@@ -266,12 +258,19 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
     let cancelled = false;
 
-    getShipmentById(idToUse).then((directShipment) => {
-      if (cancelled) return;
-      setShipment(directShipment || null);
-      if (directShipment) setExpandedHorse(0);
-      setDetailLookupComplete(true);
-    });
+    Promise.resolve(getShipmentById(idToUse))
+      .then((directShipment) => {
+        if (cancelled) return;
+        setShipment(directShipment || null);
+        if (directShipment) setExpandedHorse(0);
+      })
+      .catch((error) => {
+        console.error("Load shipment details error:", error);
+        if (!cancelled) setShipment(null);
+      })
+      .finally(() => {
+        if (!cancelled) setDetailLookupComplete(true);
+      });
 
     return () => {
       cancelled = true;
@@ -375,7 +374,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       : "";
 
   // ── Loading ───────────────────────────────────────────────────────────────
-  if (loading || invitationLoading || !detailLookupComplete) {
+  if (!detailLookupComplete) {
     return <PageLoader text="Loading shipment details..." />;
   }
 
