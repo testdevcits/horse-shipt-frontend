@@ -4,7 +4,6 @@ import {
   FiAlertCircle,
   FiCheckCircle,
   FiClock,
-  FiFileText,
   FiPlus,
   FiSend,
 } from "react-icons/fi";
@@ -48,11 +47,6 @@ const formatDate = (value) =>
 
 const getTicketNumber = (ticket) =>
   ticket?._id ? `HS-${ticket._id.slice(-6).toUpperCase()}` : "HS-NEW";
-
-const getLatestAdminReply = (ticket) =>
-  [...(ticket?.messages || [])]
-    .reverse()
-    .find((item) => item.senderRole === "admin");
 
 const SupportPage = ({ role = "customer" }) => {
   const { token, user } = useAuth();
@@ -175,7 +169,7 @@ const SupportPage = ({ role = "customer" }) => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-160px)] bg-[#FAF8F3] px-3 py-5 font-montserrat sm:px-5 lg:px-6">
+    <div className="min-h-[calc(100vh-160px)] rounded-2xl bg-[#FAF8F3] px-3 py-5 font-montserrat sm:px-5 lg:px-6">
       <div className="w-full space-y-5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -202,8 +196,8 @@ const SupportPage = ({ role = "customer" }) => {
           </div>
         )}
 
-        <section className="border border-gray-200 bg-white">
-          <div className="border-b border-gray-100 px-5 py-4">
+        <section className="overflow-hidden rounded-2xl border border-[#e8e1d6] bg-white shadow-sm">
+          <div className="border-b border-[#e8e1d6] px-5 py-4">
             <h2 className="text-base font-bold text-[#111827]">Create New Ticket</h2>
           </div>
           <form onSubmit={handleCreateTicket} className="grid gap-4 p-4 sm:p-5 lg:grid-cols-12">
@@ -217,7 +211,7 @@ const SupportPage = ({ role = "customer" }) => {
                   setForm((prev) => ({ ...prev, subject: event.target.value }))
                 }
                 placeholder="Example: Payment issue on shipment"
-                className="w-full border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#BF9B53]"
+                className="w-full rounded-lg border border-[#e8e1d6] bg-[#faf8f4] px-3 py-2.5 text-sm outline-none focus:border-[#BF9B53]"
                 maxLength={140}
               />
             </div>
@@ -229,7 +223,7 @@ const SupportPage = ({ role = "customer" }) => {
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, category: event.target.value }))
                 }
-                className="w-full text-sm [&>label]:text-xs [&>label]:font-bold [&>label]:uppercase [&>label]:tracking-wide [&>label]:text-[#6B7280] [&>div:first-of-type]:rounded-none [&>div:first-of-type]:border-gray-200 [&>div:first-of-type]:py-2 [&>div:first-of-type]:focus-within:border-[#BF9B53] [&>div:first-of-type]:min-h-[38px]"
+                className="w-full text-sm [&>label]:text-xs [&>label]:font-bold [&>label]:uppercase [&>label]:tracking-wide [&>label]:text-[#6B7280] [&>div:first-of-type]:rounded-lg [&>div:first-of-type]:border-[#e8e1d6] [&>div:first-of-type]:bg-[#faf8f4] [&>div:first-of-type]:py-2 [&>div:first-of-type]:focus-within:border-[#BF9B53] [&>div:first-of-type]:min-h-[42px]"
               />
             </div>
             <div className="lg:col-span-2 xl:col-span-2">
@@ -240,14 +234,14 @@ const SupportPage = ({ role = "customer" }) => {
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, priority: event.target.value }))
                 }
-                className="w-full text-sm [&>label]:text-xs [&>label]:font-bold [&>label]:uppercase [&>label]:tracking-wide [&>label]:text-[#6B7280] [&>div:first-of-type]:rounded-none [&>div:first-of-type]:border-gray-200 [&>div:first-of-type]:py-2 [&>div:first-of-type]:focus-within:border-[#BF9B53] [&>div:first-of-type]:min-h-[38px]"
+                className="w-full text-sm [&>label]:text-xs [&>label]:font-bold [&>label]:uppercase [&>label]:tracking-wide [&>label]:text-[#6B7280] [&>div:first-of-type]:rounded-lg [&>div:first-of-type]:border-[#e8e1d6] [&>div:first-of-type]:bg-[#faf8f4] [&>div:first-of-type]:py-2 [&>div:first-of-type]:focus-within:border-[#BF9B53] [&>div:first-of-type]:min-h-[42px]"
               />
             </div>
             <div className="flex items-end lg:col-span-2">
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex w-full items-center justify-center gap-2 bg-[#BF9B53] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#a88642] disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#BF9B53] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#a88642] disabled:opacity-60"
               >
                 <FiPlus />
                 {saving ? "Creating..." : "Create"}
@@ -264,39 +258,39 @@ const SupportPage = ({ role = "customer" }) => {
                 }
                 rows={4}
                 placeholder="Write the complete issue details for admin review"
-                className="w-full resize-none border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#BF9B53]"
+                className="w-full resize-none rounded-lg border border-[#e8e1d6] bg-[#faf8f4] px-3 py-3 text-sm outline-none focus:border-[#BF9B53]"
                 maxLength={3000}
               />
             </div>
           </form>
         </section>
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(360px,0.7fr)]">
-          <section className="border border-gray-200 bg-white">
-            <div className="border-b border-gray-100 px-5 py-4">
+        <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
+          <section className="min-w-0 overflow-hidden rounded-2xl border border-[#e8e1d6] bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-[#e8e1d6] px-5 py-4">
               <h2 className="text-base font-bold text-[#111827]">My Tickets</h2>
+              <span className="rounded-full bg-[#f5ecd7] px-2.5 py-1 text-xs font-bold text-[#8b6a24]">{tickets.length}</span>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left">
-                <thead className="bg-gray-50 text-xs uppercase text-[#6B7280]">
+              <table className="w-full min-w-[600px] text-left">
+                <thead className="bg-[#faf8f4] text-xs uppercase text-[#6B7280]">
                   <tr>
                     <th className="px-4 py-3">Ticket ID</th>
                     <th className="px-4 py-3">Subject</th>
                     <th className="px-4 py-3">Category</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Last Update</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td className="px-4 py-5 text-sm text-[#6B7280]" colSpan={5}>
+                      <td className="px-4 py-5 text-sm text-[#6B7280]" colSpan={4}>
                         Loading tickets...
                       </td>
                     </tr>
                   ) : tickets.length === 0 ? (
                     <tr>
-                      <td className="px-4 py-5 text-sm text-[#6B7280]" colSpan={5}>
+                      <td className="px-4 py-5 text-sm text-[#6B7280]" colSpan={4}>
                         No tickets created yet.
                       </td>
                     </tr>
@@ -305,11 +299,11 @@ const SupportPage = ({ role = "customer" }) => {
                       <tr
                         key={ticket._id}
                         onClick={() => setSelectedId(ticket._id)}
-                        className={`cursor-pointer border-t border-gray-100 transition hover:bg-[#FBFAF7] ${
-                          selectedTicket?._id === ticket._id ? "bg-[#FBFAF7]" : ""
+                        className={`cursor-pointer border-t border-[#eee9e0] transition hover:bg-[#faf7f0] ${
+                          selectedTicket?._id === ticket._id ? "bg-[#f6edd8]" : ""
                         }`}
                       >
-                        <td className="px-4 py-3 text-sm font-bold text-[#BF9B53]">
+                        <td className="whitespace-nowrap px-4 py-3 text-sm font-bold text-[#1f2937]">
                           {getTicketNumber(ticket)}
                         </td>
                         <td className="px-4 py-3 text-sm font-semibold text-[#111827]">
@@ -320,15 +314,12 @@ const SupportPage = ({ role = "customer" }) => {
                         </td>
                         <td className="px-4 py-3">
                           <span
-                            className={`inline-flex border px-2 py-1 text-xs font-bold ${
+                            className={`inline-flex rounded-full border px-2 py-1 text-xs font-bold ${
                               statusStyles[ticket.status]
                             }`}
                           >
                             {statusLabels[ticket.status]}
                           </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[#4B5563]">
-                          {formatDate(ticket.lastMessageAt)}
                         </td>
                       </tr>
                     ))
@@ -338,108 +329,70 @@ const SupportPage = ({ role = "customer" }) => {
             </div>
           </section>
 
-          <section className="border border-gray-200 bg-white">
-            <div className="border-b border-gray-100 px-5 py-4">
+          <section className="min-w-0 overflow-hidden rounded-2xl border border-[#e8e1d6] bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-[#e8e1d6] px-5 py-4">
               <h2 className="text-base font-bold text-[#111827]">Ticket Details</h2>
+              {selectedTicket && (
+                <span className={`rounded-full border px-3 py-1 text-xs font-bold ${statusStyles[selectedTicket.status]}`}>
+                  <span className="mr-1">•</span>{statusLabels[selectedTicket.status]}
+                </span>
+              )}
             </div>
             {selectedTicket ? (
-              <div className="space-y-5 p-5">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="border border-gray-100 bg-gray-50 p-3">
-                    <p className="text-xs font-bold uppercase text-[#6B7280]">Ticket ID</p>
-                    <p className="mt-1 text-sm font-bold text-[#111827]">
-                      {getTicketNumber(selectedTicket)}
-                    </p>
-                  </div>
-                  <div className="border border-gray-100 bg-gray-50 p-3">
-                    <p className="text-xs font-bold uppercase text-[#6B7280]">Status</p>
-                    <p className="mt-1 text-sm font-bold text-[#111827]">
-                      {statusLabels[selectedTicket.status]}
-                    </p>
+              <div className="flex min-h-[470px] flex-col">
+                <div className="space-y-2 border-b border-[#e8e1d6] p-4">
+                  <h3 className="text-base font-bold text-[#111827]">{selectedTicket.subject}</h3>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#6B7280]">
+                    <span className="font-semibold text-[#374151]">{getTicketNumber(selectedTicket)}</span>
+                    <span>Category <b className="font-semibold text-[#374151]">{selectedTicket.category}</b></span>
+                    <span>Priority <b className="font-semibold capitalize text-[#374151]">{selectedTicket.priority}</b></span>
                   </div>
                 </div>
 
-                <div>
-                  <p className="text-xs font-bold uppercase text-[#6B7280]">Subject</p>
-                  <p className="mt-1 text-sm font-semibold text-[#111827]">
-                    {selectedTicket.subject}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs font-bold uppercase text-[#6B7280]">
-                    Admin Response
-                  </p>
-                  <div className="mt-2 border border-gray-100 bg-[#FCFBF8] p-4">
-                    {getLatestAdminReply(selectedTicket) ? (
-                      <>
-                        <p className="whitespace-pre-wrap text-sm leading-6 text-[#111827]">
-                          {getLatestAdminReply(selectedTicket).message}
-                        </p>
-                        <p className="mt-2 text-xs text-[#6B7280]">
-                          {formatDate(getLatestAdminReply(selectedTicket).createdAt)}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="text-sm text-[#6B7280]">Admin reply pending.</p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="mb-2 text-xs font-bold uppercase text-[#6B7280]">
-                    Ticket History
-                  </p>
-                  <div className="space-y-3">
-                    {selectedTicket.messages?.map((item) => (
-                      <div
-                        key={item._id || item.createdAt}
-                        className="border-l-2 border-[#BF9B53] pl-3"
-                      >
-                        <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase text-[#6B7280]">
-                          {item.senderRole === "admin" ? <FiCheckCircle /> : <FiFileText />}
-                          {item.senderRole === "admin" ? "Admin Reply" : "Ticket Update"}
-                          <span className="font-medium normal-case">
-                            {formatDate(item.createdAt)}
-                          </span>
+                <div className="max-h-[360px] min-h-[180px] flex-1 space-y-3 overflow-y-auto bg-[#faf8f4] p-4">
+                  {(selectedTicket.messages || []).map((item, index) => {
+                    const isAdmin = item.senderRole === "admin";
+                    return (
+                      <div key={item._id || `${item.createdAt}-${index}`} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[88%] rounded-xl border px-3 py-2.5 ${isAdmin ? "border-[#f0e4c6] bg-[#f6edd8]" : "border-[#e8e1d6] bg-white"}`}>
+                          <p className="mb-1 text-[11px] text-[#777064]">{isAdmin ? "Support Team" : "You"} · {formatDate(item.createdAt)}</p>
+                          <p className="whitespace-pre-wrap break-words text-sm leading-5 text-[#242321]">{item.message}</p>
                         </div>
-                        <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-[#111827]">
-                          {item.message}
-                        </p>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
+                  {(!selectedTicket.messages || selectedTicket.messages.length === 0) && (
+                    <p className="py-8 text-center text-sm text-[#6B7280]">No messages on this ticket yet.</p>
+                  )}
                 </div>
 
-                <form onSubmit={handleFollowUp} className="border-t border-gray-100 pt-4">
-                  <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-[#6B7280]">
-                    Add Update
-                  </label>
-                  {isResolvedTicket ? (
-                    <div className="border border-green-100 bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">
-                      This ticket is resolved. No new messages can be sent.
-                    </div>
-                  ) : (
-                    <>
-                      <textarea
-                        value={followUp}
-                        onChange={(event) => setFollowUp(event.target.value)}
-                        rows={3}
-                        placeholder="Add more information to this ticket"
-                        className="w-full resize-none border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#BF9B53]"
-                        maxLength={3000}
-                      />
+                {isResolvedTicket ? (
+                  <div className="border-t border-[#e8e1d6] bg-green-50 p-4 text-sm text-green-800">
+                    This ticket is resolved and closed. To get help with another issue, create a new ticket using the form above.
+                  </div>
+                ) : (
+                  <form onSubmit={handleFollowUp} className="border-t border-[#e8e1d6] p-4">
+                    <label className="mb-2 block text-xs font-bold text-[#374151]">Reply</label>
+                    <textarea
+                      value={followUp}
+                      onChange={(event) => setFollowUp(event.target.value)}
+                      rows={3}
+                      placeholder="Write a reply"
+                      className="w-full resize-y rounded-lg border border-[#e8e1d6] bg-[#faf8f4] px-3 py-2.5 text-sm outline-none focus:border-[#BF9B53]"
+                      maxLength={3000}
+                    />
+                    <div className="mt-2 flex justify-end">
                       <button
                         type="submit"
                         disabled={saving || !followUp.trim()}
-                        className="mt-3 inline-flex items-center gap-2 bg-[#111827] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#374151] disabled:opacity-60"
+                        className="inline-flex items-center gap-2 rounded-lg bg-[#BF9B53] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#a88642] disabled:opacity-60"
                       >
                         <FiSend />
-                        Submit Update
+                        {saving ? "Sending..." : "Send"}
                       </button>
-                    </>
-                  )}
-                </form>
+                    </div>
+                  </form>
+                )}
               </div>
             ) : (
               <div className="flex min-h-[320px] items-center justify-center gap-2 p-6 text-sm text-[#6B7280]">
