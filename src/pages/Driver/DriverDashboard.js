@@ -357,17 +357,17 @@ const HomeTab = ({
                   Horses ({horses.length || horseCount})
                 </h2>
                 <div className="mt-2 bg-[#f1f3f7] px-4 py-4">
-                  <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-[120px_1fr_120px]">
-                    <div>
+                  <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-[150px_minmax(0,1fr)_150px]">
+                    <div className="min-w-0">
                       <p className="mb-2 text-[10px] text-slate-500">
                         <FiMapPin className="mr-1 inline" size={10} />
                         {shortLocation(currentShipment.shipment?.pickupLocation)}
                       </p>
-                      <div className="border border-[#b98f38] bg-white px-4 py-2 text-center">
+                      <div className="w-full border border-[#b98f38] bg-white px-2 py-2 text-center">
                         <p className="text-[9px] font-black uppercase text-[#7c5e24]">
                           Pickup Date
                         </p>
-                        <p className="text-[11px] font-bold text-slate-700">
+                        <p className="whitespace-nowrap text-[11px] font-bold text-slate-700">
                           {formatDateRange(
                             currentShipment.shipment?.pickupDateRange,
                             currentShipment.shipment?.pickupDate
@@ -383,16 +383,16 @@ const HomeTab = ({
                       </div>
                     </div>
 
-                    <div>
+                    <div className="min-w-0">
                       <p className="mb-2 text-[10px] text-slate-500 md:text-right">
                         <FiMapPin className="mr-1 inline" size={10} />
                         {shortLocation(currentShipment.shipment?.deliveryLocation)}
                       </p>
-                      <div className="border border-[#b98f38] bg-white px-4 py-2 text-center">
+                      <div className="w-full border border-[#b98f38] bg-white px-2 py-2 text-center">
                         <p className="text-[9px] font-black uppercase text-[#7c5e24]">
                           Delivery Date
                         </p>
-                        <p className="text-[11px] font-bold text-slate-700">
+                        <p className="whitespace-nowrap text-[11px] font-bold text-slate-700">
                           {formatDateRange(
                             currentShipment.shipment?.deliveryDateRange,
                             currentShipment.shipment?.deliveryDate
