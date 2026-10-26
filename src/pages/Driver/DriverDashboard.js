@@ -629,7 +629,16 @@ const ProfileTab = ({
         ) : (
           <>
             <div className="divide-y divide-gray-50">
-              {completed.map((s, idx) => (
+              {completed.map((s, idx) => {
+                const shipment = s.shipment || {};
+                const completionDate = shipment.deliveryDate || s.updatedAt;
+                const hasCompletionDate =
+                  Boolean(completionDate) &&
+                  !Number.isNaN(new Date(completionDate).getTime());
+                const horseCount =
+                  Number(shipment.numberOfHorses) || shipment.horses?.length || 0;
+
+                return (
                 <div key={s._id || idx} className="py-3 first:pt-0 last:pb-0">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-header rounded-md border border-[#BF9B53] flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -637,19 +646,21 @@ const ProfileTab = ({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-systemText leading-snug">
-                        {s.shipment?.pickupLocation || "Unknown"}
+                        {shipment.pickupLocation || "Unknown"}
                         <span className="text-[#BF9B53] mx-1">→</span>
-                        {s.shipment?.deliveryLocation || "Unknown"}
+                        {shipment.deliveryLocation || "Unknown"}
                       </p>
                       <div className="flex items-center gap-3 mt-1 text-[11px] text-tabActive/70">
-                        <span className="flex items-center gap-1">
-                          <FiCalendar size={9} />
-                          {fmtDate(s.shipment?.deliveryDate || s.updatedAt)}
-                        </span>
-                        {s.shipment?.horses?.length > 0 && (
+                        {hasCompletionDate && (
+                          <span className="flex items-center gap-1">
+                            <FiCalendar size={9} />
+                            {fmtDate(completionDate)}
+                          </span>
+                        )}
+                        {horseCount > 0 && (
                           <span className="flex items-center gap-1">
                             <FaHorse size={9} />
-                            {s.shipment.horses.length}h
+                            {horseCount} {horseCount === 1 ? "Horse" : "Horses"}
                           </span>
                         )}
                       </div>
@@ -659,7 +670,8 @@ const ProfileTab = ({
                     </span>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
             <button
               onClick={() => navigate("/driver/shipments")}
@@ -754,6 +766,10 @@ const TripsTab = ({ allShipments, loading, formatDate, navigate }) => {
         ) : (
           visibleShipments.map((item) => {
             const shipment = item?.shipment || item || {};
+            const pickupDate =
+              shipment.pickupDate || shipment.pickupDateRange?.start;
+            const hasPickupDate =
+              Boolean(pickupDate) && !Number.isNaN(new Date(pickupDate).getTime());
             const status = getItemStatus(item);
             const statusClass =
               status === "delivered"
@@ -784,10 +800,12 @@ const TripsTab = ({ allShipments, loading, formatDate, navigate }) => {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-3 text-xs text-slate-500 lg:block lg:space-y-2">
-                    <span className="inline-flex items-center gap-1">
-                      <FiCalendar size={12} />
-                      {formatDate(shipment.pickupDate || shipment.pickupDateRange?.start)}
-                    </span>
+                    {hasPickupDate && (
+                      <span className="inline-flex items-center gap-1">
+                        <FiCalendar size={12} />
+                        {formatDate(pickupDate)}
+                      </span>
+                    )}
                     <span className="inline-flex items-center gap-1 lg:ml-0">
                       <FaHorse size={12} />
                       {shipment.numberOfHorses || shipment.horses?.length || 0} horses

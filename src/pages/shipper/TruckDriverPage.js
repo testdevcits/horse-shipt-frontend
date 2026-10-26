@@ -90,6 +90,7 @@ const TruckDriverPage = () => {
     show: false,
     id: null,
   });
+  const [confirmDeactivate, setConfirmDeactivate] = useState(null);
 
   useEffect(() => {
     fetchDrivers?.({
@@ -179,11 +180,21 @@ const TruckDriverPage = () => {
   /* ================= STATUS ================= */
 
   const handleToggleStatus = async (driver) => {
-    const result = await toggleDriverStatus(driver._id, !driver.isActive);
+    if (driver.isActive) {
+      setConfirmDeactivate(driver);
+      return;
+    }
+
+    await updateDriverStatus(driver, true);
+  };
+
+  const updateDriverStatus = async (driver, isActive) => {
+    const result = await toggleDriverStatus(driver._id, isActive);
 
     if (result?.success) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+    setConfirmDeactivate(null);
   };
 
   if (loading && !hasFetchedDrivers) {
@@ -745,6 +756,16 @@ const TruckDriverPage = () => {
         }
         onConfirm={confirmDeleteDriver}
         onCancel={() => setConfirmDelete({ show: false, id: null })}
+      />
+      <ConfirmModal
+        show={Boolean(confirmDeactivate)}
+        title="Deactivate Driver"
+        message={`Are you sure you want to deactivate ${confirmDeactivate?.name || "this driver"}?`}
+        confirmText="Deactivate"
+        onConfirm={() =>
+          confirmDeactivate && updateDriverStatus(confirmDeactivate, false)
+        }
+        onCancel={() => setConfirmDeactivate(null)}
       />
     </div>
   );

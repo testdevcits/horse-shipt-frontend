@@ -456,8 +456,19 @@ const CustomerChatOverview = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search shipment or shipper"
-            className="w-full border pl-10 py-2"
+            className="w-full border py-2 pl-10 pr-10"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              aria-label="Clear chat search"
+              title="Clear search"
+              className="absolute right-6 top-1/2 -translate-y-1/2 rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+            >
+              <FiX size={16} />
+            </button>
+          )}
         </div>
 
         <div className="flex gap-2 px-3 pb-3">

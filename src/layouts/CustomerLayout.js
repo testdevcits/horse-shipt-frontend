@@ -13,6 +13,7 @@ import { IoShareSocial } from "react-icons/io5";
 import { BiChevronDown, BiChevronRight } from "react-icons/bi";
 import { useNotificationActivity } from "../contexts/NotificationActivityContext";
 import LegalFooter from "../components/common/LegalFooter";
+import ConfirmModal from "../components/common/ConfirmModal";
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const CustomerLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePopup, setProfilePopup] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
   const sidebarOffset = isDesktop ? (sidebarOpen ? 256 : 80) : 0;
   const popupRef = useRef(null)
@@ -85,8 +87,8 @@ const CustomerLayout = () => {
   };
 
   const handleLogout = () => {
-    logout();
     setProfilePopup(false);
+    setConfirmLogout(true);
   };
 
   const handleProfileSettings = () => {
@@ -233,6 +235,17 @@ const CustomerLayout = () => {
           <LegalFooter leftOffset={sidebarOffset} />
         </main>
       </div>
+      <ConfirmModal
+        show={confirmLogout}
+        title="Logout"
+        message="Are you sure you want to log out?"
+        onConfirm={() => {
+          setConfirmLogout(false);
+          logout();
+        }}
+        onCancel={() => setConfirmLogout(false)}
+        confirmText="Logout"
+      />
     </div>
   );
 };

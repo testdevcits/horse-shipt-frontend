@@ -1192,7 +1192,7 @@ const BillingHistory = () => {
                         <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-6 py-4 text-right text-xs font-bold text-slate-900 uppercase tracking-wider">
+                        <th className="w-[1%] whitespace-nowrap px-3 py-4 text-center text-xs font-bold text-slate-900 uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
@@ -1253,8 +1253,8 @@ const BillingHistory = () => {
                               {getStatusLabel(item)}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
+                          <td className="whitespace-nowrap px-3 py-4">
+                            <div className="flex items-center justify-center gap-1">
                               {item.type === "subscription" &&
                                 item.hostedInvoiceUrl && (
                                   <button

@@ -27,6 +27,9 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import ImageSwiper from "../../components/common/ImageSwiper";
 import PageLoader from "../../components/common/PageLoader";
+import axios from "axios";
+import { useAuth } from "../../contexts/AuthContext";
+import { SHIPPER_API_BASE_URL } from "../../config/api";
 
 /**
  * ============================================================
@@ -126,6 +129,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   const { id: paramId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   const shipmentIdFromQuery = searchParams.get("shipmentId");
   const tokenFromQuery = searchParams.get("ref");
@@ -164,6 +168,53 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
   // ── Document viewer state ──────────────────────────────────────────────────
   const [viewingDoc, setViewingDoc] = useState(null); // { url, label }
+  const documentRequestRef = useRef(0);
+  const documentObjectUrlRef = useRef(null);
+
+  const closeDocumentViewer = () => {
+    documentRequestRef.current += 1;
+    if (documentObjectUrlRef.current) {
+      URL.revokeObjectURL(documentObjectUrlRef.current);
+      documentObjectUrlRef.current = null;
+    }
+    setViewingDoc(null);
+  };
+
+  const openHorseDocument = async (doc, horseIndex) => {
+    const requestId = ++documentRequestRef.current;
+    const isPdf = isPdfDocument(doc);
+    setViewingDoc({ label: doc.label, isPdf, loading: true });
+
+    try {
+      const response = await axios.get(
+        `${SHIPPER_API_BASE_URL}/shipments/${shipment._id}/horses/${horseIndex}/documents/${doc.key}`,
+        {
+          responseType: "blob",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (requestId !== documentRequestRef.current) return;
+      const objectUrl = URL.createObjectURL(response.data);
+      documentObjectUrlRef.current = objectUrl;
+      setViewingDoc({ label: doc.label, isPdf, loading: false, url: objectUrl });
+    } catch (error) {
+      if (requestId !== documentRequestRef.current) return;
+      setViewingDoc({
+        label: doc.label,
+        isPdf,
+        loading: false,
+        error: error.response?.data?.message || "Could not load document. Please try again.",
+      });
+    }
+  };
+
+  useEffect(
+    () => () => {
+      if (documentObjectUrlRef.current) URL.revokeObjectURL(documentObjectUrlRef.current);
+    },
+    []
+  );
 
   // ── Timer state ───────────────────────────────────────────────────────────
   const [timeLeft, setTimeLeft] = useState(null);
@@ -304,17 +355,17 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
   };
 
   // ── Horse PHOTO-only images (no documents) ────────────────────────────────
-  const getHorsePhotos = (horseId) => {
+  const getHorsePhotos = (horseIndex) => {
     if (!shipment) return [];
-    const horse = shipment.horses.find((h) => h._id === horseId);
+    const horse = shipment.horses[horseIndex];
     if (!horse?.photo?.url) return [];
     return [{ url: horse.photo.url, label: "Main Photo" }];
   };
 
   // ── Horse documents (coggins, healthCert, other) ──────────────────────────
-  const getHorseDocs = (horseId) => {
+  const getHorseDocs = (horseIndex) => {
     if (!shipment) return [];
-    const horse = shipment.horses.find((h) => h._id === horseId);
+    const horse = shipment.horses[horseIndex];
     if (!horse) return [];
     const docs = [];
     if (horse.documents?.coggins?.url)
@@ -411,7 +462,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
       {viewingDoc && (
         <div
           className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setViewingDoc(null)}
+          onClick={closeDocumentViewer}
         >
           <div
             className="bg-white rounded-sm shadow-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
@@ -426,7 +477,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                 </h3>
               </div>
               <button
-                onClick={() => setViewingDoc(null)}
+                onClick={closeDocumentViewer}
                 className="w-9 h-9 flex items-center justify-center rounded-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-lg transition"
               >
                 ✕
@@ -435,7 +486,13 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
 
             {/* Document Content */}
             <div className="flex-1 overflow-auto bg-gray-100 flex items-center justify-center min-h-[60vh]">
-              {isPdfDocument(viewingDoc) ? (
+              {viewingDoc.loading ? (
+                <p className="text-sm font-semibold text-gray-500">Loading document…</p>
+              ) : viewingDoc.error ? (
+                <p className="px-6 text-center text-sm font-semibold text-red-600">
+                  {viewingDoc.error}
+                </p>
+              ) : viewingDoc.isPdf ? (
                 <iframe
                   src={viewingDoc.url}
                   title={viewingDoc.label}
@@ -447,37 +504,25 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                   src={viewingDoc.url}
                   alt={viewingDoc.label}
                   className="max-w-full max-h-[70vh] object-contain rounded-sm shadow"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "flex";
-                  }}
+                  onError={() =>
+                    setViewingDoc((current) => ({
+                      ...current,
+                      error: "Could not display this document.",
+                    }))
+                  }
                 />
               )}
-              {/* Error fallback inside modal */}
-              <div className="hidden w-full h-64 items-center justify-center flex-col text-gray-400 gap-3">
-                <FiFileText size={48} className="opacity-30" />
-                <p className="font-semibold text-sm">Could not load document</p>
-                <a
-                  href={viewingDoc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#BF9B53] underline text-sm font-bold"
-                >
-                  Open in new tab
-                </a>
-              </div>
             </div>
 
             {/* Modal Footer */}
             <div className="px-6 py-3 border-t border-gray-200 bg-gray-50 flex justify-end">
-              <a
-                href={viewingDoc.url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={closeDocumentViewer}
                 className="text-sm font-bold text-[#BF9B53] hover:underline"
               >
-                Open in new tab ↗
-              </a>
+                Close
+              </button>
             </div>
           </div>
         </div>
@@ -835,8 +880,8 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
           {/* Horses List */}
           <div className="divide-y divide-gray-200">
             {shipment.horses.map((horse, index) => {
-              const photos = getHorsePhotos(horse._id);
-              const docs = getHorseDocs(horse._id);
+              const photos = getHorsePhotos(index);
+              const docs = getHorseDocs(index);
               const imgIdx = horseImageIndex[index] || 0;
 
               return (
@@ -973,12 +1018,7 @@ const ShipmentDetails = ({ shipmentId: defaultId }) => {
                             {docs.map((doc) => (
                               <button
                                 key={doc.key}
-                                onClick={() =>
-                                  setViewingDoc({
-                                    url: doc.url,
-                                    label: doc.label,
-                                  })
-                                }
+                                onClick={() => openHorseDocument(doc, index)}
                                 className={`flex items-center gap-2 px-3 py-2 rounded-sm border font-bold text-sm transition-all duration-200 shadow-sm hover:shadow-md ${DOC_COLORS[doc.key] ||
                                   "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
                                   }`}

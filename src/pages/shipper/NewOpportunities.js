@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { HiSearch } from "react-icons/hi";
+import { HiSearch, HiX } from "react-icons/hi";
 import { CiMap } from "react-icons/ci";
 import { IoList } from "react-icons/io5";
 import { MdFilterList } from "react-icons/md";
@@ -244,8 +244,19 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by pickup or delivery location..."
-              className="h-[48px] w-full border-0 bg-[#F3F4F6] pl-12 pr-4 font-montserrat text-[13px] text-[#4B5563] placeholder-[#4B5563] outline-none transition focus:ring-1 focus:ring-system-primary/30"
+              className="h-[48px] w-full border-0 bg-[#F3F4F6] pl-12 pr-12 font-montserrat text-[13px] text-[#4B5563] placeholder-[#4B5563] outline-none transition focus:ring-1 focus:ring-system-primary/30"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                aria-label="Clear shipment search"
+                title="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1.5 text-gray-500 hover:bg-gray-200 hover:text-gray-800"
+              >
+                <HiX size={17} />
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-3 lg:justify-end">
@@ -293,7 +304,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
         </div>
 
         {/* ── DESKTOP FILTERS ── */}
-        <div className="mt-7 hidden items-center gap-5 md:flex md:flex-wrap">
+        <div className="mt-7 hidden items-center gap-3 md:flex md:flex-wrap">
           <span className="text-[11px] font-medium text-[#4B5563]">
             Filter By:
           </span>
@@ -315,7 +326,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             placeholder="Pickup Distance"
             value={filters.pickupDistance}
             onChange={handleFilterChange}
-            className={`${inputCls} h-[40px] w-[135px]`}
+            className={`${inputCls} h-[40px] w-[170px]`}
           />
           <input
             type="number"
@@ -323,7 +334,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             placeholder="Dropoff Distance"
             value={filters.dropoffDistance}
             onChange={handleFilterChange}
-            className={`${inputCls} h-[40px] w-[145px]`}
+            className={`${inputCls} h-[40px] w-[180px]`}
           />
           <select
             name="stallSize"
