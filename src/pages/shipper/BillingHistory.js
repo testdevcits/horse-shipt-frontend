@@ -1192,7 +1192,7 @@ const BillingHistory = () => {
                         <th className="px-6 py-4 text-left text-xs font-bold text-slate-900 uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="w-[1%] whitespace-nowrap px-3 py-4 text-center text-xs font-bold text-slate-900 uppercase tracking-wider">
+                        <th className="w-[96px] whitespace-nowrap px-3 py-4 text-right text-xs font-bold text-slate-900 uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
@@ -1254,24 +1254,32 @@ const BillingHistory = () => {
                             </span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4">
-                            <div className="flex items-center justify-center gap-1">
-                              {item.type === "subscription" &&
-                                item.hostedInvoiceUrl && (
+                            <div className="ml-auto grid w-16 grid-cols-2 items-center gap-1">
+                              <span className="flex justify-center">
+                                {(item.type === "subscription" && item.hostedInvoiceUrl) ||
+                                (item.type === "payment" && item.receiptUrl) ? (
                                   <button
                                     onClick={() =>
                                       window.open(
-                                        item.hostedInvoiceUrl,
+                                        item.type === "subscription"
+                                          ? item.hostedInvoiceUrl
+                                          : item.receiptUrl,
                                         "_blank"
                                       )
                                     }
                                     className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-blue-600"
-                                    title="View Invoice"
+                                    title={
+                                      item.type === "subscription"
+                                        ? "View Invoice"
+                                        : "View Receipt"
+                                    }
                                   >
                                     <Eye className="w-4 h-4" />
                                   </button>
-                                )}
-                              {item.type === "subscription" &&
-                                item.invoicePdf && (
+                                ) : null}
+                              </span>
+                              <span className="flex justify-center">
+                                {item.type === "subscription" && item.invoicePdf ? (
                                   <a
                                     href={item.invoicePdf}
                                     target="_blank"
@@ -1281,18 +1289,8 @@ const BillingHistory = () => {
                                   >
                                     <Download className="w-4 h-4" />
                                   </a>
-                                )}
-                              {item.type === "payment" && item.receiptUrl && (
-                                <button
-                                  onClick={() =>
-                                    window.open(item.receiptUrl, "_blank")
-                                  }
-                                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-blue-600"
-                                  title="View Receipt"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </button>
-                              )}
+                                ) : null}
+                              </span>
                             </div>
                           </td>
                         </tr>
