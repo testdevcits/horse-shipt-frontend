@@ -50,6 +50,19 @@ export const DEFAULT_HORSE_COLORS = [
 
 export const DEFAULT_HORSE_SEXES = ["Stallion", "Gelding", "Mare", "Colt", "Filly"];
 
+export const DEFAULT_HORSE_BREEDS = [
+  "American Sport Pony", "American Warmblood", "Appendix", "Argentinian Warmblood",
+  "Belgian Warmblood", "Brandenburger", "Canadian Sport Horse", "Canadian Warmblood",
+  "Chincoteague", "Cleveland Bay", "Connemara", "Crossbred", "Czech Warmblood",
+  "Danish Warmblood", "Dutch Warmblood", "English TB", "French TB", "German Riding Pony",
+  "German Warmblood", "Hanoverian", "Holsteiner", "Hungarian Warmblood", "Irish Draught",
+  "Irish Sport Horse", "Irish TB", "New Forest Pony", "Oldenburg", "Paint",
+  "Pony of the Americas", "Quarter Horse", "Quarter Pony", "RPSI", "Selle Francais",
+  "Shetland", "Swedish Warmblood", "TB (Thoroughbred)", "TB Cross", "Trakehner",
+  "Warmblood", "Warmblood Cross", "Welsh Cob", "Welsh Cross", "Welsh Pony",
+  "Westphalian", "Zangersheide", "Other Breed",
+];
+
 const normalizeOptions = (items, fallback) => {
   const names = (items || [])
     .map((item) => (typeof item === "string" ? item : item?.name))
@@ -59,36 +72,39 @@ const normalizeOptions = (items, fallback) => {
 };
 
 export const useHorseAttributeOptions = () => {
+  const [breeds, setBreeds] = useState(DEFAULT_HORSE_BREEDS);
   const [colors, setColors] = useState(DEFAULT_HORSE_COLORS);
   const [sexes, setSexes] = useState(DEFAULT_HORSE_SEXES);
 
   useEffect(() => {
-    let mounted = true;
+    const controller = new AbortController();
 
     const fetchOptions = async () => {
-      try {
-        const [colorRes, sexRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/admin/colors/all`),
-          axios.get(`${API_BASE_URL}/admin/sexes/all`),
-        ]);
+      const requests = [
+        ["breeds", `${API_BASE_URL}/admin/breeds/all`, DEFAULT_HORSE_BREEDS, setBreeds],
+        ["colors", `${API_BASE_URL}/admin/colors/all`, DEFAULT_HORSE_COLORS, setColors],
+        ["sexes", `${API_BASE_URL}/admin/sexes/all`, DEFAULT_HORSE_SEXES, setSexes],
+      ];
 
-        if (!mounted) return;
-
-        setColors(normalizeOptions(colorRes.data?.data, DEFAULT_HORSE_COLORS));
-        setSexes(normalizeOptions(sexRes.data?.data, DEFAULT_HORSE_SEXES));
-      } catch (error) {
-        if (!mounted) return;
-        setColors(DEFAULT_HORSE_COLORS);
-        setSexes(DEFAULT_HORSE_SEXES);
-      }
+      await Promise.allSettled(requests.map(async ([name, url, fallback, setOptions]) => {
+        try {
+          const response = await axios.get(url, { signal: controller.signal });
+          if (response.data?.success === false || !Array.isArray(response.data?.data)) {
+            throw new Error(`Invalid ${name} options response`);
+          }
+          setOptions(normalizeOptions(response.data.data, fallback));
+        } catch (error) {
+          if (!controller.signal.aborted) {
+            console.error(`Failed to load horse ${name} options`, error);
+          }
+        }
+      }));
     };
 
     fetchOptions();
 
-    return () => {
-      mounted = false;
-    };
+    return () => controller.abort();
   }, []);
 
-  return { colors, sexes };
+  return { breeds, colors, sexes };
 };

@@ -13,55 +13,6 @@ import { getFileSizeError } from "../../utils/uploadValidation";
 // =====================================================
 // CONSTANTS
 // =====================================================
-const breedsList = [
-  "American Sport Pony",
-  "American Warmblood",
-  "Appendix",
-  "Argentinian Warmblood",
-  "Belgian Warmblood",
-  "Brandenburger",
-  "Canadian Sport Horse",
-  "Canadian Warmblood",
-  "Chincoteague",
-  "Cleveland Bay",
-  "Connemara",
-  "Crossbred",
-  "Czech Warmblood",
-  "Danish Warmblood",
-  "Dutch Warmblood",
-  "English TB",
-  "French TB",
-  "German Riding Pony",
-  "German Warmblood",
-  "Hanoverian",
-  "Holsteiner",
-  "Hungarian Warmblood",
-  "Irish Draught",
-  "Irish Sport Horse",
-  "Irish TB",
-  "New Forest Pony",
-  "Oldenburg",
-  "Paint",
-  "Pony of the Americas",
-  "Quarter Horse",
-  "Quarter Pony",
-  "RPSI",
-  "Selle Francais",
-  "Shetland",
-  "Swedish Warmblood",
-  "TB (Thoroughbred)",
-  "TB Cross",
-  "Trakehner",
-  "Warmblood",
-  "Warmblood Cross",
-  "Welsh Cob",
-  "Welsh Cross",
-  "Welsh Pony",
-  "Westphalian",
-  "Zangersheide",
-  "Other Breed",
-];
-
 const stallTypes = ["Box", "1/2 Box", "Single Stall"];
 
 const emptyHorse = {
@@ -143,7 +94,7 @@ const FileUploadControl = ({
 // MAIN COMPONENT
 // =====================================================
 const MyHorses = () => {
-  const { colors: colorOptions, sexes: sexOptions } = useHorseAttributeOptions();
+  const { breeds: breedOptions, colors: colorOptions, sexes: sexOptions } = useHorseAttributeOptions();
   const {
     myHorses,
     horseLoading,
@@ -479,9 +430,9 @@ const MyHorses = () => {
                 }`}
               >
                 <option value="">Select breed</option>
-                {breedsList.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
+                {breedOptions.map((breed) => (
+                  <option key={breed} value={breed}>
+                    {breed}
                   </option>
                 ))}
               </select>
