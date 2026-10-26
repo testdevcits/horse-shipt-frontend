@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Search } from "lucide-react";
 import Toast from "../../components/common/Toast";
+import ClearSearchButton from "../../components/common/ClearSearchButton";
 import { useShipperPreferredAreas } from "../../contexts/ShipperPreferredAreaContext";
 import citiesData from "../../data/cities"; //  import your dataset
 
@@ -127,7 +128,11 @@ const PreferredAreas = () => {
               placeholder="Type city name..."
               className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <Search className="absolute right-3 top-2.5 text-gray-500 w-5 h-5" />
+            {search ? (
+              <ClearSearchButton value={search} onClear={() => handleSearchChange("")} />
+            ) : (
+              <Search className="absolute right-3 top-2.5 text-gray-500 w-5 h-5" />
+            )}
 
             {filteredCities.length > 0 && (
               <ul className="absolute z-10 bg-white border border-gray-200 mt-1 rounded-lg shadow-lg max-h-60 overflow-y-auto w-full">

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import ClearSearchButton from "./ClearSearchButton";
 
 const Select = ({ label, options = [], value, onChange, className = "" }) => {
   const [open, setOpen] = useState(false);
@@ -59,13 +60,16 @@ const Select = ({ label, options = [], value, onChange, className = "" }) => {
           style={{ scrollbarWidth: "thin" }}
         >
           {/* Search input at top */}
-          <input
-            autoFocus
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search..."
-            className="w-full px-3 py-2 border-b border-gray-300 focus:outline-none"
-          />
+          <div className="relative">
+            <input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search..."
+              className="w-full px-3 py-2 pr-10 border-b border-gray-300 focus:outline-none"
+            />
+            <ClearSearchButton value={search} onClear={() => setSearch("")} />
+          </div>
 
           <ul>
             {filteredOptions.length > 0 ? (

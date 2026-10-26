@@ -1,5 +1,6 @@
+import CustomDropdown from "../../components/common/CustomDropdown";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { HiSearch, HiX } from "react-icons/hi";
+import { HiSearch } from "react-icons/hi";
 import { CiMap } from "react-icons/ci";
 import { IoList } from "react-icons/io5";
 import { MdFilterList } from "react-icons/md";
@@ -11,6 +12,7 @@ import { useShipperPreferredArea } from "../../contexts/shipperContext/ShipperPr
 import ShipmentCard from "./ShipmentCard";
 import ShipmentMap from "./ShipmentMap";
 import PageLoader from "../../components/common/PageLoader";
+import ClearSearchButton from "../../components/common/ClearSearchButton";
 
 const PAGE_SIZE = 10;
 
@@ -246,17 +248,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
               placeholder="Search by pickup or delivery location..."
               className="h-[48px] w-full border-0 bg-[#F3F4F6] pl-12 pr-12 font-montserrat text-[13px] text-[#4B5563] placeholder-[#4B5563] outline-none transition focus:ring-1 focus:ring-system-primary/30"
             />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                aria-label="Clear shipment search"
-                title="Clear search"
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1.5 text-gray-500 hover:bg-gray-200 hover:text-gray-800"
-              >
-                <HiX size={17} />
-              </button>
-            )}
+            <ClearSearchButton value={search} onClear={() => setSearch("")} />
           </div>
 
           <div className="flex items-center gap-3 lg:justify-end">
@@ -309,7 +301,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             Filter By:
           </span>
 
-          <select
+          <CustomDropdown
             name="matchMode"
             value={filters.matchMode}
             onChange={handleFilterChange}
@@ -318,7 +310,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             <option value="preferred">Preferred Areas</option>
             <option value="nearby">Near My Location</option>
             <option value="all">All Open Shipments</option>
-          </select>
+          </CustomDropdown>
 
           <input
             type="number"
@@ -336,7 +328,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             onChange={handleFilterChange}
             className={`${inputCls} h-[40px] w-[180px]`}
           />
-          <select
+          <CustomDropdown
             name="stallSize"
             value={filters.stallSize}
             onChange={handleFilterChange}
@@ -346,7 +338,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             <option value="Box">Box</option>
             <option value="1/2 Box">1/2 Box</option>
             <option value="Single">Single</option>
-          </select>
+          </CustomDropdown>
 
           <button
             onClick={applyFilters}
@@ -369,7 +361,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
       {/* ── MOBILE FILTERS PANEL ── */}
       {showMobileFilters && (
         <div className="md:hidden bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-          <select
+          <CustomDropdown
             name="matchMode"
             value={filters.matchMode}
             onChange={handleFilterChange}
@@ -378,7 +370,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             <option value="preferred">Preferred Areas</option>
             <option value="nearby">Near My Location</option>
             <option value="all">All Open Shipments</option>
-          </select>
+          </CustomDropdown>
           <input
             type="number"
             name="pickupDistance"
@@ -403,7 +395,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             onChange={handleFilterChange}
             className={`${inputCls} w-full`}
           />
-          <select
+          <CustomDropdown
             name="stallSize"
             value={filters.stallSize}
             onChange={handleFilterChange}
@@ -413,7 +405,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             <option value="Box">Box</option>
             <option value="1/2 Box">1/2 Box</option>
             <option value="Single">Single</option>
-          </select>
+          </CustomDropdown>
 
           <div className="flex gap-2 pt-1">
             <button

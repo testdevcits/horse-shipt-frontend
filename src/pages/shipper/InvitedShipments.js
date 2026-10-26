@@ -4,6 +4,7 @@ import { HiSearch } from "react-icons/hi";
 import { useShipperInvitations } from "../../contexts/shipperContext/ShipperInvitationContext";
 import ShipmentCard from "./ShipmentCard";
 import PageLoader from "../../components/common/PageLoader";
+import ClearSearchButton from "../../components/common/ClearSearchButton";
 
 const normalizeInvitationShipment = (invite) => {
   if (invite?.shipment && typeof invite.shipment === "object") {
@@ -89,8 +90,9 @@ const InvitedShipments = () => {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search quote requests..."
-            className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-system-primary focus:ring-2 focus:ring-system-primary/20"
+            className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-system-primary focus:ring-2 focus:ring-system-primary/20"
           />
+          <ClearSearchButton value={search} onClear={() => setSearch("")} />
         </div>
       </div>
 

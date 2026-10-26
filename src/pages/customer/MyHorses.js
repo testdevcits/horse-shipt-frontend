@@ -1,3 +1,4 @@
+import CustomDropdown from "../../components/common/CustomDropdown";
 import React, { useEffect, useState } from "react";
 import { useCustomerShipments } from "../../contexts/customerContext/CustomerShipmentContext";
 import { CiEdit, CiTrash } from "react-icons/ci";
@@ -420,7 +421,7 @@ const MyHorses = () => {
               <label className="block font-semibold text-sm text-gray-600 mb-2">
                 Breed <span className="text-red-500">*</span>
               </label>
-              <select
+              <CustomDropdown
                 value={editingHorse.breed || ""}
                 onChange={(e) => handleFieldChange("breed", e.target.value)}
                 className={`w-full border-2 rounded-lg px-4 py-2 text-gray-700 focus:outline-none transition-all ${
@@ -435,7 +436,7 @@ const MyHorses = () => {
                     {breed}
                   </option>
                 ))}
-              </select>
+              </CustomDropdown>
               {errors.breed && (
                 <p className="text-red-500 text-xs mt-1 font-semibold">
                   {errors.breed}
@@ -475,7 +476,7 @@ const MyHorses = () => {
               <label className="block font-semibold text-sm text-gray-600 mb-2">
                 Sex <span className="text-red-500">*</span>
               </label>
-              <select
+              <CustomDropdown
                 value={editingHorse.sex || ""}
                 onChange={(e) => handleFieldChange("sex", e.target.value)}
                 className={`w-full border-2 rounded-lg px-4 py-2 text-gray-700 focus:outline-none transition-all ${
@@ -490,7 +491,7 @@ const MyHorses = () => {
                     {s}
                   </option>
                 ))}
-              </select>
+              </CustomDropdown>
               {errors.sex && (
                 <p className="text-red-500 text-xs mt-1 font-semibold">
                   {errors.sex}
@@ -503,7 +504,7 @@ const MyHorses = () => {
               <label className="block font-semibold text-sm text-gray-600 mb-2">
                 Stall Type <span className="text-red-500">*</span>
               </label>
-              <select
+              <CustomDropdown
                 value={
                   // ✅ Ensure the value exactly matches one of stallTypes options
                   stallTypes.includes(editingHorse.stallType)
@@ -523,7 +524,7 @@ const MyHorses = () => {
                     {s}
                   </option>
                 ))}
-              </select>
+              </CustomDropdown>
               {errors.stallType && (
                 <p className="text-red-500 text-xs mt-1 font-semibold">
                   {errors.stallType}

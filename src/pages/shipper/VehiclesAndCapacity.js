@@ -1,3 +1,4 @@
+import CustomDropdown from "../../components/common/CustomDropdown";
 import React, { useState, useEffect } from "react";
 import {
   FiCheckCircle,
@@ -330,7 +331,7 @@ const VehiclePage = () => {
                         Assign Driver
                       </label>
                       <div className="flex flex-col gap-2 sm:flex-row">
-                        <select
+                        <CustomDropdown
                           value={selectedDriver[vehicle._id] || ""}
                           onChange={(e) =>
                             setSelectedDriver((prev) => ({
@@ -359,7 +360,7 @@ const VehiclePage = () => {
                               {driver.name}
                             </option>
                           ))}
-                        </select>
+                        </CustomDropdown>
 
                         <button
                           type="button"

@@ -1,3 +1,4 @@
+import CustomDropdown from "./CustomDropdown";
 import React, { useState, useEffect } from "react";
 import { DEFAULT_HORSE_COLORS } from "../../hooks/useHorseAttributeOptions";
 
@@ -49,7 +50,7 @@ const ColorPicker = ({
         {label} <span className="text-red-500">*</span>
       </label>
 
-      <select
+      <CustomDropdown
         value={color}
         onChange={handleSelectChange}
         className="w-full h-11 px-3 rounded-md border border-gray-300 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#BF9B53]"
@@ -60,7 +61,7 @@ const ColorPicker = ({
             {item}
           </option>
         ))}
-      </select>
+      </CustomDropdown>
 
       {color === "Other" && (
         <input

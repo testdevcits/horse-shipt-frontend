@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useCallback } from "react";
 import { GoogleMap, Autocomplete, Marker } from "@react-google-maps/api";
 import DateInput from "../../../components/common/DateInput";
+import ClearSearchButton from "../../../components/common/ClearSearchButton";
 import { DEFAULT_US_MAP_CENTER } from "../../../constants/mapDefaults";
 
 const containerStyle = {
@@ -109,15 +110,16 @@ const Step2Delivery = ({
           Delivery Location <span className="text-red-500">*</span>
         </label>
 
-        <Autocomplete
-          onLoad={(auto) => (autocompleteRef.current = auto)}
-          onPlaceChanged={onPlaceChanged}
-        >
-          <input
+        <div className="relative">
+          <Autocomplete
+            onLoad={(auto) => (autocompleteRef.current = auto)}
+            onPlaceChanged={onPlaceChanged}
+          >
+            <input
             type="text"
             value={deliveryLocation}
             placeholder="Search delivery address"
-            className={`w-full border-2 rounded-lg px-4 py-2 md:py-3 text-gray-700 text-sm md:text-base focus:outline-none transition-all ${
+            className={`w-full border-2 rounded-lg px-4 py-2 pr-10 md:py-3 text-gray-700 text-sm md:text-base focus:outline-none transition-all ${
               errors?.deliveryLocation
                 ? "border-red-500 focus:ring-2 focus:ring-red-300"
                 : "border-gray-300 focus:ring-2 focus:ring-[#BF9B53]"
@@ -127,8 +129,17 @@ const Step2Delivery = ({
               setDeliveryCoords(null);
               clearError("deliveryLocation");
             }}
+            />
+          </Autocomplete>
+          <ClearSearchButton
+            value={deliveryLocation}
+            onClear={() => {
+              setDeliveryLocation("");
+              setDeliveryCoords(null);
+              clearError("deliveryLocation");
+            }}
           />
-        </Autocomplete>
+        </div>
 
         {errors?.deliveryLocation && (
           <p className="text-red-500 text-xs md:text-sm mt-2 font-semibold">

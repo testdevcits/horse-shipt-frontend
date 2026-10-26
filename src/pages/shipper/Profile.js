@@ -1,5 +1,7 @@
+import CustomDropdown from "../../components/common/CustomDropdown";
 import React, { useState, useEffect } from "react";
 import { FiArrowRight, FiEdit3, FiX, FiCheck } from "react-icons/fi";
+import ClearSearchButton from "../../components/common/ClearSearchButton";
 import { FaStar } from "react-icons/fa";
 import { Autocomplete, GoogleMap, Marker } from "@react-google-maps/api";
 import { useShipperProfile } from "../../contexts/ShipperProfileContext";
@@ -261,6 +263,7 @@ const Profile = () => {
                           Update Location
                         </label>
 
+                        <div className="relative">
                         <Autocomplete
                           onLoad={(auto) => setAutocomplete(auto)}
                           options={{
@@ -292,9 +295,14 @@ const Profile = () => {
                               }))
                             }
                             placeholder="Search location..."
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53] focus:ring-opacity-50 focus:border-transparent transition-all"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53] focus:ring-opacity-50 focus:border-transparent transition-all"
                           />
                         </Autocomplete>
+                        <ClearSearchButton
+                          value={selectedLocation.address}
+                          onClear={() => setSelectedLocation((prev) => ({ ...prev, address: "", latitude: "", longitude: "" }))}
+                        />
+                        </div>
 
                         <div className="mt-3 rounded-lg overflow-hidden border-2 border-gray-300">
                           <GoogleMap
@@ -321,7 +329,7 @@ const Profile = () => {
                           </label>
 
                           <div className="flex gap-2">
-                            <select
+                            <CustomDropdown
                               value={countryCode}
                               onChange={(e) => setCountryCode(e.target.value)}
                               className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#BF9B53] focus:ring-opacity-50 transition-all flex-shrink-0"
@@ -331,7 +339,7 @@ const Profile = () => {
                                   {c.flag} {c.country} ({c.code})
                                 </option>
                               ))}
-                            </select>
+                            </CustomDropdown>
 
                             <input
                               type="tel"

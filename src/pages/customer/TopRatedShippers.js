@@ -1,3 +1,4 @@
+import CustomDropdown from "../../components/common/CustomDropdown";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdNavigateNext, MdClose } from "react-icons/md";
@@ -8,6 +9,7 @@ import { LuTrendingUp } from "react-icons/lu";
 import ShipperReviewCard from "../../components/common/ShipperReviewCard";
 import { useReview } from "../../contexts/customerContext/ReviewContext";
 import PageLoader from "../../components/common/PageLoader";
+import ClearSearchButton from "../../components/common/ClearSearchButton";
 
 /**
  * ============================================================
@@ -196,8 +198,9 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
                 placeholder="Search by name, city, state, address, or coverage area..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-12 w-full border-0 bg-[#F0F1F4] pl-11 pr-4 text-[13px] font-medium text-[#111827] outline-none transition focus:ring-2 focus:ring-[#BF9B53]/30"
+                className="h-12 w-full border-0 bg-[#F0F1F4] pl-11 pr-10 text-[13px] font-medium text-[#111827] outline-none transition focus:ring-2 focus:ring-[#BF9B53]/30"
               />
+              <ClearSearchButton value={search} onClear={() => setSearch("")} />
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[#667085]">
               <span className="inline-flex items-center gap-1 text-[#735D32]">
@@ -241,7 +244,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
               )}
             </button>
 
-            <select
+            <CustomDropdown
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="h-10 border-0 bg-[#F3F4F6] px-4 text-[10px] font-bold uppercase tracking-wide text-[#BF9B53] outline-none transition focus:ring-2 focus:ring-[#BF9B53]/30"
@@ -249,9 +252,9 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
               <option value="rating">Highest Rated</option>
               <option value="reviews">Most Reviews</option>
               <option value="name">Name (A-Z)</option>
-            </select>
+            </CustomDropdown>
 
-            <select
+            <CustomDropdown
               value={minRating}
               onChange={(e) => setMinRating(Number(e.target.value))}
               className="h-10 border-0 bg-[#F3F4F6] px-4 text-[10px] font-bold uppercase tracking-wide text-[#374151] outline-none transition focus:ring-2 focus:ring-[#BF9B53]/30"
@@ -260,7 +263,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
               <option value={4}>4+ Stars</option>
               <option value={3}>3+ Stars</option>
               <option value={2}>2+ Stars</option>
-            </select>
+            </CustomDropdown>
           </div>
         </div>
 
@@ -273,7 +276,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
                 <label className="text-xs font-semibold text-gray-600 uppercase mb-2 block">
                   Rating
                 </label>
-                <select
+                <CustomDropdown
                   value={minRating}
                   onChange={(e) => setMinRating(Number(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300  text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30"
@@ -282,7 +285,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
                   <option value={4}>4+</option>
                   <option value={3}>3+</option>
                   <option value={2}>2+</option>
-                </select>
+                </CustomDropdown>
               </div>
 
               {/* Transport Type */}
@@ -290,7 +293,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
                 <label className="text-xs font-semibold text-gray-600 uppercase mb-2 block">
                   Transport
                 </label>
-                <select
+                <CustomDropdown
                   value={transportType}
                   onChange={(e) => setTransportType(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30"
@@ -299,7 +302,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
                   <option value="Trucking">Trucking</option>
                   <option value="Hauling">Hauling</option>
                   <option value="Local">Local</option>
-                </select>
+                </CustomDropdown>
               </div>
 
               {/* Experience Level */}
@@ -307,7 +310,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
                 <label className="text-xs font-semibold text-gray-600 uppercase mb-2 block">
                   Experience
                 </label>
-                <select
+                <CustomDropdown
                   value={experienceLevel}
                   onChange={(e) => setExperienceLevel(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30"
@@ -316,7 +319,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
                   <option value="Expert">Expert</option>
                   <option value="Professional">Professional</option>
                   <option value="Experienced">Experienced</option>
-                </select>
+                </CustomDropdown>
               </div>
 
               {/* Response Time */}
@@ -324,7 +327,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
                 <label className="text-xs font-semibold text-gray-600 uppercase mb-2 block">
                   Response
                 </label>
-                <select
+                <CustomDropdown
                   value={responseTime}
                   onChange={(e) => setResponseTime(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30"
@@ -333,7 +336,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
                   <option value="Very Fast">Very Fast</option>
                   <option value="Fast">Fast</option>
                   <option value="Standard">Standard</option>
-                </select>
+                </CustomDropdown>
               </div>
 
               {/* Price Range */}
@@ -341,7 +344,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
                 <label className="text-xs font-semibold text-gray-600 uppercase mb-2 block">
                   Price
                 </label>
-                <select
+                <CustomDropdown
                   value={priceRange}
                   onChange={(e) => setPriceRange(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/30"
@@ -350,7 +353,7 @@ const TopRatedShippers = ({ dashboardMode = false }) => {
                   <option value="Budget">Budget</option>
                   <option value="Standard">Standard</option>
                   <option value="Premium">Premium</option>
-                </select>
+                </CustomDropdown>
               </div>
             </div>
 

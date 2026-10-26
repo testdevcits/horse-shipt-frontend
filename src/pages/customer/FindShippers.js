@@ -8,6 +8,7 @@ import { useCustomerMatching } from "../../contexts/customerContext/CustomerMatc
 import { useAuth } from "../../contexts/AuthContext";
 import Toast from "../../components/common/Toast";
 import PageLoader from "../../components/common/PageLoader";
+import ClearSearchButton from "../../components/common/ClearSearchButton";
 import { API_BASE_URL } from "../../config/api";
 import defaultAvatar from "../../assets/images/default-avatar.jpg";
 
@@ -249,8 +250,9 @@ const FindShippers = ({ shipmentId: shipmentIdProp, shipment }) => {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search matching shippers by name, city, state, or coverage area..."
-            className="h-11 w-full rounded border border-gray-200 bg-gray-50 pl-10 pr-3 text-sm font-medium text-gray-800 outline-none transition focus:border-system-primary focus:bg-white focus:ring-2 focus:ring-system-primary/20"
+            className="h-11 w-full rounded border border-gray-200 bg-gray-50 pl-10 pr-10 text-sm font-medium text-gray-800 outline-none transition focus:border-system-primary focus:bg-white focus:ring-2 focus:ring-system-primary/20"
           />
+          <ClearSearchButton value={search} onClear={() => setSearch("")} />
         </div>
       </div>
 

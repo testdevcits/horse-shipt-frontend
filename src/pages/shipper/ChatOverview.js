@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
 import { FiCheck, FiEdit2, FiFileText, FiImage, FiLock, FiTrash2, FiX } from "react-icons/fi";
 import PageLoader from "../../components/common/PageLoader";
+import ClearSearchButton from "../../components/common/ClearSearchButton";
 import { useShipperChat } from "../../contexts/shipperContext/ShipperChatContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { socket } from "../../services/socket";
@@ -451,8 +452,9 @@ const ChatOverview = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search shipment or customer"
-            className="w-full border pl-10 py-2"
+            className="w-full border py-2 pl-10 pr-10"
           />
+          <ClearSearchButton value={search} onClear={() => setSearch("")} />
         </div>
 
         <div className="flex gap-2 px-3 pb-3">

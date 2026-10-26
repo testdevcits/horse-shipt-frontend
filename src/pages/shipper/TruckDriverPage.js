@@ -1,3 +1,4 @@
+import CustomDropdown from "../../components/common/CustomDropdown";
 import React, { useEffect, useState } from "react";
 import { useDriver } from "../../contexts/shipperContext/DriverContext";
 import { useVehicle } from "../../contexts/shipperContext/VehicleContext";
@@ -6,6 +7,7 @@ import * as Yup from "yup";
 import Button from "../../components/common/Button";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import PageLoader from "../../components/common/PageLoader";
+import ClearSearchButton from "../../components/common/ClearSearchButton";
 import {
   FiEye,
   FiEyeOff,
@@ -244,16 +246,19 @@ const TruckDriverPage = () => {
 
       {!showForm && (
         <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_180px]">
-          <input
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
-            }}
-            placeholder="Search drivers"
-            className="h-10 border border-gray-300 bg-white px-3 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#BF9B53]"
-          />
-          <select
+          <div className="relative">
+            <input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Search drivers"
+              className="h-10 w-full border border-gray-300 bg-white px-3 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#BF9B53]"
+            />
+            <ClearSearchButton value={search} onClear={() => { setSearch(""); setPage(1); }} />
+          </div>
+          <CustomDropdown
             value={status}
             onChange={(event) => {
               setStatus(event.target.value);
@@ -264,7 +269,7 @@ const TruckDriverPage = () => {
             <option value="">All statuses</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
-          </select>
+          </CustomDropdown>
         </div>
       )}
 

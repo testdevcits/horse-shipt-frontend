@@ -7,6 +7,7 @@ import {
 } from "@react-google-maps/api";
 import { useShipperPreferredArea } from "../../contexts/shipperContext/ShipperPreferredAreaContext";
 import ConfirmModal from "../../components/common/ConfirmModal";
+import ClearSearchButton from "../../components/common/ClearSearchButton";
 import {
   FiTrash2,
   FiEdit2,
@@ -718,11 +719,12 @@ const ShipperPreferredAreaPage = () => {
                     <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">
                       Location Search
                     </label>
-                    <Autocomplete
-                      onLoad={(auto) => (autocompleteRef.current = auto)}
-                      onPlaceChanged={onPlaceChanged}
-                    >
-                      <input
+                    <div className="relative">
+                      <Autocomplete
+                        onLoad={(auto) => (autocompleteRef.current = auto)}
+                        onPlaceChanged={onPlaceChanged}
+                      >
+                        <input
                         type="text"
                         placeholder="Search location (e.g. Dallas, TX)"
                         value={form.locationName}
@@ -734,10 +736,15 @@ const ShipperPreferredAreaPage = () => {
                             longitude: "",
                           }))
                         }
-                        className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
-                        required
+                          className="w-full border border-gray-300 rounded-md px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                          required
+                        />
+                      </Autocomplete>
+                      <ClearSearchButton
+                        value={form.locationName}
+                        onClear={() => setForm((prev) => ({ ...prev, locationName: "", latitude: "", longitude: "" }))}
                       />
-                    </Autocomplete>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -942,11 +949,12 @@ const ShipperPreferredAreaPage = () => {
                     <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">
                       Location Search
                     </label>
-                    <Autocomplete
-                      onLoad={(auto) => (editAutocompleteRef.current = auto)}
-                      onPlaceChanged={onEditPlaceChanged}
-                    >
-                      <input
+                    <div className="relative">
+                      <Autocomplete
+                        onLoad={(auto) => (editAutocompleteRef.current = auto)}
+                        onPlaceChanged={onEditPlaceChanged}
+                      >
+                        <input
                         type="text"
                         placeholder="Search new location"
                         value={editForm.locationName}
@@ -958,9 +966,14 @@ const ShipperPreferredAreaPage = () => {
                             longitude: "",
                           }))
                         }
-                        className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                          className="w-full border border-gray-300 rounded-md px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                        />
+                      </Autocomplete>
+                      <ClearSearchButton
+                        value={editForm.locationName}
+                        onClear={() => setEditForm((prev) => ({ ...prev, locationName: "", latitude: "", longitude: "" }))}
                       />
-                    </Autocomplete>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1306,13 +1319,14 @@ const ShipperPreferredAreaPage = () => {
                                   Location Search
                                 </label>
 
-                                <Autocomplete
-                                  onLoad={(auto) =>
-                                    (editAutocompleteRef.current = auto)
-                                  }
-                                  onPlaceChanged={onEditPlaceChanged}
-                                >
-                                  <input
+                                <div className="relative">
+                                  <Autocomplete
+                                    onLoad={(auto) =>
+                                      (editAutocompleteRef.current = auto)
+                                    }
+                                    onPlaceChanged={onEditPlaceChanged}
+                                  >
+                                    <input
                                     type="text"
                                     placeholder="Search new location"
                                     value={editForm.locationName}
@@ -1322,9 +1336,14 @@ const ShipperPreferredAreaPage = () => {
                                         locationName: e.target.value,
                                       }))
                                     }
-                                    className="w-full border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                                      className="w-full border border-gray-300 rounded-md px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#BF9B53]/40 focus:border-[#BF9B53]"
+                                    />
+                                  </Autocomplete>
+                                  <ClearSearchButton
+                                    value={editForm.locationName}
+                                    onClear={() => setEditForm((prev) => ({ ...prev, locationName: "", latitude: "", longitude: "" }))}
                                   />
-                                </Autocomplete>
+                                </div>
                               </div>
 
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

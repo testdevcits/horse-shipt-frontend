@@ -1,7 +1,9 @@
+import CustomDropdown from "../../components/common/CustomDropdown";
 import React, { useEffect, useRef, useState } from "react";
 import { useShipperQuote } from "../../contexts/shipperContext/ShipperQuoteContext";
 import PageLoader from "../../components/common/PageLoader";
 import NotFound from "../../components/common/NoData";
+import ClearSearchButton from "../../components/common/ClearSearchButton";
 import { IoArrowBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import {
@@ -484,8 +486,9 @@ const ShipperQuotesPage = () => {
             placeholder="Search by last 6 characters of shipment ID"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-[38px] w-full border border-gray-100 bg-white px-4 pl-10 text-[12px] font-medium text-gray-700 outline-none transition placeholder:text-gray-500 focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/15"
+            className="h-[38px] w-full border border-gray-100 bg-white px-4 pl-10 pr-10 text-[12px] font-medium text-gray-700 outline-none transition placeholder:text-gray-500 focus:border-[#BF9B53] focus:ring-2 focus:ring-[#BF9B53]/15"
           />
+          <ClearSearchButton value={searchTerm} onClear={() => setSearchTerm("")} />
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
             <FiSearch size={16} />
           </span>
@@ -836,7 +839,7 @@ const ShipperQuotesPage = () => {
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
           <div className="bg-white p-6 w-[90%] max-w-md">
             <h3 className="text-lg font-semibold mb-3">Assign Vehicle</h3>
-            <select
+            <CustomDropdown
               value={selectedVehicleId || ""}
               onChange={(e) => setSelectedVehicleId(e.target.value)}
               className="w-full p-2 border mb-4"
@@ -848,7 +851,7 @@ const ShipperQuotesPage = () => {
                   stalls)
                 </option>
               ))}
-            </select>
+            </CustomDropdown>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setVehicleModalOpen(false)}

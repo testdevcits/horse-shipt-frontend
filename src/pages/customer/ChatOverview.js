@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
 import { FiCheck, FiEdit2, FiFileText, FiImage, FiLock, FiTrash2, FiX } from "react-icons/fi";
 import PageLoader from "../../components/common/PageLoader";
+import ClearSearchButton from "../../components/common/ClearSearchButton";
 import { useCustomerChat } from "../../contexts/customerContext/CustomerChatContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { socket } from "../../services/socket";
@@ -447,28 +448,20 @@ const CustomerChatOverview = () => {
       >
         <div className="p-4 border-b font-semibold">Shipment Chats</div>
 
-        <div className="p-3 relative">
-          <HiSearch
-            className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500"
-            size={18}
-          />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search shipment or shipper"
-            className="w-full border py-2 pl-10 pr-10"
-          />
-          {search && (
-            <button
-              type="button"
-              onClick={() => setSearch("")}
-              aria-label="Clear chat search"
-              title="Clear search"
-              className="absolute right-6 top-1/2 -translate-y-1/2 rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800"
-            >
-              <FiX size={16} />
-            </button>
-          )}
+        <div className="p-3">
+          <div className="relative">
+            <HiSearch
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+              size={18}
+            />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search shipment or shipper"
+              className="w-full border py-2 pl-10 pr-10"
+            />
+            <ClearSearchButton value={search} onClear={() => setSearch("")} />
+          </div>
         </div>
 
         <div className="flex gap-2 px-3 pb-3">

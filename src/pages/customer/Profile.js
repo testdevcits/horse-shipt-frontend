@@ -1,3 +1,4 @@
+import CustomDropdown from "../../components/common/CustomDropdown";
 import React, { useEffect, useState, useRef } from "react";
 import { HiPencil, HiCheck, HiX } from "react-icons/hi";
 import { FaStar } from "react-icons/fa";
@@ -309,7 +310,7 @@ const CustomerProfile = () => {
                 </label>
 
                 <div className="flex gap-2">
-                  <select
+                  <CustomDropdown
                     value={countryCode}
                     onChange={(e) => setCountryCode(e.target.value)}
                     className="px-3 py-2 bg-white border-2 border-[#BF9B53]/30 rounded-lg text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#BF9B53] transition-all"
@@ -319,7 +320,7 @@ const CustomerProfile = () => {
                         {c.flag} {c.country} ({c.code})
                       </option>
                     ))}
-                  </select>
+                  </CustomDropdown>
 
                   <input
                     type="tel"
