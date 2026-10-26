@@ -50,42 +50,41 @@ const CustomDropdown = ({
   };
 
   return (
-    <div ref={rootRef} className={`relative ${className}`}>
-      <div
-        {...buttonProps}
-        role="combobox"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-disabled={disabled}
-        aria-label={buttonProps["aria-label"]}
-        tabIndex={disabled ? -1 : 0}
-        onClick={() => !disabled && setOpen((isOpen) => !isOpen)}
-        onKeyDown={(event) => {
-          buttonProps.onKeyDown?.(event);
-          if (event.defaultPrevented) return;
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            setOpen((isOpen) => !isOpen);
-          } else if (event.key === "ArrowDown") {
-            event.preventDefault();
-            setOpen(true);
-          }
-        }}
-        className={`relative flex cursor-pointer items-center pr-8 ${className} ${
-          disabled ? "cursor-not-allowed opacity-60" : ""
+    <div
+      ref={rootRef}
+      {...buttonProps}
+      role="combobox"
+      aria-haspopup="listbox"
+      aria-expanded={open}
+      aria-disabled={disabled}
+      aria-label={buttonProps["aria-label"]}
+      tabIndex={disabled ? -1 : 0}
+      onClick={() => !disabled && setOpen((isOpen) => !isOpen)}
+      onKeyDown={(event) => {
+        buttonProps.onKeyDown?.(event);
+        if (event.defaultPrevented) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setOpen((isOpen) => !isOpen);
+        } else if (event.key === "ArrowDown") {
+          event.preventDefault();
+          setOpen(true);
+        }
+      }}
+      className={`relative flex cursor-pointer items-center pr-8 ${className} ${
+        disabled ? "cursor-not-allowed opacity-60" : ""
+      }`}
+      style={{ font: "inherit", paddingRight: 32, ...buttonProps.style }}
+    >
+      <span className="block truncate">
+        {selectedOption?.props.children ?? ""}
+      </span>
+      <FiChevronDown
+        aria-hidden="true"
+        className={`pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 transition-transform ${
+          open ? "rotate-180" : ""
         }`}
-        style={{ font: "inherit", paddingRight: 32, ...buttonProps.style }}
-      >
-        <span className="block truncate">
-          {selectedOption?.props.children ?? ""}
-        </span>
-        <FiChevronDown
-          aria-hidden="true"
-          className={`pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
-        />
-      </div>
+      />
 
       {open && !disabled && (
         <div
