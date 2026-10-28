@@ -185,13 +185,15 @@ const ShipmentQuotes = ({
                     </div>
 
                     <div className="flex flex-col gap-2 sm:flex-row">
-                      <button
-                        onClick={() => handleMessageShipper(quote)}
-                        className="flex items-center justify-center gap-2 px-4 py-2 border border-[#BF9B53] text-[#BF9B53] font-semibold text-sm hover:bg-[#BF9B53] hover:text-white transition-all duration-200"
-                      >
-                        <FiMessageSquare size={16} />
-                        Message Shipper
-                      </button>
+                      {quote.status === "accepted" && (
+                        <button
+                          onClick={() => handleMessageShipper(quote)}
+                          className="flex items-center justify-center gap-2 px-4 py-2 border border-[#BF9B53] text-[#BF9B53] font-semibold text-sm hover:bg-[#BF9B53] hover:text-white transition-all duration-200"
+                        >
+                          <FiMessageSquare size={16} />
+                          Message Shipper
+                        </button>
+                      )}
                       <button
                         onClick={() => onSelectQuote(quote)}
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[#BF9B53] to-[#9d7d42] border border-[#BF9B53] text-white font-semibold text-sm hover:shadow-lg transition-all duration-200"

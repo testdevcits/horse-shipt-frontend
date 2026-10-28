@@ -463,12 +463,12 @@ const AllUpcomingShipments = () => {
       </div>
 
       {/* ── TABS ── */}
-      <div className="flex min-h-[47px] items-center overflow-x-auto bg-white px-4 scrollbar-hide sm:px-5">
+      <div className="flex flex-nowrap min-h-[47px] items-center overflow-x-auto bg-white px-1 scrollbar-hide sm:px-5">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex min-h-[47px] shrink-0 items-center justify-center gap-2 border-b-2 px-4 font-montserrat text-[12px] font-semibold leading-[20px] transition-colors sm:px-7
+            className={`flex min-h-[47px] shrink-0 items-center justify-center gap-1 border-b-2 px-1 font-montserrat text-[10px] font-semibold leading-[20px] transition-colors sm:gap-2 sm:px-7 sm:text-[12px]
         ${
           activeTab === tab.key
             ? "border-[#BF9B53] text-[#BF9B53]"
@@ -483,7 +483,7 @@ const AllUpcomingShipments = () => {
             </span>
 
             <span
-              className={`inline-flex h-4 min-w-4 items-center justify-center rounded-[2px] px-1 text-[10px] font-bold ${
+              className={`hidden h-4 min-w-4 items-center justify-center rounded-[2px] px-1 text-[10px] font-bold sm:inline-flex ${
                 activeTab === tab.key
                   ? "bg-[#BF9B53]/10 text-[#BF9B53]"
                   : "bg-gray-100 text-gray-500"

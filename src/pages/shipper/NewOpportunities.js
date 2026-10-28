@@ -224,8 +224,8 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
 
   return (
     <div className="flex w-full flex-col gap-5 font-montserrat">
-      <div className="bg-white px-4 py-5 sm:px-5 md:px-6">
-        <div className="grid gap-4 lg:grid-cols-[minmax(180px,260px)_1fr_auto] lg:items-start">
+      <div className="bg-white px-3 py-4 sm:px-5 sm:py-5 md:px-6">
+        <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[minmax(180px,260px)_1fr_auto] lg:items-start">
           {/* ── TITLE ── */}
           <div className="min-w-0">
             <h2 className="text-[20px] font-semibold leading-[28px] text-[#111827] sm:text-[22px]">
@@ -251,11 +251,11 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
             <ClearSearchButton value={search} onClear={() => setSearch("")} />
           </div>
 
-          <div className="flex items-center gap-3 lg:justify-end">
+          <div className="flex w-full min-w-0 items-center gap-2 lg:justify-end lg:gap-3">
             {/* Mobile filter toggle */}
             <button
               onClick={() => setShowMobileFilters(!showMobileFilters)}
-              className={`flex h-[44px] items-center justify-center gap-2 rounded border px-4 text-sm font-semibold transition md:hidden
+              className={`flex h-[40px] min-w-0 flex-1 items-center justify-center gap-1.5 rounded border px-2 text-xs font-semibold transition sm:h-[44px] sm:gap-2 sm:px-4 sm:text-sm md:hidden
                 ${
                   showMobileFilters
                     ? "border-system-primary bg-system-primary text-white"
@@ -271,7 +271,7 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
 
             {/* List / Map tabs */}
             {showMapView && (
-              <div className="flex h-[48px] flex-shrink-0 items-center bg-[#F3F4F6] p-1">
+              <div className="flex h-[42px] flex-shrink-0 items-center bg-[#F3F4F6] p-1 sm:h-[48px]">
                 {[
                   { id: "list", label: "List", Icon: IoList },
                   { id: "map", label: "Map", Icon: CiMap },
@@ -279,14 +279,14 @@ const NewOpportunities = ({ showMapView = true, title = "New Opportunities" }) =
                   <button
                     key={id}
                     onClick={() => setActiveTab(id)}
-                    className={`flex h-10 items-center gap-2 px-4 text-[12px] font-bold uppercase transition-all duration-200
+                    className={`flex h-9 items-center gap-1.5 px-2.5 text-[10px] font-bold uppercase transition-all duration-200 sm:h-10 sm:gap-2 sm:px-4 sm:text-[12px]
                       ${
                         activeTab === id
                           ? "bg-system-primary text-white shadow-sm"
                           : "text-[#4B5563] hover:text-dark"
                       }`}
                   >
-                    <Icon size={18} />
+                    <Icon size={16} className="sm:h-[18px] sm:w-[18px]" />
                     {label}
                   </button>
                 ))}
