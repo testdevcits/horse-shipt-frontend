@@ -48,6 +48,7 @@ const ShipperLayout = () => {
   const isPaymentTab =
     location.pathname === "/shipper/settings" &&
     queryParams.get("tab") === "payment";
+  const isChatPage = location.pathname === "/shipper/chat";
 
   const isSubscribed =
     hasSubscriptionAccess ||
@@ -137,7 +138,7 @@ const ShipperLayout = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className={`flex flex-col bg-gradient-to-b from-gray-50 to-white ${isChatPage ? "h-dvh overflow-hidden" : "min-h-screen"}`}>
       {/* STRIPE ALERT BANNER */}
       {showStripeBanner && (
         <div className="fixed top-0 left-0 w-full z-50">
@@ -285,7 +286,7 @@ const ShipperLayout = () => {
 
       {/* MAIN LAYOUT */}
       <div
-        className={`flex flex-1 relative ${
+        className={`relative flex flex-1 ${isChatPage ? "min-h-0 overflow-hidden" : ""} ${
           showStripeBanner ? "mt-[44px]" : ""
         }`}
       >
@@ -301,12 +302,12 @@ const ShipperLayout = () => {
 
         {/* MAIN CONTENT */}
         <main
-          className="flex flex-1 flex-col overflow-auto transition-all duration-300 bg-[#FBF9F4]"
+          className={`flex flex-1 flex-col transition-all duration-300 bg-[#FBF9F4] ${isChatPage ? "min-h-0 overflow-hidden" : "overflow-auto"}`}
           style={{
             marginLeft: sidebarOffset,
           }}
         >
-          <div className="flex-1 p-4 pb-20 sm:p-6 sm:pb-20 lg:p-8 lg:pb-20 ">
+          <div className={`flex-1 p-4 pb-20 sm:p-6 sm:pb-20 lg:p-8 lg:pb-20 ${isChatPage ? "min-h-0" : ""}`}>
             <Outlet />
           </div>
           <LegalFooter leftOffset={sidebarOffset} />

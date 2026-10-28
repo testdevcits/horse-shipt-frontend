@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../pages/customer/Sidebar";
 import { useAuth } from "../contexts/AuthContext";
 import { CgMenu } from "react-icons/cg";
@@ -17,6 +17,7 @@ import ConfirmModal from "../components/common/ConfirmModal";
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const { profile, profileImage, loading } = useProfile();
   const { unreadCount: notificationCount } = useNotificationActivity();
@@ -26,6 +27,7 @@ const CustomerLayout = () => {
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
   const sidebarOffset = isDesktop ? (sidebarOpen ? 256 : 80) : 0;
+  const isChatPage = location.pathname === "/customer/chats";
   const popupRef = useRef(null)
   const displayedProfileImage =
     (typeof profileImage === "string" ? profileImage : profileImage?.url) ||
@@ -97,7 +99,7 @@ const CustomerLayout = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className={`flex flex-col bg-gradient-to-b from-gray-50 to-white ${isChatPage ? "h-dvh overflow-hidden" : "min-h-screen"}`}>
       <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm px-4 sm:px-6 lg:px-8 py-3 transition-all duration-300">
         <div className="flex items-center justify-between h-auto gap-3">
         <div className="flex items-center gap-2 min-w-0">
@@ -217,7 +219,7 @@ const CustomerLayout = () => {
         </div>
         </div>
       </header>
-      <div className="flex flex-1 relative">
+      <div className={`relative flex flex-1 ${isChatPage ? "min-h-0 overflow-hidden" : ""}`}>
         <Sidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
@@ -226,10 +228,10 @@ const CustomerLayout = () => {
         />
 
         <main
-          className="flex flex-1 flex-col overflow-auto bg-[#F7F5F1] pb-16 transition-all duration-300"
+          className={`flex flex-1 flex-col bg-[#F7F5F1] pb-16 transition-all duration-300 ${isChatPage ? "min-h-0 overflow-hidden" : "overflow-auto"}`}
           style={{ marginLeft: sidebarOffset }}
         >
-          <div className="flex-1 p-4 sm:p-6 md:p-8">
+          <div className={`flex-1 p-4 sm:p-6 md:p-8 ${isChatPage ? "min-h-0" : ""}`}>
             <Outlet />
           </div>
           <LegalFooter leftOffset={sidebarOffset} />

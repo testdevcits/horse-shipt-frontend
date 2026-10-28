@@ -60,6 +60,20 @@ const renderMessageText = (text = "") => {
   );
 };
 
+const mergeMessages = (current, incoming) => {
+  const messagesById = new Map();
+  [...current, ...incoming].forEach((message, index) => {
+    const key = message?._id || `${message?.createdAt || "unknown"}-${index}`;
+    messagesById.set(key, message);
+  });
+
+  return [...messagesById.values()].sort(
+    (left, right) =>
+      new Date(left.createdAt || left.time || 0) -
+      new Date(right.createdAt || right.time || 0)
+  );
+};
+
 const CustomerChatOverview = () => {
   const { shippers, loading, fetchShippers } = useCustomerChat();
   const { token } = useAuth();
@@ -85,6 +99,7 @@ const CustomerChatOverview = () => {
 
   const chatEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const activeRoomIdRef = useRef(null);
 
   const fetchRoomMessages = useCallback(
     async (nextRoomId, { silent = false } = {}) => {
@@ -97,7 +112,10 @@ const CustomerChatOverview = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        setMessages(messagesRes.data?.messages || []);
+        const fetchedMessages = messagesRes.data?.messages || [];
+        if (activeRoomIdRef.current?.toString() === nextRoomId.toString()) {
+          setMessages((current) => mergeMessages(current, fetchedMessages));
+        }
       } catch (err) {
         if (!silent) {
           Toast.error(
@@ -143,6 +161,7 @@ const CustomerChatOverview = () => {
 
     let cancelled = false;
     let cleanupSocketJoin = () => {};
+    activeRoomIdRef.current = null;
 
     const openRoom = async () => {
       setMessagesLoading(true);
@@ -159,24 +178,55 @@ const CustomerChatOverview = () => {
         const nextRoomId = roomRes.data?.roomId || roomRes.data?.room?._id;
         if (!nextRoomId || cancelled) return;
 
+        activeRoomIdRef.current = nextRoomId;
         setRoomId(nextRoomId);
 
         if (!cancelled) await fetchRoomMessages(nextRoomId);
 
         const joinRoom = () => {
+          if (!socket.connected) return;
+
+          let refreshTimeout;
           socket.emit(
             "horse_shipt:join_chat_room",
             { roomId: nextRoomId },
             (result) => {
+              window.clearTimeout(refreshTimeout);
               if (!result?.success) {
                 console.warn("Customer chat room join failed:", result?.message);
               }
+              if (!cancelled) {
+                fetchRoomMessages(nextRoomId, { silent: true });
+              }
             }
           );
+          // Keep history in sync even if an older server does not return a join acknowledgement.
+          refreshTimeout = window.setTimeout(() => {
+            if (!cancelled) fetchRoomMessages(nextRoomId, { silent: true });
+          }, 1500);
+        };
+
+        const syncWhenVisible = () => {
+          if (document.visibilityState !== "visible" || cancelled) return;
+          if (!socket.connected) socket.connect();
+          else joinRoom();
+          fetchRoomMessages(nextRoomId, { silent: true });
         };
 
         socket.on("connect", joinRoom);
         cleanupSocketJoin = () => socket.off("connect", joinRoom);
+        document.addEventListener("visibilitychange", syncWhenVisible);
+        window.addEventListener("focus", syncWhenVisible);
+        const cleanupVisibilitySync = () => {
+          document.removeEventListener("visibilitychange", syncWhenVisible);
+          window.removeEventListener("focus", syncWhenVisible);
+        };
+        const cleanupJoin = cleanupSocketJoin;
+        cleanupSocketJoin = () => {
+          cleanupJoin();
+          cleanupVisibilitySync();
+          activeRoomIdRef.current = null;
+        };
         if (socket.connected) joinRoom();
         else socket.connect();
       } catch (err) {
@@ -267,11 +317,13 @@ const CustomerChatOverview = () => {
   }, []);
 
   useEffect(() => {
-    if (!roomId || !token || !shouldUsePollingFallback) return;
+    if (!roomId || !token) return;
 
     const interval = setInterval(() => {
-      fetchRoomMessages(roomId, { silent: true });
-    }, 5000);
+      if (document.visibilityState === "visible") {
+        fetchRoomMessages(roomId, { silent: true });
+      }
+    }, shouldUsePollingFallback ? 5000 : 15000);
 
     return () => clearInterval(interval);
   }, [roomId, shouldUsePollingFallback, token, fetchRoomMessages]);
@@ -473,11 +525,11 @@ const CustomerChatOverview = () => {
   const isChatLocked = Boolean(selectedShipper?.isChatLocked);
 
   return (
-    <div className="flex h-[calc(100vh-120px)] w-full min-w-0 max-w-full overflow-hidden border bg-white font-montserrat shadow">
+    <div className="flex h-full min-h-0 w-full min-w-0 max-w-full overflow-hidden border bg-white font-montserrat shadow">
       {/* ================= SHIPPERS LIST ================= */}
       <div
-        className={`w-full lg:w-[380px] xl:w-[420px] shrink-0 border-r overflow-y-auto bg-white
-        ${selectedShipper ? "hidden lg:block" : "block"}`}
+        className={`flex h-full min-h-0 w-full shrink-0 flex-col overflow-hidden border-r bg-white lg:w-[380px] xl:w-[420px]
+        ${selectedShipper ? "hidden lg:flex" : "flex"}`}
       >
         <div className="p-4 border-b font-semibold">Shipment Chats</div>
 
@@ -518,55 +570,57 @@ const CustomerChatOverview = () => {
           ))}
         </div>
 
-        {filteredShippers.length === 0 && (
-          <p className="p-4 text-gray-500 text-sm">
-            No accepted shipment chats found
-          </p>
-        )}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          {filteredShippers.length === 0 && (
+            <p className="p-4 text-gray-500 text-sm">
+              No accepted shipment chats found
+            </p>
+          )}
 
-        {filteredShippers.map((s) => (
-          <div
-            key={s.shipmentId || s._id}
-            onClick={() => {
-              setSelectedShipper(s);
-              setRoomId(null);
-              setMessages([]); // reset messages
-            }}
-            className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-gray-100"
-          >
-            <div className="relative h-11 w-11 shrink-0">
-              <img
-                src={s.avatar || defaultProfileImage}
-                alt={s.name}
-                className="h-11 w-11 rounded-full object-cover border border-system-primary"
-              />
-              <span
-                className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
-                  s.isOnline ? "bg-green-500" : "bg-gray-400"
-                }`}
-              />
-            </div>
+          {filteredShippers.map((s) => (
+            <div
+              key={s.shipmentId || s._id}
+              onClick={() => {
+                setSelectedShipper(s);
+                setRoomId(null);
+                setMessages([]); // reset messages
+              }}
+              className="flex cursor-pointer items-start gap-3 px-4 py-3 hover:bg-gray-100"
+            >
+              <div className="relative h-11 w-11 shrink-0">
+                <img
+                  src={s.avatar || defaultProfileImage}
+                  alt={s.name}
+                  className="h-11 w-11 rounded-full border border-system-primary object-cover"
+                />
+                <span
+                  className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${
+                    s.isOnline ? "bg-green-500" : "bg-gray-400"
+                  }`}
+                />
+              </div>
 
-            <div className="flex min-w-0 flex-1 flex-col leading-tight">
-              <span className="truncate text-sm font-semibold text-gray-900">
-                {s.name}
-              </span>
-              <span className="truncate text-xs text-gray-500">{s.email}</span>
-              <span className="text-xs text-[#BF9B53] font-semibold truncate">
-                {s.shipmentCode}
-              </span>
-              <span className="text-[11px] text-gray-400 truncate">
-                {s.pickupLocation} to {s.deliveryLocation}
-              </span>
+              <div className="flex min-w-0 flex-1 flex-col leading-tight">
+                <span className="truncate text-sm font-semibold text-gray-900">
+                  {s.name}
+                </span>
+                <span className="truncate text-xs text-gray-500">{s.email}</span>
+                <span className="truncate text-xs font-semibold text-[#BF9B53]">
+                  {s.shipmentCode}
+                </span>
+                <span className="truncate text-[11px] text-gray-400">
+                  {s.pickupLocation} to {s.deliveryLocation}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* ================= CHAT ================= */}
       <div
-      className={`relative flex min-w-0 flex-1 flex-col bg-white
-        ${selectedShipper ? "block" : "hidden lg:flex"}`}
+      className={`relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white
+        ${selectedShipper ? "" : "hidden lg:flex"}`}
       >
         {!selectedShipper && (
           <div className="flex-1 flex items-center justify-center text-gray-500">
@@ -576,7 +630,7 @@ const CustomerChatOverview = () => {
 
         {selectedShipper && (
           <>
-            <div className="flex min-w-0 items-center gap-3 border-b p-4 font-semibold">
+            <div className="flex min-w-0 shrink-0 items-center gap-3 border-b p-4 font-semibold">
               <button
                 className="lg:hidden"
                 onClick={() => setSelectedShipper(null)}
@@ -601,7 +655,7 @@ const CustomerChatOverview = () => {
               </div>
             </div>
 
-            <div className="min-h-0 min-w-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto p-4">
+            <div className="min-h-0 min-w-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto overscroll-contain p-4">
               {messagesLoading && (
                 <p className="text-gray-400 text-sm text-center">
                   Loading messages...
@@ -721,7 +775,7 @@ const CustomerChatOverview = () => {
               <div ref={chatEndRef} />
             </div>
 
-            <div className="min-w-0 border-t p-3 space-y-2">
+            <div className="min-w-0 shrink-0 space-y-2 border-t p-3">
               {isChatLocked && (
                 <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">
                   Chat is locked because this shipment is completed.
