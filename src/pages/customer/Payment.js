@@ -123,8 +123,12 @@ const getStatusConfig = (status) => {
   switch (status) {
     case "succeeded":
       return { label: "Paid", classes: "bg-success-50 text-success-700" };
+    case "refunded":
+      return { label: "Refunded", classes: "bg-blue-50 text-blue-700" };
     case "pending":
       return { label: "Pending", classes: "bg-yellow-50 text-yellow-700" };
+    case "failed":
+      return { label: "Failed", classes: "bg-red-50 text-red-700" };
     default:
       return { label: status, classes: "bg-gray-100 text-gray-600" };
   }
@@ -401,9 +405,11 @@ const Payment = () => {
   };
 
   const totalPaid = payments
-    .filter((p) => p.status === "succeeded")
+    .filter((p) => p.status === "succeeded" && p.metadata?.type !== "customer_refund")
     .reduce((sum, p) => sum + p.amount, 0);
-  const successCount = payments.filter((p) => p.status === "succeeded").length;
+  const successCount = payments.filter(
+    (p) => p.status === "succeeded" && p.metadata?.type !== "customer_refund"
+  ).length;
 
   // Open drawer smoothly
   const openDetail = (item) => {

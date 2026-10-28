@@ -119,15 +119,18 @@ const normalizeTripStatus = (status) => {
 
   if (compact === "started" || compact === "intransit") return "started";
   if (compact === "completed" || compact === "delivered") return "completed";
+  if (compact === "cancelled" || compact === "canceled") return "cancelled";
   if (compact === "pending" || compact === "notstarted") return "pending";
 
   return value.toLowerCase();
 };
 
 const getShipmentTripStatus = (shipment) =>
-  normalizeTripStatus(
-    shipment?.tripStatus || shipment?.status || shipment?.shipment?.status
-  );
+  shipment?.isCancelled
+    ? "cancelled"
+    : normalizeTripStatus(
+        shipment?.tripStatus || shipment?.status || shipment?.shipment?.status
+      );
 
 /* ─── STATUS BADGE ─── */
 const StatusBadge = ({ status }) => {
@@ -644,6 +647,7 @@ const TripsTab = ({ allShipments, loading, formatDate, navigate }) => {
   const [filter, setFilter] = useState("all");
   const getItemStatus = (item) => {
     const status = getShipmentTripStatus(item);
+    if (status === "cancelled") return "cancelled";
     if (status === "completed") return "delivered";
     if (status === "started") return "active";
     return "pending";
@@ -653,6 +657,7 @@ const TripsTab = ({ allShipments, loading, formatDate, navigate }) => {
     { id: "pending", label: "Pending" },
     { id: "active", label: "Active" },
     { id: "delivered", label: "Delivered" },
+    { id: "cancelled", label: "Cancelled" },
   ];
   const counts = filters.reduce((acc, item) => {
     acc[item.id] =
@@ -721,6 +726,8 @@ const TripsTab = ({ allShipments, loading, formatDate, navigate }) => {
                 ? "bg-emerald-50 text-emerald-700"
                 : status === "active"
                 ? "bg-[#c09a4a] text-white"
+                : status === "cancelled"
+                ? "bg-red-50 text-red-700"
                 : "bg-[#fbf7ef] text-[#8a6a2c]";
             return (
               <button
@@ -762,10 +769,20 @@ const TripsTab = ({ allShipments, loading, formatDate, navigate }) => {
                         ? "Complete Delivery"
                         : status === "delivered"
                         ? "Delivered"
+                        : status === "cancelled"
+                        ? "Cancelled"
                         : "Pending"}
                     </span>
                   </div>
                 </div>
+                {status === "cancelled" && item.cancelReason && (
+                  <p className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+                    {item.isLatestCancelledAssignment
+                      ? "Your last assigned shipment was "
+                      : "This assigned shipment was "}
+                    {item.cancelReason.toLowerCase()}.
+                  </p>
+                )}
               </button>
             );
           })

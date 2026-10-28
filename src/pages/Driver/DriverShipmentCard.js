@@ -69,6 +69,14 @@ const S = {
     badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
     label: "Delivered",
   },
+  cancelled: {
+    bg: "bg-white",
+    border: "border-red-200",
+    dot: "bg-red-500",
+    text: "text-red-700",
+    badge: "bg-red-50 text-red-700 border-red-200",
+    label: "Cancelled",
+  },
 };
 
 const fmtDate = (ds) =>
@@ -83,6 +91,7 @@ const fmtDate = (ds) =>
 const getShipmentPayload = (item) => item?.shipment || item || {};
 
 const getQuoteStatus = (item) => {
+  if (item?.isCancelled) return "cancelled";
   const quoteTripStatus = String(item?.tripStatus || "").toLowerCase();
   const shipmentStatus = String(item?.shipment?.status || item?.status || "").toLowerCase();
 
@@ -246,6 +255,8 @@ const ShipmentCard = ({ shipment, status, onPress }) => {
                 ? "bg-[#c09a4a] text-white"
                 : status === "delivered"
                 ? "bg-emerald-50 text-emerald-700"
+                : status === "cancelled"
+                ? "bg-red-50 text-red-700"
                 : "bg-[#fbf7ef] text-[#8a6a2c]"
             }`}
           >
@@ -253,10 +264,17 @@ const ShipmentCard = ({ shipment, status, onPress }) => {
               <><FaTruck size={13} />Complete Delivery</>
             ) : status === "delivered" ? (
               <><FiCheckCircle size={13} />Delivered</>
+            ) : status === "cancelled" ? (
+              "Cancelled"
             ) : "View"}
           </span>
         </div>
       </div>
+      {status === "cancelled" && shipment.cancelReason && (
+        <p className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+          This assigned shipment was {shipment.cancelReason.toLowerCase()}.
+        </p>
+      )}
       {/* Keep the route and action easy to scan on compact screens. */}
       <div className="sr-only">
         <span className={`text-xs font-black uppercase tracking-wider ${cfg.text}`}>{cfg.label}</span>
@@ -299,6 +317,7 @@ const DriverShipmentsPage = () => {
     pending: allShipments.filter((s) => getStatus(s) === "pending").length,
     started: allShipments.filter((s) => getStatus(s) === "started").length,
     delivered: allShipments.filter((s) => getStatus(s) === "delivered").length,
+    cancelled: allShipments.filter((s) => getStatus(s) === "cancelled").length,
   };
 
   const filtered =
@@ -311,6 +330,7 @@ const DriverShipmentsPage = () => {
     { key: "pending", label: "Pending" },
     { key: "started", label: "Active" },
     { key: "delivered", label: "Delivered" },
+    { key: "cancelled", label: "Cancelled" },
   ];
 
   return (
@@ -440,7 +460,11 @@ const DriverShipmentsPage = () => {
             <div className="space-y-3">
             {filtered.map((shipment) => {
               const status = getStatus(shipment);
-              const rawShipment = getShipmentPayload(shipment);
+                const rawShipment = {
+                  ...getShipmentPayload(shipment),
+                  isCancelled: shipment.isCancelled,
+                  cancelReason: shipment.cancelReason,
+                };
               return (
                 <ShipmentCard
                   key={shipment._id}
@@ -455,6 +479,10 @@ const DriverShipmentsPage = () => {
                       navigate("/driver/dashboard");
                       Toast.info(
                         "Start this shipment from the dashboard first"
+                      );
+                    } else if (status === "cancelled") {
+                      Toast.info(
+                        `This shipment was ${shipment.cancelReason || "cancelled"}`
                       );
                     } else {
                       Toast.info("This shipment has been completed");

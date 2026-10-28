@@ -47,6 +47,16 @@ const AcceptQuoteModal = ({ quote, shipment, onClose }) => {
   const [canvasWidth, setCanvasWidth] = useState(0);
 
   const isAccepted = quote.status === "accepted";
+  const normalizedTripStatus = String(quote?.tripStatus || "").toLowerCase();
+  const normalizedShipmentStatus = String(shipment?.status || "").toLowerCase();
+  const isTripStarted =
+    ["started", "intransit", "in_transit", "completed"].includes(
+      normalizedTripStatus
+    ) ||
+    Boolean(quote?.tripStartedAt) ||
+    ["picked", "in_transit", "delivered", "completed"].includes(
+      normalizedShipmentStatus
+    );
   const isCompletedShipment =
     shipment?.isCompleted === true ||
     shipment?.status === "delivered" ||
@@ -68,9 +78,13 @@ const AcceptQuoteModal = ({ quote, shipment, onClose }) => {
 
   const isCancelable =
     !isCompletedShipment &&
-    quote?.cancellationLastDate &&
-    new Date() < new Date(quote.cancellationLastDate) &&
+    !isTripStarted &&
+    (!isAccepted || quote.paymentStatus === "paid") &&
+    (isAccepted ||
+      !quote?.cancellationLastDate ||
+      new Date() < new Date(quote.cancellationLastDate)) &&
     !quote.isCancelled;
+  const isPolicyWindowExpired = isCancellationExpired && !isAccepted;
 
   const shipperName =
     quote.shipper?.companyName || quote.shipper?.name || "Shipper";
@@ -534,32 +548,38 @@ const AcceptQuoteModal = ({ quote, shipment, onClose }) => {
               className={`border-b px-4 sm:px-6 py-2 sm:py-3 font-montserrat text-xs sm:text-sm ${
                 quote.isCancelled
                   ? "bg-red-100 border-red-300 text-red-700"
-                  : isCancellationExpired
+                  : isPolicyWindowExpired
                   ? "bg-gray-100 border-gray-300 text-gray-700"
                   : "bg-yellow-100 border-yellow-300 text-yellow-800"
               }`}
             >
               {quote.isCancelled ? (
                 "This shipment has already been cancelled."
+              ) : isTripStarted ? (
+                "Cancellation is unavailable because the driver has started the trip."
               ) : isCompletedShipment ? (
                 "This shipment has already been delivered."
-              ) : isCancellationExpired ? (
+              ) : isPolicyWindowExpired ? (
                 "Cancellation period has expired."
               ) : (
-                <>
-                  You can cancel until{" "}
-                  <span className="font-semibold">
-                    {new Date(quote.cancellationLastDate).toLocaleDateString(
-                      "en-US",
-                      {
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }
-                    )}
-                  </span>
-                </>
+                isAccepted ? (
+                  "After payment, cancellation is available until the driver starts the trip."
+                ) : (
+                  <>
+                    You can cancel until{" "}
+                    <span className="font-semibold">
+                      {new Date(quote.cancellationLastDate).toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
+                    </span>
+                  </>
+                )
               )}
             </div>
           )}

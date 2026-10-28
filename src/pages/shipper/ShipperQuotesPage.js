@@ -34,6 +34,15 @@ const isCompletedQuote = (quote) =>
   quote?.shipment?.status === "delivered" ||
   quote?.shipment?.status === "completed";
 
+const hasTripStarted = (quote) =>
+  ["started", "intransit", "in_transit", "completed"].includes(
+    String(quote?.tripStatus || "").toLowerCase()
+  ) ||
+  Boolean(quote?.tripStartedAt) ||
+  ["picked", "in_transit", "delivered", "completed"].includes(
+    String(quote?.shipment?.status || "").toLowerCase()
+  );
+
 const getQuoteDocumentUrl = (quoteId, documentType) =>
   `${API_BASE_URL}/shipper/quotes/${quoteId}/documents/${documentType}`;
 
@@ -416,6 +425,11 @@ const ShipperQuotesPage = () => {
 
   const handleAction = async () => {
     if (!selectedQuote) return;
+    if (modalType === "cancel" && hasTripStarted(selectedQuote)) {
+      showToast("This shipment cannot be cancelled after the driver starts the trip.", "error");
+      closeModal();
+      return;
+    }
     setActionLoading(true);
 
     let res;
@@ -436,6 +450,14 @@ const ShipperQuotesPage = () => {
 
     setActionLoading(false);
     closeModal();
+  };
+
+  const openCancelModal = (quote) => {
+    if (hasTripStarted(quote)) {
+      showToast("This shipment cannot be cancelled after the driver starts the trip.", "error");
+      return;
+    }
+    openModal(quote, "cancel");
   };
 
   const tabData = [
@@ -730,17 +752,25 @@ const ShipperQuotesPage = () => {
 
                       {activeTab !== "pending" &&
                         quote.status !== "pending" &&
-                        !isExpired &&
+                        (!isExpired || quote.status === "accepted") &&
+                        quote.paymentStatus === "paid" &&
                         !quote.isCancelled &&
+                        !hasTripStarted(quote) &&
                         !isCompleted && (
                           <button
-                            onClick={() => openModal(quote, "cancel")}
+                            onClick={() => openCancelModal(quote)}
                             className="flex h-[38px] w-full items-center justify-center gap-1 border border-red-500 px-4 text-[12px] font-bold uppercase text-red-600 transition hover:bg-red-50 sm:h-[34px] sm:w-auto lg:ml-auto"
                           >
                             <RiCloseCircleLine /> Cancel Quote
                           </button>
                         )}
                     </footer>
+
+                    {hasTripStarted(quote) && !quote.isCancelled && (
+                      <p className="mt-3 border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                        Cancellation is unavailable because the driver has started the trip.
+                      </p>
+                    )}
 
                     {visibleContractId === quote._id && (
                       <ContractPreview
