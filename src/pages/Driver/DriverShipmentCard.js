@@ -99,6 +99,16 @@ const getQuoteStatus = (item) => {
   return "pending";
 };
 
+const DriverStatusBadge = ({ status }) => {
+  const normalized = String(status || "N/A").replace(/[_-]/g, " ");
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-md border border-[#d8bb75] bg-[#fbf7ef] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#8a6a2c]">
+      <span className="h-1.5 w-1.5 rounded-full bg-[#BF9B53]" />
+      {normalized}
+    </span>
+  );
+};
+
 const DRIVER_NAV = [
   { id: "home", label: "Home", helper: "Shipment Overview", Icon: FiHome, path: "/driver/dashboard" },
   { id: "trips", label: "Trips", helper: "All Shipments", Icon: FiList, path: "/driver/shipments" },
@@ -205,56 +215,33 @@ const ShipmentCard = ({ shipment, status, onPress }) => {
       onClick={onPress}
       className={`w-full ${cfg.bg} border ${cfg.border} p-4 text-left transition-all hover:border-[#c09a4a] hover:bg-[#fffdf8]`}
     >
-      <div className="grid gap-4 lg:grid-cols-[180px_minmax(0,1fr)_180px_160px] lg:items-center">
-        <div className="flex items-center gap-2">
-          <span
-            className={`h-2 w-2 rounded-full ${cfg.dot} ${
-              status === "started" ? "animate-pulse" : ""
-            }`}
-          />
-          <span className={`text-xs font-black uppercase tracking-wider ${cfg.text}`}>
-            {cfg.label}
-          </span>
-        </div>
-
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_205px_140px] lg:items-center">
         <div className="min-w-0">
-          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_32px_minmax(0,1fr)] md:items-center">
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                Pickup
-              </p>
-              <p className="mt-1 truncate text-sm font-semibold text-slate-900">
-                <FiMapPin className="mr-1 inline text-[#BF9B53]" size={12} />
-                {shipment.pickupLocation || "Unknown pickup"}
-              </p>
-            </div>
-            <FiChevronRight className="hidden text-[#c09a4a] md:block" size={18} />
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                Delivery
-              </p>
-              <p className="mt-1 truncate text-sm font-semibold text-slate-900">
-                <FiMapPin className="mr-1 inline text-emerald-600" size={12} />
-                {shipment.deliveryLocation || "Unknown delivery"}
-              </p>
-            </div>
+          <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-slate-400">Route</p>
+          <div className="grid gap-1.5">
+            <p className="truncate text-sm font-semibold text-slate-900">
+              <FiMapPin className="mr-1 inline text-[#BF9B53]" size={12} />
+              {shipment.pickupLocation || "Unknown pickup"}
+              <FiChevronRight className="mx-2 inline text-[#c09a4a]" size={14} />
+              <span className="text-slate-700">{shipment.deliveryLocation || "Unknown delivery"}</span>
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 text-xs text-slate-500 lg:block lg:space-y-2">
-          <span className="inline-flex items-center gap-1">
-            <FiCalendar size={12} />
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500 lg:grid lg:grid-cols-[max-content_max-content] lg:gap-x-5">
+          <span className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap leading-none">
+            <FiCalendar className="shrink-0 text-slate-500" size={14} aria-hidden="true" />
             {fmtDate(shipment.pickupDate || shipment.pickupDateRange?.start)}
           </span>
-          <span className="inline-flex items-center gap-1 lg:ml-0">
-            <FaHorse size={12} />
+          <span className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap leading-none lg:ml-0">
+            <FaHorse className="shrink-0 text-[#8a6a2c]" size={14} aria-hidden="true" />
             {shipment.numberOfHorses || shipment.horses?.length || 0} horses
           </span>
         </div>
 
         <div className="flex items-center justify-start lg:justify-end">
           <span
-            className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-black ${
+            className={`inline-flex min-h-10 w-full items-center justify-center gap-2 px-4 py-2 text-xs font-black sm:w-auto lg:min-w-[138px] ${
               status === "started"
                 ? "bg-[#c09a4a] text-white"
                 : status === "delivered"
@@ -263,20 +250,16 @@ const ShipmentCard = ({ shipment, status, onPress }) => {
             }`}
           >
             {status === "started" ? (
-              <>
-                <FaTruck size={13} />
-                Complete Delivery
-              </>
+              <><FaTruck size={13} />Complete Delivery</>
             ) : status === "delivered" ? (
-              <>
-                <FiCheckCircle size={13} />
-                Completed
-              </>
-            ) : (
-              "View"
-            )}
+              <><FiCheckCircle size={13} />Delivered</>
+            ) : "View"}
           </span>
         </div>
+      </div>
+      {/* Keep the route and action easy to scan on compact screens. */}
+      <div className="sr-only">
+        <span className={`text-xs font-black uppercase tracking-wider ${cfg.text}`}>{cfg.label}</span>
       </div>
     </button>
   );
@@ -366,9 +349,9 @@ const DriverShipmentsPage = () => {
 
           <div className="flex min-h-screen flex-col md:pt-[58px]">
         {/* Header */}
-        <div className="border-b border-[#e6e1d8]  ">
-          <div className="w-full px-4 pb-0 pt-6 md:px-8 lg:px-10">
-            <div className="mb-5 flex items-center gap-3">
+        <div className="border-b border-[#e6e1d8]">
+          <div className="w-full px-4 pb-0 pt-6 md:px-8 md:pt-10 lg:px-10">
+            <div className="mb-5 flex items-center gap-3 xl:gap-8">
               <button
                 onClick={() => navigate(-1)}
                 className="flex h-9 w-9 items-center justify-center border border-[#c09a4a] bg-[#fbf7ef] text-[#8a6a2c] transition hover:bg-[#f2e8d4] active:scale-95"
@@ -376,11 +359,12 @@ const DriverShipmentsPage = () => {
                 <FiArrowLeft size={17} />
               </button>
               <div className="flex-1">
-                <h1 className="text-xl font-black text-slate-900">
-                  My Shipments
+                <p className="hidden text-[11px] font-black uppercase tracking-[0.18em] text-slate-600 md:block">Driver Dashboard</p>
+                <h1 className="text-xl font-black text-slate-900 md:mt-1 md:text-3xl">
+                  All Trips
                 </h1>
-                <p className="mt-1 text-xs font-semibold text-slate-500">
-                  {filtered.length} shipment{filtered.length !== 1 ? "s" : ""}
+                <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#b98f38] md:mt-2 md:tracking-[0.3em]">
+                  Assigned shipments and delivery status.
                 </p>
               </div>
               <button
@@ -395,7 +379,7 @@ const DriverShipmentsPage = () => {
               </button>
             </div>
 
-            <div className="grid gap-3 pb-5 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 pb-5 sm:grid-cols-4 md:gap-3 xl:grid-cols-4">
               {filterTabs.map((tab) => {
                 const active = filter === tab.key;
                 return (
@@ -426,7 +410,8 @@ const DriverShipmentsPage = () => {
         </div>
 
         {/* List */}
-        <div className="w-full flex-1 px-4 pt-5 pb-8 md:px-8 lg:px-10">
+        <div className="grid w-full flex-1 gap-5 px-4 pt-5 pb-8 md:px-8 lg:px-10 xl:grid-cols-[minmax(0,1fr)_300px] 2xl:grid-cols-[minmax(0,1fr)_340px]">
+          <section className="min-w-0">
           {loading ? (
             <>
               <CardSkeleton />
@@ -480,6 +465,26 @@ const DriverShipmentsPage = () => {
             })}
             </div>
           )}
+          </section>
+          <aside className="hidden xl:block">
+            <div className="sticky top-[84px] rounded-md border border-[#BF9B53] bg-white p-4 shadow-[0_18px_40px_rgba(17,24,39,0.06)]">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-tabActive/60">Quick Summary</p>
+              <div className="mt-3 space-y-3">
+                <div className="rounded-md border border-[#BF9B53] bg-header p-3.5">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-tabActive/70">Driver Status</p>
+                  <div className="mt-1.5"><DriverStatusBadge status={driver?.driverStatus} /></div>
+                </div>
+                <div className="rounded-md border border-[#BF9B53] bg-header p-3.5">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-tabActive/70">Current Route</p>
+                  <p className="mt-1.5 text-sm font-black text-systemText">
+                    {allShipments.find((item) => getStatus(item) === "started")
+                      ? `${getShipmentPayload(allShipments.find((item) => getStatus(item) === "started")).pickupLocation?.split(",")?.[0] || "Pickup"} → ${getShipmentPayload(allShipments.find((item) => getStatus(item) === "started")).deliveryLocation?.split(",")?.[0] || "Delivery"}`
+                      : "No active shipment"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
 
           </div>

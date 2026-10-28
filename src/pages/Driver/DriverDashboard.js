@@ -14,9 +14,10 @@ import {
   FiUser,
   FiAlertCircle,
   FiList,
-  FiPackage,
   FiCheckCircle,
   FiSend,
+  FiHeadphones,
+  FiCamera,
 } from "react-icons/fi";
 import { MdMyLocation } from "react-icons/md";
 import ConfirmModal from "../../components/common/ConfirmModal";
@@ -208,21 +209,6 @@ const SectionCard = ({
     </div>
   );
 };
-
-/* ─── INFO ROW ─── */
-const InfoRow = ({ icon, label, value }) => (
-  <div className="flex items-start gap-3">
-    <div className="mt-0.5 text-tabActive shrink-0">{icon}</div>
-    <div className="min-w-0">
-      <p className="text-[10px] font-black text-tabActive/70 uppercase tracking-wider mb-0.5">
-        {label}
-      </p>
-      <p className="text-sm font-semibold text-systemText break-all">
-        {value || "N/A"}
-      </p>
-    </div>
-  </div>
-);
 
 const shortLocation = (value, fallback = "N/A") =>
   value?.split(",")?.[0]?.trim() || fallback;
@@ -549,10 +535,12 @@ const HomeTab = ({
 const ProfileTab = ({
   driver,
   allShipments,
-  setConfirmLogout,
+  onUploadProfileImage,
   navigate,
   loading,
 }) => {
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState("");
   if (loading) return <ProfileSkeleton />;
 
   const completed = (allShipments || []).filter(
@@ -569,152 +557,85 @@ const ProfileTab = ({
         })
       : "N/A";
 
+  const handleProfileImageChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    event.target.value = "";
+    if (!file.type.startsWith("image/")) {
+      Toast.error("Please choose an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      Toast.error("Image must be smaller than 5 MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(String(reader.result || ""));
+    reader.readAsDataURL(file);
+    setImageUploading(true);
+    try {
+      const result = await onUploadProfileImage(file);
+      if (!result?.success) throw new Error(result?.message || "Image upload failed");
+      setImagePreview("");
+      Toast.success("Profile photo updated");
+    } catch (error) {
+      setImagePreview("");
+      Toast.error(error.message || "Could not update profile photo");
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 pt-4 pb-28 space-y-4">
-      {/* Hero */}
-      <div className="bg-white rounded-md border border-[#BF9B53] p-5 flex flex-col items-center text-center shadow-sm">
-	        <div className="w-20 h-20 rounded-md overflow-hidden border-2 border-[#BF9B53] flex items-center justify-center bg-header mb-3">
-	          {driver.profileImage?.url ? (
-	            <img
-	              src={driver.profileImage.url}
-	              alt={driver.name}
-	              className="w-full h-full object-contain"
-	            />
-          ) : (
-            <span className="text-[#BF9B53] font-black text-3xl">
-              {driver.name?.[0]?.toUpperCase() || "D"}
-            </span>
-          )}
-        </div>
-        <p className="font-black text-systemText text-lg mb-1.5">
-          {driver.name}
-        </p>
-        <StatusBadge status={driver.driverStatus} />
-        <div className="grid grid-cols-2 gap-3 mt-4 w-full max-w-sm">
-          <div className="bg-header rounded-md p-3 text-center border border-[#BF9B53]">
-            <p className="text-[9px] font-black text-tabActive/70 uppercase mb-0.5">
-              Completed
-            </p>
-            <p className="text-2xl font-black text-tabActive">
-              {completed.length}
-            </p>
-          </div>
-          <div
-            className={`rounded-md p-3 text-center border ${
-              driver.isActive ? "bg-success-50" : "bg-danger/10"
-            }`}
-          >
-            <p className="text-[9px] font-black text-tabActive/70 uppercase mb-1">
-              Account
-            </p>
-            <span
-              className={`text-sm font-black ${
-                driver.isActive ? "text-success-700" : "text-danger"
-              }`}
-            >
-              {driver.isActive ? "Active" : "Inactive"}
-            </span>
-          </div>
-        </div>
-      </div>
+    <div className="w-full space-y-4 px-4 pb-28 pt-4 md:px-0 md:pb-8">
 
-      {/* Personal Details */}
-      <SectionCard title="Personal Details" accent>
-        <div className="space-y-4">
-          <InfoRow
-            icon={<FiMail size={14} />}
-            label="Email"
-            value={driver.email}
-          />
-          <InfoRow
-            icon={<FiPhone size={14} />}
-            label="Phone"
-            value={driver.phone}
-          />
-          <InfoRow
-            icon={<FiFileText size={14} />}
-            label="License"
-            value={driver.licenseNumber}
-          />
+      <section className="flex flex-col gap-5 rounded-2xl border border-[#eadfca] bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:p-6">
+        <div className="flex min-w-0 flex-1 items-center gap-4">
+          <div className="relative h-16 w-16 shrink-0">
+            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-[#eadfca] bg-[#f4eddd]">
+              {imagePreview || driver.profileImage?.url ? <img src={imagePreview || driver.profileImage.url} alt={driver.name || "Driver"} className="h-full w-full object-cover" /> : <span className="text-2xl font-black text-[#8a6a2c]">{driver.name?.[0]?.toUpperCase() || "D"}</span>}
+            </div>
+            <label className={`absolute -bottom-2 -right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-[#c09a4a] text-white shadow transition hover:bg-[#aa8439] ${imageUploading ? "pointer-events-none opacity-60" : ""}`} title="Change profile photo">
+              <FiCamera size={14} />
+              <input type="file" accept="image/*" className="sr-only" onChange={handleProfileImageChange} disabled={imageUploading} aria-label="Upload profile photo" />
+            </label>
+          </div>
+          <div className="min-w-0">
+            <h2 className="truncate text-lg font-black text-slate-900">{driver.name || "Driver"}</h2>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2"><StatusBadge status={driver.driverStatus} /><span className="text-[11px] text-slate-500">Driver account</span></div>
+            
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:w-[300px]">
+          <div className="rounded-xl border border-[#eadfca] bg-[#f7f3ea] px-4 py-3"><p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Completed</p><p className="mt-1 text-xl font-black text-slate-900">{completed.length}</p></div>
+          <div className={`rounded-xl border px-4 py-3 ${driver.isActive ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`}><p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Account</p><p className={`mt-1 text-base font-black ${driver.isActive ? "text-emerald-700" : "text-red-700"}`}>{driver.isActive ? "Active" : "Inactive"}</p></div>
+        </div>
+      </section>
+
+      <SectionCard title="Personal details" accent>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 xl:gap-0">
+          <div className="flex items-center gap-3 xl:border-r xl:border-[#eee7d9] xl:px-4 first:xl:pl-0"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f4eddd] text-[#8a6a2c]"><FiMail size={15} /></span><div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Email</p><p className="truncate text-xs font-bold text-slate-900">{driver.email || "N/A"}</p></div></div>
+          <div className="flex items-center gap-3 xl:border-r xl:border-[#eee7d9] xl:px-4"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f4eddd] text-[#8a6a2c]"><FiPhone size={15} /></span><div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Phone</p><p className="truncate text-xs font-bold text-slate-900">{driver.phone || "N/A"}</p></div></div>
+          <div className="flex items-center gap-3 xl:px-4"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f4eddd] text-[#8a6a2c]"><FiFileText size={15} /></span><div className="min-w-0"><p className="text-[10px] font-black uppercase tracking-wider text-slate-500">License</p><p className="truncate text-xs font-bold text-slate-900">{driver.licenseNumber || "N/A"}</p></div></div>
         </div>
       </SectionCard>
 
-      {/* Completed */}
-      <SectionCard title="Completed Shipments" badge={completed.length}>
-        {completed.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="w-12 h-12 bg-light rounded-md flex items-center justify-center mx-auto mb-3 border border-[#BF9B53]">
-              <FiPackage className="text-[#BF9B53]/60 text-2xl" />
-            </div>
-            <p className="text-tabActive/75 text-sm font-semibold">
-              No completed shipments yet
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="divide-y divide-gray-50">
-              {completed.map((s, idx) => {
-                const shipment = s.shipment || {};
-                const completionDate = shipment.deliveryDate || s.updatedAt;
-                const hasCompletionDate =
-                  Boolean(completionDate) &&
-                  !Number.isNaN(new Date(completionDate).getTime());
-                const horseCount =
-                  Number(shipment.numberOfHorses) || shipment.horses?.length || 0;
-
-                return (
-                <div key={s._id || idx} className="py-3 first:pt-0 last:pb-0">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-header rounded-md border border-[#BF9B53] flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <FiCheckCircle size={14} className="text-success" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-systemText leading-snug">
-                        {shipment.pickupLocation || "Unknown"}
-                        <span className="text-[#BF9B53] mx-1">→</span>
-                        {shipment.deliveryLocation || "Unknown"}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1 text-[11px] text-tabActive/70">
-                        {hasCompletionDate && (
-                          <span className="flex items-center gap-1">
-                            <FiCalendar size={9} />
-                            {fmtDate(completionDate)}
-                          </span>
-                        )}
-                        {horseCount > 0 && (
-                          <span className="flex items-center gap-1">
-                            <FaHorse size={9} />
-                            {horseCount} {horseCount === 1 ? "Horse" : "Horses"}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <span className="bg-header text-tabActive border border-[#BF9B53] text-[9px] font-black px-2 py-1 rounded-md flex-shrink-0">
-                      Done
-                    </span>
-                  </div>
-                </div>
-                );
-              })}
-            </div>
-            <button
-              onClick={() => navigate("/driver/shipments")}
-              className="w-full mt-3 py-2.5 border border-[#BF9B53] bg-[#BF9B53] text-white font-black text-xs rounded-md hover:brightness-110 active:scale-95 transition-all"
-            >
-              View All Shipments →
-            </button>
-          </>
-        )}
+      <SectionCard title="Completed shipments" badge={completed.length}>
+        {completed.length === 0 ? <div className="py-8 text-center text-sm font-semibold text-slate-500">No completed shipments yet</div> : <div className="space-y-2">
+          {completed.slice(0, 4).map((s, idx) => {
+            const shipment = s.shipment || {};
+            const completionDate = shipment.deliveryDate || s.updatedAt;
+            const hasCompletionDate = Boolean(completionDate) && !Number.isNaN(new Date(completionDate).getTime());
+            const horseCount = Number(shipment.numberOfHorses) || shipment.horses?.length || 0;
+            return <div key={s._id || idx} className="flex min-w-0 items-center gap-3 rounded-xl border border-[#eee7d9] bg-[#fcfaf6] p-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><FiCheckCircle size={16} /></span>
+              <div className="min-w-0 flex-1"><p className="truncate text-xs font-bold text-slate-900">{shipment.pickupLocation || "Unknown"}<span className="mx-2 text-[#c09a4a]">→</span>{shipment.deliveryLocation || "Unknown"}</p><p className="mt-1 flex items-center gap-3 text-[10px] text-slate-500">{hasCompletionDate && <span className="inline-flex items-center gap-1"><FiCalendar size={10} />{fmtDate(completionDate)}</span>}{horseCount > 0 && <span className="inline-flex items-center gap-1"><FaHorse size={10} />{horseCount} horse{horseCount === 1 ? "" : "s"}</span>}</p></div>
+              <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black text-emerald-700">Done</span>
+            </div>;
+          })}
+          <button onClick={() => navigate("/driver/shipments")} className="mt-1 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#c09a4a] px-4 py-3 text-xs font-black text-white transition hover:brightness-105">View all shipments <span aria-hidden="true">→</span></button>
+        </div>}
       </SectionCard>
-
-      {/* Logout */}
-      <button
-        onClick={() => setConfirmLogout(true)}
-        className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#BF9B53] border border-[#BF9B53] text-white font-black rounded-md hover:brightness-110 active:scale-95 transition-all"
-      >
-        <FiLogOut size={16} />
-        Logout
-      </button>
     </div>
   );
 };
@@ -1137,58 +1058,36 @@ const TABS = [
 
 const SidebarTabNav = ({ activeTab, setActiveTab, navigate, onLogout }) => (
   <aside className="hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-[220px] lg:shrink-0 lg:flex-col lg:overflow-hidden lg:border-r lg:border-[#e6e1d8] lg:bg-white">
-    <div className="flex h-[58px] items-center border-b border-[#e6e1d8] px-6">
+    <div className="flex h-[58px] items-center border-b border-[#eee7d9] px-4">
       <img src={logo} alt="HorseShip" className="h-8 w-auto object-contain" />
     </div>
-    <div className="flex flex-1 flex-col px-3 py-5">
-      <div className="mb-5 flex items-center justify-between px-2">
-        <p className="text-xs font-semibold text-slate-800">Dashboard</p>
-        <span className="text-lg leading-none text-slate-500">‹|</span>
+    <div className="flex flex-1 flex-col px-2.5 py-4">
+      <div className="mb-3 flex items-center justify-between px-2">
+        <p className="text-[11px] font-bold text-slate-800">Dashboard</p>
+        <span className="text-sm leading-none text-slate-400">‹</span>
       </div>
       <div className="space-y-1">
         {TABS.map(({ id, label, Icon, path }) => {
           const active = activeTab === id;
-          const subLabel =
-            id === "home"
-              ? "Shipment Overview"
-              : id === "trips"
-              ? "All Shipments"
-              : id === "location"
-              ? "Tracking"
-              : "Account";
+          const subLabel = id === "home" ? "Shipment overview" : id === "trips" ? "All shipments" : id === "location" ? "Tracking" : "Account";
           return (
-            <button
-              key={id}
-              onClick={() => (path ? navigate(path) : setActiveTab(id))}
-              className={`w-full border-l-4 px-3 py-3 text-left transition-all ${
-                active
-                  ? "border-[#c09a4a] bg-[#fbf7ef] text-[#c09a4a]"
-                  : "border-transparent bg-white text-slate-600 hover:bg-[#fbf7ef]"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Icon size={15} />
-                <div>
-                  <p className="text-xs font-semibold leading-none">{label}</p>
-                  <p className="mt-1 text-[10px] text-slate-400">
-                    {subLabel}
-                  </p>
-                </div>
+            <button key={id} onClick={() => (path ? navigate(path) : setActiveTab(id))} className={`group w-full rounded-r-xl border-l-[3px] px-2 py-2 text-left transition-all ${active ? "border-[#c09a4a] bg-[#f7f0df] text-[#8a6a2c]" : "border-transparent text-slate-600 hover:bg-[#faf8f3]"}`}>
+              <div className="flex items-center gap-2.5">
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition ${active ? "bg-[#efe3c2] text-[#8a6a2c]" : "bg-[#f5f3ee] text-slate-500 group-hover:text-[#8a6a2c]"}`}><Icon size={15} /></span>
+                <span className="min-w-0"><span className="block text-[11px] font-bold leading-tight">{label}</span><span className="mt-0.5 block truncate text-[9px] text-slate-400">{subLabel}</span></span>
               </div>
             </button>
           );
         })}
       </div>
-      <div className="mt-auto border-t border-[#eee7d9] pt-4">
-        <button
-          onClick={onLogout}
-          className="flex w-full items-center gap-3 border-l-4 border-transparent px-3 py-3 text-left text-slate-600 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600"
-        >
-          <FiLogOut size={15} />
-          <div>
-            <p className="text-xs font-semibold leading-none">Logout</p>
-            <p className="mt-1 text-[10px] text-slate-400">End Session</p>
-          </div>
+      <a href="mailto:noreply.horseshipt2026@gmail.com" className="group mt-1 flex items-center gap-2.5 rounded-r-xl border-l-[3px] border-transparent px-2 py-2 text-slate-600 transition hover:bg-[#faf8f3]">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f5f3ee] text-slate-500 group-hover:text-[#8a6a2c]"><FiHeadphones size={15} /></span>
+        <span><span className="block text-[11px] font-bold leading-tight">Support</span><span className="mt-0.5 block text-[9px] text-slate-400">Contact support</span></span>
+      </a>
+      <div className="mt-auto border-t border-[#eee7d9] pt-3">
+        <button onClick={onLogout} className="group flex w-full items-center gap-2.5 rounded-r-xl border-l-[3px] border-transparent px-2 py-2 text-left text-slate-600 transition hover:bg-red-50 hover:text-red-600">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f5f3ee] text-slate-500 group-hover:bg-red-100 group-hover:text-red-600"><FiLogOut size={15} /></span>
+          <span><span className="block text-[11px] font-bold leading-tight">Logout</span><span className="mt-0.5 block text-[9px] text-slate-400">End session</span></span>
         </button>
       </div>
     </div>
@@ -1397,6 +1296,7 @@ const DriverDashboard = () => {
     allShipments,
     loading: contextLoading,
     fetchDriver,
+    uploadProfileImage,
     logout,
     checkLocationPermission,
     locationPermission,
@@ -1558,6 +1458,7 @@ const DriverDashboard = () => {
             <UpdateLocation
               driver={driver}
               driverLocation={driverLocation}
+              currentShipment={currentShipment}
               onLocationUpdated={(loc) => setDriverLocation(loc)}
               onOpenMap={() => setMapModalOpen(true)}
             />
@@ -1577,7 +1478,7 @@ const DriverDashboard = () => {
           <ProfileTab
             driver={driver}
             allShipments={allShipments || []}
-            setConfirmLogout={setConfirmLogout}
+            onUploadProfileImage={uploadProfileImage}
             navigate={navigate}
             loading={contextLoading}
           />

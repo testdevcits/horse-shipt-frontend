@@ -394,7 +394,8 @@ export const DriverAuthProvider = ({ children }) => {
       if (res.data.success) {
         const updatedDriver = {
           ...driver,
-          profileImage: res.data.driver.profileImage,
+          profileImage:
+            res.data.profileImage || res.data.driver?.profileImage || null,
         };
         setDriver(updatedDriver);
         localStorage.setItem("driverData", JSON.stringify(updatedDriver));
