@@ -211,7 +211,11 @@ const ChatOverview = () => {
       const msg = payload?.message;
       const msgRoomId =
         typeof msg?.chatRoom === "object" ? msg.chatRoom?._id : msg?.chatRoom;
-      if (!msg || msgRoomId?.toString() !== roomId.toString()) return;
+      const sameRoom = msgRoomId?.toString() === roomId.toString();
+      const sameShipment =
+        payload?.shipmentId?.toString() ===
+        selectedUser?.shipmentId?.toString();
+      if (!msg || (!sameRoom && !sameShipment)) return;
 
       setMessages((prev) => {
         if (msg._id && prev.some((item) => item._id === msg._id)) return prev;
@@ -250,7 +254,7 @@ const ChatOverview = () => {
       socket.off("messageEdited", handleMessageEdited);
       socket.off("messageDeleted", handleMessageDeleted);
     };
-  }, [roomId]);
+  }, [roomId, selectedUser?.shipmentId]);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 10000);
