@@ -39,9 +39,10 @@ const navItems = [
     path: "/shipper/my-shipment",
     icon: <OrdersIcon />,
     subPaths: [
+      { name: "All Shipments", path: "/shipper/all-shipment" },
       { name: "My Shipment", path: "/shipper/my-shipment" },
       { name: "Quote Requests", path: "/shipper/invited-shipments" },
-      { name: "All Shipments", path: "/shipper/all-shipment" },
+      
     ],
   },
   {
