@@ -48,9 +48,15 @@ export const API_BASE_URL = manualApiBaseUrl
   ? trimTrailingSlash(getHttpsSafeUrl(manualApiBaseUrl))
   : `${BACKEND_BASE_URL}/api`;
 
-export const SOCKET_BASE_URL = getHttpsSafeUrl(
-  process.env.REACT_APP_SOCKET_URL || BACKEND_BASE_URL
-);
+// Keep the development API and Socket.IO endpoint on the same Vercel backend.
+// A stale REACT_APP_SOCKET_URL can otherwise send API traffic to Vercel while
+// silently routing the live socket to a different (often production) host.
+const selectedSocketUrl =
+  backendEnv === "development"
+    ? developmentBackendUrl
+    : process.env.REACT_APP_SOCKET_URL || selectedBackendUrl;
+
+export const SOCKET_BASE_URL = getHttpsSafeUrl(selectedSocketUrl);
 
 export const SHIPPER_API_BASE_URL = `${API_BASE_URL}/shipper`;
 export const CUSTOMER_API_BASE_URL = `${API_BASE_URL}/customer`;
