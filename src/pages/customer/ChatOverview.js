@@ -164,16 +164,21 @@ const CustomerChatOverview = () => {
         if (!cancelled) await fetchRoomMessages(nextRoomId);
 
         const joinRoom = () => {
-          socket.emit("horse_shipt:join_chat_room", { roomId: nextRoomId });
+          socket.emit(
+            "horse_shipt:join_chat_room",
+            { roomId: nextRoomId },
+            (result) => {
+              if (!result?.success) {
+                console.warn("Customer chat room join failed:", result?.message);
+              }
+            }
+          );
         };
 
-        if (socket.connected) {
-          joinRoom();
-        } else {
-          socket.once("connect", joinRoom);
-          cleanupSocketJoin = () => socket.off("connect", joinRoom);
-          socket.connect();
-        }
+        socket.on("connect", joinRoom);
+        cleanupSocketJoin = () => socket.off("connect", joinRoom);
+        if (socket.connected) joinRoom();
+        else socket.connect();
       } catch (err) {
         if (!cancelled) {
           Toast.error(
@@ -207,6 +212,18 @@ const CustomerChatOverview = () => {
       });
     };
 
+    const handleChatMessageCreated = (payload) => {
+      const msg = payload?.message;
+      const msgRoomId =
+        typeof msg?.chatRoom === "object" ? msg.chatRoom?._id : msg?.chatRoom;
+      if (!msg || msgRoomId?.toString() !== roomId.toString()) return;
+
+      setMessages((prev) => {
+        if (msg._id && prev.some((item) => item._id === msg._id)) return prev;
+        return [...prev, msg];
+      });
+    };
+
     const handleMessageEdited = (msg) => {
       const msgRoomId =
         typeof msg.chatRoom === "object" ? msg.chatRoom?._id : msg.chatRoom;
@@ -228,11 +245,13 @@ const CustomerChatOverview = () => {
     };
 
     socket.on("receiveMessage", handleReceiveMessage);
+    socket.on("horse_shipt:chat_message_created", handleChatMessageCreated);
     socket.on("messageEdited", handleMessageEdited);
     socket.on("messageDeleted", handleMessageDeleted);
 
     return () => {
       socket.off("receiveMessage", handleReceiveMessage);
+      socket.off("horse_shipt:chat_message_created", handleChatMessageCreated);
       socket.off("messageEdited", handleMessageEdited);
       socket.off("messageDeleted", handleMessageDeleted);
     };
