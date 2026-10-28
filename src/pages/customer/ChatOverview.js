@@ -25,17 +25,17 @@ const ChatAttachment = ({ item }) =>
       href={item.url}
       target="_blank"
       rel="noreferrer"
-      className="flex max-w-[260px] items-center gap-2 rounded-md border border-white/30 bg-white/15 px-3 py-2 text-sm font-semibold hover:bg-white/25"
+      className="flex max-w-full items-center gap-2 rounded-md border border-white/30 bg-white/15 px-3 py-2 text-sm font-semibold hover:bg-white/25"
     >
       <FiFileText className="shrink-0" size={18} />
       <span className="truncate">{item.originalName || "Open PDF"}</span>
     </a>
   ) : (
-    <a href={item.url} target="_blank" rel="noreferrer">
+    <a href={item.url} target="_blank" rel="noreferrer" className="block max-w-full">
       <img
         src={item.url}
         alt={item.originalName || "Chat attachment"}
-        className="max-h-64 rounded-md object-cover"
+        className="max-h-64 max-w-full rounded-md object-contain"
       />
     </a>
   );
@@ -79,6 +79,8 @@ const CustomerChatOverview = () => {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editMessageText, setEditMessageText] = useState("");
+  const [messageToDelete, setMessageToDelete] = useState(null);
+  const [deletingMessage, setDeletingMessage] = useState(false);
   const [now, setNow] = useState(Date.now());
 
   const chatEndRef = useRef(null);
@@ -361,10 +363,15 @@ const CustomerChatOverview = () => {
     }
   };
 
-  const deleteMessage = async (msg) => {
-    if (!msg?._id || !roomId) return;
-    if (!window.confirm("Delete this message?")) return;
+  const deleteMessage = (msg) => {
+    if (msg?._id && roomId) setMessageToDelete(msg);
+  };
 
+  const confirmDeleteMessage = async () => {
+    const msg = messageToDelete;
+    if (!msg?._id || !roomId || deletingMessage) return;
+
+    setDeletingMessage(true);
     try {
       const res = await axios.delete(
         `${API_BASE_URL}/customer/chat/rooms/${roomId}/messages/${msg._id}`,
@@ -379,8 +386,11 @@ const CustomerChatOverview = () => {
         );
       }
       if (editingMessageId === msg._id) cancelEditMessage();
+      setMessageToDelete(null);
     } catch (err) {
       Toast.error(err.response?.data?.message || "Failed to delete message");
+    } finally {
+      setDeletingMessage(false);
     }
   };
 
@@ -440,7 +450,7 @@ const CustomerChatOverview = () => {
   const isChatLocked = Boolean(selectedShipper?.isChatLocked);
 
   return (
-    <div className="flex h-[calc(100vh-120px)] bg-white border shadow font-montserrat overflow-hidden">
+    <div className="flex h-[calc(100vh-120px)] w-full min-w-0 max-w-full overflow-hidden border bg-white font-montserrat shadow">
       {/* ================= SHIPPERS LIST ================= */}
       <div
         className={`w-full lg:w-[380px] xl:w-[420px] shrink-0 border-r overflow-y-auto bg-white
@@ -532,7 +542,7 @@ const CustomerChatOverview = () => {
 
       {/* ================= CHAT ================= */}
       <div
-        className={`flex-1 flex flex-col bg-white
+      className={`relative flex min-w-0 flex-1 flex-col bg-white
         ${selectedShipper ? "block" : "hidden lg:flex"}`}
       >
         {!selectedShipper && (
@@ -543,7 +553,7 @@ const CustomerChatOverview = () => {
 
         {selectedShipper && (
           <>
-            <div className="p-4 border-b flex items-center gap-3 font-semibold">
+            <div className="flex min-w-0 items-center gap-3 border-b p-4 font-semibold">
               <button
                 className="lg:hidden"
                 onClick={() => setSelectedShipper(null)}
@@ -551,7 +561,7 @@ const CustomerChatOverview = () => {
                 <HiArrowLeft size={22} />
               </button>
 
-              <div className="flex flex-col">
+              <div className="flex min-w-0 flex-col">
                 <span>{selectedShipper.name}</span>
                 <span className="text-xs text-[#BF9B53]">
                   {selectedShipper.shipmentCode}
@@ -568,7 +578,7 @@ const CustomerChatOverview = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="min-h-0 min-w-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto p-4">
               {messagesLoading && (
                 <p className="text-gray-400 text-sm text-center">
                   Loading messages...
@@ -591,7 +601,7 @@ const CustomerChatOverview = () => {
                   }`}
                 >
                   <div
-                    className={`p-2 rounded-lg max-w-[75%] ${
+                    className={`min-w-0 max-w-[85%] break-words rounded-lg p-2 sm:max-w-[75%] ${
                       msg.senderRole === "customer"
                         ? "bg-system-primary text-white"
                         : "bg-gray-200"
@@ -607,7 +617,7 @@ const CustomerChatOverview = () => {
                       </div>
                     )}
                     {!msg.isDeleted && editingMessageId === msg._id ? (
-                      <div className="flex min-w-[260px] items-center gap-2">
+                      <div className="flex min-w-0 max-w-full items-center gap-2">
                         <input
                           value={editMessageText}
                           onChange={(e) => setEditMessageText(e.target.value)}
@@ -688,7 +698,7 @@ const CustomerChatOverview = () => {
               <div ref={chatEndRef} />
             </div>
 
-            <div className="p-3 border-t space-y-2">
+            <div className="min-w-0 border-t p-3 space-y-2">
               {isChatLocked && (
                 <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">
                   Chat is locked because this shipment is completed.
@@ -717,7 +727,7 @@ const CustomerChatOverview = () => {
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex min-w-0 gap-2">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -739,7 +749,7 @@ const CustomerChatOverview = () => {
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                   disabled={isChatLocked}
-                  className="flex-1 border rounded px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500"
+                  className="min-w-0 flex-1 rounded border px-3 py-2 disabled:bg-gray-100 disabled:text-gray-500"
                   placeholder={
                     isChatLocked
                       ? "Chat locked after shipment completion"
@@ -757,6 +767,41 @@ const CustomerChatOverview = () => {
               </div>
             </div>
           </>
+        )}
+        {messageToDelete && selectedShipper && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-900/35 p-4">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-chat-message-title"
+              className="w-full max-w-sm rounded-lg border border-[#eadfca] bg-white p-5 shadow-xl"
+            >
+              <h2 id="delete-chat-message-title" className="text-base font-bold text-slate-900">
+                Delete this message?
+              </h2>
+              <p className="mt-2 text-sm text-slate-600">
+                This message will be removed from the conversation.
+              </p>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMessageToDelete(null)}
+                  disabled={deletingMessage}
+                  className="rounded border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteMessage}
+                  disabled={deletingMessage}
+                  className="rounded bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                >
+                  {deletingMessage ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
