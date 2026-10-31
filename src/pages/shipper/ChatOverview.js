@@ -1,3 +1,4 @@
+import ChatDateSeparator from "../../components/chat/ChatDateSeparator";
 import useChatTyping from "../../hooks/useChatTyping";
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -565,7 +566,7 @@ const ChatOverview = () => {
           ))}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div className="chat-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
           {filteredUsers.length === 0 && (
             <p className="p-4 text-gray-500 text-sm">
               No accepted shipment chats found
@@ -648,7 +649,7 @@ const ChatOverview = () => {
               </div>
             </div>
 
-            <div className="min-h-0 min-w-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto overscroll-contain p-4">
+            <div className="chat-scrollbar min-h-0 min-w-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto overscroll-contain p-4">
               {messagesLoading && (
                 <p className="text-gray-400 text-sm text-center">
                   Loading messages...
@@ -662,8 +663,9 @@ const ChatOverview = () => {
               )}
 
               {messages.map((msg, i) => (
+                <React.Fragment key={msg._id || i}>
+                <ChatDateSeparator message={msg} previousMessage={messages[i - 1]} />
                 <div
-                  key={msg._id || i}
                   className={`flex ${
                     msg.senderRole === "shipper"
                       ? "justify-end"
@@ -763,6 +765,7 @@ const ChatOverview = () => {
                     </div>
                   </div>
                 </div>
+                </React.Fragment>
               ))}
               <div ref={chatEndRef} />
             </div>

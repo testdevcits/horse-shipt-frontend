@@ -232,3 +232,18 @@ select::-webkit-scrollbar-track {
   background: white !important;
   opacity: 1 !important;
 }
+
+/* Scoped to the conversation and chat list. */
+.chat-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #bf9b53 #f6f2e9;
+  scrollbar-gutter: stable;
+}
+.chat-scrollbar::-webkit-scrollbar { width: 7px; }
+.chat-scrollbar::-webkit-scrollbar-track { background: #f6f2e9; border-radius: 8px; }
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  background: #bf9b53;
+  border: 2px solid #f6f2e9;
+  border-radius: 8px;
+}
+.chat-scrollbar::-webkit-scrollbar-thumb:hover { background: #997838; }
