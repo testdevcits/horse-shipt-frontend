@@ -1,3 +1,4 @@
+import useChatTyping from "../../hooks/useChatTyping";
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { HiSearch, HiArrowLeft } from "react-icons/hi";
@@ -88,6 +89,7 @@ const CustomerChatOverview = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [newMessage, setNewMessage] = useState("");
+  const partnerTyping = useChatTyping(roomId, newMessage);
   const [selectedImage, setSelectedImage] = useState(null);
   const [sending, setSending] = useState(false);
   const [messagesLoading, setMessagesLoading] = useState(false);
@@ -802,6 +804,10 @@ const CustomerChatOverview = () => {
                     <FiX size={12} />
                   </button>
                 </div>
+              )}
+
+              {partnerTyping && !isChatLocked && (
+                <p role="status" className="mb-2 text-xs text-gray-500">Typing...</p>
               )}
 
               <div className="flex min-w-0 gap-2">
