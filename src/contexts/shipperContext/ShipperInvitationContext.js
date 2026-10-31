@@ -7,7 +7,7 @@ import {
 } from "react";
 import axios from "axios";
 import { useAuth } from "../AuthContext";
-import { socket } from "../../services/socket";
+import { socket, connectSocket } from "../../services/socket";
 import { API_BASE_URL } from "../../config/api";
 
 const ShipperInvitationContext = createContext();
@@ -58,7 +58,7 @@ export const ShipperInvitationProvider = ({ children }) => {
     if (socket.connected) {
       joinRoom();
     } else {
-      socket.connect();
+      connectSocket();
     }
 
     socket.on("connect", joinRoom);

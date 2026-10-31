@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import Toast from "./common/Toast";
-import { socket } from "../services/socket";
+import { socket, connectSocket } from "../services/socket";
 import { useAuth } from "../contexts/AuthContext";
 import { useNotificationActivity } from "../contexts/NotificationActivityContext";
 
@@ -90,7 +90,7 @@ const RealtimeNotifications = () => {
     if (socket.connected) {
       joinRoom();
     } else {
-      socket.connect();
+      connectSocket();
     }
 
     socket.on("connect", joinRoom);

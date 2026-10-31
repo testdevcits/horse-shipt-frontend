@@ -6,7 +6,7 @@ import PageLoader from "../../components/common/PageLoader";
 import ClearSearchButton from "../../components/common/ClearSearchButton";
 import { useShipperChat } from "../../contexts/shipperContext/ShipperChatContext";
 import { useAuth } from "../../contexts/AuthContext";
-import { socket } from "../../services/socket";
+import { socket, connectSocket } from "../../services/socket";
 import axios from "axios";
 import Toast from "../../components/common/Toast";
 import { useSocketStatus } from "../../contexts/SocketStatusContext";
@@ -203,7 +203,7 @@ const ChatOverview = () => {
 
         const syncWhenVisible = () => {
           if (document.visibilityState !== "visible" || cancelled) return;
-          if (!socket.connected) socket.connect();
+          if (!socket.connected) connectSocket();
           else joinRoom();
           fetchRoomMessages(nextRoomId, { silent: true });
         };
@@ -223,7 +223,7 @@ const ChatOverview = () => {
           activeRoomIdRef.current = null;
         };
         if (socket.connected) joinRoom();
-        else socket.connect();
+        else connectSocket();
       } catch (err) {
         if (!cancelled) {
           Toast.error(

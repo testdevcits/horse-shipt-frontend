@@ -50,3 +50,28 @@ socket.on("connect_error", (error) => {
 socket.on("disconnect", (reason) => {
   console.warn("[Socket.IO] disconnected", { reason });
 });
+
+// All callers must set the identity before starting the handshake. Child effects
+// can run before AuthProvider's refresh effect, so use persisted login as well.
+export const connectSocket = (identity) => {
+  let storedUser;
+  try {
+    storedUser = JSON.parse(localStorage.getItem("horseShiptUser") || "null");
+  } catch {
+    console.warn("[Socket.IO] invalid persisted user; login again");
+    return false;
+  }
+  const auth = identity || {
+    userId: storedUser?._id,
+    role: localStorage.getItem("role") || storedUser?.role,
+  };
+  if (!auth.userId || !["customer", "shipper"].includes(auth.role)) {
+    console.warn("[Socket.IO] connection skipped: missing user identity");
+    return false;
+  }
+  const changed = socket.auth?.userId !== auth.userId || socket.auth?.role !== auth.role;
+  if (changed) socket.disconnect();
+  socket.auth = { userId: auth.userId, role: auth.role };
+  socket.connect();
+  return true;
+};

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
-import { socket } from "../services/socket";
+import { socket, connectSocket } from "../services/socket";
 import { API_BASE_URL } from "../config/api";
 
 const AuthContext = createContext();
@@ -30,11 +30,10 @@ export const AuthProvider = ({ children }) => {
       setToken(storedToken);
       setRole(storedRole);
 
-      socket.auth = {
+      connectSocket({
         userId: parsedUser._id,
         role: storedRole,
-      };
-      socket.connect();
+      });
     }
 
     setLoading(false);
@@ -45,7 +44,7 @@ export const AuthProvider = ({ children }) => {
   ================================ */
   useEffect(() => {
     return () => {
-      if (socket.connected) socket.disconnect();
+      socket.disconnect();
     };
   }, []);
 
@@ -62,11 +61,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("token", userData.token);
     localStorage.setItem("role", userData.role);
 
-    socket.auth = {
+    connectSocket({
       userId: userData._id,
       role: userData.role,
-    };
-    socket.connect();
+    });
   };
 
   /* ===============================
@@ -182,7 +180,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     const currentUser = user;
 
-    if (socket.connected) socket.disconnect();
+    socket.disconnect();
 
     setUser(null);
     setToken(null);
@@ -231,11 +229,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", token);
       localStorage.setItem("role", payload.role);
 
-      socket.auth = {
+      connectSocket({
         userId: payload.id,
         role: payload.role,
-      };
-      socket.connect();
+      });
     } catch (err) {
       console.error("OAuth parse error:", err);
     }
