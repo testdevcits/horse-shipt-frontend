@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Toast from "../../../components/common/Toast";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { getStripeErrorMessage } from "../../../utils/stripeErrorMessage";
 
 // =====================================================
 // FEATURES LIST
@@ -203,7 +204,7 @@ const SubscriptionPopup = () => {
       );
 
       if (error) {
-        setCardError(error.message);
+        setCardError(getStripeErrorMessage(error));
         return;
       }
 
@@ -214,7 +215,7 @@ const SubscriptionPopup = () => {
         await fetchPaymentStatus();
       }
     } catch (err) {
-      setCardError(err.message || "Failed to add card");
+      setCardError(getStripeErrorMessage(err));
     } finally {
       setProcessing(false);
     }

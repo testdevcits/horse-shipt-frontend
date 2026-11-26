@@ -17,6 +17,7 @@ import { LoaderCircle } from "lucide-react";
 
 // Stripe
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { getStripeErrorMessage } from "../../utils/stripeErrorMessage";
 import { API_BASE_URL } from "../../config/api";
 
 const AcceptQuoteModal = ({ quote, shipment, onClose }) => {
@@ -165,13 +166,19 @@ const AcceptQuoteModal = ({ quote, shipment, onClose }) => {
         );
 
         if (result.error) {
-          Toast.error(result.error.message);
+          Toast.error(getStripeErrorMessage(result.error));
           setSubmitting(false);
           return;
         }
 
         if (result.paymentIntent.status !== "succeeded") {
-          Toast.error("Payment failed");
+          Toast.error(
+            getStripeErrorMessage({
+              code: result.paymentIntent.last_payment_error?.code,
+              decline_code: result.paymentIntent.last_payment_error?.decline_code,
+              message: result.paymentIntent.last_payment_error?.message,
+            })
+          );
           setSubmitting(false);
           return;
         }
