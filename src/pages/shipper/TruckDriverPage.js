@@ -19,7 +19,6 @@ import {
   FiX,
 } from "react-icons/fi";
 import { MdEditSquare } from "react-icons/md";
-import { FaTrashCan } from "react-icons/fa6";
 import { TfiEmail } from "react-icons/tfi";
 import { FaRegAddressCard } from "react-icons/fa";
 import useDebouncedValue from "../../hooks/useDebouncedValue";
@@ -588,16 +587,6 @@ const TruckDriverPage = () => {
                       }}
                     >
                       Edit
-                    </DriverActionButton>
-
-                    <DriverActionButton
-                      tone="red"
-                      icon={<FaTrashCan size={16} />}
-                      onClick={() =>
-                        setConfirmDelete({ show: true, id: driver._id })
-                      }
-                    >
-                      Delete
                     </DriverActionButton>
 
                     <DriverActionButton

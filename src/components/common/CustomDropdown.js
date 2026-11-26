@@ -13,6 +13,7 @@ const CustomDropdown = ({
 }) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
+  const listboxId = `${name || "custom-dropdown"}-options`;
   const currentValue = value ?? defaultValue ?? "";
   const options = useMemo(
     () =>
@@ -55,6 +56,7 @@ const CustomDropdown = ({
       {...buttonProps}
       role="combobox"
       aria-haspopup="listbox"
+      aria-controls={listboxId}
       aria-expanded={open}
       aria-disabled={disabled}
       aria-label={buttonProps["aria-label"]}
@@ -88,6 +90,7 @@ const CustomDropdown = ({
 
       {open && !disabled && (
         <div
+          id={listboxId}
           role="listbox"
           className="absolute left-0 top-full z-[80] mt-1 max-h-60 w-full min-w-max overflow-y-auto border border-slate-200 bg-white py-1 text-sm text-slate-800 shadow-lg"
         >
